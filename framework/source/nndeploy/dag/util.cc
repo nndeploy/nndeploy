@@ -202,7 +202,7 @@ std::vector<NodeWrapper *> checkUnuseNode(
   std::vector<NodeWrapper *> unused;
   for (auto node_wrapper : node_repository) {
     if (node_wrapper->color_ == base::kNodeColorWhite) {
-      NNDEPLOY_LOGE("Unuse node found in graph, Node name: %s.",
+      NNDEPLOY_LOGE("Unuse node found in graph, Node name: %s.\n",
                     node_wrapper->name_.c_str());
       unused.emplace_back(node_wrapper);
     }
@@ -245,34 +245,49 @@ std::vector<EdgeWrapper *> checkUnuseEdge(
 
 base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
                          std::vector<NodeWrapper *> &topo_sort_node) {
+  // 找到所有入度为0的节点作为起始节点
   std::vector<NodeWrapper *> start_nodes = findStartNodes(node_repository);
   if (start_nodes.empty()) {
-    NNDEPLOY_LOGE("No start node found in graph");
+    NNDEPLOY_LOGE("No start node found in graph!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  std::deque<NodeWrapper *> node_deque;
-  for (auto node_wrapper : start_nodes) {
-    node_wrapper->color_ = base::kNodeColorGray;
-    node_deque.emplace_back(node_wrapper);
-  }
-  while (!node_deque.empty()) {
-    NodeWrapper *node_wrapper = node_deque.front();
-    for (auto successor : node_wrapper->successors_) {
-      if (successor->color_ == base::kNodeColorWhite) {
-        successor->color_ = base::kNodeColorGray;
-        node_deque.emplace_back(successor);
-      } else if (successor->color_ == base::kNodeColorGray) {
-        continue;
-      } else {
-        NNDEPLOY_LOGE("Cycle detected in graph");
-        return base::kStatusCodeErrorInvalidValue;
-      }
-    }
-    node_deque.pop_front();
-    node_wrapper->color_ = base::kNodeColorBlack;
-    topo_sort_node.emplace_back(node_wrapper);
+
+  // 记录每个节点的入度
+  std::unordered_map<NodeWrapper*, int> in_degree;
+  for (auto node : node_repository) {
+    in_degree[node] = node->predecessors_.size();
   }
 
+  // 将所有入度为0的节点加入队列
+  std::queue<NodeWrapper*> q;
+  for (auto node : start_nodes) {
+    q.push(node);
+  }
+
+  // BFS遍历
+  while (!q.empty()) {
+    NodeWrapper* cur = q.front();
+    cur->color_ = base::kNodeColorBlack;
+    q.pop();
+    topo_sort_node.push_back(cur);
+
+    // 将当前节点的所有后继节点的入度减1
+    for (auto succ : cur->successors_) {
+      in_degree[succ]--;
+      // 如果入度变为0,加入队列
+      if (in_degree[succ] == 0) {
+        q.push(succ);
+      }
+    }
+  }
+
+  // 检查是否存在环
+  if (topo_sort_node.size() != node_repository.size()) {
+    NNDEPLOY_LOGE("Cycle detected in graph!\n"); 
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 检查未使用的节点
   checkUnuseNode(node_repository);
 
   return base::kStatusCodeOk;
