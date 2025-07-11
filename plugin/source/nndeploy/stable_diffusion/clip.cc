@@ -56,7 +56,7 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
   ConcatEmbedding(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::Concat";
+    key_ = "nndeploy::stable_diffusion::ConcatEmbedding";
     desc_ = "concat embedding";
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
@@ -153,7 +153,7 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
 
   virtual ~EmbeddingGraph() {}
 
-  virtual base::Status defaultParam() {
+  virtual base::Status setNodeExternalParam() {
     tokenizer::TokenizerPraram *tokenize_param =
         dynamic_cast<tokenizer::TokenizerPraram *>(tokenize_->getParam());
     tokenizer::TokenizerPraram *tokenize_param_ =
@@ -183,7 +183,7 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to set inference type");
       return status;
     }
-    this->defaultParam();
+    this->setNodeExternalParam();
     return status;
   }
 

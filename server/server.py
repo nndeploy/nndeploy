@@ -228,7 +228,7 @@ class NnDeployServer:
         # preview
         @api.get("/preview", tags=["Files"],
                 summary="preview images/videos")
-        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path")):
+        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
             f = Path(self.args.resources) / file_path
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")

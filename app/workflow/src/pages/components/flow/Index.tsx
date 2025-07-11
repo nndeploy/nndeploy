@@ -1,6 +1,8 @@
 import {
   EditorRenderer,
   FlowNodeEntity,
+  FlowNodeFormData,
+  FormModelV2,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
   getNodeForm,
@@ -226,7 +228,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         const response = JSON.parse(event.data);
         if (response.flag === "success" && response.result?.task_id && response.result?.path) {
 
-          const nodeNames:string[] = response.result?.path.map( (item:any)=>item.path)
+          const nodeNames: string[] = response.result?.path.map((item: any) => item.name)
 
           setOutputResources(nodeNames)
           // const taskId = response.result.task_id;
@@ -236,9 +238,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           //   const { name: nodeName, path: path_ } = item as { name: string, path: string }
 
-          //   const designContent = entity.designContent
 
-          //   modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
+          //   const designContent: FlowDocumentJSON = ref?.current?.document.toJSON() as any
+
+          //   //modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
 
 
           //   const newDesinContent = JSON.parse(JSON.stringify(designContent))
@@ -247,31 +250,32 @@ const Flow: React.FC<FlowProps> = (props) => {
           //   ref?.current?.document.reload(newDesinContent);
           //   setTimeout(() => {
           //     // 加载后触发画布的 fitview 让节点自动居中
-          //     ref?.current?.document.fitView();
+          //     //ref?.current?.document.fitView();
+          //     //ref?.current?.document.fireRender()
 
-          //     autoLayOutRef.current?.autoLayout()
+          //     //autoLayOutRef.current?.autoLayout()
           //     //tools.autoLayout()
 
           //   }, 100);
 
-          //   // ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
+          //   //  ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
 
 
           //   //   const form = getNodeForm(node);
+
           //   //   if (form?.getValueIn('name_') == nodeName) {
           //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
+          //   //     //form?.render()
+          //   //     //  const formModel = node.getData<FlowNodeFormData>(FlowNodeFormData)?.getFormModel<FormModelV2>();
+          //   //     //  formModel.render()
           //   //   }
 
 
-          //   //   //node.path_ =  `${path_}&time=${Date.now()}`
-
-          //   // })
-          //   // ref?.current?.document.fitView();
-          //   // autoLayOutRef.current?.autoLayout()
+          //   //   //   //node.path_ =  `${path_}&time=${Date.now()}`
 
           // }
-
-
+          //   // ref?.current?.document.fitView();
+          //   // autoLayOutRef.current?.autoLayout()
 
         } else if (response.flag === "error") {
           //showError(response.result?.task_id, response.message || "任务失败");
@@ -397,26 +401,28 @@ const Flow: React.FC<FlowProps> = (props) => {
       {loading ? (
         <IconLoading />
       ) : (
-        <FreeLayoutEditorProvider
-          {...editorProps}
-          ///@ts-ignore
-          ref={ref}
+        <FlowEnviromentContext.Provider
+          value={{ element: flowRef, onSave, onRun, nodeList, paramTypes, outputResources }}
         >
-          <SidebarProvider>
-            <div className="demo-container" ref={flowRef}>
-              <EditorRenderer className="demo-editor" />
-            </div>
-            <FlowEnviromentContext.Provider
-              value={{ element: flowRef, onSave, onRun, nodeList, paramTypes, outputResources }}
-            >
+          <FreeLayoutEditorProvider
+            {...editorProps}
+            ///@ts-ignore
+            ref={ref}
+          >
+            <SidebarProvider>
+              <div className="demo-container" ref={flowRef}>
+                <EditorRenderer className="demo-editor" />
+              </div>
+
               <DemoTools
                 ///@ts-ignore
                 ref={autoLayOutRef} />
 
               <SidebarRenderer />
-            </FlowEnviromentContext.Provider>
-          </SidebarProvider>
-        </FreeLayoutEditorProvider>
+
+            </SidebarProvider>
+          </FreeLayoutEditorProvider>
+        </FlowEnviromentContext.Provider>
       )}
       <SideSheet
         width={"30%"}

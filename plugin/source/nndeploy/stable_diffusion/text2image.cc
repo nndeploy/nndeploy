@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+#include "nndeploy/codec/codec.h"
 #include "nndeploy/stable_diffusion/clip.h"
 #include "nndeploy/stable_diffusion/denoise.h"
 #include "nndeploy/stable_diffusion/vae.h"
@@ -18,7 +19,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
   InitTokenText(const std::string &name, std::vector<dag::Edge *> inputs,
                 std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::TokenParam";
+    key_ = "nndeploy::stable_diffusion::InitTokenText";
     desc_ = "construct tokenize text [String => TokenizerText]";
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
@@ -94,20 +95,21 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
   int size_ = 1;
 };
 
-class NNDEPLOY_CC_API SaveImage : public dag::Node {
+class NNDEPLOY_CC_API TensorToMat : public dag::Node {
  public:
-  SaveImage(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
+  TensorToMat(const std::string &name, std::vector<dag::Edge *> inputs,
+              std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::SaveImage";
+    key_ = "nndeploy::stable_diffusion::TensorToMat";
     desc_ = "save cvmat to image";
     this->setInputTypeInfo<device::Tensor>();
-    node_type_ = dag::NodeType::kNodeTypeOutput;
+    this->setOutputTypeInfo<cv::Mat>();
   }
 
-  virtual ~SaveImage() {}
+  virtual ~TensorToMat() {}
 
   virtual base::Status run() {
+    setRunningFlag(true);
     device::Tensor *input =
         (device::Tensor *)(this->getInput(0)->getTensor(this));
     float *ptr = (float *)(input->getData());
@@ -115,17 +117,11 @@ class NNDEPLOY_CC_API SaveImage : public dag::Node {
     int c = input->getChannel();
     int h = input->getHeight();
     int w = input->getWidth();
-    std::vector<cv::Mat> images = ToImages(ptr, n, c, h, w);
+    cv::Mat *mat = new cv::Mat(ToImages(ptr, n, c, h, w)[0]);
+    this->getOutput(0)->set(mat);
 
-    for (size_t i = 0; i < images.size(); ++i) {
-      cv::imwrite(output_path_, images[i]);
-      NNDEPLOY_LOGI("images has been saved to %s\n", output_path_.c_str());
-    }
+    setRunningFlag(false);
     return base::kStatusCodeOk;
-  }
-
-  void setOutputPath(const std::string &output_path) {
-    output_path_ = output_path;
   }
 
   std::vector<cv::Mat> ToImages(float *images, int N, int C, int H, int W) {
@@ -160,33 +156,6 @@ class NNDEPLOY_CC_API SaveImage : public dag::Node {
 
     return result;
   }
-
-  virtual base::Status serialize(
-      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
-    base::Status status = dag::Node::serialize(json, allocator);
-    if (status != base::kStatusCodeOk) {
-      return status;
-    }
-    json.AddMember("output_path_",
-                   rapidjson::Value(output_path_.c_str(), allocator),
-                   allocator);
-    return status;
-  }
-
-  virtual base::Status deserialize(rapidjson::Value &json) {
-    base::Status status = dag::Node::deserialize(json);
-    if (status != base::kStatusCodeOk) {
-      return status;
-    }
-    if (json.HasMember("output_path_") && json["output_path_"].IsString()) {
-      std::string output_path = json["output_path_"].GetString();
-      this->setOutputPath(output_path);
-    }
-    return status;
-  }
-
- private:
-  std::string output_path_;
 };
 
 dag::Graph *createStableDiffusionText2ImageGraph(
@@ -223,18 +192,24 @@ dag::Graph *createStableDiffusionText2ImageGraph(
       createVAEGraph("vae", latents, output, inference_type, param);
   graph->addNode(vae_graph, false);
 
-  SaveImage *save_node = (SaveImage *)graph->createNode<SaveImage>(
-      "save_image", std::vector<dag::Edge *>{output},
-      std::vector<dag::Edge *>{});
+  dag::Edge *encode_input = graph->createEdge("encode_input");
+  TensorToMat *convert_node = (TensorToMat *)graph->createNode<TensorToMat>(
+      "tensor_to_mat", std::vector<dag::Edge *>{output},
+      std::vector<dag::Edge *>{encode_input});
+
   Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
   std::string output_path = text2image_param->output_path_;
-  save_node->setOutputPath(output_path);
+  codec::Encode *encode_node =
+      codec::createEncode(base::kCodecTypeOpenCV, base::kCodecFlagImage,
+                          "encode_node", encode_input);
+  encode_node->setPath(output_path);
+  graph->addNode(encode_node, false);
 
   return graph;
 }
 
 REGISTER_NODE("nndeploy::stable_diffusion::InitTokenText", InitTokenText);
-REGISTER_NODE("nndeploy::stable_diffusion::SaveImage", SaveImage);
+REGISTER_NODE("nndeploy::stable_diffusion::TensorToMat", TensorToMat);
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy
