@@ -29,6 +29,12 @@ class Graph(_C.dag.Graph):
         self.set_desc("Graph: Graph for nndeploy in python")
         self.nodes = []
         
+    def __del__(self):
+        if self.get_initialized():
+            self.deinit()
+            self.set_initialized_flag(False)
+        # super().__del__()
+        
     def set_input_type(self, input_type: type):
         """设置输入类型
         

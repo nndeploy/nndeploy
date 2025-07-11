@@ -52,8 +52,8 @@ base::Status ParallelPipelineExecutor::deinit() {
     this->synchronize();
   }
   for (auto iter : edge_repository_) {
-    NNDEPLOY_LOGI("requestTerminate edge[%s]!\n",
-                  iter->edge_->getName().c_str());
+    // NNDEPLOY_LOGI("requestTerminate edge[%s]!\n",
+    //               iter->edge_->getName().c_str());
     bool flag = iter->edge_->requestTerminate();
     if (!flag) {
       NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
@@ -130,8 +130,8 @@ void ParallelPipelineExecutor::commitThreadPool() {
           // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
-          NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
-                        iter->node_->getName().c_str());
+          // NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
+          //               iter->node_->getName().c_str());
           break;
         } else {
           NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
