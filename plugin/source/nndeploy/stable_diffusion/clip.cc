@@ -153,7 +153,7 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
 
   virtual ~EmbeddingGraph() {}
 
-  virtual base::Status defaultParam() {
+  virtual base::Status setNodeExternalParam() {
     tokenizer::TokenizerPraram *tokenize_param =
         dynamic_cast<tokenizer::TokenizerPraram *>(tokenize_->getParam());
     tokenizer::TokenizerPraram *tokenize_param_ =
@@ -183,7 +183,7 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to set inference type");
       return status;
     }
-    this->defaultParam();
+    this->setNodeExternalParam();
     return status;
   }
 
