@@ -25,18 +25,19 @@ class NNDEPLOY_CC_API ConvertToParam : public base::Param {
 
   using base::Param::serialize;
   virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override {
-    json.AddMember("dst_data_type_",
-                   rapidjson::Value(base::dataTypeToString(dst_data_type_).c_str(),
-                                    base::dataTypeToString(dst_data_type_).length(),
-                                    allocator),
-                   allocator);
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) override {
+    json.AddMember(
+        "dst_data_type_",
+        rapidjson::Value(base::dataTypeToString(dst_data_type_).c_str(),
+                         base::dataTypeToString(dst_data_type_).length(),
+                         allocator),
+        allocator);
     return base::kStatusCodeOk;
   }
 
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override {
+  virtual base::Status deserialize(rapidjson::Value &json) override {
     if (json.HasMember("dst_data_type_") && json["dst_data_type_"].IsString()) {
       std::string dst_data_type_str = json["dst_data_type_"].GetString();
       dst_data_type_ = base::stringToDataType(dst_data_type_str);
@@ -49,7 +50,8 @@ class NNDEPLOY_CC_API ConvertTo : public dag::Node {
  public:
   ConvertTo(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::preprocess::ConvertTo";
-    desc_ = "Convert the data type of the input tensor to the specified data type";
+    desc_ =
+        "Convert the data type of the input tensor to the specified data type";
     param_ = std::make_shared<ConvertToParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -58,7 +60,8 @@ class NNDEPLOY_CC_API ConvertTo : public dag::Node {
             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::preprocess::ConvertTo";
-    desc_ = "Convert the data type of the input tensor to the specified data type";
+    desc_ =
+        "Convert the data type of the input tensor to the specified data type";
     param_ = std::make_shared<ConvertToParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
