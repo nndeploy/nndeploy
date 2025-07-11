@@ -619,6 +619,7 @@ base::EdgeUpdateFlag Node::updateInput() {
   for (auto input : inputs_) {
     flag = input->update(this);
     if (flag != base::kEdgeUpdateFlagComplete) {
+      NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(), base::edgeUpdateFlagToString(flag).c_str());
       break;
     }
   }
