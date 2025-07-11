@@ -34,7 +34,7 @@ class GraphRunner:
         graph.set_time_profile_flag(True)
         graph.set_debug_flag(True)
         # graph.set_parallel_type(nndeploy.base.ParallelType.Task)
-        graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+        # graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
         
         nndeploy.base.time_point_start("init_" + name)
         status = graph.init()
@@ -44,6 +44,10 @@ class GraphRunner:
         
         parallel_type = graph.get_parallel_type()
         results = []
+        
+        is_dump = True
+        if is_dump:
+            graph.dump()
         
         nndeploy.base.time_point_start("sum_" + name)
         count = graph.get_loop_count()
@@ -74,7 +78,7 @@ class GraphRunner:
             raise RuntimeError(f"synchronize failed")  
         nndeploy.base.time_point_end("sum_" + name)
         
-        # graph.deinit()
+        graph.deinit()
         
         nodes_name = graph.get_nodes_name_recursive()
         time_profiler_map = {}

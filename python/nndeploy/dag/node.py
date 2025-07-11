@@ -51,6 +51,12 @@ class Node(_C.dag.Node):
             super().__init__(name, inputs, outputs)
         else:
             super().__init__(name, inputs, outputs)
+        
+    def __del__(self):
+        if self.get_initialized():
+            self.deinit()
+            self.set_initialized_flag(False)
+        # super().__del__()
             
     def set_key(self, key: str):
         return super().set_key(key)

@@ -77,6 +77,7 @@ Graph::~Graph() {
   used_edge_names_.clear();
   shared_edge_repository_.clear();
   shared_node_repository_.clear();
+  // NNDEPLOY_LOGI("graph[%s] deinit success!\n", getName().c_str());
 }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {

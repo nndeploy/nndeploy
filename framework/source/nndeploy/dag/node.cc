@@ -556,9 +556,11 @@ size_t Node::getRunSize() { return run_size_; }
 size_t Node::getCompletedSize() { return completed_size_; }
 std::shared_ptr<RunStatus> Node::getRunStatus() {
   if (graph_ != nullptr) {
-    return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(), run_size_, completed_size_);
+    return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
+                                       run_size_, completed_size_);
   } else {
-    return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_, completed_size_);
+    return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
+                                       completed_size_);
   }
 }
 
@@ -617,16 +619,15 @@ base::EdgeUpdateFlag Node::updateInput() {
   for (auto input : inputs_) {
     flag = input->update(this);
     if (flag != base::kEdgeUpdateFlagComplete) {
-      NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(), base::edgeUpdateFlagToString(flag).c_str());
+      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
+      //               base::edgeUpdateFlagToString(flag).c_str());
       break;
     }
   }
   return flag;
 }
 
-bool Node::synchronize() {
-  return true;
-}
+bool Node::synchronize() { return true; }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
