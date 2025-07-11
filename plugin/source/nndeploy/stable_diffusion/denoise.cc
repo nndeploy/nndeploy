@@ -236,16 +236,6 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     ddim_schedule_ =
         (DDIMSchedule *)this->createNode<DDIMSchedule>("ddim_schedule");
 
-    // dag::NodeDesc infer_desc("unet_infer",
-    //                          {"embeddings", "cfg_latents", "timestep"},
-    //                          {"unet_output"});
-    // this->setNodeDesc(infer_, infer_desc);
-
-    // dag::NodeDesc schedule_desc("ddim_schedule",
-    //                             {"unet_output", "prev_latents", "timestep"},
-    //                             {"latents"});
-    // this->setNodeDesc(ddim_schedule_, schedule_desc);
-
     scheduler_ = createScheduler(scheduler_type_);
   }
 
@@ -254,6 +244,19 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
       delete scheduler_;
       scheduler_ = nullptr;
     }
+  }
+
+  virtual base::Status defaultParam() {
+    dag::NodeDesc infer_desc("unet_infer",
+                             {"embeddings", "cfg_latents", "timestep"},
+                             {"unet_output"});
+    this->setNodeDesc(infer_, infer_desc);
+
+    dag::NodeDesc schedule_desc("ddim_schedule",
+                                {"unet_output", "prev_latents", "timestep"},
+                                {"latents"});
+    this->setNodeDesc(ddim_schedule_, schedule_desc);
+    return base::kStatusCodeOk;
   }
 
   virtual base::Status init() {
@@ -428,7 +431,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
 
   virtual ~DenoiseGraph() {}
 
-  virtual base::Status defaultParam() {
+  virtual base::Status setNodeExternalParam() {
     DDIMSchedulerParam *ddim_param_ = dynamic_cast<DDIMSchedulerParam *>(
         getExternalParam("schedule_param_").get());
     Text2ImageParam *text_image_param_ = dynamic_cast<Text2ImageParam *>(
@@ -454,7 +457,8 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     this->setNodeDesc(init_latents_, init_latents_desc);
     this->setNodeDesc(denoise_, denoise_desc);
     denoise_->setInferenceType(inference_type);
-    this->defaultParam();
+    denoise_->defaultParam();
+    this->setNodeExternalParam();
     return base::kStatusCodeOk;
   }
 
