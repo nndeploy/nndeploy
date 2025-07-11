@@ -328,31 +328,72 @@ def sub_remove_node_keys(node_keys: list[str]):
             
 class ImportLib:
     def __init__(self):
-        self.path_list = []
-        self.module_name_list = []
-        self.class_name_list = []
-        self.function_name_list = []
+        self.library_path_set = set()
+        self.path_set = set()
+        self.py_file_set = set()
+        self.module_name_set = set()
+        self.class_name_set = set()
+        self.function_name_set = set()
         
     def add_path(self, path: str):
-        self.path_list.append(path)
+        # 通过文件后缀区分动态库和Python文件
+        if path.endswith(('.so', '.dll', '.dylib')):
+            # 动态库文件
+            self.library_path_set.add(path)
+        elif path.endswith('.py'):
+            # Python文件
+            self.py_file_set.add(path)
+        else:
+            # Python文件路径
+            self.path_set.add(path)
         
     def add_module(self, module_name: str):
-        self.module_name_list.append(module_name)
+        self.module_name_set.add(module_name)
         
     def add_class(self, module_name: str, class_name: str):
-        self.class_name_list.append((module_name, class_name))
+        self.class_name_set.add((module_name, class_name))
         
     def add_function(self, module_name: str, function_name: str):
-        self.function_name_list.append((module_name, function_name))
+        self.function_name_set.add((module_name, function_name))
         
     def import_all(self):
-        sys.path.extend(self.path_list)
-        for module_name in self.module_name_list:
+        for library_path in self.library_path_set:
+            nndeploy.base.load_library_from_path(library_path)
+        sys.path.extend(self.path_set)
+        # 直接加载Python文件
+        for py_file in self.py_file_set:
+            self.load_py_file(py_file)
+        for module_name in self.module_name_set:
             importlib.import_module(module_name)
-        for module_name, class_name in self.class_name_list:
+        for module_name, class_name in self.class_name_set:
             self.import_class(module_name, class_name)
-        for module_name, function_name in self.function_name_list:
+        for module_name, function_name in self.function_name_set:
             self.import_function(module_name, function_name)
+    
+    def load_py_file(self, py_file_path: str):
+        """直接加载Python文件"""
+        import os
+        import importlib.util
+        
+        # 获取文件名作为模块名
+        module_name = os.path.splitext(os.path.basename(py_file_path))[0]
+        
+        # 创建模块规范
+        spec = importlib.util.spec_from_file_location(module_name, py_file_path)
+        if spec is None:
+            print(f"not found: {py_file_path}")
+            return None
+        
+        # 创建模块
+        module = importlib.util.module_from_spec(spec)
+        
+        # 执行模块
+        spec.loader.exec_module(module)
+        
+        # 将模块添加到sys.modules中
+        sys.modules[module_name] = module
+        
+        return module
     
     def import_module(self, module_name: str):
         return importlib.import_module(module_name)
@@ -386,6 +427,8 @@ def import_global_import_lib():
 
 def get_all_node_json():
     # Import all required modules
+    add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+    add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
     import_global_import_lib()
     
     global remove_node_keys

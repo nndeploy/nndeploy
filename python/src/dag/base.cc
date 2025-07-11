@@ -8,9 +8,9 @@ namespace dag {
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   py::enum_<NodeType>(m, "NodeType")
-      .value("kNodeTypeInput", NodeType::kNodeTypeInput)
-      .value("kNodeTypeOutput", NodeType::kNodeTypeOutput)
-      .value("kNodeTypeIntermediate", NodeType::kNodeTypeIntermediate);
+      .value("Input", NodeType::kNodeTypeInput)
+      .value("Output", NodeType::kNodeTypeOutput)
+      .value("Intermediate", NodeType::kNodeTypeIntermediate);
 
   py::enum_<EdgeTypeFlag>(m, "EdgeTypeFlag")
       .value("kBuffer", EdgeTypeFlag::kBuffer)

@@ -417,7 +417,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
   //               node);
   if (!desc.getKey().empty() && node->getKey() != desc.getKey()) {
-    NNDEPLOY_LOGE("node key[%s] != desc key[%s]!", node->getKey().c_str(),
+    NNDEPLOY_LOGE("node key[%s] != desc key[%s]!\n", node->getKey().c_str(),
                   desc.getKey().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
@@ -1968,7 +1968,11 @@ base::Status Graph::deserialize(const std::string &json_str) {
           node = node_repository_[i]->node_;
           base::Status status = this->setNodeDesc(node, node_desc);
           if (status != base::kStatusCodeOk) {
-            NNDEPLOY_LOGE("set node desc failed\n");
+            NNDEPLOY_LOGE("set node desc failed - node: %s (key: %s), desc key: %s, desc name: %s\n", 
+                         node ? node->getName().c_str() : "null", 
+                         node ? node->getKey().c_str() : "null", 
+                         node_desc.getKey().c_str(), 
+                         node_desc.getName().c_str());
             return status;
           }
         } else {

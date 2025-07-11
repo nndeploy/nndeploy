@@ -116,7 +116,8 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
         // NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
         outputs_.push_back(output_name);
       } else {
-        NNDEPLOY_LOGE("Invalid output format at index %d\n", i);
+        NNDEPLOY_LOGE("node[%s] Invalid output format at index %d\n",
+                      node_name_.c_str(), i);
         return base::kStatusCodeErrorInvalidValue;
       }
     }
@@ -1215,7 +1216,7 @@ std::set<std::string> getNodeKeys() {
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   std::vector<Edge *> inputs;
@@ -1223,7 +1224,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name) {
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
-  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  NNDEPLOY_LOGE("Failed to createNode %s, node_key: %s\n", node_name.c_str(),
+                node_key.c_str());
   return nullptr;
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
@@ -1231,7 +1233,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   std::vector<Edge *> inputs_vector;
@@ -1252,7 +1254,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   if (creator != nullptr) {
@@ -1266,7 +1268,7 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   std::vector<Edge *> inputs;
@@ -1283,7 +1285,7 @@ std::shared_ptr<Node> createNodeSharedPtr(
     std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   std::vector<Edge *> inputs_vector;
@@ -1307,7 +1309,7 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
-  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
     creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
   }
   if (creator != nullptr) {
