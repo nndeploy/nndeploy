@@ -287,9 +287,9 @@ def get_node_json(node_key: str):
         raise RuntimeError(f"create_node failed: {node_key}")
     
     status = nndeploy.base.StatusCode.Ok
-    # status = node.default_param()
-    # if status != nndeploy.base.StatusCode.Ok:
-    #     raise RuntimeError(f"default_param failed: {status}")
+    status = node.default_param()
+    if status != nndeploy.base.StatusCode.Ok:
+        raise RuntimeError(f"default_param failed: {status}")
     
     # print(node)   
     is_graph = node.get_graph_flag()
