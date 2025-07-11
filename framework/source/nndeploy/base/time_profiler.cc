@@ -93,6 +93,14 @@ float TimeProfiler::getCostTime(const std::string &key) const {
   return record->cost_time_[index];
 }
 
+float TimeProfiler::getAverageTime(const std::string &key) const {
+  if (records_.find(key) == records_.end()) {
+    return -1.0f;
+  }
+  std::shared_ptr<Record> record = records_.find(key)->second;
+  return record->cost_time_sum_ / record->call_times_;
+}
+
 void TimeProfiler::print(const std::string &title) {
   std::vector<std::shared_ptr<Record>> records;
   for (auto &it : records_) {
@@ -365,7 +373,11 @@ void timePointStart(const std::string &key) { g_time_profiler.start(key); }
 void timePointEnd(const std::string &key) { g_time_profiler.end(key); }
 
 float timeProfilerGetCostTime(const std::string &key) {
-  return g_time_profiler.getCostTime(key);
+  return g_time_profiler.getCostTime(key) / 1000.0f;
+}
+
+float timeProfilerGetAverageTime(const std::string &key) {
+  return g_time_profiler.getAverageTime(key) / 1000.0f;
 }
 
 void timeProfilerPrint(const std::string &title) {

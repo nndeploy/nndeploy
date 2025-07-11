@@ -555,12 +555,18 @@ bool Node::isRunning() { return is_running_; }
 size_t Node::getRunSize() { return run_size_; }
 size_t Node::getCompletedSize() { return completed_size_; }
 std::shared_ptr<RunStatus> Node::getRunStatus() {
+  float cost_time = -1.0f;
+  float average_time = -1.0f;
+  if (is_time_profile_) {
+    cost_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " run()");
+    average_time = NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(name_ + " run()");
+  }
   if (graph_ != nullptr) {
     return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
-                                       run_size_, completed_size_);
+                                       run_size_, completed_size_, cost_time, average_time);
   } else {
     return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
-                                       completed_size_);
+                                       completed_size_, cost_time, average_time);
   }
 }
 
