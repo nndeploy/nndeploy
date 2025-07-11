@@ -26,8 +26,8 @@ def main():
         graph_json_str = f.read()
     gr = GraphRunner()
     time_profiler_map, results = gr.run(graph_json_str, args.name, "test_graph_runner")
-    # print(time_profiler_map)
-    # print(results)
+    print(time_profiler_map)
+    print(results)
 
 if __name__ == "__main__":
     main()

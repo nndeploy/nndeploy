@@ -51,6 +51,10 @@ Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
   is_graph_ = true;
 }
 Graph::~Graph() {
+  if (this->getInitialized()) {
+    this->deinit();
+    this->setInitializedFlag(false);
+  }
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
       delete node_wrapper->node_;

@@ -1,9 +1,11 @@
 import nndeploy._nndeploy_internal as _C
 
+import sys
 from enum import Enum
 from typing import Union
 import numpy as np
 import json
+import importlib
 
 import nndeploy.base
 import nndeploy.device
@@ -316,9 +318,70 @@ def sub_remove_node_keys(node_keys: list[str]):
     global remove_node_keys
     for node_key in node_keys:
         if node_key in remove_node_keys:
-            remove_node_keys.remove(node_key)
+            remove_node_keys.remove(node_key)     
+            
+class ImportLib:
+    def __init__(self):
+        self.path_list = []
+        self.module_name_list = []
+        self.class_name_list = []
+        self.function_name_list = []
+        
+    def add_path(self, path: str):
+        self.path_list.append(path)
+        
+    def add_module(self, module_name: str):
+        self.module_name_list.append(module_name)
+        
+    def add_class(self, module_name: str, class_name: str):
+        self.class_name_list.append((module_name, class_name))
+        
+    def add_function(self, module_name: str, function_name: str):
+        self.function_name_list.append((module_name, function_name))
+        
+    def import_all(self):
+        sys.path.extend(self.path_list)
+        for module_name in self.module_name_list:
+            importlib.import_module(module_name)
+        for module_name, class_name in self.class_name_list:
+            self.import_class(module_name, class_name)
+        for module_name, function_name in self.function_name_list:
+            self.import_function(module_name, function_name)
+    
+    def import_module(self, module_name: str):
+        return importlib.import_module(module_name)
+    
+    def import_class(self, module_name: str, class_name: str):
+        module = self.import_module(module_name)
+        return getattr(module, class_name)
+    
+    def import_function(self, module_name: str, function_name: str):
+        module = self.import_module(module_name)
+        return getattr(module, function_name)
+           
+           
+global_import_lib = ImportLib()
+
+def add_global_import_lib(path: str):
+    global_import_lib.add_path(path)
+    
+def add_global_import_lib_module(module_name: str):
+    global_import_lib.add_module(module_name)
+    
+def add_global_import_lib_class(module_name: str, class_name: str):
+    global_import_lib.add_class(module_name, class_name)
+    
+def add_global_import_lib_function(module_name: str, function_name: str):
+    global_import_lib.add_function(module_name, function_name)
+    
+def import_global_import_lib():
+    global_import_lib.import_all()
+    
 
 def get_all_node_json():
+    # Import all required modules
+    import_global_import_lib()
+    
     global remove_node_keys
     node_keys = get_node_keys()
     real_node_keys = []

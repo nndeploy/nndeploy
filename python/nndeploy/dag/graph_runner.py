@@ -58,19 +58,23 @@ class GraphRunner:
                 outputs = graph.get_all_output()
                 for output in outputs:
                     result = output.get_graph_output()
-                    copy_result = copy.deepcopy(result)
-                    results.append(copy_result)
+                    if result is not None:
+                        copy_result = copy.deepcopy(result)
+                        results.append(copy_result)
         if parallel_type == nndeploy.base.ParallelType.Pipeline:
             for i in range(count):
                 outputs = graph.get_all_output()
                 for output in outputs:
                     result = output.get_graph_output()
-                    copy_result = copy.deepcopy(result)
-                    results.append(copy_result)
+                    if result is not None:
+                        copy_result = copy.deepcopy(result)
+                        results.append(copy_result)
         flag = graph.synchronize()
         if not flag:
             raise RuntimeError(f"synchronize failed")  
         nndeploy.base.time_point_end("sum_" + name)
+        
+        # graph.deinit()
         
         nodes_name = graph.get_nodes_name_recursive()
         time_profiler_map = {}
@@ -87,23 +91,28 @@ class GraphRunner:
         run_status_map = graph.get_nodes_run_status_recursive()
         for node_name, run_status in run_status_map.items():
             print(f"{node_name}: {run_status.get_status()}, {run_status}")
+            
+        # graph.deinit()
         
         return time_profiler_map, results
         
-# def parse_args():
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--json_file", type=str, required=True)
-#     parser.add_argument("--name", type=str, default="graph_runner", required=False)
-#     parser.add_argument("--task_id", type=str, default="", required=False)
-#     return parser.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json_file", type=str, required=True)
+    parser.add_argument("--name", type=str, default="", required=False)
+    return parser.parse_args()
 
-# def main():
-#     args = parse_args()
-#     graph_json_str = ""
-#     with open(args.json_file, "r") as f:
-#         graph_json_str = f.read()
-#     gr = GraphRunner()
-#     gr.run(graph_json_str, args.name, args.task_id)
+def main():
+    args = parse_args()
+    graph_json_str = ""
+    with open(args.json_file, "r") as f:
+        graph_json_str = f.read()
+    gr = GraphRunner()
+    time_profiler_map, results = gr.run(graph_json_str, args.name, "test_graph_runner")
+    print(time_profiler_map)
+    print(results)
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
+
+
