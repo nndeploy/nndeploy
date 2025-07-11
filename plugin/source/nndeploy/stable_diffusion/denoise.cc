@@ -236,15 +236,15 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     ddim_schedule_ =
         (DDIMSchedule *)this->createNode<DDIMSchedule>("ddim_schedule");
 
-    dag::NodeDesc infer_desc("unet_infer",
-                             {"embeddings", "cfg_latents", "timestep"},
-                             {"unet_output"});
-    this->setNodeDesc(infer_, infer_desc);
+    // dag::NodeDesc infer_desc("unet_infer",
+    //                          {"embeddings", "cfg_latents", "timestep"},
+    //                          {"unet_output"});
+    // this->setNodeDesc(infer_, infer_desc);
 
-    dag::NodeDesc schedule_desc("ddim_schedule",
-                                {"unet_output", "prev_latents", "timestep"},
-                                {"latents"});
-    this->setNodeDesc(ddim_schedule_, schedule_desc);
+    // dag::NodeDesc schedule_desc("ddim_schedule",
+    //                             {"unet_output", "prev_latents", "timestep"},
+    //                             {"latents"});
+    // this->setNodeDesc(ddim_schedule_, schedule_desc);
 
     scheduler_ = createScheduler(scheduler_type_);
   }
