@@ -105,9 +105,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
   py::class_<RunStatus, std::shared_ptr<RunStatus>>(m, "RunStatus")
       .def(py::init<>())
-      .def(py::init<const std::string&, bool, size_t, size_t, size_t>(),
+      .def(py::init<const std::string&, bool, size_t, size_t, size_t, float, float>(),
            py::arg("node_name"), py::arg("is_running"), py::arg("graph_run_size"),
-           py::arg("run_size"), py::arg("completed_size"))
+           py::arg("run_size"), py::arg("completed_size"), py::arg("cost_time"), py::arg("average_time"))
       .def(py::init<const RunStatus&>())
       .def("get_status", &RunStatus::getStatus)
       .def_readwrite("node_name", &RunStatus::node_name)
@@ -115,6 +115,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def_readwrite("graph_run_size", &RunStatus::graph_run_size)
       .def_readwrite("run_size", &RunStatus::run_size)
       .def_readwrite("completed_size", &RunStatus::completed_size)
+      .def_readwrite("cost_time", &RunStatus::cost_time)
+      .def_readwrite("average_time", &RunStatus::average_time)
       .def("__str__", [](const RunStatus& self) {
         std::string str = "RunStatus(node_name=";
         str += self.node_name;
@@ -126,6 +128,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         str += std::to_string(self.run_size);
         str += ", completed_size=";
         str += std::to_string(self.completed_size);
+        str += ", cost_time=";
+        str += std::to_string(self.cost_time);
+        str += ", average_time=";
+        str += std::to_string(self.average_time);
         str += ")";
         return str;
       });

@@ -217,22 +217,28 @@ struct NNDEPLOY_CC_API RunStatus {
   size_t graph_run_size = 0;
   size_t run_size = 0;
   size_t completed_size = 0;
+  float cost_time = 0.0f;
+  float average_time = 0.0f;
 
   RunStatus()
-      : node_name(""), is_running(false), graph_run_size(0), run_size(0), completed_size(0) {}
+      : node_name(""), is_running(false), graph_run_size(0), run_size(0), completed_size(0), cost_time(-1.0f), average_time(-1.0f) {}
   RunStatus(const std::string& node_name, bool is_running, size_t graph_run_size, size_t run_size,
-            size_t completed_size)
+            size_t completed_size, float cost_time, float average_time)
       : node_name(node_name),
         is_running(is_running), 
         graph_run_size(graph_run_size),
         run_size(run_size),
-        completed_size(completed_size) {}
+        completed_size(completed_size),
+        cost_time(cost_time),
+        average_time(average_time) {}
   RunStatus(const RunStatus& other)
       : node_name(other.node_name),
         is_running(other.is_running),
         graph_run_size(other.graph_run_size), 
         run_size(other.run_size),
-        completed_size(other.completed_size) {}
+        completed_size(other.completed_size),
+        cost_time(other.cost_time),
+        average_time(other.average_time) {}
   RunStatus& operator=(const RunStatus& other) {
     if (this != &other) {
       node_name = other.node_name;
@@ -240,6 +246,8 @@ struct NNDEPLOY_CC_API RunStatus {
       graph_run_size = other.graph_run_size;
       run_size = other.run_size;
       completed_size = other.completed_size;
+      cost_time = other.cost_time;
+      average_time = other.average_time;
     }
     return *this;
   }

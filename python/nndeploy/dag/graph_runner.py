@@ -83,10 +83,10 @@ class GraphRunner:
         nodes_name = graph.get_nodes_name_recursive()
         time_profiler_map = {}
         for node_name in nodes_name:
-            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()") / 1000.0
-        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name) / 1000.0
-        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name) / 1000.0
-        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name) / 1000.0
+            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
+        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
+        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
+        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
         
         print(time_profiler_map)
         nndeploy.base.time_profiler_print(name)
