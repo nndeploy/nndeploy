@@ -147,10 +147,12 @@ int main(int argc, char *argv[]) {
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
-  graph_demo.decode_node_->setSize(100);
+  
+  int size = 18;
+  graph_demo.decode_node_->setSize(size);
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
-  int size = 100;
+  
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {
@@ -175,13 +177,14 @@ int main(int argc, char *argv[]) {
       }
       NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
+    // graph_demo.synchronize();
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 
   graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
-  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
+  // NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   return 0;
 }

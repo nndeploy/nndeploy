@@ -84,7 +84,7 @@ class NNDEPLOY_CC_API VaeGraph : public dag::Graph {
 
   virtual ~VaeGraph() {}
 
-  virtual base::Status defaultParam() {
+  virtual base::Status setNodeExternalParam() {
     ScaleLatentsParam *scale_param =
         dynamic_cast<ScaleLatentsParam *>(scale_->getParam());
     ScaleLatentsParam *scale_param_ = dynamic_cast<ScaleLatentsParam *>(
@@ -110,7 +110,7 @@ class NNDEPLOY_CC_API VaeGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to set inference type");
       return status;
     }
-    this->defaultParam();
+    this->setNodeExternalParam();
     return base::kStatusCodeOk;
   }
 

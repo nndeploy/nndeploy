@@ -6,7 +6,9 @@ namespace infer {
 
 Infer::Infer(const std::string &name) : dag::Node(name) {
   key_ = "nndeploy::infer::Infer";
-  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
+  desc_ =
+      "Universal Inference Node - Enables cross-platform model deployment with "
+      "multiple inference backends while maintaining native performance";
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
   // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
@@ -19,7 +21,9 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::infer::Infer";
-  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
+  desc_ =
+      "Universal Inference Node - Enables cross-platform model deployment with "
+      "multiple inference backends while maintaining native performance";
   if (inputs.size() == 0) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -191,11 +195,11 @@ base::Status Infer::setParam(base::Param *param) {
   status = inference_->setParam(param);
   return status;
 }
-base::Param *Infer::getParam() { 
+base::Param *Infer::getParam() {
   if (inference_ == nullptr) {
     return nullptr;
   }
-  return inference_->getParam(); 
+  return inference_->getParam();
 }
 
 base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
@@ -243,7 +247,7 @@ base::Status Infer::init() {
     std::string default_name = "input_" + std::to_string(i);
     if (input_type_info_[i]->getEdgeName().empty() ||
         input_type_info_[i]->getEdgeName() == default_name) {
-      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s", i,
+      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s\n", i,
       //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
     }
@@ -259,7 +263,7 @@ base::Status Infer::init() {
     std::string default_name = "output_" + std::to_string(i);
     if (output_type_info_[i]->getEdgeName().empty() ||
         output_type_info_[i]->getEdgeName() == default_name) {
-      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s", i,
+      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s\n", i,
       //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
     }
@@ -344,6 +348,7 @@ base::Status Infer::run() {
     if (inference_output_names_.find(name) == inference_output_names_.end()) {
       name = output_type_info_[i]->getEdgeName();
     }
+    // NNDEPLOY_LOGI("getOutputTensorAfterRun[%s].\n", name.c_str());
     base::ParallelType parallel_type = outputs_[i]->getParallelType();
     bool flag = parallel_type == base::kParallelTypePipeline;
     device::Tensor *tensor =
@@ -373,7 +378,12 @@ base::Status Infer::run() {
     output_count++;
 #endif
 
-    outputs_[i]->set(tensor, false);
+    auto *internal_output = inference_->getOutputTensor(name);
+    if (internal_output != tensor) {
+      outputs_[i]->set(tensor, false);
+    } else {
+      outputs_[i]->set(tensor, true);
+    }
   }
   // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
   return status;
@@ -389,7 +399,11 @@ base::Status Infer::serialize(rapidjson::Value &json,
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  std::string type_str = base::inferenceTypeToString(type_);
+  auto type = type_;
+  if (type == base::kInferenceTypeNotSupport) {
+    type = base::kInferenceTypeOnnxRuntime;
+  }
+  std::string type_str = base::inferenceTypeToString(type);
   json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
                  allocator);
   // json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);

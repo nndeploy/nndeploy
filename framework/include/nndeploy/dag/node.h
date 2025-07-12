@@ -171,6 +171,9 @@ class NNDEPLOY_CC_API Node {
 
   void setRunningFlag(bool flag);
   bool isRunning();
+  size_t getRunSize();
+  size_t getCompletedSize();
+  virtual std::shared_ptr<RunStatus> getRunStatus();
 
   virtual void setTraceFlag(bool flag);
   bool getTraceFlag();
@@ -303,6 +306,8 @@ class NNDEPLOY_CC_API Node {
   base::ParallelType parallel_type_ = base::kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;
+  size_t run_size_ = 0;
+  size_t completed_size_ = 0;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
   bool is_trace_ = false;  // 序列为json时，一定是静态图

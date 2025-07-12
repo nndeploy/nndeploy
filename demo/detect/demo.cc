@@ -45,8 +45,6 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
-#define LOAD_JSON 0
-
 using namespace nndeploy;
 
 DEFINE_int32(yolo_version, 11, "yolo_version");
@@ -101,7 +99,6 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> model_outputs = demo::getModelOutputs();
   NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
 
-#if !LOAD_JSON
   // 有向无环图graph的输入边packert
   dag::Edge *input = new dag::Edge("detect_in");
   // 有向无环图graph的输出边packert
@@ -125,7 +122,7 @@ int main(int argc, char *argv[]) {
     v_graph->make(pre_desc, infer_desc, inference_type, post_desc);
     v_graph->setInferParam(device_type, model_type, is_path, model_value);
     v_graph->setVersion(version);
-    graph->addNode(v_graph);
+    graph->addNode(v_graph, false);
   } else if (yolo_type == "x") {
     detect_graph = new detect::YoloXGraph(name, {input}, {output});
     auto *x_graph = dynamic_cast<detect::YoloXGraph *>(detect_graph);
@@ -134,7 +131,7 @@ int main(int argc, char *argv[]) {
     dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
     x_graph->make(pre_desc, infer_desc, inference_type, post_desc);
     x_graph->setInferParam(device_type, model_type, is_path, model_value);
-    graph->addNode(x_graph);
+    graph->addNode(x_graph, false);
   } else {
     NNDEPLOY_LOGE("yolo_type is not support\n");
     return -1;
@@ -143,7 +140,7 @@ int main(int argc, char *argv[]) {
   // 解码节点
   codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
-  graph->addNode(decode_node);
+  graph->addNode(decode_node, false);
 
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
@@ -159,28 +156,8 @@ int main(int argc, char *argv[]) {
   // 编码节点
   codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
-  graph->addNode(encode_node);
-#else
-  // dag::Graph *graph = new dag::Graph("demo");
-  dag::Graph *graph = dag::loadFile("detect_graph_v5.json");
-  if (graph == nullptr) {
-    NNDEPLOY_LOGE("graph is nullptr");
-    return -1;
-  }
-  detect::YoloGraph *detect_graph =
-      (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
-  if (detect_graph == nullptr) {
-    NNDEPLOY_LOGE("detect_graph is nullptr");
-    return -1;
-  }
-  detect_graph->setInferParam(device_type, model_type, is_path, model_value);
-  detect_graph->setVersion(version);
-  codec::Decode *decode_node =
-      (codec::Decode *)graph->getNode("decode_node");
-  codec::Encode *encode_node =
-      (codec::Encode *)graph->getNode("encode_node");
-  dag::Edge *output = graph->getOutput(0);
-#endif
+  graph->addNode(encode_node, false);
+
 
   // 设置pipeline并行
   base::Status status = graph->setParallelType(pt);
@@ -270,13 +247,9 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   // 有向无环图graph销毁
-
-#if !LOAD_JSON
-  delete encode_node;
-  delete decode_node;
-  delete detect_graph;
-#endif
   delete graph;
+  delete input;
+  delete output;
 
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {

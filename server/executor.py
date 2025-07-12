@@ -6,7 +6,7 @@ import logging
 import json
 from typing import Dict, Tuple, Any, List
 
-from graph_runner import GraphRunner 
+from nndeploy.dag import GraphRunner
 
 class GraphExecutor:
     """Encapsulate nndeploy load and run logic"""

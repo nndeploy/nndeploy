@@ -52,6 +52,8 @@ base::Status ParallelPipelineExecutor::deinit() {
     this->synchronize();
   }
   for (auto iter : edge_repository_) {
+    // NNDEPLOY_LOGI("requestTerminate edge[%s]!\n",
+    //               iter->edge_->getName().c_str());
     bool flag = iter->edge_->requestTerminate();
     if (!flag) {
       NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
@@ -110,6 +112,8 @@ void ParallelPipelineExecutor::commitThreadPool() {
       while (true) {
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
+          NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
+                        iter->node_->getName().c_str());
           iter->node_->setRunningFlag(true);
           status = iter->node_->run();
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -126,6 +130,8 @@ void ParallelPipelineExecutor::commitThreadPool() {
           // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
+          // NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
+          //               iter->node_->getName().c_str());
           break;
         } else {
           NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
@@ -161,6 +167,8 @@ base::Status ParallelPipelineExecutor::executeNode(NodeWrapper* iter) {
       NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
                     iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
+      NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
+                    iter->node_->getName().c_str());
       break;
     } else {
       NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",

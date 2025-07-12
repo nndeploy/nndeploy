@@ -1,7 +1,11 @@
 import {
   EditorRenderer,
+  FlowNodeEntity,
+  FlowNodeFormData,
+  FormModelV2,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  getNodeForm,
   usePlaygroundTools,
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
@@ -32,13 +36,15 @@ let nameId = 0;
 
 interface FlowProps {
   id: string;
-  activeKey:string; 
+  activeKey: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
 }
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
   const [state, dispatch] = useReducer(reducer, (initialState))
+
+  const [outputResources, setOutputResources] = useState<string[]>([])
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -221,35 +227,55 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         const response = JSON.parse(event.data);
         if (response.flag === "success" && response.result?.task_id && response.result?.path) {
-          const taskId = response.result.task_id;
 
-          for (let i = 0; i < response.result.path.length; i++) {
-            const item = response.result.path[i]
+          const nodeNames: string[] = response.result?.path.map((item: any) => item.name)
 
-            const { name: nodeName, path: path_ } = item as { name: string, path: string }
+          setOutputResources(nodeNames)
+          // const taskId = response.result.task_id;
 
-            const designContent = entity.designContent
+          // for (let i = 0; i < response.result.path.length; i++) {
+          //   const item = response.result.path[i]
 
-            modifyNodeByName(nodeName, { path_ }, designContent)
-
-            const newDesinContent = JSON.parse(JSON.stringify(designContent))
-            setEntity({ ...entity, designContent: newDesinContent });
-
-            ref?.current?.document.reload(newDesinContent);
-            setTimeout(() => {
-              // 加载后触发画布的 fitview 让节点自动居中
-              ref?.current?.document.fitView();
-
-              autoLayOutRef.current?.autoLayout()
-              //tools.autoLayout()
-
-            }, 100);
+          //   const { name: nodeName, path: path_ } = item as { name: string, path: string }
 
 
+          //   const designContent: FlowDocumentJSON = ref?.current?.document.toJSON() as any
 
-          }
+          //   //modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
 
 
+          //   const newDesinContent = JSON.parse(JSON.stringify(designContent))
+          //   setEntity({ ...entity, designContent: newDesinContent });
+
+          //   ref?.current?.document.reload(newDesinContent);
+          //   setTimeout(() => {
+          //     // 加载后触发画布的 fitview 让节点自动居中
+          //     //ref?.current?.document.fitView();
+          //     //ref?.current?.document.fireRender()
+
+          //     //autoLayOutRef.current?.autoLayout()
+          //     //tools.autoLayout()
+
+          //   }, 100);
+
+          //   //  ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
+
+
+          //   //   const form = getNodeForm(node);
+
+          //   //   if (form?.getValueIn('name_') == nodeName) {
+          //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
+          //   //     //form?.render()
+          //   //     //  const formModel = node.getData<FlowNodeFormData>(FlowNodeFormData)?.getFormModel<FormModelV2>();
+          //   //     //  formModel.render()
+          //   //   }
+
+
+          //   //   //   //node.path_ =  `${path_}&time=${Date.now()}`
+
+          // }
+          //   // ref?.current?.document.fitView();
+          //   // autoLayOutRef.current?.autoLayout()
 
         } else if (response.flag === "error") {
           //showError(response.result?.task_id, response.message || "任务失败");
@@ -278,88 +304,91 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   useEffect(() => {
     let handleDrop: any = null;
+
+    function dragover(e: any) {
+      e.preventDefault();
+    }
+
+    async function dropFunction(e: any) {
+      e.preventDefault();
+
+      const position =
+        ref?.current?.playground.config.getPosFromMouseEvent(e)!;
+
+      const nodeString = e?.dataTransfer?.getData("text")!;
+
+      const entity = JSON.parse(nodeString)
+
+      //const response = await apiGetNodeById(nodeId!);
+
+      //const entity = nodeList.find(item=>item.key_ == nodeId)!
+      //nodeRegistries.find(item=>item.)
+
+      //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
+      //var type = entity.is_graph_ ? 'group':  entity.key_
+      var type = entity.key_
+
+      let node = {
+        // ...response.result,
+        id: Math.random().toString(36).substr(2, 9),
+        type,
+        meta: {
+          position: {
+            x: position?.x,
+            y: position?.y,
+          },
+        },
+        data: {
+          //title: response.result.key_,
+          ...entity,
+          name_: `${entity.name_}_${nameId++}`,
+        },
+      }
+      //if(response.result.is_dynamic_input_){
+
+      node.data.inputs_ = node.data.inputs_.map((item: any) => {
+        return {
+          ...item,
+          id: 'port' + Math.random().toString(36).substr(2, 9),
+        }
+      })
+      //}
+
+      //if(response.result.is_dynamic_output_){
+
+      node.data.outputs_ = node.data.outputs_.map((item: any) => {
+        return {
+          ...item,
+          id: 'port' + Math.random().toString(36).substr(2, 9),
+        }
+      })
+      //}
+
+      ref?.current?.document.createWorkflowNode(node);
+    }
     if (dropzone.current) {
-      dropzone.current.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        //dropzone.classList.add('over'); // 鼠标经过目标区域时强调样式
-      });
+
+
+      dropzone.current.addEventListener("dragover", dragover);
 
       // dropzone.current.addEventListener('dragleave', () => {
       //     //dropzone.classList.remove('over'); // 离开时恢复样式
       // });
 
-      if (handleDrop) {
-        dropzone.current.removeEventListener("drop", handleDrop);
-        handleDrop = null;
-      }
 
-      handleDrop = dropzone.current.addEventListener("drop", async (e) => {
-        e.preventDefault();
+      dropzone.current.removeEventListener("drop", dropFunction);
 
-        const position =
-          ref?.current?.playground.config.getPosFromMouseEvent(e)!;
 
-        const nodeString = e?.dataTransfer?.getData("text")!;
 
-        const entity = JSON.parse(nodeString)
-
-        //const response = await apiGetNodeById(nodeId!);
-
-        //const entity = nodeList.find(item=>item.key_ == nodeId)!
-        //nodeRegistries.find(item=>item.)
-
-        //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-        //var type = entity.is_graph_ ? 'group':  entity.key_
-        var type = entity.key_
-
-        let node = {
-          // ...response.result,
-          id: Math.random().toString(36).substr(2, 9),
-          type,
-          meta: {
-            position: {
-              x: position?.x,
-              y: position?.y,
-            },
-          },
-          data: {
-            //title: response.result.key_,
-            ...entity,
-            name_: `${entity.name_}_${nameId++}`,
-          },
-        }
-        //if(response.result.is_dynamic_input_){
-
-        node.data.inputs_ = node.data.inputs_.map((item: any) => {
-          return {
-            ...item,
-            id: 'port' + Math.random().toString(36).substr(2, 9),
-          }
-        })
-        //}
-
-        //if(response.result.is_dynamic_output_){
-
-        node.data.outputs_ = node.data.outputs_.map((item: any) => {
-          return {
-            ...item,
-            id: 'port' + Math.random().toString(36).substr(2, 9),
-          }
-        })
-        //}
-
-        ref?.current?.document.createWorkflowNode(node);
-      });
+      dropzone.current.addEventListener("drop", dropFunction);
     }
     //清理函数
     return () => {
-      if (handleDrop) {
-        dropzone?.current?.removeEventListener("dragover", (e) =>
-          e.preventDefault()
-        );
-        dropzone?.current?.removeEventListener("drop", handleDrop);
-        handleDrop = null;
-      }
+      //if (handleDrop) {
+      dropzone?.current?.removeEventListener("dragover", dragover);
+      dropzone?.current?.removeEventListener("drop", dropFunction);
+      // handleDrop = null;
+
     };
   }, [dropzone]);
 
@@ -372,26 +401,28 @@ const Flow: React.FC<FlowProps> = (props) => {
       {loading ? (
         <IconLoading />
       ) : (
-        <FreeLayoutEditorProvider
-          {...editorProps}
-          ///@ts-ignore
-          ref={ref}
+        <FlowEnviromentContext.Provider
+          value={{ element: flowRef, onSave, onRun, nodeList, paramTypes, outputResources }}
         >
-          <SidebarProvider>
-            <div className="demo-container" ref={flowRef}>
-              <EditorRenderer className="demo-editor" />
-            </div>
-            <FlowEnviromentContext.Provider
-              value={{ element: flowRef, onSave, onRun, nodeList, paramTypes }}
-            >
+          <FreeLayoutEditorProvider
+            {...editorProps}
+            ///@ts-ignore
+            ref={ref}
+          >
+            <SidebarProvider>
+              <div className="demo-container" ref={flowRef}>
+                <EditorRenderer className="demo-editor" />
+              </div>
+
               <DemoTools
                 ///@ts-ignore
                 ref={autoLayOutRef} />
 
               <SidebarRenderer />
-            </FlowEnviromentContext.Provider>
-          </SidebarProvider>
-        </FreeLayoutEditorProvider>
+
+            </SidebarProvider>
+          </FreeLayoutEditorProvider>
+        </FlowEnviromentContext.Provider>
       )}
       <SideSheet
         width={"30%"}

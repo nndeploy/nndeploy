@@ -51,17 +51,23 @@ Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
   is_graph_ = true;
 }
 Graph::~Graph() {
+  if (this->getInitialized()) {
+    this->deinit();
+    this->setInitializedFlag(false);
+  }
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
       delete node_wrapper->node_;
+      node_wrapper->node_ = nullptr;
     }
     delete node_wrapper;
   }
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      // NNDEPLOY_LOGE("delete edge[%s]\n",
-      // edge_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("graph [%s] delete edge[%s]\n", getName().c_str(),
+      //               edge_wrapper->edge_->getName().c_str());
       delete edge_wrapper->edge_;
+      edge_wrapper->edge_ = nullptr;
     }
     delete edge_wrapper;
   }
@@ -71,6 +77,7 @@ Graph::~Graph() {
   used_edge_names_.clear();
   shared_edge_repository_.clear();
   shared_node_repository_.clear();
+  // NNDEPLOY_LOGI("graph[%s] deinit success!\n", getName().c_str());
 }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
@@ -519,7 +526,8 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   for (auto input : node->getAllInput()) {
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
-      input_wrapper = this->addEdge(input, is_external);
+      // input_wrapper = this->addEdge(input, is_external);
+      input_wrapper = this->addEdge(input, true);
     }
     // input_wrapper->consumers_.emplace_back(node_wrapper);
     insertUnique(input_wrapper->consumers_, node_wrapper);
@@ -527,7 +535,8 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   for (auto output : node->getAllOutput()) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addEdge(output, is_external);
+      // output_wrapper = this->addEdge(output, is_external);
+      output_wrapper = this->addEdge(output, true);
     }
     // output_wrapper->producers_.emplace_back(node_wrapper);
     insertUnique(output_wrapper->producers_, node_wrapper);
@@ -604,6 +613,76 @@ std::vector<Node *> Graph::getNodes() {
     nodes.emplace_back(node_wrapper->node_);
   }
   return nodes;
+}
+
+std::vector<Node *> Graph::getNodesRecursive() {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::vector<Node *> graph_nodes = graph->getNodesRecursive();
+        nodes.insert(nodes.end(), graph_nodes.begin(), graph_nodes.end());
+      }
+    } else {
+      nodes.emplace_back(node_wrapper->node_);
+    }
+  }
+  return nodes;
+}
+
+std::vector<std::string> Graph::getNodesName() {
+  std::vector<std::string> names;
+  for (auto node_wrapper : node_repository_) {
+    names.emplace_back(node_wrapper->node_->getName());
+  }
+  return names;
+}
+
+std::vector<std::string> Graph::getNodesNameRecursive() {
+  std::vector<std::string> names;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      names.emplace_back(node_wrapper->node_->getName());
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::vector<std::string> graph_names = graph->getNodesNameRecursive();
+        names.insert(names.end(), graph_names.begin(), graph_names.end());
+      }
+    } else {
+      names.emplace_back(node_wrapper->node_->getName());
+    }
+  }
+  return names;
+}
+
+std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatus() {
+  std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
+  for (auto node_wrapper : node_repository_) {
+    run_status_map[node_wrapper->node_->getName()] =
+        node_wrapper->node_->getRunStatus();
+  }
+  return run_status_map;
+}
+
+std::map<std::string, std::shared_ptr<RunStatus>>
+Graph::getNodesRunStatusRecursive() {
+  std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::map<std::string, std::shared_ptr<RunStatus>> graph_run_status_map =
+            graph->getNodesRunStatusRecursive();
+        run_status_map.insert(graph_run_status_map.begin(),
+                              graph_run_status_map.end());
+      }
+    } else {
+      run_status_map[node_wrapper->node_->getName()] =
+          node_wrapper->node_->getRunStatus();
+    }
+  }
+  return run_status_map;
 }
 
 base::Status Graph::setNodeParam(const std::string &node_name,
@@ -691,11 +770,11 @@ int Graph::getLoopCount() {
       }
     }
   }
-  
+
   if (!is_find_input) {
     return 1;
   }
-  if(is_loop_max_flag_) {
+  if (is_loop_max_flag_) {
     return loop_count_max;
   } else {
     return loop_count_min;
@@ -831,6 +910,8 @@ base::Status Graph::init() {
 base::Status Graph::deinit() {
   base::Status status = base::kStatusCodeOk;
 
+  // NNDEPLOY_LOGE("graph [%s] deinit\n", getName().c_str());
+
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
@@ -841,6 +922,8 @@ base::Status Graph::deinit() {
   } else {
     for (auto node_wrapper : node_repository_) {
       if (node_wrapper->node_->getInitialized()) {
+        // NNDEPLOY_LOGE("graph [%s] deinit node[%s]\n", getName().c_str(),
+        //               node_wrapper->node_->getName().c_str());
         status = node_wrapper->node_->deinit();
         NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                "node deinit failed!");
@@ -888,6 +971,7 @@ bool Graph::synchronize() {
 }
 
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
+  is_forward_api_ok_ = false;
   std::vector<Edge *> outputs;
   return outputs;
 };
@@ -922,8 +1006,16 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
   }
 }
 std::vector<Edge *> Graph::forward() {
-  std::vector<Edge *> outputs;
-  return outputs;
+  // is_forward_api_ok_ = false;
+  Edge *input = nullptr;
+  std::vector<Edge *> outputs = this->forward(input);
+  if (isForwardApiOk()) {
+    return outputs;
+  } else {
+    NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n", name_.c_str());
+    is_forward_api_ok_ = false;
+    return std::vector<Edge *>();
+  }
 }
 std::vector<Edge *> Graph::operator()() {
   if (traced_) {
@@ -958,8 +1050,17 @@ std::vector<Edge *> Graph::operator()() {
 }
 
 std::vector<Edge *> Graph::forward(Edge *input) {
-  std::vector<Edge *> outputs;
-  return outputs;
+  // is_forward_api_ok_ = false;
+  std::vector<Edge *> inputs;
+  inputs.emplace_back(input);
+  std::vector<Edge *> outputs = this->forward(inputs);
+  if (isForwardApiOk()) {
+    return outputs;
+  } else {
+    NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n", name_.c_str());
+    is_forward_api_ok_ = false;
+    return std::vector<Edge *>();
+  }
 }
 std::vector<Edge *> Graph::operator()(Edge *input) {
   if (traced_) {
@@ -1235,17 +1336,66 @@ std::vector<Edge *> Graph::trace(Edge *input) {
   return outputs;
 }
 
+bool Graph::isForwardApiOk() {
+  bool ret = is_forward_api_ok_;
+  is_forward_api_ok_ = true;
+  return ret;
+}
+
 base::Status Graph::toStaticGraph() {
   this->setTraceFlag(true);
   base::Status status = base::kStatusCodeOk;
   if (input_type_info_.size() == 0) {
     std::vector<Edge *> outputs = this->operator()();
+    if (isForwardApiOk()) {
+      return base::kStatusCodeOk;
+    } else {
+      NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+                    name_.c_str());
+      return base::kStatusCodeErrorNotSupport;
+    }
+    // else {
+    //   Edge *input = nullptr;
+    //   std::vector<Edge *> outputs = this->operator()(input);
+    //   if (isForwardApiOk()) {
+    //     return base::kStatusCodeOk;
+    //   } else {
+    //     std::vector<Edge *> inputs;
+    //     std::vector<Edge *> outputs = this->operator()(inputs);
+    //     if (isForwardApiOk()) {
+    //       return base::kStatusCodeOk;
+    //     } else {
+    //       NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+    //                     name_.c_str());
+    //       return base::kStatusCodeErrorNotSupport;
+    //     }
+    //   }
+    // }
   } else if (input_type_info_.size() == 1) {
-    std::string name = this->getName() + "@" + "input_" +  std::to_string(0);
+    std::string name = this->getName() + "@" + "input_" + std::to_string(0);
     Edge *edge = new Edge(name);
     this->addEdge(edge, false);
     std::vector<Edge *> outputs = this->operator()(edge);
-    // delete edge;
+    if (isForwardApiOk()) {
+      return base::kStatusCodeOk;
+    } else {
+      NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+                    name_.c_str());
+      return base::kStatusCodeErrorNotSupport;
+    }
+    // else {
+    //   std::vector<Edge *> inputs;
+    //   inputs.emplace_back(edge);
+    //   std::vector<Edge *> outputs = this->operator()(inputs);
+    //   if (isForwardApiOk()) {
+    //     return base::kStatusCodeOk;
+    //   } else {
+    //     NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+    //                   name_.c_str());
+    //     return base::kStatusCodeErrorNotSupport;
+    //   }
+    // }
+    // // delete edge;
   } else {
     std::vector<Edge *> edges;
     for (int i = 0; i < input_type_info_.size(); i++) {
@@ -1255,6 +1405,13 @@ base::Status Graph::toStaticGraph() {
       edges.emplace_back(edge);
     }
     std::vector<Edge *> outputs = this->operator()(edges);
+    if (isForwardApiOk()) {
+      return base::kStatusCodeOk;
+    } else {
+      NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+                    name_.c_str());
+      return base::kStatusCodeErrorNotSupport;
+    }
     // for (auto edge : edges) {
     //   delete edge;
     // }

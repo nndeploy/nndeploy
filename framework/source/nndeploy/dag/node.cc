@@ -530,6 +530,11 @@ void Node::setLoopCount(int loop_count) { loop_count_ = loop_count; }
 int Node::getLoopCount() { return loop_count_; }
 
 void Node::setRunningFlag(bool flag) {
+  if (flag) {
+    run_size_++;
+  } else if (flag == false && is_running_) {
+    completed_size_++;
+  }
   is_running_ = flag;
   if (is_time_profile_) {
     if (is_running_) {
@@ -547,6 +552,23 @@ void Node::setRunningFlag(bool flag) {
   }
 }
 bool Node::isRunning() { return is_running_; }
+size_t Node::getRunSize() { return run_size_; }
+size_t Node::getCompletedSize() { return completed_size_; }
+std::shared_ptr<RunStatus> Node::getRunStatus() {
+  float cost_time = -1.0f;
+  float average_time = -1.0f;
+  if (is_time_profile_) {
+    cost_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " run()");
+    average_time = NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(name_ + " run()");
+  }
+  if (graph_ != nullptr) {
+    return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
+                                       run_size_, completed_size_, cost_time, average_time);
+  } else {
+    return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
+                                       completed_size_, cost_time, average_time);
+  }
+}
 
 void Node::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
@@ -603,15 +625,15 @@ base::EdgeUpdateFlag Node::updateInput() {
   for (auto input : inputs_) {
     flag = input->update(this);
     if (flag != base::kEdgeUpdateFlagComplete) {
+      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
+      //               base::edgeUpdateFlagToString(flag).c_str());
       break;
     }
   }
   return flag;
 }
 
-bool Node::synchronize() {
-  return true;
-}
+bool Node::synchronize() { return true; }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init

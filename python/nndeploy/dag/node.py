@@ -1,9 +1,11 @@
 import nndeploy._nndeploy_internal as _C
 
+import sys
 from enum import Enum
 from typing import Union
 import numpy as np
 import json
+import importlib
 
 import nndeploy.base
 import nndeploy.device
@@ -49,6 +51,12 @@ class Node(_C.dag.Node):
             super().__init__(name, inputs, outputs)
         else:
             super().__init__(name, inputs, outputs)
+        
+    def __del__(self):
+        if self.get_initialized():
+            self.deinit()
+            self.set_initialized_flag(False)
+        # super().__del__()
             
     def set_key(self, key: str):
         return super().set_key(key)
@@ -279,43 +287,30 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
 def get_node_json(node_key: str):
     node_name = node_key.split("::")[-1]
     node_name = node_name.split(".")[-1]
-    print(node_key)
+    # print(node_key)
     node = create_node(node_key, node_name)
     if node is None:
         raise RuntimeError(f"create_node failed: {node_key}")
     
-    # status = node.default_param()
-    # if status != nndeploy.base.StatusCode.Ok:
-    #     raise RuntimeError(f"default_param failed: {status}")
+    status = nndeploy.base.StatusCode.Ok
+    status = node.default_param()
+    if status != nndeploy.base.StatusCode.Ok:
+        raise RuntimeError(f"node key[{node.get_key()}] default_param failed: {status}")
     
-    print(node)   
+    # print(node)   
     is_graph = node.get_graph_flag()
     is_graph_type = isinstance(node, _C.dag.Graph)
     if is_graph and is_graph_type:
-        print(node)        
+        # print(node)        
         node.set_inner_flag(True)
-        node.to_static_graph()
-        print(node)
-        # input_type_info = node.get_input_type_info()
-        # if input_type_info is not None:
-        #     outputs = node.trace()
-        # elif len(input_type_info) == 1:
-        #     name = node.get_name() + "@" + "input_" + str(0)
-        #     edge = nndeploy.dag.Edge(name)
-        #     outputs = node.trace([edge])
-        # else:
-        #     edges = []
-        #     for i in range(len(input_type_info)):
-        #         name = node.get_name() + "@" + "input_" + str(i)
-        #         edge = nndeploy.dag.Edge(name)
-        #         edges.append(edge)
-        #     outputs = node.trace(edges)  
-        # if node.get_key() == "nndeploy::detect::ClassificationGraph":
-        #     node.to_static_graph()
-    print(node)          
-    if node is not None:
+        status = node.to_static_graph()
+        if status != nndeploy.base.StatusCode.Ok:
+            print(f"to_static_graph failed: {status}")     
+    if status == nndeploy.base.StatusCode.Ok:
         json_str = node.serialize()
         return json_str
+    else:
+        return ""
 
 
 remove_node_keys = ["nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition"]
@@ -329,9 +324,70 @@ def sub_remove_node_keys(node_keys: list[str]):
     global remove_node_keys
     for node_key in node_keys:
         if node_key in remove_node_keys:
-            remove_node_keys.remove(node_key)
+            remove_node_keys.remove(node_key)     
+            
+class ImportLib:
+    def __init__(self):
+        self.path_list = []
+        self.module_name_list = []
+        self.class_name_list = []
+        self.function_name_list = []
+        
+    def add_path(self, path: str):
+        self.path_list.append(path)
+        
+    def add_module(self, module_name: str):
+        self.module_name_list.append(module_name)
+        
+    def add_class(self, module_name: str, class_name: str):
+        self.class_name_list.append((module_name, class_name))
+        
+    def add_function(self, module_name: str, function_name: str):
+        self.function_name_list.append((module_name, function_name))
+        
+    def import_all(self):
+        sys.path.extend(self.path_list)
+        for module_name in self.module_name_list:
+            importlib.import_module(module_name)
+        for module_name, class_name in self.class_name_list:
+            self.import_class(module_name, class_name)
+        for module_name, function_name in self.function_name_list:
+            self.import_function(module_name, function_name)
+    
+    def import_module(self, module_name: str):
+        return importlib.import_module(module_name)
+    
+    def import_class(self, module_name: str, class_name: str):
+        module = self.import_module(module_name)
+        return getattr(module, class_name)
+    
+    def import_function(self, module_name: str, function_name: str):
+        module = self.import_module(module_name)
+        return getattr(module, function_name)
+           
+           
+global_import_lib = ImportLib()
+
+def add_global_import_lib(path: str):
+    global_import_lib.add_path(path)
+    
+def add_global_import_lib_module(module_name: str):
+    global_import_lib.add_module(module_name)
+    
+def add_global_import_lib_class(module_name: str, class_name: str):
+    global_import_lib.add_class(module_name, class_name)
+    
+def add_global_import_lib_function(module_name: str, function_name: str):
+    global_import_lib.add_function(module_name, function_name)
+    
+def import_global_import_lib():
+    global_import_lib.import_all()
+    
 
 def get_all_node_json():
+    # Import all required modules
+    import_global_import_lib()
+    
     global remove_node_keys
     node_keys = get_node_keys()
     real_node_keys = []
@@ -346,11 +402,14 @@ def get_all_node_json():
     node_json = "{\"nodes\":["
     for node_key in real_node_keys:
         json = get_node_json(node_key)
+        if json == "":
+            continue
         node_json += json
         if node_key != real_node_keys[-1]:
             node_json += ","
     node_json += "]}"
     
+    # print(node_json)
     # 美化json
     node_json = nndeploy.base.pretty_json_str(node_json)
     return node_json

@@ -1,8 +1,8 @@
 #ifndef _NNDEPLOY_DAG_BASE_H_
 #define _NNDEPLOY_DAG_BASE_H_
 
-#include <typeinfo>
 #include <typeindex>
+#include <typeinfo>
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -97,9 +97,9 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 
   EdgeTypeFlag getType() const { return type_; }
 
-  void setTypeName(const std::string& type_name) { 
+  void setTypeName(const std::string& type_name) {
     // NNDEPLOY_LOGI("setTypeName: %s\n", type_name.c_str());
-    type_name_ = type_name; 
+    type_name_ = type_name;
   }
   std::string getTypeName() const { return type_name_; }
 
@@ -204,10 +204,68 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 };
 
 extern NNDEPLOY_CC_API std::string nodeTypeToString(NodeType node_type);
-extern NNDEPLOY_CC_API NodeType stringToNodeType(const std::string& node_type_str);
+extern NNDEPLOY_CC_API NodeType
+stringToNodeType(const std::string& node_type_str);
 
 extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeTypeFlag edge_type);
-extern NNDEPLOY_CC_API EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
+extern NNDEPLOY_CC_API EdgeTypeFlag
+stringToEdgeType(const std::string& edge_type_str);
+
+struct NNDEPLOY_CC_API RunStatus {
+  std::string node_name;
+  bool is_running = false;
+  size_t graph_run_size = 0;
+  size_t run_size = 0;
+  size_t completed_size = 0;
+  float cost_time = 0.0f;
+  float average_time = 0.0f;
+
+  RunStatus()
+      : node_name(""), is_running(false), graph_run_size(0), run_size(0), completed_size(0), cost_time(-1.0f), average_time(-1.0f) {}
+  RunStatus(const std::string& node_name, bool is_running, size_t graph_run_size, size_t run_size,
+            size_t completed_size, float cost_time, float average_time)
+      : node_name(node_name),
+        is_running(is_running), 
+        graph_run_size(graph_run_size),
+        run_size(run_size),
+        completed_size(completed_size),
+        cost_time(cost_time),
+        average_time(average_time) {}
+  RunStatus(const RunStatus& other)
+      : node_name(other.node_name),
+        is_running(other.is_running),
+        graph_run_size(other.graph_run_size), 
+        run_size(other.run_size),
+        completed_size(other.completed_size),
+        cost_time(other.cost_time),
+        average_time(other.average_time) {}
+  RunStatus& operator=(const RunStatus& other) {
+    if (this != &other) {
+      node_name = other.node_name;
+      is_running = other.is_running;
+      graph_run_size = other.graph_run_size;
+      run_size = other.run_size;
+      completed_size = other.completed_size;
+      cost_time = other.cost_time;
+      average_time = other.average_time;
+    }
+    return *this;
+  }
+
+  std::string getStatus() {
+    if (is_running) {
+      return "RUNNING";
+    } else if (run_size > 0 && completed_size > 0 &&
+               graph_run_size == completed_size) {
+      return "DONE"; 
+    } else if (run_size > 0 && completed_size > 0 &&
+               graph_run_size > run_size) {
+      return "PENDING";
+    } else {
+      return "IDLE";
+    }
+  }
+};
 
 }  // namespace dag
 }  // namespace nndeploy

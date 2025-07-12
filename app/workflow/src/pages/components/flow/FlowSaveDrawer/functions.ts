@@ -408,6 +408,10 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
       });
     }
 
+    if(node.data.node_repository_){
+      node_repository_ = node.data.node_repository_
+    }
+
     let businessNode: IBusinessNode = {
       ...node.data,
       inputs_,
@@ -590,18 +594,18 @@ export function transferBusinessContentToDesignContent(
       },
     };
 
-    if (
-      businessNode.node_repository_ &&
-      businessNode.node_repository_.length > 0
-    ) {
-      const nodeRepositories = businessNode.node_repository_;
-      delete businessNode["node_repository_"];
-      const blocks = nodeRepositories.map((childNode) => {
-        return transferBusinessNodeToDesignNode(childNode);
-      });
+    // if (
+    //   businessNode.node_repository_ &&
+    //   businessNode.node_repository_.length > 0
+    // ) {
+    //   const nodeRepositories = businessNode.node_repository_;
+    //   delete businessNode["node_repository_"];
+    //   const blocks = nodeRepositories.map((childNode) => {
+    //     return transferBusinessNodeToDesignNode(childNode);
+    //   });
 
-      designNode.blocks = blocks;
-    }
+    //   designNode.blocks = blocks;
+    // }
 
     function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
       let collectionPoints: any[] = [];
@@ -654,6 +658,10 @@ export function transferBusinessContentToDesignContent(
   for (let connectionName in outputMap) {
     var outputInfo = outputMap[connectionName];
     var sourceInfos = inputMap[connectionName];
+
+    if(!sourceInfos){
+      continue
+    }
 
     sourceInfos.map(sourceInfo=>{
        var connection: WorkflowEdgeJSON = {

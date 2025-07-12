@@ -41,6 +41,10 @@ base::Status SequentialExecutor::deinit() {
     }
   }
   for (auto iter : topo_sort_node_) {
+    if (!iter->node_->getInitialized()) {
+      continue;
+    }
+    // NNDEPLOY_LOGE("deinit node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "failed iter->node_->deinit()");
