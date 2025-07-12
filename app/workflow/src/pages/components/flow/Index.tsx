@@ -164,7 +164,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
-  const [socket, setSocket] = useState<WebSocket>(); 
+  const [socket, setSocket] = useState<WebSocket>();
 
   useEffect(() => {
     const socket = setupWebSocket()
