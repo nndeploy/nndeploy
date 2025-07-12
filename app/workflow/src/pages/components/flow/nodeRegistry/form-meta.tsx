@@ -354,7 +354,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                   fieldType={fieldType}
                                   onChange={(value) => {
                                     field.onChange(value)
-                                    setUpdateVal({})
+                                    //setUpdateVal({})
                                   }
                                   }
                                   readonly={!isSidebar}
