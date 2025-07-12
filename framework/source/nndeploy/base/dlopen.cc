@@ -16,25 +16,44 @@ class NNDEPLOY_CC_API DlopenSingleton {
     return dlopen_singleton_.get();
   }
 
-  bool loadLibraryFromPath(const std::string &path) {
+  bool loadLibraryFromPath(const std::string &path, bool update) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = handle_map_.find(path);
     if (iter != handle_map_.end()) {
-      return true;
+      if (!update) {
+        return true;
+      }
+      // 如果需要更新，先释放旧的库
+      this->freeLibrary(path);
     }
-
+    
+    // 检查文件是否存在
+    if (!exists(path)) {
+      NNDEPLOY_LOGE("library file not exist: %s\n", path.c_str());
+      return false;
+    }
+    
     Handle *handle = new Handle();
 #ifdef WIN32
     handle->handle_ = LoadLibraryA(path.c_str());
-#else
-    handle->handle_ = dlopen(path.c_str(), RTLD_NOW);
-#endif
     if (handle->handle_ == nullptr) {
-      NNDEPLOY_LOGE("load library from path(%s) failed!\n", path.c_str());
+      DWORD error = GetLastError();
+      NNDEPLOY_LOGE("load library from path(%s) failed! Error code: %lu\n", path.c_str(), error);
       delete handle;
       return false;
     }
+#else
+    handle->handle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (handle->handle_ == nullptr) {
+      const char* error = dlerror();
+      NNDEPLOY_LOGE("load library from path(%s) failed! Error: %s\n", path.c_str(), error ? error : "unknown error");
+      delete handle;
+      return false;
+    }
+#endif
+    
     handle_map_[path] = handle;
+    NNDEPLOY_LOGI("successfully loaded library: %s\n", path.c_str());
     return true;
   }
 
@@ -66,16 +85,25 @@ class NNDEPLOY_CC_API DlopenSingleton {
     return true;
   }
 
-  Handle *getLibraryHandle(const std::string &path) {
+  Handle *getLibraryHandle(const std::string &path, bool update) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = handle_map_.find(path);
-    if (iter != handle_map_.end()) {
+    
+    // 如果库已存在且不需要更新，直接返回
+    if (iter != handle_map_.end() && !update) {
       return iter->second;
-    } else {
-      NNDEPLOY_LOGE("get library handle from path(%s) not found!\n",
-                    path.c_str());
+    }
+    
+    // 加载或重新加载库
+    bool ret = this->loadLibraryFromPath(path, update);
+    if (!ret) {
+      NNDEPLOY_LOGE("get library handle from path(%s) failed!\n", path.c_str());
       return nullptr;
     }
+    
+    // 返回加载后的句柄
+    iter = handle_map_.find(path);
+    return (iter != handle_map_.end()) ? iter->second : nullptr;
   }
 
   DlopenSingleton(const DlopenSingleton &) = delete;
@@ -98,12 +126,12 @@ class NNDEPLOY_CC_API DlopenSingleton {
 
 std::shared_ptr<DlopenSingleton> DlopenSingleton::dlopen_singleton_ = nullptr;
 
-bool loadLibraryFromPath(const std::string &path) {
+bool loadLibraryFromPath(const std::string &path, bool update) {
   if (!exists(path)) {
     NNDEPLOY_LOGE("path is empty");
     return false;
   }
-  return DlopenSingleton::GetInstance()->loadLibraryFromPath(path);
+  return DlopenSingleton::GetInstance()->loadLibraryFromPath(path, false);
 }
 
 bool freeLibrary(const std::string &path) {
@@ -114,12 +142,12 @@ bool freeLibrary(const std::string &path) {
   return DlopenSingleton::GetInstance()->freeLibrary(path);
 }
 
-Handle *getLibraryHandle(const std::string &path) {
+Handle *getLibraryHandle(const std::string &path, bool update) {
   if (!exists(path)) {
     NNDEPLOY_LOGE("path is empty");
     return nullptr;
   }
-  return DlopenSingleton::GetInstance()->getLibraryHandle(path);
+  return DlopenSingleton::GetInstance()->getLibraryHandle(path, update);
 }
 
 }  // namespace base

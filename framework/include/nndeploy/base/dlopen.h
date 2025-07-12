@@ -82,9 +82,11 @@ struct Handle {
 #endif
 };
 
-extern NNDEPLOY_CC_API bool loadLibraryFromPath(const std::string &path);
+extern NNDEPLOY_CC_API bool loadLibraryFromPath(const std::string &path,
+                                                bool update);
 extern NNDEPLOY_CC_API bool freeLibrary(const std::string &path);
-extern NNDEPLOY_CC_API Handle *getLibraryHandle(const std::string &path);
+extern NNDEPLOY_CC_API Handle *getLibraryHandle(const std::string &path,
+                                                bool update);
 
 }  // namespace base
 }  // namespace nndeploy

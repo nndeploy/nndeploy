@@ -934,6 +934,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   // export as base.load_library_from_path
   m.def("load_library_from_path", &loadLibraryFromPath, py::arg("path"),
+        py::arg("update"),
         "Load a library from a path");
 
   // export as base.free_library
@@ -942,6 +943,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   // export as base.get_library_handle
   m.def("get_library_handle", &getLibraryHandle, py::arg("path"),
+        py::arg("update"),
         "Get a library handle from a path");
 }
 
