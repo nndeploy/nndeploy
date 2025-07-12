@@ -51,6 +51,8 @@ const Resource: React.FC = () => {
   };
 
   async function deleteNode(node: IResourceTreeNodeEntity) {
+
+    setResourceEditVisible(false)
     function findDescendantsIncludingSelf(
       flatData: IResourceTreeNodeEntity[],
       id: string
@@ -201,7 +203,10 @@ const Resource: React.FC = () => {
       >
         {label}
       </Typography.Text>
-      <div className="operate">
+      <div className="operate"  onClick={(e)=>{
+        e.preventDefault()
+        e.stopPropagation()
+      }}>
         {/* {
           item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
         } */}
@@ -251,8 +256,7 @@ const Resource: React.FC = () => {
         <ResourceEditDrawer
           node={resourceEdit!}
           onSure={onResourceEditDrawerSure}
-          onClose={onResourceEditDrawerClose}
-        />
+          onClose={onResourceEditDrawerClose} showFileInfo={true}        />
       </SideSheet>
 
       <SideSheet

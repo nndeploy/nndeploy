@@ -53,8 +53,8 @@ export interface IParamTypes{
 
 export interface IFieldType{
    isArray: boolean, 
-   componentType: string; 
+   componentType?: string; 
    primateType: string; 
-   selectOptions: string[]; 
-   selectKey: string; 
+   selectOptions?: string[]; 
+   selectKey?: string; 
 }

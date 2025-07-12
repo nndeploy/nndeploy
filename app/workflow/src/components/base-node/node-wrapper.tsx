@@ -40,6 +40,10 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
         }}
         onClick={(e) => {
           selectNode(e);
+          ///@ts-ignore
+          if(e?.nativeEvent?.currentTarget?.classList?.contains('semi-portal')){
+            return; 
+          }
           if (!isDragging) {
             sidebar.setNodeRender(nodeRender);
             // 可选：将 isScrollToView 设为 true，可以让节点选中后滚动到画布中间
