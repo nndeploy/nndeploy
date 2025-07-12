@@ -193,13 +193,15 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
   ): void {
 
     //window.open(`/api/preview/${entity.parentId}/${entity.name}`)
-    const url = `/api/preview??file_path=${entity.parentId}/${entity.name}`
+    const url = `/api/download?file_path=${entity.parentId}/${entity.name}`
     request.download(url, {}, {}, entity.name)
   }
 
   return (
     <>
-      <div className="drawer-content">
+      <div className="drawer-content" onClick={(e) => {
+        e.stopPropagation(); // 阻止点击事件冒泡到 SideSheet 遮罩层或外层
+      }}>
 
         {
           entity.id ? <>

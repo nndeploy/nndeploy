@@ -156,7 +156,7 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
                                     }
 
 
-                                    optionList={paramTypes[fieldType.selectKey].map(item => {
+                                    optionList={paramTypes[fieldType.selectKey!].map(item => {
                                       return {
                                         label: item,
                                         value: item
