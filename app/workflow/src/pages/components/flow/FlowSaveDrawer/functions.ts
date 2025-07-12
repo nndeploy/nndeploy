@@ -355,14 +355,61 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
 
     // const inputs_ = inputArray_.flat();
 
-    const inputArray_ = (node.data.inputs_ ?? []).map((input:any) => {
+    function nodeIterate(
+      node: any,
+      process: (node: any) => void,
+    ) {
+      process(node);
+      if (node?.node_repository_ && node?.node_repository_.length > 0) {
+        node.node_repository_.forEach((itemNode: WorkflowNodeJSON) => {
+          nodeIterate(itemNode, process);
+        });
+      }
+    }
+
+    function changeNodeDescendConnecitonName(node: WorkflowNodeJSON, originName: string, name_: string) {
+      if (originName == name_) {
+        return
+      }
+
+      ///@ts-ignore
+      const respositories: any[] = node?.data.node_repository_ ?? []
+
+      respositories.map(node => {
+
+        nodeIterate(node, function (node: WorkflowNodeJSON) {
+          ///@ts-ignore
+          const inputs = node.inputs_ ?? []
+          inputs.map((item: any) => {
+            if (item.name_ == originName) {
+              item.name_ = name_
+            }
+          })
+
+          ///@ts-ignore
+          const outputs_ = node.outputs_ ?? []
+          outputs_.map((item: any) => {
+            if (item.name_ == originName) {
+              item.name_ = name_
+            }
+          })
+
+        })
+      })
+    }
+
+    const inputArray_ = (node.data.inputs_ ?? []).map((input: any) => {
+
+      const originName = input.name_
       const name_ = edge_map[node.id + "@" + input.id]
-        return {
-          ...input,
-          name_,
-        };
+
+      changeNodeDescendConnecitonName(node, originName, name_)
+      return {
+        ...input,
+        name_,
+      };
     });
-    
+
     const inputs_ = inputArray_.flat();
 
     // const inputs_ = inputArray_.flat();
@@ -390,13 +437,23 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
 
     // const outputs_ = outputArray_.flat();
 
-    const outputArray_ = (node.data.outputs_ ?? []).map((output:any) => {
+
+
+
+    const outputArray_ = (node.data.outputs_ ?? []).map((output: any) => {
+
+
+      const originName = output.name_
       const name_ = edge_map[node.id + "@" + output.id]
-        return {
-          ...output,
-          name_,
-        };
-    });
+      changeNodeDescendConnecitonName(node, originName, name_)
+
+      return {
+        ...output,
+        name_,
+      };
+
+
+    })
 
     const outputs_ = outputArray_.flat();
 
@@ -408,7 +465,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
       });
     }
 
-    if(node.data.node_repository_){
+    if (node.data.node_repository_) {
       node_repository_ = node.data.node_repository_
     }
 
@@ -422,7 +479,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
     return businessNode;
   }
 
-  
+
 
   let node_repository_: IBusinessNode[] = designData.nodes.map((node) => {
     return transferDesignNodeToBusinessNode(node);
@@ -434,7 +491,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
 }
 
 export function transferBusinessContentToDesignContent(
-  businessContent: IBusinessNode, 
+  businessContent: IBusinessNode,
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
   function businessNodeIterate(
@@ -485,18 +542,18 @@ export function transferBusinessContentToDesignContent(
           businessNode.inputs_?.map((input) => {
             if (input.name_) {
 
-              if(inputMap[input.name_]){
-                inputMap[input.name_] = [ ...inputMap[input.name_], {
+              if (inputMap[input.name_]) {
+                inputMap[input.name_] = [...inputMap[input.name_], {
                   nodeId: businessNode.id,
                   portId: input.id,
                 }];
-              }else{
-                inputMap[input.name_] = [ {
+              } else {
+                inputMap[input.name_] = [{
                   nodeId: businessNode.id,
                   portId: input.id,
                 }];
               }
-             
+
             }
           });
         }
@@ -570,18 +627,18 @@ export function transferBusinessContentToDesignContent(
     businessNode: IBusinessNode
   ): FlowNodeJSON {
 
-    if(businessNode.is_graph_){
+    if (businessNode.is_graph_) {
       debugger
     }
 
-   // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
+    // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
 
-   var type = businessNode.key_
-   
+    var type = businessNode.key_
+
     const designNode: FlowNodeJSON = {
       id: `${businessNode.id}`,
       //type: businessNode.key_.split("::").pop() + "",
-      type, 
+      type,
 
       meta: {
         position: {
@@ -610,7 +667,7 @@ export function transferBusinessContentToDesignContent(
     function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
       let collectionPoints: any[] = [];
 
-      businessNode[type].map((collectionPoint :any) => {
+      businessNode[type].map((collectionPoint: any) => {
         const find = collectionPoints.find((item) => {
           return item.desc_ == collectionPoint.desc_;
         });
@@ -659,22 +716,22 @@ export function transferBusinessContentToDesignContent(
     var outputInfo = outputMap[connectionName];
     var sourceInfos = inputMap[connectionName];
 
-    if(!sourceInfos){
+    if (!sourceInfos) {
       continue
     }
 
-    sourceInfos.map(sourceInfo=>{
-       var connection: WorkflowEdgeJSON = {
-      sourceNodeID: outputInfo.nodeId,
-      targetNodeID: sourceInfo.nodeId,
-      sourcePortID: outputInfo.portId,
-      targetPortID: sourceInfo.portId,
-    };
+    sourceInfos.map(sourceInfo => {
+      var connection: WorkflowEdgeJSON = {
+        sourceNodeID: outputInfo.nodeId,
+        targetNodeID: sourceInfo.nodeId,
+        sourcePortID: outputInfo.portId,
+        targetPortID: sourceInfo.portId,
+      };
 
-    edges.push(connection);
+      edges.push(connection);
     })
 
-   
+
 
     designData.edges = edges;
   }
