@@ -747,6 +747,12 @@ void Graph::setGraphNodeShareStream(bool flag) {
 
 bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
 
+void Graph::setLoopMaxFlag(bool is_loop_max_flag) {
+  is_loop_max_flag_ = is_loop_max_flag;
+}
+
+bool Graph::getLoopMaxFlag() { return is_loop_max_flag_; }
+
 void Graph::setLoopCount(int loop_count) {
   for (auto node_wrapper : node_repository_) {
     node_wrapper->node_->setLoopCount(loop_count);

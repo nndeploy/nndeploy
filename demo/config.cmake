@@ -50,6 +50,7 @@ endif()
 
 if(ENABLE_NNDEPLOY_DAG)
   include(${ROOT_PATH}/demo/dag/config.cmake)
+  include(${ROOT_PATH}/demo/run_json/config.cmake)
 endif()
 
 # plugin
