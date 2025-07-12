@@ -284,7 +284,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                   if (needShowMedia() && field.value && isImageFile(field.value as string)) {
 
-                    const url = `/api/preview?file_path=${field.value}`
+                    const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
                     return <div className="resource-preview">
                       <img src={url} onClick={((event) => onShowMediaFile(event, field.value as string))} 
                       
@@ -354,7 +354,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                   fieldType={fieldType}
                                   onChange={(value) => {
                                     field.onChange(value)
-                                    setUpdateVal({})
+                                    //setUpdateVal({})
                                   }
                                   }
                                   readonly={!isSidebar}
