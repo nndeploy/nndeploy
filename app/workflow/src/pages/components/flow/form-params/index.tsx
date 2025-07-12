@@ -72,7 +72,7 @@ export function FormParams() {
 
                                           value={childField.value as number}
                                           style={{ width: '100%' }}
-                                          optionList={paramTypes[fieldType.selectKey].map(item => {
+                                          optionList={paramTypes[fieldType.selectKey!].map(item => {
                                             return {
                                               label: item,
                                               value: item
@@ -173,7 +173,7 @@ export function FormParams() {
                             onChange={(value) => {
                               field.onChange(value)
                             }}
-                            optionList={paramTypes[fieldType.selectKey].map(item => {
+                            optionList={paramTypes[fieldType.selectKey!].map(item => {
                               return {
                                 label: item,
                                 value: item
