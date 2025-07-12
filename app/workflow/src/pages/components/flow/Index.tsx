@@ -164,6 +164,17 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
+  const [socket, setSocket] = useState<WebSocket>(); 
+
+  useEffect(() => {
+    const socket = setupWebSocket()
+    setSocket(socket)
+
+    return () => {
+      socket.close()
+    }
+  }, [])
+
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
@@ -175,28 +186,30 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
 
-      const socket = setupWebSocket()
+      // const socket = setupWebSocket()
 
-      socket.onopen = async () => {
+      // socket.onopen = async () => {
 
 
-        const response = await apiWorkFlowRun(businessContent);
 
-        if (response.flag == "error") {
-          Toast.error("run fail " + response.message);
-          return;
-        }
-        const taskId = response.result.task_id
 
-        socket.send(JSON.stringify({ type: "bind", task_id: taskId }));
+      // };
+
+      const response = await apiWorkFlowRun(businessContent);
+
+      if (response.flag == "error") {
+        Toast.error("run fail " + response.message);
+        return;
+      }
+      const taskId = response.result.task_id
+
+      socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
+
+      socket!.onclose = () => {
 
       };
 
-      socket.onclose = () => {
-
-      };
-
-      socket.onmessage = (event) => {
+      socket!.onmessage = (event) => {
 
         function modifyNodeByName(nodeName: string, newContent: any, designContent: FlowDocumentJSON) {
           function nodeIterate(
