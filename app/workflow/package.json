@@ -16,7 +16,7 @@
   ],
 
   "scripts": {
-    "build": "exit 0",
+    "build": "npm run clean && rsbuild build",
     "build:fast": "exit 0",
     "build:watch": "exit 0",
     "clean": "rimraf dist",
