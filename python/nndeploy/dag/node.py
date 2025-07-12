@@ -328,47 +328,75 @@ def sub_remove_node_keys(node_keys: list[str]):
             
 class ImportLib:
     def __init__(self):
-        self.library_path_set = set()
-        self.path_set = set()
-        self.py_file_set = set()
-        self.module_name_set = set()
-        self.class_name_set = set()
-        self.function_name_set = set()
+        self.library_path_set = dict() # key: path, value: false or true
+        self.path_set = dict() # key: path, value: false or true
+        self.py_file_set = dict() # key: path, value: false or true
+        self.module_name_set = dict() # key: module_name, value: false or true
+        self.class_name_set = dict() # key: (module_name, class_name), value: false or true
+        self.function_name_set = dict() # key: (module_name, function_name), value: false or true
         
-    def add_path(self, path: str):
+    def add_path(self, path: str, update: bool = False):
         # 通过文件后缀区分动态库和Python文件
         if path.endswith(('.so', '.dll', '.dylib')):
             # 动态库文件
-            self.library_path_set.add(path)
+            if path not in self.library_path_set or update:
+                self.library_path_set[path] = False
         elif path.endswith('.py'):
             # Python文件
-            self.py_file_set.add(path)
+            if path not in self.py_file_set or update:
+                self.py_file_set[path] = False
         else:
             # Python文件路径
-            self.path_set.add(path)
+            if path not in self.path_set or update:
+                self.path_set[path] = False
         
-    def add_module(self, module_name: str):
-        self.module_name_set.add(module_name)
+    def add_module(self, module_name: str, update: bool = False):
+        if module_name not in self.module_name_set or update:
+            self.module_name_set[module_name] = False
         
-    def add_class(self, module_name: str, class_name: str):
-        self.class_name_set.add((module_name, class_name))
+    def add_class(self, module_name: str, class_name: str, update: bool = False):
+        key = (module_name, class_name)
+        if key not in self.class_name_set or update:
+            self.class_name_set[key] = False
         
-    def add_function(self, module_name: str, function_name: str):
-        self.function_name_set.add((module_name, function_name))
+    def add_function(self, module_name: str, function_name: str, update: bool = False):
+        key = (module_name, function_name)
+        if key not in self.function_name_set or update:
+            self.function_name_set[key] = False
         
     def import_all(self):
         for library_path in self.library_path_set:
-            nndeploy.base.load_library_from_path(library_path)
-        sys.path.extend(self.path_set)
+            if not self.library_path_set[library_path]:
+                print(f"load_library_from_path: {library_path}")
+                nndeploy.base.load_library_from_path(library_path, True)
+                self.library_path_set[library_path] = True
+        
+        for path in self.path_set:
+            if not self.path_set[path]:
+                sys.path.append(path)
+                self.path_set[path] = True
+        
         # 直接加载Python文件
         for py_file in self.py_file_set:
-            self.load_py_file(py_file)
+            if not self.py_file_set[py_file]:
+                print(f"load_py_file: {py_file}")
+                self.load_py_file(py_file)
+                self.py_file_set[py_file] = True
+        
         for module_name in self.module_name_set:
-            importlib.import_module(module_name)
+            if not self.module_name_set[module_name]:
+                importlib.import_module(module_name)
+                self.module_name_set[module_name] = True
+        
         for module_name, class_name in self.class_name_set:
-            self.import_class(module_name, class_name)
+            if not self.class_name_set[(module_name, class_name)]:
+                self.import_class(module_name, class_name)
+                self.class_name_set[(module_name, class_name)] = True
+        
         for module_name, function_name in self.function_name_set:
-            self.import_function(module_name, function_name)
+            if not self.function_name_set[(module_name, function_name)]:
+                self.import_function(module_name, function_name)
+                self.function_name_set[(module_name, function_name)] = True
     
     def load_py_file(self, py_file_path: str):
         """直接加载Python文件"""
@@ -388,7 +416,8 @@ class ImportLib:
         module = importlib.util.module_from_spec(spec)
         
         # 执行模块
-        spec.loader.exec_module(module)
+        if spec.loader is not None:
+            spec.loader.exec_module(module)
         
         # 将模块添加到sys.modules中
         sys.modules[module_name] = module
@@ -410,7 +439,11 @@ class ImportLib:
 global_import_lib = ImportLib()
 
 def add_global_import_lib(path: str):
-    global_import_lib.add_path(path)
+    import os
+    if os.path.exists(path):
+        global_import_lib.add_path(path)
+    else:
+        print(f"file or dir not found: {path}")
     
 def add_global_import_lib_module(module_name: str):
     global_import_lib.add_module(module_name)

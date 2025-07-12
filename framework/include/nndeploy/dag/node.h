@@ -358,8 +358,9 @@ class NNDEPLOY_CC_API NodeFactory {
     auto it = creators_.find(node_key);
     // NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
     if (it != creators_.end()) {
-      NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
-      return;
+      // NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
+      // return;
+      NNDEPLOY_LOGW("Node name %s already exists, will be overwritten!\n", node_key.c_str());
     }
     creators_[node_key] = creator;
     // NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());

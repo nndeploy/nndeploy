@@ -1893,12 +1893,12 @@ def pretty_json_str(json_str: str):
     return _C.base.pretty_json_str(json_str) 
 
 
-def load_library_from_path(path: str):
-    return _C.base.load_library_from_path(path)
+def load_library_from_path(path: str, update: bool = False):
+    return _C.base.load_library_from_path(path, update)
 
 def free_library(path: str):
     return _C.base.free_library(path)
 
-def get_library_handle(path: str):
-    return _C.base.get_library_handle(path)
+def get_library_handle(path: str, update: bool = False):
+    return _C.base.get_library_handle(path, update)
 
