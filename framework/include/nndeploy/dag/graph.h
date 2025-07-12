@@ -122,6 +122,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   bool getGraphNodeShareStream();
 
   // set graph loop count
+  virtual void setLoopMaxFlag(bool is_loop_max_flag);
+  virtual bool getLoopMaxFlag();
   virtual void setLoopCount(int loop_count);
   virtual int getLoopCount();
   virtual std::map<std::string, int> getLoopCountMap();
