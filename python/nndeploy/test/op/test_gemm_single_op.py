@@ -29,7 +29,7 @@ nndeploy_weight_map = {
 nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
-class GemmSingleOpGraph(nndeploy.net.Model):
+class GemmSingleOpGraph(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
         self.weight_map = nndeploy_weight_map

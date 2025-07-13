@@ -129,7 +129,7 @@ torch_result = torch.matmul(torch_result, torch.tensor(gemm_weight).T) + torch.t
 )
 
 
-class TestResnet(nndeploy.net.Model):
+class TestResnet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 
