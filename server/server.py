@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from frontend import FrontendManager
 import os
 import json
 import asyncio
@@ -55,13 +56,15 @@ class NnDeployServer:
             allow_headers=["*"],
         )
 
-        dist_dir = Path(__file__).resolve().parent.parent / "app/workflow/dist"
-        if not dist_dir.exists():
-            raise RuntimeError(f"dist directory not found: {dist_dir}")
-        self.app.mount("/design", StaticFiles(directory=dist_dir, html=True), name="frontend")
+        web_root = FrontendManager.init_frontend(args.front_end_version)
+        dist_inside = Path(web_root) / "dist"
+        if dist_inside.is_dir():
+            web_root = str(dist_inside)
 
-        static_dir = dist_dir / "static"
-        self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
+        self.app.mount("/design", StaticFiles(directory=web_root, html=True), name="frontend")
+        static_dir = Path(web_root) / "static"
+        if static_dir.is_dir():
+            self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
 
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
