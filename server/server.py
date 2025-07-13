@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
@@ -53,6 +54,15 @@ class NnDeployServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        dist_dir = Path(__file__).resolve().parent.parent / "app/workflow/dist"
+        if not dist_dir.exists():
+            raise RuntimeError(f"dist directory not found: {dist_dir}")
+        self.app.mount("/design", StaticFiles(directory=dist_dir, html=True), name="frontend")
+
+        static_dir = dist_dir / "static"
+        self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
+
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
