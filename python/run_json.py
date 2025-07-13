@@ -20,7 +20,6 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    is_while = True
     args = parse_args()
     graph_json_str = ""
     with open(args.json_file, "r") as f:
@@ -29,9 +28,13 @@ def main():
     time_profiler_map, results = gr.run(graph_json_str, args.name, "test_graph_runner")
     del gr
     
-    import torch
-    torch.cuda.empty_cache()
+    try:
+        import torch
+        torch.cuda.empty_cache()
+    except ImportError:
+        pass
         
+    is_while = False
     while is_while:
         time.sleep(10)
         print(time_profiler_map)

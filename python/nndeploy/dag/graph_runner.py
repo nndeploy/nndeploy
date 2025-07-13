@@ -101,6 +101,14 @@ class GraphRunner:
         graph.deinit()
         del graph
         
+        is_release_cuda_cache = True
+        if is_release_cuda_cache:
+            try:
+                import torch
+                torch.cuda.empty_cache()
+            except ImportError:
+                pass
+        
         return time_profiler_map, results
         
 def parse_args():
