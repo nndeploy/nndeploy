@@ -295,7 +295,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
       };
 
-      socket.onerror = (err) => {
+      socket!.onerror = (err) => {
         console.error("WebSocket error:", err);
       };
 
