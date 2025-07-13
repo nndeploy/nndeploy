@@ -302,7 +302,7 @@ def test_dynamic_alexnet():
     net = TestAlexNet()
     net.weight_map = nndeploy_weight_map  # 注入权重
     x = create_tensor_from_numpy(np_input)
-    out = net.forward(x)
+    out = net(x)
 
     assert np.allclose(
         torch_result.detach().numpy(),
