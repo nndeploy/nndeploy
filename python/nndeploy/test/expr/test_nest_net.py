@@ -163,7 +163,7 @@ class TestNet(nndeploy.net.Module):
 
 test_net = TestNet()
 
-nndeploy_result = test_net.forward(nndeploy_input_map["input"])
+nndeploy_result = test_net(nndeploy_input_map["input"])
 
 
 assert np.allclose(
