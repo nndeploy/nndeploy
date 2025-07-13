@@ -3,6 +3,7 @@
 """
 
 import nndeploy._nndeploy_internal as _C
+from nndeploy.device.tensor import Tensor
 
 
 def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
@@ -14,46 +15,46 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
     param.strides_ = [stride, stride]
     param.pads_ = [padding, padding, padding, padding]
 
-    return _C.op.conv(input, weight, bias, param)
+    return Tensor(_C.op.conv(input, weight, bias, param))
+
+
+# 其余 import 已在上文给出，不再重复
 
 
 def concat(input1, input2, axis=0):
     param = _C.ir.ConcatParam()
     param.axis_ = axis
-    
-    return _C.op.concat([input1, input2], param)
+    return Tensor(_C.op.concat([input1, input2], param))
 
 
 def batch_norm(input, scale, bias, mean, var, epsilon=1e-5):
     param = _C.ir.BatchNormalizationParam()
     param.epsilon_ = epsilon
-
-    return _C.op.batch_norm(input, scale, bias, mean, var, param)
+    return Tensor(_C.op.batch_norm(input, scale, bias, mean, var, param))
 
 
 def relu(input):
-    return _C.op.relu(input)
+    return Tensor(_C.op.relu(input))
 
 
 def gelu(input):
-    return _C.op.gelu(input)
+    return Tensor(_C.op.gelu(input))
 
 
 def add(input1, input2):
-    return _C.op.add(input1, input2)
+    return Tensor(_C.op.add(input1, input2))
 
 
 def flatten(input, axis=1):
     param = _C.ir.FlattenParam()
     param.axis_ = axis
-    return _C.op.flatten(input, param)
+    return Tensor(_C.op.flatten(input, param))
 
 
 def gather(input, index, axis=0):
     param = _C.ir.GatherParam()
     param.axis_ = axis
-
-    return _C.op.gather(input, index, param)
+    return Tensor(_C.op.gather(input, index, param))
 
 
 def gemm(input_a, input_b, input_c=None, alpha=1.0, beta=1.0, trans_a=0, trans_b=0):
@@ -62,11 +63,11 @@ def gemm(input_a, input_b, input_c=None, alpha=1.0, beta=1.0, trans_a=0, trans_b
     param.beta_ = beta
     param.trans_a_ = trans_a
     param.trans_b_ = trans_b
-    return _C.op.gemm(input_a, input_b, input_c, param)
+    return Tensor(_C.op.gemm(input_a, input_b, input_c, param))
 
 
 def global_averagepool(input):
-    return _C.op.global_averagepool(input)
+    return Tensor(_C.op.global_averagepool(input))
 
 
 def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False):
@@ -76,50 +77,47 @@ def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False
     param.pads_ = [padding] * 4
     param.dilations_ = [dilation] * 2
     param.ceil_mode_ = ceil_mode
-    return _C.op.maxpool(input, param)
+    return Tensor(_C.op.maxpool(input, param))
 
 
 def mat_mul(input1, input2, bias=None, transposeA=False, transposeB=False):
     param = _C.ir.MatMulParam()
     param.transposeA_ = transposeA
     param.transposeB_ = transposeB
-    if bias == None:
-        return _C.op.mat_mul(input1, input2, param, None)
-    return _C.op.mat_mul(input1, input2, param, bias)
+    return Tensor(_C.op.mat_mul(input1, input2, param, bias))
 
 
 def mul(input1, input2):
-    return _C.op.mul(input1, input2)
+    return Tensor(_C.op.mul(input1, input2))
 
 
 def rms_norm(input, weight, epsilon=1e-5):
     param = _C.ir.RMSNormParam()
     param.epsilon_ = epsilon
-
-    return _C.op.rms_norm(input, weight, param)
+    return Tensor(_C.op.rms_norm(input, weight, param))
 
 
 def softmax(input, axis=1):
     param = _C.ir.SoftmaxParam()
     param.axis_ = axis
-    return _C.op.softmax(input, param)
+    return Tensor(_C.op.softmax(input, param))
 
 
 def sigmoid(input):
-    return _C.op.sigmoid(input)
+    return Tensor(_C.op.sigmoid(input))
 
 
 def quantize_linear(input, scale, zero_point, axis=1, saturate=True):
     param = _C.ir.QuantizeLinearParam()
     param.axis_ = axis
     param.saturate_ = saturate
-    return _C.op.quantize_linear(input, scale, zero_point, param)
+    return Tensor(_C.op.quantize_linear(input, scale, zero_point, param))
 
 
 def dequantize_linear(input, scale, zero_point, axis=1):
     param = _C.ir.DequantizeLinearParam()
     param.axis_ = axis
-    return _C.op.dequantize_linear(input, scale, zero_point, param)
+    return Tensor(_C.op.dequantize_linear(input, scale, zero_point, param))
 
 
 def qlinear_conv(
@@ -143,25 +141,27 @@ def qlinear_conv(
     param.padding_ = [padding, padding]
     param.dilation_ = [dilation, dilation]
     param.groups_ = groups
-    return _C.op.qlinear_conv(
-        x,
-        x_scale,
-        x_zero_point,
-        w,
-        w_scale,
-        w_zero_point,
-        y_scale,
-        y_zero_point,
-        bias,
-        param,
+    return Tensor(
+        _C.op.qlinear_conv(
+            x,
+            x_scale,
+            x_zero_point,
+            w,
+            w_scale,
+            w_zero_point,
+            y_scale,
+            y_zero_point,
+            bias,
+            param,
+        )
     )
 
 
 def where(input1, input2, condition):
-    return _C.op.where(input1, input2, condition)
+    return Tensor(_C.op.where(input1, input2, condition))
 
 
 def transpose(input, perm_axis):
     param = _C.ir.TransposeParam()
     param.perm_ = perm_axis
-    return _C.op.transpose(input, param)
+    return Tensor(_C.op.transpose(input, param))

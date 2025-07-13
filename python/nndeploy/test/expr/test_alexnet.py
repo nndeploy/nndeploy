@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import nndeploy
 
 from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
-from nndeploy.net import build_model
+from nndeploy.net import build_model,forward
 
 import nndeploy._nndeploy_internal as _C
 
@@ -128,7 +128,7 @@ torch_result = torch.matmul(torch_result, torch.tensor(fc3_weight).T) + torch.te
 
 
 # nndeploy的Expr机制搭建
-class TestAlexNet(nndeploy.net.Model):
+class TestAlexNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 
@@ -190,14 +190,15 @@ class TestAlexNet(nndeploy.net.Model):
 
         self.flatten = nndeploy.op.Flatten(1)
 
-        self.fc1 = nndeploy.op.Gemm("fc1_weight", "fc1_bias",trans_b=True)
+        self.fc1 = nndeploy.op.Gemm("fc1_weight", "fc1_bias", trans_b=True)
         self.relu6 = nndeploy.op.Relu()
 
-        self.fc2 = nndeploy.op.Gemm("fc2_weight", "fc2_bias",trans_b=True)
+        self.fc2 = nndeploy.op.Gemm("fc2_weight", "fc2_bias", trans_b=True)
         self.relu7 = nndeploy.op.Relu()
 
-        self.fc3 = nndeploy.op.Gemm("fc3_weight", "fc3_bias",trans_b=True)
+        self.fc3 = nndeploy.op.Gemm("fc3_weight", "fc3_bias", trans_b=True)
 
+    # 静态图，只构造计算图，不进行计算，计算延迟到调用计算时才发生
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
         data_type = _C.base.DataType()
@@ -234,6 +235,43 @@ class TestAlexNet(nndeploy.net.Model):
 
         return result
 
+    # 动态图 调用即计算
+    @forward
+    def forward(self, x: nndeploy.device.Tensor):
+
+        # 所有算子已持有 weight_map，直接调用即可
+        x = self.conv1(x)
+        x = self.relu1(x)
+        x = self.max_pool1(x)
+
+        x = self.conv2(x)
+        x = self.relu2(x)
+        x = self.max_pool2(x)
+
+        x = self.conv3(x)
+        x = self.relu3(x)
+
+        x = self.conv4(x)
+        x = self.relu4(x)
+
+        x = self.conv5(x)
+        x = self.relu5(x)
+        x = self.max_pool5(x)
+
+        x = self.flatten(x)
+
+        x = self.fc1(x)
+        x = self.relu6(x)
+
+        x = self.fc2(x)
+        x = self.relu7(x)
+
+        x = self.fc3(x)
+        return x
+
+
+#  ---------- 静态图单测 ----------
+
 
 def compare(model, file_path):
     model.net.dump(file_path)
@@ -245,7 +283,7 @@ def compare(model, file_path):
         create_numpy_from_tensor(nndeploy_result),
         rtol=1e-05,
         atol=1e-05,
-    )
+    ), "Static AlexNet output mismatch with PyTorch!"
 
 
 # 开启图优化
@@ -257,3 +295,19 @@ compare(test_net0, "alexnet_graph_opt.dot")
 test_net1 = TestAlexNet()
 test_net1.construct(enable_net_opt=False)
 compare(test_net1, "alexnet_no_opt.dot")
+
+
+# ---------- 动态图单测 ----------
+def test_dynamic_alexnet():
+    net = TestAlexNet()
+    net.weight_map = nndeploy_weight_map  # 注入权重
+    x = create_tensor_from_numpy(np_input)
+    out = net.forward(x)
+
+    assert np.allclose(
+        torch_result.detach().numpy(),
+        create_numpy_from_tensor(out),
+        rtol=1e-05,
+        atol=1e-05,
+    ), "Dynamic AlexNet output mismatch with PyTorch!"
+test_dynamic_alexnet()
