@@ -62,7 +62,7 @@ torch_result = torch.nn.functional.batch_norm(
 torch_result = torch.nn.functional.relu(torch_result)
 
 
-class TestNet(nndeploy.net.Model):
+class TestNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 

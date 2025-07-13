@@ -38,7 +38,7 @@ torch_result = (
 )
 
 
-class TestNet(nndeploy.net.Model):
+class TestNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
         self.weight_map = nndeploy_weight_map
