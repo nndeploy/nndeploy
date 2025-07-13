@@ -44,10 +44,5 @@ int main(int argc, char* argv[]) {
     return ret;
   }
 
-  // for (int i = 0; i < 100; i++) {
-  //   printf("run success\n");
-  //   std::this_thread::sleep_for(std::chrono::seconds(10));
-  // }
-
   return 0;
 }
