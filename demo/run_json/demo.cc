@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <time.h>
 
 #include "flag.h"
 #include "nndeploy/dag/graph_runner.h"
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
     NNDEPLOY_LOGE("run failed. ERROR: %d\n", result->status);
     return -1;
   }
+
   delete graph_runner;
 
   ret = nndeployFrameworkDeinit();
@@ -41,6 +43,11 @@ int main(int argc, char* argv[]) {
     NNDEPLOY_LOGE("nndeployFrameworkDeinit failed. ERROR: %d\n", ret);
     return ret;
   }
+
+  // for (int i = 0; i < 100; i++) {
+  //   printf("run success\n");
+  //   std::this_thread::sleep_for(std::chrono::seconds(10));
+  // }
 
   return 0;
 }

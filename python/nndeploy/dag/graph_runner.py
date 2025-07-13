@@ -82,8 +82,6 @@ class GraphRunner:
             raise RuntimeError(f"synchronize failed")  
         nndeploy.base.time_point_end("sum_" + name)
         
-        graph.deinit()
-        
         nodes_name = graph.get_nodes_name_recursive()
         time_profiler_map = {}
         for node_name in nodes_name:
@@ -100,7 +98,8 @@ class GraphRunner:
         for node_name, run_status in run_status_map.items():
             print(f"{node_name}: {run_status.get_status()}, {run_status}")
             
-        # graph.deinit()
+        graph.deinit()
+        del graph
         
         return time_profiler_map, results
         

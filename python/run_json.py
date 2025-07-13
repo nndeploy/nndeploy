@@ -20,14 +20,22 @@ def parse_args():
     return parser.parse_args()
 
 def main():
+    is_while = True
     args = parse_args()
     graph_json_str = ""
     with open(args.json_file, "r") as f:
         graph_json_str = f.read()
     gr = GraphRunner()
     time_profiler_map, results = gr.run(graph_json_str, args.name, "test_graph_runner")
-    print(time_profiler_map)
-    print(results)
+    del gr
+    
+    import torch
+    torch.cuda.empty_cache()
+        
+    while is_while:
+        time.sleep(10)
+        print(time_profiler_map)
+        print(results)
 
 if __name__ == "__main__":
     main()
