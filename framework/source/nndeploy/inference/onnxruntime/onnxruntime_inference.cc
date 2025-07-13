@@ -16,7 +16,9 @@ TypeInferenceRegister<TypeInferenceCreator<OnnxRuntimeInference>>
 OnnxRuntimeInference::OnnxRuntimeInference(base::InferenceType type)
     : Inference(type) {}
 
-OnnxRuntimeInference::~OnnxRuntimeInference() {}
+OnnxRuntimeInference::~OnnxRuntimeInference() {
+  // NNDEPLOY_LOGI("OnnxRuntimeInference::~OnnxRuntimeInference()\n");
+}
 
 base::Status OnnxRuntimeInference::init() {
   base::Status status = base::kStatusCodeOk;
@@ -173,10 +175,13 @@ base::Status OnnxRuntimeInference::deinit() {
   outputs_desc_.clear();
 
   // session_options_.release();
-  session_.release();
+  // session_.release();
+  // 只能这样写，写其他任何代码都会导致内存泄漏
   session_ = Ort::Session{nullptr};
-  env_.release();
-  session_ = Ort::Session{nullptr};
+  // env_.release();
+  // env_ = Ort::Env{nullptr};
+
+  // NNDEPLOY_LOGE("OnnxRuntimeInference::deinit end\n");
 
   return status;
 }

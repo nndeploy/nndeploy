@@ -463,6 +463,9 @@ base::Status TensorRtInference::initWithOnnxModel(
     NNDEPLOY_LOGE("buildSerializedNetwork failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
+  if (tensorrt_inference_param->is_path_ && tensorrt_inference_param->model_save_path_.empty()) {
+    tensorrt_inference_param->model_save_path_ = tensorrt_inference_param->model_value_[0] + ".plan";
+  }
   if (!tensorrt_inference_param->model_save_path_.empty()) {
     std::ofstream model_file(tensorrt_inference_param->model_save_path_.c_str(),
                              std::ios::binary | std::ios::out);
@@ -471,7 +474,7 @@ base::Status TensorRtInference::initWithOnnxModel(
     }
     model_file.write(static_cast<char *>(plan->data()), plan->size());
     model_file.close();
-    return base::kStatusCodeOk;
+    NNDEPLOY_LOGI("save model to %s success\n", tensorrt_inference_param->model_save_path_.c_str());
   }
 
   runtime_ = base::UniquePtr<nvinfer1::IRuntime>(
