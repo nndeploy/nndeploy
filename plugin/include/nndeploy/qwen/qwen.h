@@ -1,5 +1,5 @@
 
-#ifndef _NNDEPLOY_LLM_QWENs_H_
+#ifndef _NNDEPLOY_LLM_QWEN_H_
 #define _NNDEPLOY_LLM_QWEN_H_
 
 #include "nndeploy/base/any.h"
@@ -12,6 +12,7 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
+#include "nndeploy/dag/composite_node.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/loop.h"
@@ -185,8 +186,6 @@ class NNDEPLOY_CC_API PrefillSampleNode : public dag::Node {
     desc_ = "llm sample node [logits -> token_ids]";
     param_ = std::make_shared<SampleParam>();
     this->setInputTypeInfo<device::Tensor>();
-    this->setInputTypeInfo<tokenizer::TokenizerIds>();
-    this->setOutputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
   }
   virtual ~PrefillSampleNode() {}
@@ -208,7 +207,6 @@ class NNDEPLOY_CC_API DecodeSampleNode : public dag::Node {
     desc_ = "llm sample node [logits -> token_ids]";
     param_ = std::make_shared<SampleParam>();
     this->setInputTypeInfo<device::Tensor>();
-    this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
   }
   virtual ~DecodeSampleNode() {}
@@ -241,16 +239,18 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
                             const std::string& role = "");
 };
 
-class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
+class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
  public:
-  LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*> inputs,
-                  std::vector<dag::Edge*> outputs)
-      : dag::Graph(name, inputs, outputs) {
-    key_ = "nndeploy::llm::LlmPrefillGraph";
+  QwenPrefill(const std::string& name, std::vector<dag::Edge*> inputs,
+              std::vector<dag::Edge*> outputs)
+      : CompositeNode(name, inputs, outputs) {
+    key_ = "nndeploy:qwen::QwenPrefill";
     desc_ = "llm prefill stage [TokenizerText -> {token_ids, kv_}]";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
+    this->setOutputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<device::Tensor>();
+
     prefill_token_node_ = dynamic_cast<tokenizer::TokenizerEncodeCpp*>(
         this->createNode<tokenizer::TokenizerEncodeCpp>("token_node"));
     prefill_embedding_node_ = dynamic_cast<PrefillEmbeddingNode*>(
@@ -261,177 +261,53 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
         this->createNode<PrefillSampleNode>("prefill_sample_node"));
   }
 
-  // LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
-  //                 std::vector<dag::Edge*>& outputs,
-  //                 base::InferenceType inference_type,
-  //                 base::DeviceType device_type, base::ModelType model_type,
-  //                 bool is_path, QwenConfig& config)
-  //     : dag::Graph(name, inputs, outputs),
-  //       prompt_(inputs[0]),
-  //       prefill_presents_(outputs[1]),
-  //       prefill_out_ids_(outputs[0]),
-  //       inference_type_(inference_type),
-  //       hidden_size_(config.hidden_size_),
-  //       kv_init_shape_(config.kv_init_shape_) {
-  //   history_ids_ = new tokenizer::TokenizerIds();
-  //   key_ = "nndeploy::llm::LlmPrefillGraph";
-  //   createPrefillNodesEdges();
-  //   setParams(is_path, model_type, device_type, config);
-  // }
-
-  virtual ~LlmPrefillGraph() {
-    DELETE_POINTER(prefill_token_node_);
-    DELETE_POINTER(prefill_embedding_node_);
-    DELETE_POINTER(prefill_infer_node_);
-    DELETE_POINTER(prefill_sample_node_);
-
-    // DELETE_POINTER(prompt_);
-    // DELETE_POINTER(prefill_token_ids_);
-    // DELETE_POINTER(prefill_input_ids_);
-    // DELETE_POINTER(prefill_attention_mask_);
-    // DELETE_POINTER(prefill_position_ids_);
-    // DELETE_POINTER(prefill_past_key_values_);
-    // DELETE_POINTER(prefill_logits_);
-    // DELETE_POINTER(prefill_presents_);
-    // DELETE_POINTER(prefill_out_ids_);
-    // DELETE_POINTER(past_kv_);
-    // DELETE_POINTER(history_ids_);
-  }
+  virtual base::Status init();
   virtual base::Status run();
+  virtual base::Status deinit();
+  virtual base::Status defaultParam();
 
- protected:
-  void genPastKeyValue();
-  void createPrefillNodesEdges();
-  void setParams(bool is_path, base::ModelType model_type,
-                 base::DeviceType device_type, QwenConfig& model_value);
-
- public:
+ private:
   dag::Node* prefill_token_node_;
   dag::Node* prefill_embedding_node_;
   infer::Infer* prefill_infer_node_;
   dag::Node* prefill_sample_node_;
-
-  // dag::Edge* prompt_;
-  // dag::Edge* prefill_token_ids_;
-  // dag::Edge *prefill_input_ids_, *prefill_attention_mask_;
-  // dag::Edge *prefill_position_ids_, *prefill_past_key_values_;
-  // dag::Edge *prefill_logits_, *prefill_presents_;
-  // dag::Edge* prefill_out_ids_;
-
-  device::Tensor* past_kv_ = nullptr;
-  tokenizer::TokenizerIds* history_ids_;
-  base::InferenceType inference_type_;
-  base::IntVector kv_init_shape_;
-  int hidden_size_;
 };
 
-class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
+class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
  public:
-  LlmDecodeGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
-                 std::vector<dag::Edge*>& outputs)
-      : dag::Loop(name, inputs, outputs) {
-    key_ = "nndeploy::llm::LlmDecodeGraph";
+  QwenDecode(const std::string& name, std::vector<dag::Edge*> inputs,
+             std::vector<dag::Edge*> outputs)
+      : CompositeNode(name, inputs, outputs) {
+    key_ = "nndeploy::qwen::QwenDecode";
     desc_ = "llm decode stage [token_ids -> TokenizerText]";
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
-    this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
+    this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
-  }
-  // LlmDecodeGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
-  //                std::vector<dag::Edge*>& outputs, device::Tensor* past_kv,
-  //                tokenizer::TokenizerIds* history_ids,
-  //                base::InferenceType inference_type,
-  //                base::DeviceType device_type, base::ModelType model_type,
-  //                bool is_path, QwenConfig& config)
-  //     : dag::Loop(name, inputs, outputs),
-  //       decode_embedding_ids_(inputs[0]),
-  //       decode_prefill_kv_(inputs[1]),
-  //       decode_out_words_(outputs[0]),
-  //       past_kv_(past_kv),
-  //       history_ids_(history_ids),
-  //       hidden_size_(config.hidden_size_),
-  //       max_seq_len_(config.max_seq_len_),
-  //       inference_type_(inference_type) {
-  //   key_ = "nndeploy::llm::LlmDecodeGraph";
-  //   getStopTokens(config.tokenizer_txt_);
-  //   createPrefillNodesEdges();
-  //   setParams(is_path, model_type, device_type, config);
-  // }
 
-  virtual ~LlmDecodeGraph() {
-    DELETE_POINTER(decode_embedding_node_);
-    DELETE_POINTER(decode_infer_node_);
-    DELETE_POINTER(decode_sample_node_);
-    DELETE_POINTER(decode_node_);
-
-    // DELETE_POINTER(decode_embedding_ids_);
-    // DELETE_POINTER(decode_prefill_kv_);
-    // DELETE_POINTER(decode_input_ids_);
-    // DELETE_POINTER(decode_attention_mask_);
-    // DELETE_POINTER(decode_position_ids_);
-    // DELETE_POINTER(decode_past_key_values_);
-    // DELETE_POINTER(decode_logits_);
-    // DELETE_POINTER(decode_presents_);
-    // DELETE_POINTER(decode_out_ids_);
-    // DELETE_POINTER(decode_out_words_);
-    // DELETE_POINTER(past_kv_);
-    // DELETE_POINTER(history_ids_);
+    decode_embedding_node_ = dynamic_cast<DecodeEmbeddingNode*>(
+        this->createNode<DecodeEmbeddingNode>("embedding_node"));
+    decode_infer_node_ = dynamic_cast<infer::Infer*>(
+        this->createNode<infer::Infer>("decode_infer"));
+    decode_sample_node_ = dynamic_cast<DecodeSampleNode*>(
+        this->createNode<DecodeSampleNode>("sample_node"));
+    decode_node_ = dynamic_cast<tokenizer::TokenizerDecodeCpp*>(
+        this->createNode<tokenizer::TokenizerDecodeCpp>("decode_node"));
   }
 
-  virtual int loops();
+  virtual base::Status init();
   virtual base::Status run();
-
-  void createPrefillNodesEdges();
-  void setParams(bool is_path, base::ModelType model_type,
-                 base::DeviceType device_type, QwenConfig& config);
-
- protected:
-  void getStopTokens(std::string& token_file);
-  // inline bool isStop() {
-  //   /* get decode out id */
-  //   tokenizer::TokenizerIds* token_ids;
-  //   if (is_first_) {
-  //     token_ids = (tokenizer::TokenizerIds*)(decode_embedding_ids_->getParam(
-  //         decode_embedding_node_));
-  //   } else {
-  //     token_ids = (tokenizer::TokenizerIds*)(decode_out_ids_->getParam(
-  //         decode_sample_node_));
-  //   }
-
-  //   int token = token_ids->ids_[0][0];
-  //   return std::find(stop_tokens_.begin(), stop_tokens_.end(), token) !=
-  //          stop_tokens_.end();
-  // }
+  virtual base::Status deinit();
+  virtual base::Status defaultParam();
 
  public:
   dag::Node* decode_embedding_node_;
-  dag::Node* decode_infer_node_;
+  infer::Infer* decode_infer_node_;
   dag::Node* decode_sample_node_;
   dag::Node* decode_node_;
-
-  // dag::Edge* decode_embedding_ids_;
-  // dag::Edge* decode_prefill_kv_;
-  // dag::Edge *decode_input_ids_, *decode_attention_mask_;
-  // dag::Edge *decode_position_ids_, *decode_past_key_values_;
-  // dag::Edge *decode_logits_, *decode_presents_;
-  // dag::Edge* decode_out_ids_;
-  // dag::Edge* decode_out_words_;
-
-  device::Tensor* past_kv_;
-  tokenizer::TokenizerIds* history_ids_;
-
-  base::InferenceType inference_type_;
-
-  std::vector<int> stop_tokens_;
-  std::vector<int> special_tokens_;
-  int max_seq_len_;
-  int hidden_size_;
-  bool is_first_ = true;
-
-  std::string result_;
 };
 
-extern NNDEPLOY_CC_API dag::Graph* createLlmLlama2Graph(
+extern NNDEPLOY_CC_API dag::Graph* createQwenGraph(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
     base::ModelType model_type, bool is_path,

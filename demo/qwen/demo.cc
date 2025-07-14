@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
   // prompt node
   dag::Edge *prompt = graph->createEdge("prompt");
   dag::Node *prompt_node =
-      graph->createNode<Prompt>("prompt_node", std::vector<dag::Edge *>{},
-                                std::vector<dag::Edge *>{prompt});
+      graph->createNode<PromptNode>("prompt_node", std::vector<dag::Edge *>{},
+                                    std::vector<dag::Edge *>{prompt});
 
   // prompt params
   PromptParam *prompt_param =
@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
 
   // create dag for llm
   dag::Graph *llm_graph =
-      dag::createGraph(name, inference_type, device_type, prompt, output,
-                       model_type, is_path, {config_path});
+      createQwenGraph(name, inference_type, device_type, prompt, output,
+                      model_type, is_path, {config_path});
   if (llm_graph == nullptr) {
     NNDEPLOY_LOGE("llm_graph is nullptr");
     return -1;
