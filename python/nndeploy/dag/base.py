@@ -10,9 +10,9 @@ import nndeploy.device
 
 
 name_to_node_type = {
-    "kInput": _C.dag.NodeType.kNodeTypeInput,
-    "kOutput": _C.dag.NodeType.kNodeTypeOutput,
-    "kIntermediate": _C.dag.NodeType.kNodeTypeIntermediate,
+    "Input": _C.dag.NodeType.Input,
+    "Output": _C.dag.NodeType.Output,
+    "Intermediate": _C.dag.NodeType.Intermediate,
 }
 
 
@@ -20,16 +20,16 @@ node_type_to_name = {v: k for k, v in name_to_node_type.items()}
 
 
 class NodeType(_C.dag.NodeType):
-    kInput = _C.dag.NodeType.kNodeTypeInput
-    kOutput = _C.dag.NodeType.kNodeTypeOutput
-    kIntermediate = _C.dag.NodeType.kNodeTypeIntermediate
+    Input = _C.dag.NodeType.Input
+    Output = _C.dag.NodeType.Output
+    Intermediate = _C.dag.NodeType.Intermediate
 
     @classmethod
     def from_name(cls, name: str):
         name_to_node_type = {
-            "kNodeTypeInput": cls.kNodeTypeInput,
-            "kNodeTypeOutput": cls.kNodeTypeOutput,
-            "kNodeTypeIntermediate": cls.kNodeTypeIntermediate
+            "Input": cls.Input,
+            "Output": cls.Output,
+            "Intermediate": cls.Intermediate
         }
         if name not in name_to_node_type:
             raise ValueError(f"不支持的节点类型: {name}")

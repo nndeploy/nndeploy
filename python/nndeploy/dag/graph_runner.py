@@ -12,7 +12,7 @@ import argparse
 import nndeploy.base
 import nndeploy.device
 from .graph import Graph
-from .node import Node
+from .node import Node, add_global_import_lib, import_global_import_lib, import_global_import_lib
 from .edge import Edge
 from .base import EdgeTypeInfo
 
@@ -25,6 +25,10 @@ class GraphRunner:
         return graph
     
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
+        add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+        add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+        import_global_import_lib()
+        
         nndeploy.base.time_profiler_reset()
         
         nndeploy.base.time_point_start("deserialize_" + name)
@@ -78,8 +82,6 @@ class GraphRunner:
             raise RuntimeError(f"synchronize failed")  
         nndeploy.base.time_point_end("sum_" + name)
         
-        graph.deinit()
-        
         nodes_name = graph.get_nodes_name_recursive()
         time_profiler_map = {}
         for node_name in nodes_name:
@@ -96,7 +98,16 @@ class GraphRunner:
         for node_name, run_status in run_status_map.items():
             print(f"{node_name}: {run_status.get_status()}, {run_status}")
             
-        # graph.deinit()
+        graph.deinit()
+        del graph
+        
+        is_release_cuda_cache = True
+        if is_release_cuda_cache:
+            try:
+                import torch
+                torch.cuda.empty_cache()
+            except ImportError:
+                pass
         
         return time_profiler_map, results
         

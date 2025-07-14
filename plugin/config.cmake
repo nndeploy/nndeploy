@@ -11,6 +11,10 @@ set(NNDEPLOY_PLUGIN_LIST)
 set(PLUGIN_ROOT_PATH ${ROOT_PATH}/plugin)
 
 # plugin includes
+
+# # template
+include(${PLUGIN_ROOT_PATH}/source/nndeploy/template/config.cmake)
+
 # # preprocess
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/preprocess/config.cmake)

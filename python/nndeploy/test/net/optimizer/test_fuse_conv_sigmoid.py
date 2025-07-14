@@ -60,7 +60,7 @@ torch_result = torch.nn.functional.conv2d(
 torch_result = torch.nn.functional.sigmoid(torch_result)
 
 
-class TestNet(nndeploy.net.Model):
+class TestNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 

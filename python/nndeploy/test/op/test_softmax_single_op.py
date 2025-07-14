@@ -20,7 +20,7 @@ torch_result = torch.softmax(torch.tensor(np_input), dim=-1)
 nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
-class SoftmaxSingleOpGraph(nndeploy.net.Model):
+class SoftmaxSingleOpGraph(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 
