@@ -83,8 +83,7 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeCropNormTrans *>(
-        this->createNode<preprocess::CvtResizeCropNormTrans>(
-            "preprocess"));
+        this->createNode<preprocess::CvtResizeCropNormTrans>("preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
     post_ = dynamic_cast<ClassificationPostProcess *>(
@@ -100,8 +99,7 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeCropNormTrans *>(
-        this->createNode<preprocess::CvtResizeCropNormTrans>(
-            "preprocess"));
+        this->createNode<preprocess::CvtResizeCropNormTrans>("preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
     post_ = dynamic_cast<ClassificationPostProcess *>(
@@ -131,10 +129,10 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
-    // pre_param->resize_h_ = 256;
-    // pre_param->resize_w_ = 256;
-    pre_param->resize_h_ = 224;
-    pre_param->resize_w_ = 224;
+    pre_param->resize_h_ = 256;
+    pre_param->resize_w_ = 256;
+    // pre_param->resize_h_ = 224;
+    // pre_param->resize_w_ = 224;
     pre_param->mean_[0] = 0.485;
     pre_param->mean_[1] = 0.456;
     pre_param->mean_[2] = 0.406;
@@ -195,7 +193,149 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
    */
   base::Status setSrcPixelType(base::PixelType pixel_type) {
     preprocess::CvtResizeCropNormTransParam *param =
-        dynamic_cast<preprocess::CvtResizeCropNormTransParam *>(pre_->getParam());
+        dynamic_cast<preprocess::CvtResizeCropNormTransParam *>(
+            pre_->getParam());
+    param->src_pixel_type_ = pixel_type;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setTopk(int topk) {
+    ClassificationPostParam *param =
+        dynamic_cast<ClassificationPostParam *>(post_->getParam());
+    param->topk_ = topk;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setSoftmax(bool is_softmax) {
+    ClassificationPostParam *param =
+        dynamic_cast<ClassificationPostParam *>(post_->getParam());
+    param->is_softmax_ = is_softmax;
+    return base::kStatusCodeOk;
+  }
+
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    inputs = (*pre_)(inputs);
+    inputs = (*infer_)(inputs);
+    std::vector<dag::Edge *> outputs = (*post_)(inputs);
+    return outputs;
+  }
+
+ private:
+  dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
+  infer::Infer *infer_ = nullptr;  ///< Inference node pointer
+  dag::Node *post_ = nullptr;      ///< Postprocessing node pointer
+};
+
+/**
+ * @brief Implementation of ResNet classification network graph structure
+ * @details This class sits between static and dynamic graphs, with each desc
+ * specifying outputs_ Contains three main nodes:
+ * 1. Preprocessing node (pre_): Performs image color conversion and resizing
+ * 2. Inference node (infer_): Executes ResNet model inference
+ * 3. Postprocessing node (post_): Processes classification results
+ */
+class NNDEPLOY_CC_API ResnetGraph : public dag::Graph {
+ public:
+  ResnetGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::classification::ResnetGraph";
+    desc_ =
+        "Resnet "
+        "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<ClassificationResult>();
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<ClassificationPostProcess *>(
+        this->createNode<ClassificationPostProcess>("postprocess"));
+  }
+  ResnetGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+              std::vector<dag::Edge *> outputs)
+      : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::classification::ClassificationGraph";
+    desc_ =
+        "Classification "
+        "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<ClassificationResult>();
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<ClassificationPostProcess *>(
+        this->createNode<ClassificationPostProcess>("postprocess"));
+  }
+
+  virtual ~ResnetGraph() {}
+
+  virtual base::Status defaultParam() {
+    preprocess::CvtResizeNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
+    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    pre_param->interp_type_ = base::kInterpTypeLinear;
+    pre_param->h_ = 224;
+    pre_param->w_ = 224;
+    pre_param->mean_[0] = 0.485;
+    pre_param->mean_[1] = 0.456;
+    pre_param->mean_[2] = 0.406;
+    pre_param->std_[0] = 0.229;
+    pre_param->std_[1] = 0.224;
+    pre_param->std_[2] = 0.225;
+
+    ClassificationPostParam *post_param =
+        dynamic_cast<ClassificationPostParam *>(post_->getParam());
+    post_param->topk_ = 1;
+
+    return base::kStatusCodeOk;
+  }
+
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferenceType(base::InferenceType inference_type) {
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferParam(base::DeviceType device_type,
+                             base::ModelType model_type, bool is_path,
+                             std::vector<std::string> &model_value) {
+    // auto infer = dynamic_cast<infer::Infer *>(infer_);
+    auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+    param->device_type_ = device_type;
+    param->model_type_ = model_type;
+    param->is_path_ = is_path;
+    param->model_value_ = model_value;
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Set preprocessing parameters
+   * @param pixel_type Input image pixel format (e.g. RGB, BGR)
+   * @return kStatusCodeOk on success
+   */
+  base::Status setSrcPixelType(base::PixelType pixel_type) {
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

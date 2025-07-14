@@ -31,8 +31,8 @@ class classificationDemo : public dag::Graph {
                        ->createNode<codec::OpenCvImageDecode>(
                            "decode_node_", codec_flag);
     graph_ =
-        (classification::ClassificationGraph *)this
-            ->createNode<classification::ClassificationGraph>("resnet");
+        (classification::ResnetGraph *)this
+            ->createNode<classification::ResnetGraph>("resnet");
     graph_->setInferenceType(inference_type);
     draw_node_ = (classification::DrawLable *)this->createNode<classification::DrawLable>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
@@ -87,7 +87,7 @@ class classificationDemo : public dag::Graph {
   codec::OpenCvImageDecode *decode_node_;
   codec::OpenCvImageEncode *encode_node_;
   classification::DrawLable *draw_node_;
-  classification::ClassificationGraph *graph_;
+  classification::ResnetGraph *graph_;
 };
 
 int main(int argc, char *argv[]) {
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationGraph
+  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ResnetGraph
   std::string name = demo::getName();
   // 推理后端类型，例如:
   // kInferenceTypeOpenVino / kInferenceTypeTensorRt /
