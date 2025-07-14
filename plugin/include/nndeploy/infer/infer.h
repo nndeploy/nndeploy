@@ -49,7 +49,7 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
   virtual base::Status deserialize(rapidjson::Value &json);
 
  private:
-  base::InferenceType type_;
+  base::InferenceType type_ = base::kInferenceTypeNotSupport;
   std::shared_ptr<inference::Inference> inference_ = nullptr;
 
   std::set<std::string> inference_input_names_;

@@ -388,7 +388,7 @@ class Graph(_C.dag.Graph):
                     if node is None:
                         raise RuntimeError("创建节点失败")
                     if node not in self.nodes:
-                        print(f"add node: {node_key}, {node}")
+                        # print(f"add node: {node_key}, {node}")
                         self.nodes.append(node)
         return super().deserialize(json_str)
     

@@ -34,9 +34,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             self.setType<device::Buffer>();
           } else if (py_type.is(py::type::of<device::Tensor>())) {
             self.setType<device::Tensor>();
-          } else if (py_type.is(py::type::of<base::Param>())) {
-            self.setType<base::Param>();
-          } else {
+          } 
+          // else if (py_type.is(py::type::of<base::Param>())) {
+          //   self.setType<base::Param>();
+          // } 
+          else {
             self.type_ = EdgeTypeFlag::kAny;
             // 获取类型的完整名称，包括模块路径
             py::object module = py_type.attr("__module__");
@@ -60,6 +62,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_type", &EdgeTypeInfo::getType)
       .def("set_type_name", &EdgeTypeInfo::setTypeName)
       .def("get_type_name", &EdgeTypeInfo::getTypeName)
+      .def("get_type_name_with_namespace", &EdgeTypeInfo::getTypeNameWithNamespace)
       .def("get_unique_type_name", &EdgeTypeInfo::getUniqueTypeName)
       .def("get_type_ptr", &EdgeTypeInfo::getTypePtr)
       .def("is_buffer_type", &EdgeTypeInfo::isType<device::Buffer>)
@@ -98,10 +101,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         "Convert NodeType to string representation");
   m.def("string_to_node_type", &stringToNodeType, py::arg("node_type_str"),
         "Convert string to NodeType");
-  m.def("edge_type_to_string", &edgeTypeToString, py::arg("edge_type"),
-        "Convert EdgeTypeFlag to string representation");
-  m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
-        "Convert string to EdgeTypeFlag");
+  // m.def("edge_type_to_string", &edgeTypeToString, py::arg("edge_type"),
+  //       "Convert EdgeTypeFlag to string representation");
+  // m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
+  //       "Convert string to EdgeTypeFlag");
 
   py::class_<RunStatus, std::shared_ptr<RunStatus>>(m, "RunStatus")
       .def(py::init<>())
