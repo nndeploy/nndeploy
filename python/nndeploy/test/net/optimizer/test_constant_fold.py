@@ -45,25 +45,21 @@ class TestNet(nndeploy.net.Module):
 
         self.add = nndeploy.op.Add()
 
-    @build_model
-    def construct(self, enable_net_opt=True, enable_pass=[], disable_pass=[]):
-        data_type = _C.base.DataType()
-        data_type.code_ = _C.base.DataTypeCode.Fp
-        data0 = _C.op.makeInput(self.model_desc, "input", data_type, input_shape)
+    def forward(self, data):
 
         c1 = _C.op.makeConstant(self.model_desc, "constant1")
         c2 = _C.op.makeConstant(self.model_desc, "constant2")
 
         # 加两个权重
         c3 = self.add(c1, c2)
-        data2 = self.add(data0, c3)
+        data2 = self.add(data, c3)
 
         return data2
 
 
 def compare(model, file_path):
-    model.net.setInputs(nndeploy_input_map)
-    model.net.dump(file_path)
+    model.setInputs(nndeploy_input_map)
+    model.dump(file_path)
     nndeploy_result = model.run()
 
     assert np.allclose(
@@ -76,11 +72,16 @@ def compare(model, file_path):
 
 
 # 关闭图优化
-test_net1 = TestNet()
-test_net1.construct(enable_net_opt=False)
+test_net1 = build_model(enable_static=True, enable_net_opt=False)(TestNet)()
+data_type = _C.base.DataType()
+data_type.code_ = _C.base.DataTypeCode.Fp
+data = _C.op.makeInput(test_net1.model_desc, "input", data_type, input_shape)
+
+test_net1.forward(data)
 compare(test_net1, "no_opt_constant_folding.dot")
 
 # 开启图优化，启用常量折叠
-test_net2 = TestNet()
-test_net2.construct(enable_pass=[FoldConstant])
+test_net2 = build_model(enable_static=True, enable_pass={FoldConstant})(TestNet)()
+data = _C.op.makeInput(test_net2.model_desc, "input", data_type, input_shape)
+test_net2.forward(data)
 compare(test_net2, "opt_constant_folding.dot")

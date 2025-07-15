@@ -11,113 +11,83 @@ import warnings
 Expr = _C.op.Expr
 
 
-def build_model(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
+def build_model(
+    *, enable_static=False, enable_net_opt=True, enable_pass=set(), disable_pass=set()
+):
+    """
+    类装饰器：用于 nndeploy.net.Module 的子类
+    自动把 forward 方法装饰为：
+        - 静态图：Expr → ModelDesc → Net
+        - 动态图：Tensor → 直接计算
+    """
 
-        # 递归地给所有子模块（含多级嵌套）设置 weight_map
-        def _set_weight_map_recursive(module):
-            for attr_name in dir(module):
-                if attr_name.startswith("_"):
-                    continue  # 跳过私有/保护成员
-                submodule = getattr(module, attr_name, None)
-                if not isinstance(submodule, Module):
-                    continue  # 不是 Module，跳过
-                submodule.model_desc = self.model_desc
-                # 如果当前子模块自己有 weight_map，就赋值
-                if hasattr(submodule, "weight_map"):
-                    sub_wm = getattr(submodule, "weight_map")
-                    if sub_wm is not None:
-                        for k in sub_wm:
+    def _real_cls_decorator(cls):
+        # 1. 生成新类名（可选）
+        new_name = f"{cls.__name__}{'Static' if enable_static else 'Dynamic'}"
+
+        # 2. 拷贝原类，防止污染
+        NewClass = type(new_name, (cls,), {})
+
+        # 3. 取出原 forward
+        original_forward = cls.forward
+
+        # 4. 用“函数装饰器”包装 original_forward
+        @wraps(original_forward)
+        def new_forward(self, *args, **kwargs):
+            # ---------- 递归灌 weight_map ----------
+            def _set_weight_map_recursive(module):
+                for name in dir(module):
+                    if name.startswith("_"):
+                        continue
+                    sub = getattr(module, name, None)
+                    if not isinstance(sub, Module):
+                        continue
+                    # 静态图需要给子模块挂 model_desc
+                    if enable_static:
+                        sub.model_desc = self.model_desc
+                    if hasattr(sub, "weight_map") and sub.weight_map is not None:
+                        for k in sub.weight_map:
                             if k not in self.weight_map:
-                                raise KeyError(
-                                    f"weight '{k}' is not initialized in Model.weight_map"
-                                )
-                            sub_wm[k] = self.weight_map[k]
+                                raise KeyError(k)
+                            sub.weight_map[k] = self.weight_map[k]
+                    _set_weight_map_recursive(sub)
 
-                # 继续递归处理下一层
-                _set_weight_map_recursive(submodule)
+            _set_weight_map_recursive(self)
 
-        # 从根模块开始递归
-        _set_weight_map_recursive(self)
+            # ---------- 静态图分支 ----------
+            if enable_static:
+                if not all(isinstance(x, Expr) for x in args):
+                    raise TypeError("静态图模式下输入必须是 Expr")
+                result = original_forward(self, *args, **kwargs)
+                # 标记输出
+                if isinstance(result, (list, tuple)):
+                    result = [_C.op.makeOutput(self.model_desc, r) for r in result]
+                else:
+                    result = _C.op.makeOutput(self.model_desc, result)
+                # Net 初始化
+                self.net.setModelDesc(self.model_desc)
+                self.net.setDeviceType(self.device_type)
+                self.net.enableOpt(enable_net_opt)
+                self.net.setEnablePass(set(enable_pass))
+                self.net.setDisablePass(set(disable_pass))
+                if self.weight_map:
+                    self.model_desc.set_weights(self.weight_map)
+                else:
+                    warnings.warn("weight_map is None")
+                self.net.init()
+                return result
 
-        result = func(self, *args, **kwargs)  # 调用原始函数并保存返回值
+            # ---------- 动态图分支 ----------
+            else:
+                if not all(isinstance(x, _C.device.Tensor) for x in args):
+                    raise TypeError("动态图模式下输入必须是 Tensor")
+                return original_forward(self, *args, **kwargs)
 
-        # 如果返回值是可迭代的，比如列表或元组，对每个元素进行标记
-        if isinstance(result, (list, tuple)):
-            result = [_C.op.makeOutput(self.model_desc, item) for item in result]
-        # 如果返回值是单个值，直接进行标记
-        else:
-            result = _C.op.makeOutput(self.model_desc, result)
+        # 5. 把新 forward 挂到新类
+        NewClass.forward = new_forward
+        return NewClass
 
-        # 初始化Net
-        self.net.setModelDesc(self.model_desc)
-        self.net.setDeviceType(self.device_type)
-        self.net.enableOpt(kwargs.get("enable_net_opt", True))
-        # 从kwargs中获取enable_pass，如果不存在则默认为一个空集合
-
-        enable_pass = kwargs.get("enable_pass", set())
-        # 从kwargs中获取disable_pass，如果不存在则默认为一个空集合
-        disable_pass = kwargs.get("disable_pass", set())
-
-        # 如果传入的不是集合，尝试将它们转换为集合
-        if not isinstance(enable_pass, set):
-            enable_pass = set(enable_pass)
-        if not isinstance(disable_pass, set):
-            disable_pass = set(disable_pass)
-
-        self.net.setEnablePass(enable_pass)
-        self.net.setDisablePass(disable_pass)
-        if self.weight_map is not None:
-            self.model_desc.set_weights(self.weight_map)
-        else:
-            warnings.warn(
-                "Warning: weight_map is not set! Model weights are not initialized.",
-                UserWarning,
-                stacklevel=2,
-            )
-        self.net.init()
-
-        return result
-
-    return wrapper
-
-
-def forward(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-
-        # 递归地给所有子模块（含多级嵌套）设置 weight_map
-        def _set_weight_map_recursive(module):
-            for attr_name in dir(module):
-                if attr_name.startswith("_"):
-                    continue  # 跳过私有/保护成员
-                submodule = getattr(module, attr_name, None)
-                if not isinstance(submodule, Module):
-                    continue  # 不是 Module，跳过
-
-                # 如果当前子模块自己有 weight_map，就赋值
-                if hasattr(submodule, "weight_map"):
-                    sub_wm = getattr(submodule, "weight_map")
-                    if sub_wm is not None:
-                        for k in sub_wm:
-                            if k not in self.weight_map:
-                                raise KeyError(
-                                    f"weight '{k}' is not initialized in Model.weight_map"
-                                )
-                            sub_wm[k] = self.weight_map[k]
-
-                # 继续递归处理下一层
-                _set_weight_map_recursive(submodule)
-
-        # 从根模块开始递归
-        _set_weight_map_recursive(self)
-
-        result = func(self, *args, **kwargs)  # 调用原始函数并保存返回值
-
-        return result
-
-    return wrapper
+    return _real_cls_decorator
 
 
 class Module:
@@ -128,21 +98,24 @@ class Module:
         self.device_type = DeviceType("cpu", 0)
         self.weight_map = None
 
-    @build_model
-    def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
-        raise NotImplementedError()
-
+    # 仅用于静态图的运行调用
     def run(self) -> list:
         self.net.preRun()
         self.net.run()
         self.net.postRun()
         return self.net.getAllOutput()
 
+    def dump(self, file_path):
+        self.net.dump(file_path)
+
     def forward(self, *args, **kwargs):
         raise NotImplementedError()
 
     def makeExpr(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def setInputs(self, inputs):
+        self.net.setInputs(inputs)
 
     def __call__(self, *args, **kwargs):
         """
