@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import nndeploy
 
 from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
-from nndeploy.net import build_model, forward
+from nndeploy.net import build_model
 
 import nndeploy._nndeploy_internal as _C
 
@@ -119,6 +119,7 @@ class TestBlock2(nndeploy.net.Module):
         return result
 
 
+@build_model(enable_static=False)
 class TestNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
@@ -147,7 +148,6 @@ class TestNet(nndeploy.net.Module):
         )
         self.relu4 = nndeploy.op.Relu()
 
-    @forward
     def forward(self, data):
         result = self.block1(data)
         result = self.block2(result)

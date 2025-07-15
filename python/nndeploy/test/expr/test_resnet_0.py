@@ -170,11 +170,7 @@ class TestResnet(nndeploy.net.Module):
         self.flatten = nndeploy.op.Flatten(1)
         self.gemm = nndeploy.op.Gemm("gemm_weight", "gemm_bias", trans_b=True)
 
-    @build_model
-    def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
-        data_type = _C.base.DataType()
-        data_type.code_ = _C.base.DataTypeCode.Fp
-        data = _C.op.makeInput(self.model_desc, "input", data_type, [1, 2048, 7, 7])
+    def forward(self, data):
 
         result = self.conv1(data)
         result = self.bn1(result)
@@ -194,9 +190,13 @@ class TestResnet(nndeploy.net.Module):
 
 
 def compare(model, file_path):
+    data_type = _C.base.DataType()
+    data_type.code_ = _C.base.DataTypeCode.Fp
+    data = _C.op.makeInput(model.model_desc, "input", data_type, [1, 2048, 7, 7])
 
-    model.net.dump(file_path)
-    model.net.setInputs(nndeploy_input_map)
+    model.dump(file_path)
+    model.forward(data)  # 只建图
+    model.setInputs({"input": create_tensor_from_numpy(np_input)})
     nndeploy_result = model.run()[0]
 
     assert np.allclose(
@@ -208,11 +208,9 @@ def compare(model, file_path):
 
 
 # 开启图优化
-test_net0 = TestResnet()
-test_net0.construct()
+test_net0 = build_model(enable_static=True)(TestResnet)()
 compare(test_net0, "graph_opt.dot")
 
 # 禁止图优化
-test_net1 = TestResnet()
-test_net1.construct(enable_net_opt=False)
+test_net1 = build_model(enable_static=True, enable_net_opt=False)(TestResnet)()
 compare(test_net1, "no_opt.dot")
