@@ -315,25 +315,6 @@ def get_node_json(node_key: str):
         return json_str
     else:
         return ""
-
-
-remove_node_keys = [
-    "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition",
-    # "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
-    # "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
-    # "nndeploy::preprocess::BatchPreprocess"
-]
-
-
-def add_remove_node_keys(node_keys: list[str]):
-    global remove_node_keys
-    remove_node_keys.extend(node_keys)
-    
-def sub_remove_node_keys(node_keys: list[str]):
-    global remove_node_keys
-    for node_key in node_keys:
-        if node_key in remove_node_keys:
-            remove_node_keys.remove(node_key)     
             
 class ImportLib:
     def __init__(self):
@@ -466,38 +447,57 @@ def add_global_import_lib_function(module_name: str, function_name: str):
 def import_global_import_lib():
     global_import_lib.import_all()
     
-
-def get_all_node_json():
-    # Import all required modules
-    add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-    add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
-    import_global_import_lib()
     
+remove_node_keys = [
+    "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition",
+    # "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
+    # "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
+    # "nndeploy::preprocess::BatchPreprocess"
+]
+
+
+def add_remove_node_keys(node_keys: list[str]):
     global remove_node_keys
-    node_keys = get_node_keys()
-    real_node_keys = []
+    remove_node_keys.extend(node_keys)
+    
+def sub_remove_node_keys(node_keys: list[str]):
+    global remove_node_keys
     for node_key in node_keys:
         if node_key in remove_node_keys:
-            continue
-        real_node_keys.append(node_key)
+            remove_node_keys.remove(node_key)    
+    
+
+# def get_all_node_json():
+#     # Import all required modules
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     import_global_import_lib()
+    
+#     global remove_node_keys
+#     node_keys = get_node_keys()
+#     real_node_keys = []
+#     for node_key in node_keys:
+#         if node_key in remove_node_keys:
+#             continue
+#         real_node_keys.append(node_key)
         
-    # 排序
-    real_node_keys.sort()
+#     # 排序
+#     real_node_keys.sort()
     
-    node_json = "{\"nodes\":["
-    for node_key in real_node_keys:
-        json = get_node_json(node_key)
-        if json == "":
-            continue
-        node_json += json
-        if node_key != real_node_keys[-1]:
-            node_json += ","
-    node_json += "]}"
+#     node_json = "{\"nodes\":["
+#     for node_key in real_node_keys:
+#         json = get_node_json(node_key)
+#         if json == "":
+#             continue
+#         node_json += json
+#         if node_key != real_node_keys[-1]:
+#             node_json += ","
+#     node_json += "]}"
     
-    # print(node_json)
-    # 美化json
-    node_json = nndeploy.base.pretty_json_str(node_json)
-    return node_json
+#     # print(node_json)
+#     # 美化json
+#     node_json = nndeploy.base.pretty_json_str(node_json)
+#     return node_json
 
 
 def get_all_node_json():

@@ -428,3 +428,18 @@ py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
 + 分类算法
 + graph node不该导出等等节点的屏蔽（ok）
 + 二级目录（ok）
+
+## 2025.07.15
++ 给红哥提供 - 一个接口 
+  + all_node_json
+  + edge_json
+  + graph_json
++ 完善换脸算法
++ comfyui的pytorch实现
++ workflow
+  + 分类
+  + 检测
+  + 分割
+  + 分类 + 检测 + 分割
+  + 换脸
+  + 换脸 + 分割
