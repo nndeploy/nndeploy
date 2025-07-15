@@ -209,18 +209,14 @@ class TestNet(nndeploy.net.Module):
             "norm4_scale", "norm4_bias", "norm4_mean", "norm4_var"
         )
 
-    @build_model
-    def construct(self, enable_net_opt=True, enable_pass=[], disable_pass=[]):
-        data_type = _C.base.DataType()
-        data_type.code_ = _C.base.DataTypeCode.Fp
-        data0 = _C.op.makeInput(self.model_desc, "input", data_type, [1, 3, 32, 32])
+    def forward(self, data):
 
-        data1 = self.conv1(data0)
+        data1 = self.conv1(data)
         data1 = self.batch_norm1(data1)
         data1 = self.relu1(data1)
 
         # common subcompression
-        data2 = self.conv2(data0)
+        data2 = self.conv2(data)
         data2 = self.batch_norm2(data2)
         data2 = self.relu2(data2)
 
@@ -237,8 +233,8 @@ class TestNet(nndeploy.net.Module):
 
 def compare(model, file_path):
 
-    model.net.setInputs(nndeploy_input_map)
-    model.net.dump(file_path)
+    model.setInputs(nndeploy_input_map)
+    model.dump(file_path)
     nndeploy_result = model.run()
 
     assert np.allclose(
@@ -257,11 +253,16 @@ def compare(model, file_path):
 
 
 # 关闭图优化
-test_net1 = TestNet()
-test_net1.construct(enable_net_opt=False)
+test_net1 = build_model(enable_static=True, enable_net_opt=False)(TestNet)()
+data_type = _C.base.DataType()
+data_type.code_ = _C.base.DataTypeCode.Fp
+data = _C.op.makeInput(test_net1.model_desc, "input", data_type, input_shape)
+
+test_net1.forward(data)
 compare(test_net1, "no_opt.dot")
 
-# 开启图优化
-test_net2 = TestNet()
-test_net2.construct(enable_pass=[EliminateCommonSubexpression])
+# 开启图优化，启用常量折叠
+test_net2 = build_model(enable_static=True, enable_pass={EliminateCommonSubexpression})(TestNet)()
+data = _C.op.makeInput(test_net2.model_desc, "input", data_type, input_shape)
+test_net2.forward(data)
 compare(test_net2, "opt.dot")
