@@ -155,6 +155,18 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def_readwrite("completed_size", &RunStatus::completed_size)
       .def_readwrite("cost_time", &RunStatus::cost_time)
       .def_readwrite("average_time", &RunStatus::average_time)
+      // 添加to_json方法来得到json对象
+      .def("to_json", [](const RunStatus& self) {
+        py::dict json_obj;
+        json_obj["node_name"] = self.node_name;
+        json_obj["is_running"] = self.is_running;
+        json_obj["graph_run_size"] = self.graph_run_size;
+        json_obj["run_size"] = self.run_size;
+        json_obj["completed_size"] = self.completed_size;
+        json_obj["cost_time"] = self.cost_time;
+        json_obj["average_time"] = self.average_time;
+        return json_obj;
+      })
       .def("__str__", [](const RunStatus& self) {
         std::string str = "RunStatus(node_name=";
         str += self.node_name;
