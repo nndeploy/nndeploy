@@ -98,8 +98,10 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
                 onClick={() =>
                   field.append({
                     id: Math.random().toString(36).substr(2, 9), 
-                    type_: "",
-                    desc_: '',
+                    ///@ts-ignore
+                    type_: field.value[field.value.length - 1]?.type_ || '',
+                     ///@ts-ignore
+                    desc_: field.value[field.value.length - 1]?.desc_ || '',
                   })
                 }
               >

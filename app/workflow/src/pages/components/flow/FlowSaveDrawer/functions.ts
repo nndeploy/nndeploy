@@ -476,6 +476,22 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
       outputs_,
       node_repository_,
     };
+
+    function normalize() {
+      delete businessNode.id
+      inputs_.map((collectionPoint: any) => {
+        delete collectionPoint.id
+      })
+
+      outputs_.map((collectionPoint: any) => {
+        delete collectionPoint.id
+      })
+    }
+    normalize()
+
+
+
+
     return businessNode;
   }
 
@@ -628,7 +644,7 @@ export function transferBusinessContentToDesignContent(
   ): FlowNodeJSON {
 
     if (businessNode.is_graph_) {
-      debugger
+      //debugger
     }
 
     // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
