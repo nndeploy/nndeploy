@@ -30,8 +30,7 @@ from schemas import (
     WorkFlowListResponse,
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
-    ParamTypeResponse,
-    WsPreviewPayload
+    ParamTypeResponse
 )
 import files
 from files import router as files_router
@@ -401,6 +400,32 @@ class NnDeployServer:
         self.app.dependency_overrides[files.get_workdir] = self._get_workdir
 
         self.app.include_router(api)
+
+    # task progress notify
+    def notify_task_progress(self, task_id: str, status_dict: dict):
+        progress = status_dict.get("progress")
+        stage = status_dict.get("stage") or status_dict.get("node")
+        flag = "progress"
+        message = "task running"
+        result = {
+            "task_id": task_id,
+            "progress": progress,
+            "stage": stage,
+            "detail": status_dict,
+        }
+        payload = {"flag": flag, "message": message, "result": result}
+        ws_set = self.task_ws_map.get(task_id, set())
+        if not ws_set:
+            return
+
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self._broadcast(payload, ws),
+                    self.loop
+                )
+            else:
+                logging.warning("[notify_task_progress] Event loop not ready or not running")
 
     # task done notify
     def notify_task_done(self, task_id: str):
