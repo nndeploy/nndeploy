@@ -2,11 +2,13 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from frontend import FrontendManager
 import os
 import json
 import asyncio
@@ -53,6 +55,17 @@ class NnDeployServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        web_root = FrontendManager.init_frontend(args.front_end_version)
+        dist_inside = Path(web_root) / "dist"
+        if dist_inside.is_dir():
+            web_root = str(dist_inside)
+
+        self.app.mount("/design", StaticFiles(directory=web_root, html=True), name="frontend")
+        static_dir = Path(web_root) / "static"
+        if static_dir.is_dir():
+            self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
+
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
