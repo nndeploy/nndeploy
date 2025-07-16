@@ -1,4 +1,4 @@
-import { Button, Dropdown, List, Tree, Typography } from "@douyinfe/semi-ui";
+import { Button, Dropdown, List, Tooltip, Tree, Typography } from "@douyinfe/semi-ui";
 import { useGetNodeList, useGetNoteTree } from "./effect";
 import { IconMore } from "@douyinfe/semi-icons";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
@@ -80,14 +80,19 @@ const NodeTree: React.FC = () => {
         dataSource={nodeList}
         renderItem={(item) => {
           return (
-            <List.Item>
-              <div
-                onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
-                draggable
-              >
-                {item.name_}
-              </div>
-            </List.Item>
+            <Tooltip content={item.desc_} position="right">
+              <List.Item>
+                <div
+                  onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
+                  draggable
+                >
+
+                  <span className="node-name">{item.name_}</span>
+                  {item.name_}
+
+                </div>
+              </List.Item>
+            </Tooltip>
           );
         }}
       />

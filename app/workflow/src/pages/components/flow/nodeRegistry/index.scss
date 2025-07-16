@@ -4,6 +4,22 @@
   align-items: center;
   align-items: flex-start;
 
+  .input-area {
+    flex: 1;
+
+    &>div> :first-child {
+      width: 80px !important;
+    }
+  }
+
+  .output-area {
+    flex: 1;
+
+    &>div> :first-child {
+      width: 80px !important;
+    }
+  }
+
   //padding: 5px 5px;
   .connection-point {
     position: absolute;
@@ -33,9 +49,10 @@
     //overflow: auto;
   }
 }
-.resource-preview{
-  img{
+
+.resource-preview {
+  img {
     //width :100%;
-    max-width: 200px;
+    max-width: 100%;
   }
 }

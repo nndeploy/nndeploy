@@ -1,3 +1,5 @@
+
+import { FlowDocumentJSON } from "../../../typings";
 import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import lodash from 'lodash'
@@ -41,11 +43,11 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
 
   for (let i = 0; i < fieldNames.length; i++) {
     let fieldName = fieldNames[i]
-    if(fieldValue == null){
+    if (fieldValue == null) {
       let i = 0
     }
     fieldValue = fieldValue[fieldName]
-    
+
   }
 
   //const fieldValue = nodeRegistry['param_']![fieldName]
@@ -94,4 +96,20 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
 
   return result
 
+}
+
+export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
+  let result = 0;
+  //const allNode = ref?.current?.document.toJSON() as FlowDocumentJSON;
+  documentJSON.nodes.map(item => {
+
+    var nameParts = item.data.name_.split('_')
+    if (item.data.name_ && nameParts.length > 1) {
+      var numberPart = parseInt(nameParts[nameParts.length - 1])
+      if (!isNaN(numberPart)) {
+        result = Math.max(result, numberPart);
+      }
+    }
+  })
+  return result + 1;
 }
