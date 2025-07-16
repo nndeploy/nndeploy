@@ -110,6 +110,7 @@ class NnDeployServer:
 
         @api.post(
             "/workflow/save",
+            tags=["Workflow"],
             response_model=WorkFlowSaveResponse,
             summary="save workflow to file",
         )
@@ -132,8 +133,67 @@ class NnDeployServer:
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
 
+        @api.post(
+                "/workflow/upload",
+                tags=["Workflow"],
+                response_model=UploadResponse,
+                status_code=status.HTTP_201_CREATED,
+                summary="upload workflow",
+        )
+        async def upload_workflow(
+            file: UploadFile = File(...)
+        ):
+            folder = Path(self.args.resources) / "workflow"
+            if not folder.exists():
+                folder.mkdir(parents=True, exist_ok=True)
+            dst = folder / file.filename
+            with dst.open("wb") as w:
+                w.write(file.file.read())
+
+            flag = "success"
+            message = f"workflow {dst.name} has been uploaded successfully"
+            result = {
+                "filename":file.filename,
+                "saved_path":str(dst.resolve()),
+                "size":dst.stat().st_size,
+                "uploaded_at":datetime.utcnow(),
+                "extension": (dst.suffix or "unknown").lstrip(".")
+            }
+            return UploadResponse(flag=flag, message=message, result=result)
+
+        @api.get(
+            "/workflow/download",
+            tags=["Workflow"],
+            summary="download workflow",
+            response_class=FileResponse,
+        )
+        async def download_workflow(file_path: str = Query(..., description="absolute_path or relative path")):
+            """
+            download existed workflow file
+            """
+            f = Path(self.args.resources) / "workflow" / file_path
+            print(f)
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+            
+            MIME_MAP: dict[str, str] = {
+                ".json": "application/json",
+                ".yaml": "application/x-yaml",
+                ".yml":  "application/x-yaml"
+            }
+
+            media_type = MIME_MAP.get(f.suffix.lower(), "application/octet-stream")
+
+            if media_type is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported download type"
+                )
+            return FileResponse(f, media_type=media_type, filename=f.name)
+
         @api.get(
             "/workflow",
+            tags=["Workflow"],
             response_model=WorkFlowListResponse,
             summary="load workflow lists",
         )
@@ -158,6 +218,7 @@ class NnDeployServer:
 
         @api.post(
             "/workflow/delete/{file_name}",
+            tags=["Workflow"],
             response_model=WorkFlowDeleteResponse,
             summary="delete workflow json",
         )
@@ -180,6 +241,7 @@ class NnDeployServer:
 
         @api.get(
             "/workflow/{file_name}",
+            tags=["Workflow"],
             response_model=WorkFlowLoadResponse,
             summary="get workflow json",
         )
@@ -234,7 +296,7 @@ class NnDeployServer:
             return self.queue.get_history(max_items)
 
         # index
-        @self.app.get("/", tags=["Web"])
+        @self.app.get("/", tags=["Root"])
         async def root():
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
