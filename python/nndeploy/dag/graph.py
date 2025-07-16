@@ -384,11 +384,12 @@ class Graph(_C.dag.Graph):
                 else:
                     # 否则创建新节点
                     node = self.create_node(node_key)
-                    # print(f"create node: {node_key}, {node}")
                     if node is None:
+                        print(f"create node: {node_key}, {node}")
+                        print(f"node_count: {node_count}, i: {i}")
                         raise RuntimeError("创建节点失败")
                     if node not in self.nodes:
-                        # print(f"add node: {node_key}, {node}")
+                        print(f"add node: {node_key}, {node}")
                         self.nodes.append(node)
         return super().deserialize(json_str)
     

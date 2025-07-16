@@ -14,31 +14,97 @@ from sklearn.metrics import silhouette_score
 
 
 def find_cluster_centroids(embeddings, max_k=10) -> Any:
-    inertia = []
-    cluster_centroids = []
-    K = range(1, max_k+1)
+    """
+    使用K-means聚类算法寻找人脸嵌入向量的最优聚类中心点
+    
+    该函数通过分析不同聚类数目下的聚类效果，自动确定最优的聚类数量，
+    并返回相应的聚类中心点。主要用于将视频中的多个人脸嵌入向量按照
+    相似性进行分组，以识别视频中的不同人物。
+    
+    参数:
+        embeddings: 人脸嵌入向量列表，通常是由InsightFace等模型提取的特征向量
+        max_k: 最大聚类数目，默认为10，用于限制搜索范围
+    
+    返回:
+        optimal_centroids: 最优聚类中心点的numpy数组
+    
+    算法原理:
+        1. 遍历从1到max_k的所有可能聚类数目
+        2. 对每个k值执行K-means聚类，记录惯性值(inertia)和聚类中心
+        3. 计算相邻惯性值的差值，差值最大的点表示聚类效果提升最显著
+        4. 选择差值最大对应的聚类数目作为最优解
+        
+    注意:
+        - 惯性值表示样本点到其聚类中心的距离平方和，越小表示聚类效果越好
+        - 使用肘部法则(Elbow Method)来确定最优聚类数目
+        - random_state=0确保结果的可重复性
+    """
+    inertia = []  # 存储每个k值对应的惯性值
+    cluster_centroids = []  # 存储每个k值对应的聚类信息
+    K = range(1, max_k+1)  # 聚类数目范围
 
+    # 对每个可能的聚类数目进行K-means聚类
     for k in K:
         kmeans = KMeans(n_clusters=k, random_state=0)
         kmeans.fit(embeddings)
         inertia.append(kmeans.inertia_)
         cluster_centroids.append({"k": k, "centroids": kmeans.cluster_centers_})
 
+    # 计算相邻惯性值的差值，用于寻找肘部点
     diffs = [inertia[i] - inertia[i+1] for i in range(len(inertia)-1)]
+    # 找到差值最大的位置，对应最优的聚类数目
     optimal_centroids = cluster_centroids[diffs.index(max(diffs)) + 1]['centroids']
 
     return optimal_centroids
   
 
-def find_closest_centroid(centroids: list, normed_face_embedding) -> list:
+def find_closest_centroid(centroids: list, normed_face_embedding) -> tuple:
+    """
+    寻找与给定人脸嵌入向量最相似的聚类中心点
+    
+    该函数通过计算余弦相似度来确定输入的人脸嵌入向量与哪个聚类中心最匹配。
+    这在人脸识别和分类任务中非常有用，可以将新的人脸嵌入向量分配到最相似的
+    已知人物类别中。
+    
+    参数:
+        centroids: 聚类中心点列表，每个元素都是一个代表某个人物特征的嵌入向量
+        normed_face_embedding: 已归一化的人脸嵌入向量，需要找到其最匹配的聚类中心
+    
+    返回:
+        tuple: 包含两个元素的元组
+            - closest_centroid_index: 最相似聚类中心的索引位置
+            - centroids[closest_centroid_index]: 最相似的聚类中心向量
+        或者返回None: 当处理过程中发生ValueError异常时
+    
+    算法原理:
+        1. 将输入的聚类中心列表和人脸嵌入向量转换为numpy数组，便于数值计算
+        2. 使用点积运算计算输入向量与所有聚类中心的余弦相似度
+        3. 由于输入向量已经归一化，点积结果直接表示余弦相似度
+        4. 使用argmax找到相似度最高的聚类中心索引
+        5. 返回该索引及对应的聚类中心向量
+    
+    注意事项:
+        - 假设输入的人脸嵌入向量已经进行了L2归一化
+        - 使用余弦相似度作为相似性度量标准
+        - 包含异常处理机制，确保函数稳定性
+    """
     try:
+        # 将聚类中心列表转换为numpy数组，便于进行矩阵运算
         centroids = np.array(centroids)
+        # 将人脸嵌入向量转换为numpy数组
         normed_face_embedding = np.array(normed_face_embedding)
+        
+        # 计算输入向量与所有聚类中心的点积，得到相似度分数
+        # 由于向量已归一化，点积等价于余弦相似度
         similarities = np.dot(centroids, normed_face_embedding)
+        
+        # 找到相似度最高的聚类中心索引
         closest_centroid_index = np.argmax(similarities)
         
+        # 返回最匹配的聚类中心索引和对应的中心向量
         return closest_centroid_index, centroids[closest_centroid_index]
     except ValueError:
+        # 当输入数据格式不正确或计算过程中出现错误时返回None
         return None
       
 
