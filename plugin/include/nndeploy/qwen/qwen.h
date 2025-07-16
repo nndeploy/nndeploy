@@ -182,6 +182,8 @@ class NNDEPLOY_CC_API DecodeEmbeddingNode : public dag::Node {
         "\n"
         "Inputs:\n"
         "- inputs[0]: TokenizerIds containing input token sequence\n"
+        "- inputs[1]: past kv values\n"
+        "- inputs[2]: history input token sequence\n"
         "Outputs:\n"
         "- outputs[0]: Input token embedding tensor\n"
         "- outputs[1]: Attention mask tensor\n"
@@ -325,6 +327,7 @@ class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
   virtual base::Status defaultParam();
 
   void setConfigPath(std::string config_path) { config_path_ = config_path; }
+
   base::Status setConfigParam();
   base::Status setInferParams(bool is_path, base::ModelType model_type,
                               base::DeviceType device_type);
@@ -373,8 +376,9 @@ class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
 
   base::Status setInferParams(bool is_path, base::ModelType model_type,
                               base::DeviceType device_type);
-  void setConfigPath(std::string config_path) { config_path_ = config_path; }
   base::Status setConfigParam();
+
+  void setConfigPath(std::string config_path) { config_path_ = config_path; }
 
   virtual base::Status serialize(rapidjson::Value& json,
                                  rapidjson::Document::AllocatorType& allocator);
