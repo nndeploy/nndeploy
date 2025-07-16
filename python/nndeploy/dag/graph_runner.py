@@ -29,9 +29,12 @@ class GraphRunner:
     
     def get_run_status(self):
         if self.graph is None:
-            return {}
+            return "{}"
         run_status_map = self.graph.get_nodes_run_status_recursive()
-        return run_status_map
+        json_obj = {}
+        for node_name, run_status in run_status_map.items():
+            json_obj[node_name] = run_status.to_json()
+        return json_obj
     
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
         add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
@@ -104,8 +107,7 @@ class GraphRunner:
         
         # 另一个线程启动的函数
         run_status_map = self.get_run_status()
-        for node_name, run_status in run_status_map.items():
-            print(f"{node_name}: {run_status.get_status()}, {run_status}")
+        print(run_status_map)
             
         status = self.graph.deinit()
         if status != nndeploy.base.StatusCode.Ok:
@@ -120,8 +122,7 @@ class GraphRunner:
                 pass
             
         run_status_map = self.get_run_status()
-        for node_name, run_status in run_status_map.items():
-            print(f"{node_name}: {run_status.get_status()}, {run_status}")
+        print(run_status_map)
         
         return time_profiler_map, results
         
