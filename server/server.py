@@ -403,15 +403,12 @@ class NnDeployServer:
 
     # task progress notify
     def notify_task_progress(self, task_id: str, status_dict: dict):
-        progress = status_dict.get("progress")
-        stage = status_dict.get("stage") or status_dict.get("node")
-        flag = "progress"
+        flag = "success"
         message = "task running"
         result = {
             "task_id": task_id,
-            "progress": progress,
-            "stage": stage,
-            "detail": status_dict,
+            "type": "progress",
+            "detail": status_dict
         }
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())

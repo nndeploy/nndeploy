@@ -51,7 +51,7 @@ def run(task_q, result_q, progress_q, log_q) -> None:
 
         while not done_evt.wait(timeout=PROGRESS_INTERVAL_SEC):
             try:
-                status_dict = executor.runner.get_run_status(task_id)
+                status_dict = executor.runner.get_run_status()
             except Exception as e:
                 status_dict = {"error": str(e)}
             try:
@@ -62,7 +62,7 @@ def run(task_q, result_q, progress_q, log_q) -> None:
         t.join()
 
         try:
-            status_dict = executor.runner.get_run_status(task_id)
+            status_dict = executor.runner.get_run_status()
         except Exception as e:
             status_dict = {"error": str(e)}
         try:
