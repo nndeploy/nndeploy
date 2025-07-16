@@ -49,27 +49,39 @@ QwenConfig parseConfig(const std::string& file_path);
     ptr = nullptr;          \
   }
 
-class NNDEPLOY_CC_API SampleParam : public base::Param {
- public:
-  bool is_prefill_;
-};
-
 class NNDEPLOY_CC_API PromptParam : public base::Param {
  public:
   std::string prompt_template_;
   std::string user_content_;
+
+ public:
+  base::Status serialize(rapidjson::Value& json,
+                         rapidjson::Document::AllocatorType& allocator);
+  base::Status deserialize(rapidjson::Value& json);
 };
 
-class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
+class NNDEPLOY_CC_API PrefillEmbeddingParam : public base::Param {
  public:
+  /**
+   * @brief Need to serialize
+   */
   int hidden_size_;
   int all_seq_len_ = 0;
   int gen_seq_len_ = 0;
-  bool is_prefill_ = true;
   std::string embedding_file_;
+
+  /**
+   * Not need to serialize (inner use)
+   */
+  std::vector<int32_t> kv_init_shape_;
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataType posid_data_type_ = base::dataTypeOf<int>();
   base::DataFormat data_format_ = base::DataFormat::kDataFormatS1D;
+
+ public:
+  base::Status serialize(rapidjson::Value& json,
+                         rapidjson::Document::AllocatorType& allocator);
+  base::Status deserialize(rapidjson::Value& json);
 };
 
 class NNDEPLOY_CC_API PrefillEmbeddingNode : public dag::Node {
@@ -92,7 +104,7 @@ class NNDEPLOY_CC_API PrefillEmbeddingNode : public dag::Node {
         "- outputs[1]: Attention mask tensor\n"
         "- outputs[2]: Position ids tensor\n"
         "- outputs[3]: Past key values cache tensor";
-    param_ = std::make_shared<EmbeddingParam>();
+    param_ = std::make_shared<PrefillEmbeddingParam>();
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -102,10 +114,8 @@ class NNDEPLOY_CC_API PrefillEmbeddingNode : public dag::Node {
   virtual ~PrefillEmbeddingNode() {}
   virtual base::Status run();
 
- public:
-  device::Tensor* past_kv_ = nullptr;
-
  protected:
+  device::Tensor* genPastKeyValue(const std::vector<int32_t>& kv_init_shape);
   device::Tensor* genEmbedding(const std::vector<int32_t>& input_ids,
                                int seq_len, int hidden_size,
                                base::DataType data_type,
@@ -122,6 +132,39 @@ class NNDEPLOY_CC_API PrefillEmbeddingNode : public dag::Node {
 
  protected:
   bool is_first_;
+  device::Tensor* past_kv_ = nullptr;
+};
+
+class NNDEPLOY_CC_API DecodeEmbeddingParam : public base::Param {
+ public:
+  /**
+   * @breif Need to serialize
+   */
+  int hidden_size_;
+  int all_seq_len_ = 0;
+  int gen_seq_len_ = 0;
+  std::string embedding_file_;
+
+  /**
+   * @brief Not need to serialize (inner use)
+   */
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataType posid_data_type_ = base::dataTypeOf<int>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatS1D;
+  std::vector<std::vector<int32_t>> token_ids_;
+  tokenizer::TokenizerIds history_ids_;
+  device::Tensor* past_kv_;
+
+ public:
+  base::Status serialize(rapidjson::Value& json,
+                         rapidjson::Document::AllocatorType& allocator);
+  base::Status deserialize(rapidjson::Value& json);
+};
+
+class NNDEPLOY_CC_API DecodeSampleParam : public base::Param {
+ public:
+  tokenizer::TokenizerIds history_ids_;
+  tokenizer::TokenizerIds stop_tokens_;
 };
 
 class NNDEPLOY_CC_API DecodeEmbeddingNode : public dag::Node {
@@ -144,7 +187,8 @@ class NNDEPLOY_CC_API DecodeEmbeddingNode : public dag::Node {
         "- outputs[1]: Attention mask tensor\n"
         "- outputs[2]: Position ids tensor\n"
         "- outputs[3]: Past key values cache tensor";
-    param_ = std::make_shared<EmbeddingParam>();
+    param_ = std::make_shared<DecodeEmbeddingParam>();
+    this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -153,10 +197,8 @@ class NNDEPLOY_CC_API DecodeEmbeddingNode : public dag::Node {
     this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~DecodeEmbeddingNode() {}
-  virtual base::Status run();
 
- public:
-  device::Tensor* past_kv_ = nullptr;
+  virtual base::Status run();
 
  protected:
   device::Tensor* genEmbedding(const std::vector<int32_t>& input_ids,
@@ -175,6 +217,7 @@ class NNDEPLOY_CC_API DecodeEmbeddingNode : public dag::Node {
 
  protected:
   bool is_first_;
+  device::Tensor* past_kv_;
 };
 
 class NNDEPLOY_CC_API PrefillSampleNode : public dag::Node {
@@ -184,8 +227,8 @@ class NNDEPLOY_CC_API PrefillSampleNode : public dag::Node {
       : Node(name, inputs, outputs), is_first_(true) {
     key_ = "nndeploy::qwen::PrefillSampleNode";
     desc_ = "llm sample node [logits -> token_ids]";
-    param_ = std::make_shared<SampleParam>();
     this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
   }
   virtual ~PrefillSampleNode() {}
@@ -205,7 +248,7 @@ class NNDEPLOY_CC_API DecodeSampleNode : public dag::Node {
       : Node(name, inputs, outputs), is_first_(true) {
     key_ = "nndeploy::qwen::DecodeSampleNode";
     desc_ = "llm sample node [logits -> token_ids]";
-    param_ = std::make_shared<SampleParam>();
+    param_ = std::make_shared<DecodeSampleParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
   }
@@ -229,6 +272,7 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
     desc_ = "llm prompt node [{} -> TokenizerText]";
     param_ = std::make_shared<PromptParam>();
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
+    node_type_ = dag::NodeType::kNodeTypeInput;
   }
   virtual ~PromptNode() {}
   virtual base::Status run();
@@ -239,17 +283,31 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
                             const std::string& role = "");
 };
 
+class NNDEPLOY_CC_API PrintNode : public dag::Node {
+ public:
+  PrintNode(const std::string& name, std::vector<dag::Edge*> inputs,
+            std::vector<dag::Edge*> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::qwen::PrintNode";
+    desc_ = "Print TokenizerText";
+    this->setInputTypeInfo<tokenizer::TokenizerText>();
+    node_type_ = dag::NodeType::kNodeTypeOutput;
+  }
+  virtual ~PrintNode() {}
+  virtual base::Status run();
+};
+
 class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
  public:
   QwenPrefill(const std::string& name, std::vector<dag::Edge*> inputs,
               std::vector<dag::Edge*> outputs)
       : CompositeNode(name, inputs, outputs) {
-    key_ = "nndeploy:qwen::QwenPrefill";
+    key_ = "nndeploy::qwen::QwenPrefill";
     desc_ = "llm prefill stage [TokenizerText -> {token_ids, kv_}]";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
-    this->setOutputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<tokenizer::TokenizerIds>();
 
     prefill_token_node_ = dynamic_cast<tokenizer::TokenizerEncodeCpp*>(
         this->createNode<tokenizer::TokenizerEncodeCpp>("token_node"));
@@ -266,11 +324,23 @@ class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
   virtual base::Status deinit();
   virtual base::Status defaultParam();
 
+  void setConfigPath(std::string config_path) { config_path_ = config_path; }
+  base::Status setConfigParam();
+  base::Status setInferParams(bool is_path, base::ModelType model_type,
+                              base::DeviceType device_type);
+  base::Status setInferenceType(base::InferenceType inference_type);
+
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
+  virtual base::Status deserialize(rapidjson::Value& json);
+
  private:
   dag::Node* prefill_token_node_;
   dag::Node* prefill_embedding_node_;
   infer::Infer* prefill_infer_node_;
   dag::Node* prefill_sample_node_;
+
+  std::string config_path_;
 };
 
 class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
@@ -281,8 +351,8 @@ class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
     key_ = "nndeploy::qwen::QwenDecode";
     desc_ = "llm decode stage [token_ids -> TokenizerText]";
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
-    this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
 
     decode_embedding_node_ = dynamic_cast<DecodeEmbeddingNode*>(
@@ -299,12 +369,54 @@ class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
   virtual base::Status run();
   virtual base::Status deinit();
   virtual base::Status defaultParam();
+  base::Status setInferenceType(base::InferenceType inference_type);
+
+  base::Status setInferParams(bool is_path, base::ModelType model_type,
+                              base::DeviceType device_type);
+  void setConfigPath(std::string config_path) { config_path_ = config_path; }
+  base::Status setConfigParam();
+
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
+  virtual base::Status deserialize(rapidjson::Value& json);
+
+ protected:
+  void getStopTokens(std::string& token_file);
+  int loops() { return max_seq_len_; }
+  inline bool isStop() {
+    tokenizer::TokenizerIds* token_ids;
+    if (is_first_) {
+      token_ids =
+          (tokenizer::TokenizerIds*)(decode_embedding_node_->getInput(0)
+                                         ->getParam(decode_embedding_node_));
+    } else {
+      token_ids =
+          (tokenizer::TokenizerIds*)(decode_sample_node_->getOutput(0)
+                                         ->getParam(decode_sample_node_));
+    }
+
+    int token = token_ids->ids_[0][0];
+    return std::find(stop_tokens_.begin(), stop_tokens_.end(), token) !=
+           stop_tokens_.end();
+  }
 
  public:
   dag::Node* decode_embedding_node_;
   infer::Infer* decode_infer_node_;
   dag::Node* decode_sample_node_;
   dag::Node* decode_node_;
+
+  int all_seq_len_;
+  int max_seq_len_;
+  bool is_first_ = true;
+
+  std::vector<int> stop_tokens_;
+  std::vector<int> special_tokens_;
+
+  tokenizer::TokenizerIds history_ids_;
+
+  std::string result_;
+  std::string config_path_;
 };
 
 extern NNDEPLOY_CC_API dag::Graph* createQwenGraph(

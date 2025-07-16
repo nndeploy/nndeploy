@@ -73,6 +73,11 @@ int main(int argc, char *argv[]) {
   }
   graph->addNode(llm_graph);
 
+  // print node
+  dag::Node *print_node = graph->createNode<PrintNode>(
+      "PrintNode", std::vector<dag::Edge *>{output},
+      std::vector<dag::Edge *>{});
+
   base::Status status = graph->setParallelType(pt);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph setParallelType failed");
@@ -89,33 +94,14 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
+  graph->dump();
+
   NNDEPLOY_TIME_POINT_START("graph->run");
   status = graph->run();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph deinit failed");
     return -1;
   }
-
-  if (pt != base::kParallelTypePipeline) {
-    tokenizer::TokenizerText *result =
-        (tokenizer::TokenizerText *)output->getGraphOutputParam();
-    if (result == nullptr) {
-      NNDEPLOY_LOGE("result is nullptr\n");
-      return -1;
-    }
-    printf("\nQ: %s\n", prompt_param->user_content_.c_str());
-    printf("A: %s\n\n", result->texts_[0].c_str());
-  }
-
-  if (pt == base::kParallelTypePipeline) {
-    tokenizer::TokenizerText *result =
-        (tokenizer::TokenizerText *)output->getGraphOutputParam();
-    if (result == nullptr) {
-      NNDEPLOY_LOGE("result is nullptr");
-      return -1;
-    }
-  }
-
   NNDEPLOY_TIME_POINT_END("graph->run");
 
   status = graph->deinit();
