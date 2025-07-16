@@ -131,8 +131,11 @@ const Flow: React.FC<FlowProps> = (props) => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
 
-      autoLayOutRef.current?.autoLayout()
-      //tools.autoLayout()
+      if (!response.result.nndeploy_ui_layout) {
+        autoLayOutRef.current?.autoLayout()
+      }
+
+
 
     }, 100);
 
