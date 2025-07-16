@@ -34,25 +34,62 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             self.setType<device::Buffer>();
           } else if (py_type.is(py::type::of<device::Tensor>())) {
             self.setType<device::Tensor>();
-          } else if (py_type.is(py::type::of<base::Param>())) {
-            self.setType<base::Param>();
-          } else {
+          } 
+          // else if (py_type.is(py::type::of<base::Param>())) {
+          //   self.setType<base::Param>();
+          // } 
+          else {
             self.type_ = EdgeTypeFlag::kAny;
             // 获取类型的完整名称，包括模块路径
             py::object module = py_type.attr("__module__");
             std::string module_name = module.cast<std::string>();
             std::string type_name = py_type.attr("__name__").cast<std::string>();
-            // std::cout << module_name << " " << type_name << std::endl;
             self.type_name_ = module_name + "." + type_name;
+            NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
             self.type_ptr_ = &typeid(py::type);
             self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
           }
         } else {
           self.type_ = EdgeTypeFlag::kAny;
-          // 获取泛型类型的完整名称
-          py::object type_name = type_val.attr("__name__");
-          // std::cout << "type_name: " << type_name.cast<std::string>() << std::endl;
-          self.type_name_ = type_name.cast<std::string>();
+          // 获取泛型类型的完整名称，支持泛型内部数据结构解析
+          std::string full_type_name;
+          
+          // 检查是否为泛型类型（如 list[Face]、dict[str, Any] 等）
+          if (py::hasattr(type_val, "__origin__") && py::hasattr(type_val, "__args__")) {
+            // 处理泛型类型
+            py::object origin = type_val.attr("__origin__");
+            py::object args = type_val.attr("__args__");
+            
+            // 获取泛型容器的名称（如 list、dict）
+            std::string origin_name = origin.attr("__name__").cast<std::string>();
+            full_type_name = origin_name + "[";
+            
+            // 遍历泛型参数
+            py::tuple args_tuple = args.cast<py::tuple>();
+            for (size_t i = 0; i < args_tuple.size(); ++i) {
+              if (i > 0) full_type_name += ", ";
+              
+              py::object arg = args_tuple[i];
+              if (py::hasattr(arg, "__name__")) {
+                // 基本类型或类
+                full_type_name += arg.attr("__name__").cast<std::string>();
+              } else if (py::hasattr(arg, "_name")) {
+                // typing 模块的特殊类型（如 Any）
+                full_type_name += arg.attr("_name").cast<std::string>();
+              } else {
+                // 嵌套泛型或其他复杂类型
+                full_type_name += py::str(arg).cast<std::string>();
+              }
+            }
+            full_type_name += "]";
+          } else {
+            // 普通类型
+            py::object type_name = type_val.attr("__name__");
+            full_type_name = type_name.cast<std::string>();
+          }
+          
+          self.type_name_ = full_type_name;
+          NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
           self.type_ptr_ = &typeid(py::type);
           self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
         }
@@ -60,6 +97,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_type", &EdgeTypeInfo::getType)
       .def("set_type_name", &EdgeTypeInfo::setTypeName)
       .def("get_type_name", &EdgeTypeInfo::getTypeName)
+      .def("get_type_name_with_namespace", &EdgeTypeInfo::getTypeNameWithNamespace)
       .def("get_unique_type_name", &EdgeTypeInfo::getUniqueTypeName)
       .def("get_type_ptr", &EdgeTypeInfo::getTypePtr)
       .def("is_buffer_type", &EdgeTypeInfo::isType<device::Buffer>)
@@ -98,10 +136,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         "Convert NodeType to string representation");
   m.def("string_to_node_type", &stringToNodeType, py::arg("node_type_str"),
         "Convert string to NodeType");
-  m.def("edge_type_to_string", &edgeTypeToString, py::arg("edge_type"),
-        "Convert EdgeTypeFlag to string representation");
-  m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
-        "Convert string to EdgeTypeFlag");
+  // m.def("edge_type_to_string", &edgeTypeToString, py::arg("edge_type"),
+  //       "Convert EdgeTypeFlag to string representation");
+  // m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
+  //       "Convert string to EdgeTypeFlag");
 
   py::class_<RunStatus, std::shared_ptr<RunStatus>>(m, "RunStatus")
       .def(py::init<>())

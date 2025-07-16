@@ -400,7 +400,7 @@ base::Status Infer::serialize(rapidjson::Value &json,
     return status;
   }
   auto type = type_;
-  if (type == base::kInferenceTypeNotSupport) {
+  if (type == base::kInferenceTypeNotSupport || type == base::kInferenceTypeNone) {
     type = base::kInferenceTypeOnnxRuntime;
   }
   std::string type_str = base::inferenceTypeToString(type);

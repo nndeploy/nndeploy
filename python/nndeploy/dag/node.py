@@ -300,6 +300,10 @@ def get_node_json(node_key: str):
     # print(node)   
     is_graph = node.get_graph_flag()
     is_graph_type = isinstance(node, _C.dag.Graph)
+    
+    if is_graph and not is_graph_type:
+        print(f"node key[{node.get_key()}] is graph, but not export python graph type")
+        return ""
     if is_graph and is_graph_type:
         # print(node)        
         node.set_inner_flag(True)
@@ -311,20 +315,6 @@ def get_node_json(node_key: str):
         return json_str
     else:
         return ""
-
-
-remove_node_keys = ["nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition"]
-
-
-def add_remove_node_keys(node_keys: list[str]):
-    global remove_node_keys
-    remove_node_keys.extend(node_keys)
-    
-def sub_remove_node_keys(node_keys: list[str]):
-    global remove_node_keys
-    for node_key in node_keys:
-        if node_key in remove_node_keys:
-            remove_node_keys.remove(node_key)     
             
 class ImportLib:
     def __init__(self):
@@ -457,6 +447,58 @@ def add_global_import_lib_function(module_name: str, function_name: str):
 def import_global_import_lib():
     global_import_lib.import_all()
     
+    
+remove_node_keys = [
+    "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition",
+    # "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
+    # "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
+    # "nndeploy::preprocess::BatchPreprocess"
+]
+
+
+def add_remove_node_keys(node_keys: list[str]):
+    global remove_node_keys
+    remove_node_keys.extend(node_keys)
+    
+def sub_remove_node_keys(node_keys: list[str]):
+    global remove_node_keys
+    for node_key in node_keys:
+        if node_key in remove_node_keys:
+            remove_node_keys.remove(node_key)    
+    
+
+# def get_all_node_json():
+#     # Import all required modules
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     import_global_import_lib()
+    
+#     global remove_node_keys
+#     node_keys = get_node_keys()
+#     real_node_keys = []
+#     for node_key in node_keys:
+#         if node_key in remove_node_keys:
+#             continue
+#         real_node_keys.append(node_key)
+        
+#     # 排序
+#     real_node_keys.sort()
+    
+#     node_json = "{\"nodes\":["
+#     for node_key in real_node_keys:
+#         json = get_node_json(node_key)
+#         if json == "":
+#             continue
+#         node_json += json
+#         if node_key != real_node_keys[-1]:
+#             node_json += ","
+#     node_json += "]}"
+    
+#     # print(node_json)
+#     # 美化json
+#     node_json = nndeploy.base.pretty_json_str(node_json)
+#     return node_json
+
 
 def get_all_node_json():
     # Import all required modules
@@ -490,4 +532,46 @@ def get_all_node_json():
     node_json = nndeploy.base.pretty_json_str(node_json)
     return node_json
 
-
+# def get_all_node_json():
+#     # Import all required modules
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     import_global_import_lib()
+    
+#     global remove_node_keys
+#     node_keys = get_node_keys()
+#     real_node_keys = []
+#     for node_key in node_keys:
+#         if node_key in remove_node_keys:
+#             continue
+#         real_node_keys.append(node_key)
+        
+#     # 排序
+#     real_node_keys.sort()
+    
+#     # 按照key的二级目录进行分组
+#     node_groups = {}
+#     for node_key in real_node_keys:
+#         # 解析key，获取二级目录
+#         parts = node_key.split("::") if "::" in node_key else node_key.split(".")
+#         if len(parts) >= 2:
+#             category = parts[1]  # 取第二部分作为分类
+#         else:
+#             category = "other"  # 默认分类
+        
+#         if category not in node_groups:
+#             node_groups[category] = []
+#         node_groups[category].append(node_key)
+    
+#     # 构建简单的分层JSON结构，保留最外层的nodes
+#     result = {"nodes": {}}
+#     for category, keys in node_groups.items():
+#         result["nodes"][category] = []
+#         for node_key in keys:
+#             json_str = get_node_json(node_key)
+#             if json_str != "":
+#                 result["nodes"][category].append(json.loads(json_str))
+    
+#     # 美化json
+#     node_json = json.dumps(result, ensure_ascii=False, indent=2)
+#     return node_json

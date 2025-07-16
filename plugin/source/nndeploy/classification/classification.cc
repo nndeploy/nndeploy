@@ -99,6 +99,7 @@ REGISTER_NODE("nndeploy::classification::ClassificationPostProcess",
               ClassificationPostProcess);
 REGISTER_NODE("nndeploy::classification::ClassificationGraph",
               ClassificationGraph);
+REGISTER_NODE("nndeploy::classification::ResnetGraph", ResnetGraph);
 
 }  // namespace classification
 }  // namespace nndeploy

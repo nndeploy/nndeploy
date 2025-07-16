@@ -111,6 +111,24 @@ if __name__ == "__main__":
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
     # print(nndeploy.dag.get_all_node_json())
+    edge_type_json = nndeploy.dag.get_accepted_edge_type_json()
+    # print(edge_type_json)
+    with open("edge_type_json.json", "w") as f:
+        f.write(edge_type_json)
+        
+    graph_json = nndeploy.dag.get_graph_json()
+    # print(graph_json)
+    with open("graph_json.json", "w") as f:
+        f.write(graph_json)
+        
+    dag_json = nndeploy.dag.get_dag_json()
+    print(dag_json)
+    with open("dag_json.json", "w") as f:
+        f.write(dag_json)
+        
+    
+    
+    
         
     # const_node = nndeploy.dag.ConstNode("const_node")
     # const_node.set_output_type(torch.Tensor)

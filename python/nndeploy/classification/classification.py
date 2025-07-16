@@ -8,5 +8,6 @@ try:
     ClassificationPostParam = _C.classification.ClassificationPostParam
     ClassificationPostProcess = _C.classification.ClassificationPostProcess
     ClassificationGraph = _C.classification.ClassificationGraph
+    ResnetGraph = _C.classification.ResnetGraph
 except:
     pass

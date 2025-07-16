@@ -636,9 +636,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                 edge.setTypeInfo<device::Buffer>();
               } else if (py_type.is(py::type::of<device::Tensor>())) {
                 edge.setTypeInfo<device::Tensor>();
-              } else if (py_type.is(py::type::of<base::Param>())) {
-                edge.setTypeInfo<base::Param>();
-              } else {
+              } 
+              // else if (py_type.is(py::type::of<base::Param>())) {
+              //   edge.setTypeInfo<base::Param>();
+              // } 
+              else {
                 std::shared_ptr<EdgeTypeInfo> type_info =
                     std::make_shared<EdgeTypeInfo>();
                 type_info->type_ = EdgeTypeFlag::kAny;

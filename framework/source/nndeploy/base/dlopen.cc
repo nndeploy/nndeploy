@@ -53,7 +53,7 @@ class NNDEPLOY_CC_API DlopenSingleton {
 #endif
     
     handle_map_[path] = handle;
-    NNDEPLOY_LOGI("successfully loaded library: %s\n", path.c_str());
+    // NNDEPLOY_LOGI("successfully loaded library: %s\n", path.c_str());
     return true;
   }
 
