@@ -9,7 +9,7 @@
 #define NNDEPLOY_PYBIND_GIL_SCOPED_ACQUIRE pybind11::gil_scoped_acquire
 #else
 class NullGilScope {
-public:
+ public:
   NullGilScope() {}
   ~NullGilScope() {}
 };
