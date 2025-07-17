@@ -268,7 +268,7 @@ class NnDeployServer:
             summary="return register nodes",
         )
         async def register_nodes():
-            json_str = nndeploy.dag.get_all_node_json()
+            json_str = nndeploy.dag.get_dag_json()
             nodes = json.loads(json_str)
             flag = "success"
             message = ""
