@@ -15,6 +15,7 @@ import { IconMore } from '@douyinfe/semi-icons';
 import { FlowNodeRegistry } from '../../typings';
 import { PasteShortcut } from '../../shortcuts/paste';
 import { CopyShortcut } from '../../shortcuts/copy';
+import { getNextNameNumberSuffix } from '../../pages/components/flow/functions';
 
 interface NodeMenuProps {
   node: WorkflowNodeEntity;
@@ -64,6 +65,22 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
       const copyShortcut = new CopyShortcut(clientContext);
       const pasteShortcut = new PasteShortcut(clientContext);
       const data = copyShortcut.toClipboardData([node]);
+
+      const nextNameNumberPart = getNextNameNumberSuffix(clientContext.document.toJSON() as any);
+
+      data.json.nodes.map(node=>{
+        let name = ''
+        ///@ts-ignore
+        var parts = node.type.split('::') 
+        if(parts.length > 0){
+          name = parts[parts.length  -1]
+        }
+
+        name = name + '_' + nextNameNumberPart
+
+        node.data.name_ = name;
+      })
+
       pasteShortcut.apply(data);
       e.stopPropagation(); // Disable clicking prevents the sidebar from opening
     },

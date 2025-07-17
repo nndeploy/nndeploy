@@ -80,6 +80,10 @@ export function useEditorProps(
         if (fromPort.node === toPort.node) {
           return false;
         }
+
+        if (toPort.availableLines.length >= 1) {
+          return false
+        }
         return true;
       },
       /**
@@ -100,7 +104,7 @@ export function useEditorProps(
        * Drag the end of the line to create an add panel (feature optional)
        * 拖拽线条结束需要创建一个添加面板 （功能可选）
        */
-      onDragLineEnd,
+      onDragLineEnd: undefined, 
       /**
        * SelectBox config
        */
@@ -182,7 +186,7 @@ export function useEditorProps(
          * 连线渲染插件
          */
         createFreeLinesPlugin({
-          renderInsideLine: LineAddButton,
+          renderInsideLine: undefined  //LineAddButton,
         }),
         /**
          * Minimap plugin

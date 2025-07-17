@@ -357,7 +357,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                     //setUpdateVal({})
                                   }
                                   }
-                                  readonly={!isSidebar}
+                                  readonly={!isSidebar || fieldName == 'desc_'}
                                   hasError={
                                     Object.keys(fieldState?.errors || {}).length > 0
                                   }

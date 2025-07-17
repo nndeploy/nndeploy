@@ -209,6 +209,22 @@ function getAllEdges(designData: FlowDocumentJSON) {
 export function designDataToBusinessData(designData: FlowDocumentJSON) {
   let allEdges = getAllEdges(designData);
 
+
+  function getNodesPostion(){
+
+    let layout: {[nodeName:string]: {x:number, y: number}} = {}
+    designData.nodes.map((node) => {
+      if (node.meta && node.meta.position) {
+    
+        layout[node.data.name_] = node.meta.position
+      }
+    })
+
+    return layout
+  }
+
+  const layout = getNodesPostion()
+
   let businessData: IBusinessNode = {
     key_: "nndeploy::dag::Graph",
     name_: "demo",
@@ -222,6 +238,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
     is_graph_node_share_stream_: true,
     queue_max_size_: 16,
     node_repository_: [],
+    nndeploy_ui_layout: layout
   };
 
   function getNodeNameByIterate(id: string, node: WorkflowNodeJSON): string {
@@ -476,6 +493,22 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
       outputs_,
       node_repository_,
     };
+
+    function normalize() {
+      delete businessNode.id
+      inputs_.map((collectionPoint: any) => {
+        delete collectionPoint.id
+      })
+
+      outputs_.map((collectionPoint: any) => {
+        delete collectionPoint.id
+      })
+    }
+    normalize()
+
+
+
+
     return businessNode;
   }
 
@@ -494,6 +527,8 @@ export function transferBusinessContentToDesignContent(
   businessContent: IBusinessNode,
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
+
+  const layout = businessContent.nndeploy_ui_layout ?? {}
   function businessNodeIterate(
     businessNode: IBusinessNode,
     process: (businessNode: IBusinessNode) => void
@@ -628,7 +663,7 @@ export function transferBusinessContentToDesignContent(
   ): FlowNodeJSON {
 
     if (businessNode.is_graph_) {
-      debugger
+      //debugger
     }
 
     // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
@@ -641,10 +676,7 @@ export function transferBusinessContentToDesignContent(
       type,
 
       meta: {
-        position: {
-          x: 0,
-          y: 0,
-        },
+        position: layout[businessNode.name_] ?? { x: 0, y: 0 },
       },
       data: {
         // ...businessNode,

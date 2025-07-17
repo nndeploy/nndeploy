@@ -20,6 +20,7 @@ import {
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBilibili,
   faDiscord,
   faWeixin,
   faZhihu,
@@ -206,6 +207,14 @@ const Design: React.FC = () => {
               theme="borderless"
             />
           </a>
+          <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"
+            target="_blank">
+            <Button
+              icon={<FontAwesomeIcon icon={faBilibili} size="1x" />}
+              size='large'
+              theme="borderless"
+            />
+          </a>
           <a
             href="https://github.com/nndeploy/nndeploy/blob/main/docs/zh_cn/knowledge_shared/wechat.md"
             target="_blank"
@@ -313,7 +322,7 @@ const Design: React.FC = () => {
 
               >
                 <div className="tab-content">
-                  <Flow id={tab.name} onFlowSave={onFlowSave} activeKey = {activeKey}/>
+                  <Flow id={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} />
                 </div>
               </TabPane>
             ))}

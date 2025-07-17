@@ -17,14 +17,14 @@ export default defineConfig({
     },
   },
   html: {
-    title: 'demo-free-layout',
+    title: 'nndeploy',
   },
   server: {
     port: 3000, // 开发服务器的端口
     proxy: {
 
       '/api/ws': { // 代理路径，可以是任意路径
-        target: 'ws://183.215.186.194:6666', // 目标服务器的地址
+        target: 'ws://183.215.186.194:7777', // 目标服务器的地址
         ws: true,
         secure: false, // 如果目标服务器使用自签名证书，请设置为false
         changeOrigin: true, // 是否改变请求头中的origin
@@ -36,7 +36,7 @@ export default defineConfig({
         }
       },
       '/api': { // 代理路径，可以是任意路径
-        target: 'http://183.215.186.194:6666', // 目标服务器的地址
+        target: 'http://183.215.186.194:7777', // 目标服务器的地址
         secure: false, // 如果目标服务器使用自签名证书，请设置为false
         changeOrigin: true, // 是否改变请求头中的origin
         // pathRewrite: { '^/api': '' }, // 重写路径，例如将'/api/user'重写为'/user'

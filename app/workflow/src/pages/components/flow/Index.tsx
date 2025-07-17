@@ -31,6 +31,8 @@ import { designDataToBusinessData, transferBusinessContentToDesignContent } from
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import { initialState, reducer } from "./store/store";
+import lodash from "lodash";
+import { getNextNameNumberSuffix } from "./functions";
 
 let nameId = 0;
 
@@ -129,8 +131,11 @@ const Flow: React.FC<FlowProps> = (props) => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
 
-      autoLayOutRef.current?.autoLayout()
-      //tools.autoLayout()
+      if (!response.result.nndeploy_ui_layout) {
+        autoLayOutRef.current?.autoLayout()
+      }
+
+
 
     }, 100);
 
@@ -341,6 +346,25 @@ const Flow: React.FC<FlowProps> = (props) => {
       //var type = entity.is_graph_ ? 'group':  entity.key_
       var type = entity.key_
 
+      // function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
+      //   let result = 0;
+      //   //const allNode = ref?.current?.document.toJSON() as FlowDocumentJSON;
+      //    documentJSON.nodes.map(item => {
+
+      //     var nameParts = item.data.name_.split('_')
+      //     if (item.data.name_ && nameParts.length > 1) {
+      //       var numberPart = parseInt(nameParts[nameParts.length - 1])
+      //       if (!isNaN(numberPart)) {
+      //         result = Math.max(result, numberPart);
+      //       }
+      //     }
+      //   })
+      //   return result + 1;
+      // }
+
+
+      let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
+
       let node = {
         // ...response.result,
         id: Math.random().toString(36).substr(2, 9),
@@ -354,7 +378,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         data: {
           //title: response.result.key_,
           ...entity,
-          name_: `${entity.name_}_${nameId++}`,
+          name_: `${entity.name_}_${numberSuffix}`,
         },
       }
       //if(response.result.is_dynamic_input_){
@@ -375,6 +399,9 @@ const Flow: React.FC<FlowProps> = (props) => {
           id: 'port' + Math.random().toString(36).substr(2, 9),
         }
       })
+
+
+
       //}
 
       ref?.current?.document.createWorkflowNode(node);
