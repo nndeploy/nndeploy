@@ -87,6 +87,10 @@ const NodeTree: React.FC = () => {
     node: NodeTreeNodeData,
     dragEvent: React.DragEvent<HTMLDivElement>
   ) {
+
+    if(node.type != 'leaf'){
+      return
+    }
     const dragImage = document.getElementById("drag-image");
 
     ///@ts-ignore
