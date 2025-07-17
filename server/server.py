@@ -24,7 +24,6 @@ from schemas import (
     EnqueueResponse,
     QueueStateResponse,
     HistoryItem,
-    ProgressPayload,
     UploadResponse,
     NodeListResponse,
     WorkFlowSaveResponse,
@@ -482,7 +481,7 @@ class NnDeployServer:
 
         flag = "success"
         message = "notify task done"
-        result = {"task_id": task_id, "path": path}
+        result = {"task_id": task_id, "type": "preview", "path": path}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
         for ws in ws_set.copy():
@@ -503,20 +502,3 @@ class NnDeployServer:
             except Exception as e:
                 logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
-
-    # queue progress notification
-    # def queue_updated(self):
-    #     payload = {"pending": len(self.queue.get_current_queue()[1])}
-    #     self.send_sync("queue_update", payload)
-
-    # def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
-    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
-
-    # async def _broadcast(self, event, data, ws):
-    #     msg = ProgressPayload(type=event, data=data).model_dump()
-    #     targets = [ws] if ws else list(self.sockets)
-    #     for w in targets:
-    #         try:
-    #             await w.send_json(msg)
-    #         except Exception:
-    #             self.sockets.discard(w)
