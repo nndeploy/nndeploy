@@ -8,6 +8,8 @@ extern "C" {
     #include <libavutil/avutil.h>      // 工具函数、数据类型等
     #include <libswscale/swscale.h>    // 图像格式转换与缩放
     #include <libswresample/swresample.h> // 音频重采样
+    #include <libavutil/frame.h> // 图像处理工具函数
+    #include <libavformat/avformat.h>
 }
 #endif
 

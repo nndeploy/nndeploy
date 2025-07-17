@@ -17,6 +17,8 @@ include("${ROOT_PATH}/cmake/opencv.cmake")
 include("${ROOT_PATH}/cmake/rapidjson.cmake")
 # # safetensos_cpp
 include("${ROOT_PATH}/cmake/safetensos_cpp.cmake")
+# # ffmpeg
+include("${ROOT_PATH}/cmake/ffmpeg.cmake")
 
 # ################### common ####################
 
