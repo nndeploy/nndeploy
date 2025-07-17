@@ -210,16 +210,16 @@ class NnDeployServer:
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
             workflow = []
-            filenames = {}
+            filenames = []
             result = {}
             try:
                 for json_file in workflow_dir.glob("*.json"):
                     with open(json_file, 'r') as f:
                         data = json.load(f)
                         workflow.append(data)
-                        filenames[data["name_"]]=json_file.name
-                result["filenames"]=filenames
-                result["workflow"]=workflow
+                        filenames.append(json_file.name)
+                result["fileNames"]=filenames
+                result["workflows"]=workflow
                 flag = "success"
                 message = "success"
                 return WorkFlowListResponse(flag=flag, message=message, result=result)
@@ -259,7 +259,7 @@ class NnDeployServer:
         async def get_workflow_json(file_name: str):
             workflow_dir = Path(self.args.resources) / "workflow"
 
-            file_path = workflow_dir / f"{file_name}.json"
+            file_path = workflow_dir / f"{file_name}"
 
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
@@ -313,6 +313,8 @@ class NnDeployServer:
                 w.write(file.file.read())
 
             self.plugin_update_q.put(str(dst.resolve()))
+            add_global_import_lib(str(dst.resolve()))
+            import_global_import_lib()
 
             flag = "success"
             message = f"workflow {dst.name} has been uploaded successfully"
