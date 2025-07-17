@@ -3,6 +3,7 @@
 import gc
 import logging
 import os
+import contextvars
 import threading
 import traceback
 from logging.handlers import QueueHandler
@@ -12,14 +13,59 @@ from task_queue import ExecutionStatus
 
 PROGRESS_INTERVAL_SEC = 0.5
 
-def configure_worker_logger(log_q) -> None:
+current_task_id_var = contextvars.ContextVar("task_id", default="0")
+
+def set_current_task_id(task_id: str):
+    current_task_id_var.set(task_id)
+
+def get_current_task_id() -> str:
+    return current_task_id_var.get()
+
+class TaskLoggerAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        task_id = get_current_task_id()
+        return f"[task_id={task_id}] {msg}", kwargs
+
+def redirect_fd_to_logger(fd, level, label, logger):
+        read_fd, write_fd = os.pipe()
+        os.dup2(write_fd, fd)
+        ctx = contextvars.copy_context()
+
+        def reader():
+            with os.fdopen(read_fd, "r") as pipe_reader:
+                for line in pipe_reader:
+                    line = line.strip()
+                    if line:
+                        logger.log(level, f"[C++ {label}] {line}")
+        threading.Thread(target=lambda: ctx.run(reader), daemon=True).start()
+
+def configure_worker_logger(log_q) -> logging.LoggerAdapter:
+    import sys
+
     root = logging.getLogger()
     root.setLevel(logging.INFO)
     root.handlers.clear()
     root.addHandler(QueueHandler(log_q))
 
+    logger = TaskLoggerAdapter(root, {})
+
+    class stream_to_logger_:
+        def __init__(self, logger, level):
+            self.logger = logger
+            self.level = level
+        def write(self, message):
+            message = message.strip()
+            if message:
+                self.logger.log(self.level, message)
+        def flush(self): pass
+
+    sys.stdout = stream_to_logger_(logger, logging.INFO)
+    sys.stderr = stream_to_logger_(logger, logging.ERROR)
+
+    return logger
+
 def run(task_q, result_q, progress_q, log_q) -> None:
-    configure_worker_logger(log_q)
+    logger = configure_worker_logger(log_q)
 
     executor = GraphExecutor()
 
@@ -37,6 +83,9 @@ def run(task_q, result_q, progress_q, log_q) -> None:
         done_evt = threading.Event()
 
         def _exec():
+            set_current_task_id(task_id)
+            redirect_fd_to_logger(1, logging.INFO, "stdout", logger)
+            redirect_fd_to_logger(2, logging.ERROR, "stderr", logger)
             try:
                 tp_map, results = executor.execute(payload["graph_json"], task_id)
                 result_holder["tp_map"] = tp_map
