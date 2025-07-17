@@ -106,9 +106,10 @@ class FrontendManager:
 
         # cache path
         if tag != "latest":
-            dest = FRONTEND_ROOT / f"{owner}_{repo}" / tag.lstrip("v") / "dist"
-            if dest.exists():
-                logging.info("use cached front end: %s", dest)
+            dest = FRONTEND_ROOT / f"{owner}_{repo}" / tag.lstrip("v")
+            dist_dir = dest / "dist"
+            if dist_dir.exists():
+                logging.info("use cached front end: %s", dist_dir)
                 return str(dest)
 
             direct_url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/dist.zip"
