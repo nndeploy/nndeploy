@@ -472,19 +472,19 @@ base::Status QwenPrefill::run() {
       (tokenizer::TokenizerIds*)prefill_sample_node_->getOutput(0)->getParam(
           prefill_sample_node_);
   outputs_[0]->set(out_token, true);
-  outputs_[0]->notifyWritten(out_token);
+  // outputs_[0]->notifyWritten(out_token);
 
   device::Tensor* presents =
       (device::Tensor*)prefill_infer_node_->getOutput(1)->getTensor(
           prefill_infer_node_);
   outputs_[1]->set(presents, true);
-  outputs_[1]->notifyWritten(presents);
+  // outputs_[1]->notifyWritten(presents);
 
   tokenizer::TokenizerIds* history_token =
       (tokenizer::TokenizerIds*)prefill_token_node_->getOutput(0)->getParam(
           prefill_token_node_);
   outputs_[2]->set(history_token, true);
-  outputs_[2]->notifyWritten(history_token);
+  // outputs_[2]->notifyWritten(history_token);
 
   setRunningFlag(false);
   return status;
@@ -657,7 +657,7 @@ base::Status DecodeEmbeddingNode::run() {
   outputs_[0]->set(inputs_embeds, false);
   outputs_[1]->set(attention_mask, false);
   outputs_[2]->set(position_ids, false);
-  outputs_[3]->set(past_kv_, false);
+  outputs_[3]->set(past_kv_, true);
 
   return status;
 }
@@ -864,14 +864,14 @@ base::Status QwenDecode::run() {
 
   setRunningFlag(true);
 
-  tokenizer::TokenizerIds* prefill_token_ids =
-      (tokenizer::TokenizerIds*)(inputs_[0]->getParam(this));
+  tokenizer::TokenizerIds* prefill_token_ids = new tokenizer::TokenizerIds();
+  prefill_token_ids->ids_ =
+      ((tokenizer::TokenizerIds*)(inputs_[0]->getParam(this)))->ids_;
   device::Tensor* present_kv = (device::Tensor*)(inputs_[1]->getTensor(this));
   tokenizer::TokenizerIds* history_ids =
       (tokenizer::TokenizerIds*)(inputs_[2]->getParam(this));
 
   history_ids->ids_[0].push_back(prefill_token_ids->ids_[0][0]);
-
   history_ids_ = *history_ids;
 
   decode_embedding_node_->getInput(0)->set(prefill_token_ids, true);
