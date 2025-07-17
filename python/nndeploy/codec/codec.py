@@ -8,12 +8,12 @@ create_encode_node = _C.codec.create_encode_node
 
 OpenCvImageDecode = _C.codec.OpenCvImageDecode
 OpenCvImagesDecode = _C.codec.OpenCvImagesDecode
-OpenCvVedioDecode = _C.codec.OpenCvVedioDecode
+OpenCvVideoDecode = _C.codec.OpenCvVideoDecode
 OpenCvCameraDecode = _C.codec.OpenCvCameraDecode
 
 OpenCvImageEncode = _C.codec.OpenCvImageEncode
 OpenCvImagesEncode = _C.codec.OpenCvImagesEncode
-OpenCvVedioEncode = _C.codec.OpenCvVedioEncode
+OpenCvVideoEncode = _C.codec.OpenCvVideoEncode
 OpenCvCameraEncode = _C.codec.OpenCvCameraEncode
 
 create_opencv_decode = _C.codec.create_opencv_decode

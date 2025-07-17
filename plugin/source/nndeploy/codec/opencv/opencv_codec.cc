@@ -38,7 +38,7 @@ base::Status OpenCvImageDecode::run() {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
   // }
-  // TODO: 
+  // TODO:
   if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     // NNDEPLOY_LOGI("OpenCvImageDecode::run() path_[%s]\n", path_.c_str());
     std::unique_lock<std::mutex> lock(path_mutex_);
@@ -163,8 +163,8 @@ base::Status OpenCvImagesDecode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioDecode::init() { return base::kStatusCodeOk; }
-base::Status OpenCvVedioDecode::deinit() {
+base::Status OpenCvVideoDecode::init() { return base::kStatusCodeOk; }
+base::Status OpenCvVideoDecode::deinit() {
   if (cap_ != nullptr) {
     cap_->release();
     delete cap_;
@@ -173,7 +173,7 @@ base::Status OpenCvVedioDecode::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioDecode::setPath(const std::string &path) {
+base::Status OpenCvVideoDecode::setPath(const std::string &path) {
   if (parallel_type_ == base::kParallelTypePipeline) {
     std::lock_guard<std::mutex> lock(path_mutex_);
     path_ = path;
@@ -235,7 +235,7 @@ base::Status OpenCvVedioDecode::setPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioDecode::run() {
+base::Status OpenCvVideoDecode::run() {
   // while (path_.empty() && parallel_type_ == base::kParallelTypePipeline) {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
@@ -426,15 +426,15 @@ base::Status OpenCvImagesEncode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncode::init() {
+base::Status OpenCvVideoEncode::init() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
-base::Status OpenCvVedioEncode::deinit() {
+base::Status OpenCvVideoEncode::deinit() {
   base::Status status = base::kStatusCodeOk;
   if (writer_) {
     if (writer_->isOpened()) {
-      NNDEPLOY_LOGI("OpenCvVedioEncode::deinit() writer_->release()\n");
+      NNDEPLOY_LOGI("OpenCvVideoEncode::deinit() writer_->release()\n");
       writer_->release();
     }
     delete writer_;
@@ -443,7 +443,7 @@ base::Status OpenCvVedioEncode::deinit() {
   return status;
 }
 
-base::Status OpenCvVedioEncode::setRefPath(const std::string &path) {
+base::Status OpenCvVideoEncode::setRefPath(const std::string &path) {
   ref_path_ = path;
   path_changed_ = true;
   if (cap_ != nullptr) {
@@ -475,10 +475,10 @@ base::Status OpenCvVedioEncode::setRefPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncode::setPath(const std::string &path) {
+base::Status OpenCvVideoEncode::setPath(const std::string &path) {
   if (writer_ != nullptr) {
     if (writer_->isOpened()) {
-      NNDEPLOY_LOGI("OpenCvVedioEncode::deinit() writer_->release()\n");
+      NNDEPLOY_LOGI("OpenCvVideoEncode::deinit() writer_->release()\n");
       writer_->release();
     }
     delete writer_;
@@ -503,9 +503,10 @@ base::Status OpenCvVedioEncode::setPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncode::run() {
-  // NNDEPLOY_LOGI("OpenCvVedioEncode::run() index_[%d] size_[%d]\n", index_, size_);
-  // NNDEPLOY_LOGI("OpenCvVedioEncode::run() size_[%d] fps_[%f] width_[%d] height_[%d]\n", size_, fps_, width_, height_);
+base::Status OpenCvVideoEncode::run() {
+  // NNDEPLOY_LOGI("OpenCvVideoEncode::run() index_[%d] size_[%d]\n", index_,
+  // size_); NNDEPLOY_LOGI("OpenCvVideoEncode::run() size_[%d] fps_[%f]
+  // width_[%d] height_[%d]\n", size_, fps_, width_, height_);
   if (index_ < size_) {
     cv::Mat *mat = inputs_[0]->getCvMat(this);
     if (mat != nullptr) {
@@ -513,7 +514,7 @@ base::Status OpenCvVedioEncode::run() {
     }
     index_++;
     if (index_ == size_) {
-      // NNDEPLOY_LOGI("OpenCvVedioEncode::run() writer_->release()\n");
+      // NNDEPLOY_LOGI("OpenCvVideoEncode::run() writer_->release()\n");
       writer_->release();
     }
   } else {
@@ -567,18 +568,18 @@ base::Status OpenCvCameraEncode::run() {
 TypeCreatelDecodeRegister g_type_create_decode_node_register(
     base::kCodecTypeOpenCV, createOpenCvDecode);
 TypeCreatelDecodeSharedPtrRegister
-    g_type_create_decode_node_shared_ptr_register(
-        base::kCodecTypeOpenCV, createOpenCvDecodeSharedPtr);
+    g_type_create_decode_node_shared_ptr_register(base::kCodecTypeOpenCV,
+                                                  createOpenCvDecodeSharedPtr);
 
-Decode *createOpenCvDecode(base::CodecFlag flag,
-                                   const std::string &name, dag::Edge *output) {
+Decode *createOpenCvDecode(base::CodecFlag flag, const std::string &name,
+                           dag::Edge *output) {
   Decode *temp = nullptr;
   if (flag == base::kCodecFlagImage) {
     temp = new OpenCvImageDecode(name, {}, {output}, flag);
   } else if (flag == base::kCodecFlagImages) {
     temp = new OpenCvImagesDecode(name, {}, {output}, flag);
   } else if (flag == base::kCodecFlagVideo) {
-    temp = new OpenCvVedioDecode(name, {}, {output}, flag);
+    temp = new OpenCvVideoDecode(name, {}, {output}, flag);
   } else if (flag == base::kCodecFlagCamera) {
     temp = new OpenCvCameraDecode(name, {}, {output}, flag);
   }
@@ -586,8 +587,9 @@ Decode *createOpenCvDecode(base::CodecFlag flag,
   return temp;
 }
 
-std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
-    base::CodecFlag flag, const std::string &name, dag::Edge *output) {
+std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(base::CodecFlag flag,
+                                                    const std::string &name,
+                                                    dag::Edge *output) {
   std::shared_ptr<Decode> temp = nullptr;
   if (flag == base::kCodecFlagImage) {
     temp = std::shared_ptr<OpenCvImageDecode>(
@@ -596,8 +598,8 @@ std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
     temp = std::shared_ptr<OpenCvImagesDecode>(
         new OpenCvImagesDecode(name, {}, {output}, flag));
   } else if (flag == base::kCodecFlagVideo) {
-    temp = std::shared_ptr<OpenCvVedioDecode>(
-        new OpenCvVedioDecode(name, {}, {output}, flag));
+    temp = std::shared_ptr<OpenCvVideoDecode>(
+        new OpenCvVideoDecode(name, {}, {output}, flag));
   } else if (flag == base::kCodecFlagCamera) {
     temp = std::shared_ptr<OpenCvCameraDecode>(
         new OpenCvCameraDecode(name, {}, {output}, flag));
@@ -609,18 +611,18 @@ std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
 TypeCreatelEncodeRegister g_type_create_encode_node_register(
     base::kCodecTypeOpenCV, createOpenCvEncode);
 TypeCreatelEncodeSharedPtrRegister
-    g_type_create_encode_node_shared_ptr_register(
-        base::kCodecTypeOpenCV, createOpenCvEncodeSharedPtr);
+    g_type_create_encode_node_shared_ptr_register(base::kCodecTypeOpenCV,
+                                                  createOpenCvEncodeSharedPtr);
 
-Encode *createOpenCvEncode(base::CodecFlag flag,
-                                   const std::string &name, dag::Edge *input) {
+Encode *createOpenCvEncode(base::CodecFlag flag, const std::string &name,
+                           dag::Edge *input) {
   Encode *temp = nullptr;
   if (flag == base::kCodecFlagImage) {
     temp = new OpenCvImageEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagImages) {
     temp = new OpenCvImagesEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagVideo) {
-    temp = new OpenCvVedioEncode(name, {input}, {}, flag);
+    temp = new OpenCvVideoEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagCamera) {
     temp = new OpenCvCameraEncode(name, {input}, {}, flag);
   }
@@ -628,8 +630,9 @@ Encode *createOpenCvEncode(base::CodecFlag flag,
   return temp;
 }
 
-std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
-    base::CodecFlag flag, const std::string &name, dag::Edge *input) {
+std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(base::CodecFlag flag,
+                                                    const std::string &name,
+                                                    dag::Edge *input) {
   std::shared_ptr<Encode> temp = nullptr;
   if (flag == base::kCodecFlagImage) {
     temp = std::shared_ptr<OpenCvImageEncode>(
@@ -638,8 +641,8 @@ std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
     temp = std::shared_ptr<OpenCvImagesEncode>(
         new OpenCvImagesEncode(name, {input}, {}, flag));
   } else if (flag == base::kCodecFlagVideo) {
-    temp = std::shared_ptr<OpenCvVedioEncode>(
-        new OpenCvVedioEncode(name, {input}, {}, flag));
+    temp = std::shared_ptr<OpenCvVideoEncode>(
+        new OpenCvVideoEncode(name, {input}, {}, flag));
   } else if (flag == base::kCodecFlagCamera) {
     temp = std::shared_ptr<OpenCvCameraEncode>(
         new OpenCvCameraEncode(name, {input}, {}, flag));
@@ -649,17 +652,13 @@ std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
 }
 
 REGISTER_NODE("nndeploy::codec::OpenCvImageDecode", OpenCvImageDecode);
-REGISTER_NODE("nndeploy::codec::OpenCvImagesDecode",
-              OpenCvImagesDecode);
-REGISTER_NODE("nndeploy::codec::OpenCvVedioDecode", OpenCvVedioDecode);
-REGISTER_NODE("nndeploy::codec::OpenCvCameraDecode",
-              OpenCvCameraDecode);
+REGISTER_NODE("nndeploy::codec::OpenCvImagesDecode", OpenCvImagesDecode);
+REGISTER_NODE("nndeploy::codec::OpenCvVideoDecode", OpenCvVideoDecode);
+REGISTER_NODE("nndeploy::codec::OpenCvCameraDecode", OpenCvCameraDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvImageEncode", OpenCvImageEncode);
-REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode",
-              OpenCvImagesEncode);
-REGISTER_NODE("nndeploy::codec::OpenCvVedioEncode", OpenCvVedioEncode);
-REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode",
-              OpenCvCameraEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode", OpenCvImagesEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvVideoEncode", OpenCvVideoEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode", OpenCvCameraEncode);
 
 }  // namespace codec
 }  // namespace nndeploy

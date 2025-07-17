@@ -38,12 +38,12 @@ class GraphRunner:
         return json_obj
     
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
-        add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-        add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
-        import_global_import_lib()
-        
+        # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+        # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+        # import_global_import_lib()
+
         nndeploy.base.time_profiler_reset()
-        
+
         nndeploy.base.time_point_start("deserialize_" + name)
         self.graph = self._build_graph(graph_json_str, name)
         nndeploy.base.time_point_end("deserialize_" + name)

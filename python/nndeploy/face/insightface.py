@@ -142,7 +142,7 @@ class InsightVideoFaceId(nndeploy.dag.Node):
         import nndeploy.codec as codec
         self.codec_output = nndeploy.dag.Edge("codec_output")
         self.analysis_output = nndeploy.dag.Edge("analysis_output")
-        self.video_codec = codec.OpenCvVedioDecode("video_codec", [], [self.codec_output])
+        self.video_codec = codec.OpenCvVideoDecode("video_codec", [], [self.codec_output])
         self.face_analysis = InsightFaceAnalysis("face_analysis", [self.codec_output], [self.analysis_output])
         self.face_analysis.is_one_face_ = False
         self.graph = nndeploy.dag.Graph("graph", [], [self.video_codec, self.face_analysis])

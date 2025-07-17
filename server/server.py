@@ -9,6 +9,7 @@ from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
 from frontend import FrontendManager
+from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json
 import asyncio
@@ -38,7 +39,7 @@ from files import router as files_router
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, args, job_mp_queue):
+    def __init__(self, args, job_mp_queue, plugin_update_q):
         NnDeployServer.instance = self
         self.loop: Optional[asyncio.AbstractEventLoop] = None # lazy loading
         self.args = args
@@ -65,6 +66,7 @@ class NnDeployServer:
         if static_dir.is_dir():
             self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
 
+        self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
@@ -142,6 +144,13 @@ class NnDeployServer:
         async def upload_workflow(
             file: UploadFile = File(...)
         ):
+            allowed_extensions = {".json", ".yaml", ".yml"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed_extensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Only .json, .yml and .yaml files are allowed, got: {suffix}"
+                )
             folder = Path(self.args.resources) / "workflow"
             if not folder.exists():
                 folder.mkdir(parents=True, exist_ok=True)
@@ -264,6 +273,7 @@ class NnDeployServer:
         
         @api.get(
             "/nodes",
+            tags=["Node"],
             response_model=NodeListResponse,
             summary="return register nodes",
         )
@@ -273,7 +283,45 @@ class NnDeployServer:
             flag = "success"
             message = ""
             return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
-        
+
+        @api.post(
+                "/nodes/upload",
+                tags=["Node"],
+                response_model=UploadResponse,
+                status_code=status.HTTP_201_CREATED,
+                summary="upload node",
+        )
+        async def upload_plugin(
+            file: UploadFile = File(...)
+        ):
+            allowed_extensions = {".py", ".so"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed_extensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Only .py and .so files are allowed, got: {suffix}"
+                )
+
+            folder = Path(self.args.resources) / "plugin"
+            if not folder.exists():
+                folder.mkdir(parents=True, exist_ok=True)
+            dst = folder / file.filename
+            with dst.open("wb") as w:
+                w.write(file.file.read())
+
+            self.plugin_update_q.put(str(dst.resolve()))
+
+            flag = "success"
+            message = f"workflow {dst.name} has been uploaded successfully"
+            result = {
+                "filename":file.filename,
+                "saved_path":str(dst.resolve()),
+                "size":dst.stat().st_size,
+                "uploaded_at":datetime.utcnow(),
+                "extension": (dst.suffix or "unknown").lstrip(".")
+            }
+            return UploadResponse(flag=flag, message=message, result=result)
+
         @api.get(
             "/param/types",
             response_model=ParamTypeResponse,

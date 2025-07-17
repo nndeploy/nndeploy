@@ -64,7 +64,18 @@ def configure_worker_logger(log_q) -> logging.LoggerAdapter:
 
     return logger
 
-def run(task_q, result_q, progress_q, log_q) -> None:
+def poll_plugin_updates(plugin_update_q):
+    from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
+    while not plugin_update_q.empty():
+        plugin_path = plugin_update_q.get()
+        if os.path.exists(plugin_path):
+            add_global_import_lib(plugin_path)
+            import_global_import_lib()
+            logging.info(f"[Plugin] Imported plugin: {plugin_path}")
+        else:
+            logging.warning(f"[Plugin] Plugin path not found: {plugin_path}")
+
+def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
     logger = configure_worker_logger(log_q)
 
     executor = GraphExecutor()
@@ -75,6 +86,8 @@ def run(task_q, result_q, progress_q, log_q) -> None:
         except Empty:
             continue
         logging.info("Worker PID=%s started", os.getpid())
+
+        poll_plugin_updates(plugin_update_q)
 
         idx, payload = item
         task_id = payload["id"]
@@ -126,6 +139,6 @@ def run(task_q, result_q, progress_q, log_q) -> None:
             time_profiler_map = result_holder["tp_map"]
             sum = time_profiler_map["sum_" + payload["graph_json"]["name_"]]
             status = ExecutionStatus(True, f"{sum:.2f}s")
-            logging.info("Task %s done in %.2fs", task_id, sum)
+            logging.info("Task %s done in %.2fms", task_id, sum)
         gc.collect()
         result_q.put((idx, status))

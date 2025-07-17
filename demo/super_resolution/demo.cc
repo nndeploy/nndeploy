@@ -1,18 +1,19 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/super_resolution/super_resolution.h"
 #include "nndeploy/codec/codec.h"
+#include "nndeploy/codec/opencv/batch_opencv_codec.h"
 #include "nndeploy/codec/opencv/opencv_codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
+#include "nndeploy/super_resolution/super_resolution.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-#include "nndeploy/codec/opencv/batch_opencv_codec.h"
 
 using namespace nndeploy;
 
-void testCvVideoWriter(const std::string &input_path, const std::string &ouput_path) {
+void testCvVideoWriter(const std::string &input_path,
+                       const std::string &ouput_path) {
   // // 读取输入视频
   auto cap = cv::VideoCapture(input_path);
   if (!cap.isOpened()) {
@@ -21,12 +22,12 @@ void testCvVideoWriter(const std::string &input_path, const std::string &ouput_p
   }
   int frame_count = cap.get(cv::CAP_PROP_FRAME_COUNT);
   NNDEPLOY_LOGI("frame_count: %d\n", frame_count);
-  
+
   // 获取视频参数
   int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
   int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
   double fps = cap.get(cv::CAP_PROP_FPS);
-  
+
   // 创建视频写入对象
   auto writer = cv::VideoWriter();
   int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
@@ -38,11 +39,13 @@ void testCvVideoWriter(const std::string &input_path, const std::string &ouput_p
   // //   NNDEPLOY_LOGI("  实际路径: %s\n", output_path.c_str());
   // // }
   // // output_path = ouput_path;
-  // bool success = writer.open(output_path, fourcc, fps, cv::Size(width, height), true);
-  // NNDEPLOY_LOGI("ouput_path:%s,\n", ouput_path.c_str());
-  bool success = writer.open(ouput_path, fourcc, fps, cv::Size(width, height), true);
+  // bool success = writer.open(output_path, fourcc, fps, cv::Size(width,
+  // height), true); NNDEPLOY_LOGI("ouput_path:%s,\n", ouput_path.c_str());
+  bool success =
+      writer.open(ouput_path, fourcc, fps, cv::Size(width, height), true);
   if (!success) {
-    NNDEPLOY_LOGE("Failed to create video writer for: %s\n", ouput_path.c_str());
+    NNDEPLOY_LOGE("Failed to create video writer for: %s\n",
+                  ouput_path.c_str());
     cap.release();
     return;
   }
@@ -55,10 +58,10 @@ void testCvVideoWriter(const std::string &input_path, const std::string &ouput_p
     // cv::imshow("13",frame);
     // cv::waitKey(30);
     try {
-        writer.write(frame);
-    } catch (const cv::Exception& e) {
-        NNDEPLOY_LOGE("Error writing frame: %s\n", e.what());
-        break;
+      writer.write(frame);
+    } catch (const cv::Exception &e) {
+      NNDEPLOY_LOGE("Error writing frame: %s\n", e.what());
+      break;
     }
     // std::string name = "output_temp" + std::to_string(index) + ".jpg";
     // std::string full_path = base::joinPath("./", name);
@@ -80,19 +83,18 @@ class SuperResolutionDemo : public dag::Graph {
   base::Status make(base::InferenceType inference_type, int batch_size) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
-    decode_node_ = (codec::BatchOpenCvDecode *)this
-                       ->createNode<codec::BatchOpenCvDecode>(
-                           "decode_node_");
-    decode_node_->setNodeKey("nndeploy::codec::OpenCvVedioDecode");
+    decode_node_ =
+        (codec::BatchOpenCvDecode *)this->createNode<codec::BatchOpenCvDecode>(
+            "decode_node_");
+    decode_node_->setNodeKey("nndeploy::codec::OpenCvVideoDecode");
     decode_node_->setBatchSize(batch_size);
-    graph_ =
-        (super_resolution::SuperResolutionGraph *)this
-            ->createNode<super_resolution::SuperResolutionGraph>("resnet");
+    graph_ = (super_resolution::SuperResolutionGraph *)this
+                 ->createNode<super_resolution::SuperResolutionGraph>("resnet");
     graph_->make(inference_type);
-    encode_node_ = (codec::BatchOpenCvEncode *)this
-                       ->createNode<codec::BatchOpenCvEncode>(
-                           "encode_node_");
-    encode_node_->setNodeKey("nndeploy::codec::OpenCvVedioEncode");
+    encode_node_ =
+        (codec::BatchOpenCvEncode *)this->createNode<codec::BatchOpenCvEncode>(
+            "encode_node_");
+    encode_node_->setNodeKey("nndeploy::codec::OpenCvVideoEncode");
     return status;
   }
 
@@ -190,14 +192,14 @@ int main(int argc, char *argv[]) {
   graph_demo.setRefPath(input_path);
   graph_demo.setOutputPath(ouput_path);
 
-
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
   int size = graph_demo.decode_node_->getSize();
   NNDEPLOY_LOGI("size: %d\n", size);
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {
-      std::vector<cv::Mat> *result = outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
+      std::vector<cv::Mat> *result =
+          outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -206,7 +208,8 @@ int main(int argc, char *argv[]) {
   }
   if (pt == base::kParallelTypePipeline) {
     for (int i = 0; i < size; ++i) {
-      std::vector<cv::Mat> *result = outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
+      std::vector<cv::Mat> *result =
+          outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
       NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
