@@ -88,8 +88,6 @@ const NodeTree: React.FC = () => {
                 >
 
                   <span className="node-name">{item.name_}</span>
-                  {item.name_}
-
                 </div>
               </List.Item>
             </Tooltip>
