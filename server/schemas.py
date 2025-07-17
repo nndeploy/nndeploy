@@ -40,7 +40,7 @@ class NodeListResponse(BaseModel):
 class WorkFlowListResponse(BaseModel):
     flag: str
     message: str
-    result: List[Any]
+    result: Dict[str, Any]
 
 class WorkFlowSaveResponse(BaseModel):
     flag: str

@@ -1,8 +1,15 @@
 
 #include "nndeploy/qwen/qwen.h"
 
+#include <limits.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <ctime>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -229,6 +236,36 @@ base::Status PrintNode::run() {
     return base::kStatusCodeErrorInvalidValue;
   }
   std::cout << "A: " << result->texts_[0].c_str() << std::endl;
+
+  char cwd[PATH_MAX];
+  if (!getcwd(cwd, sizeof(cwd))) {
+    NNDEPLOY_LOGE("PrintNode] Failed to get current working directory\n");
+    return base::kStatusCodeErrorIO;
+  }
+
+  time_t t = time(NULL);
+  std::ostringstream oss;
+  oss << cwd << "/.tmp_";
+  std::string tmp_dir = oss.str();
+
+  if (access(tmp_dir.c_str(), F_OK) != 0) {
+    if (mkdir(tmp_dir.c_str(), 0755) != 0) {
+      NNDEPLOY_LOGE("[PrintNode] Failed to create directory\n");
+      return base::kStatusCodeErrorIO;
+    }
+  }
+
+  std::string file_path = tmp_dir + "/output.txt";
+
+  std::ofstream ofs(file_path.c_str());
+  if (!ofs) {
+    NNDEPLOY_LOGE("[PrintNode] Failed to open file\n");
+    return base::kStatusCodeErrorIO;
+  }
+  ofs << result->texts_[0];
+  ofs.close();
+
+  NNDEPLOY_LOGI("[PrintNode] Text written to: %s\n", file_path.c_str());
   return base::kStatusCodeOk;
 }
 

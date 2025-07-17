@@ -55,15 +55,15 @@ class NnDeployServer:
             allow_headers=["*"],
         )
 
-        web_root = FrontendManager.init_frontend(args.front_end_version)
-        dist_inside = Path(web_root) / "dist"
-        if dist_inside.is_dir():
-            web_root = str(dist_inside)
+        # web_root = FrontendManager.init_frontend(args.front_end_version)
+        # dist_inside = Path(web_root) / "dist"
+        # if dist_inside.is_dir():
+        #     web_root = str(dist_inside)
 
-        self.app.mount("/design", StaticFiles(directory=web_root, html=True), name="frontend")
-        static_dir = Path(web_root) / "static"
-        if static_dir.is_dir():
-            self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
+        # self.app.mount("/design", StaticFiles(directory=web_root, html=True), name="frontend")
+        # static_dir = Path(web_root) / "static"
+        # if static_dir.is_dir():
+        #     self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
 
         self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
@@ -179,7 +179,6 @@ class NnDeployServer:
             download existed workflow file
             """
             f = Path(self.args.resources) / "workflow" / file_path
-            print(f)
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
             
@@ -210,12 +209,17 @@ class NnDeployServer:
             if not workflow_dir.exists():
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
-            result = []
+            workflow = []
+            filenames = {}
+            result = {}
             try:
                 for json_file in workflow_dir.glob("*.json"):
                     with open(json_file, 'r') as f:
                         data = json.load(f)
-                        result.append(data)
+                        workflow.append(data)
+                        filenames[data["name_"]]=json_file.name
+                result["filenames"]=filenames
+                result["workflow"]=workflow
                 flag = "success"
                 message = "success"
                 return WorkFlowListResponse(flag=flag, message=message, result=result)
