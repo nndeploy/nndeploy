@@ -3,12 +3,13 @@ import { JsonSchema } from "../components/type-selector/types";
 
 
 export interface INodeTreeNodeEntity{
-  id: string; 
-  name: string; 
-  parentId: string; 
-  type: 'branch' | 'leaf'
-  //isLeaf: boolean;
-  
+  id: string;  //可以是目录的名字
+  name: string;  //节点名字 , 
+  desc: string;  //气泡提示
+  parentId: string;   //父节点id, 可以是目录的名字
+  type: 'branch' | 'leaf'   //branch: 目录, leaf: 节点
+  nodeEntity?: INodeEntity  //如果是目录为空; 如果是node, 以前的的node内容
+
 }
 
 export interface INodeBranchEntity{
@@ -21,7 +22,7 @@ export interface INodeBranchEntity{
 
 export interface NodeTreeNodeData extends TreeNodeData {
   //type: "leaf" | "branch";
-  entity:INodeTreeNodeEntity, 
+  nodeEntity:INodeTreeNodeEntity, 
   children?: NodeTreeNodeData[];
 }
 

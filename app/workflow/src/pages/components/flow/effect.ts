@@ -25,7 +25,13 @@ export function useGetNodeList() {
   async function getNodeList() {
     const response = await apiGetNodeList()
     if (response.flag == 'success') {
-      setNodeList(response.result)
+
+      const nodes = response.result.filter((item) => {
+        return item.type == 'leaf'
+      }).map(item => {
+        return item.nodeEntity!
+      })
+      setNodeList(nodes)
     }
   }
 
