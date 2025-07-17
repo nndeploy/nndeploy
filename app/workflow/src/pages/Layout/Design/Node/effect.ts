@@ -56,7 +56,7 @@ export function useGetNoteTree(): {
           key: item.id,
           label: item.name,
 
-          entity: item,
+          nodeEntity: item,
           children: children.length > 0 ? children : undefined,
         };
       });

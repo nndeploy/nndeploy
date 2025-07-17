@@ -1,7 +1,9 @@
 import {
+  Button,
   Dropdown,
   Popconfirm,
   SideSheet,
+  Toast,
   Tooltip,
   Tree,
   Typography,
@@ -18,6 +20,7 @@ import WorkFlowEditDrawer from "./WorkFlowEditDrawer";
 import { PopconfirmWithInput } from "../../../components/PopconfirmWithInput";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { IResourceTreeNodeEntity } from "../Resource/entity";
+import request from "../../../../request";
 
 export interface WorkFlowComponentHandle {
   refresh: () => void;
@@ -25,13 +28,13 @@ export interface WorkFlowComponentHandle {
 
 interface WorkFlowProps {
   onShowFlow: (node: TreeNodeData) => void;
-  onFlowDeleteCallBack: (flowName:string) =>void
+  onFlowDeleteCallBack: (flowName: string) => void
 }
 const { Text, Paragraph } = Typography;
 const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref) => {
 
-  const {onFlowDeleteCallBack} = props
-  const { treeData, setTreeData, getWorkFlowTree } = useGetWorkflowTree();
+  const { onFlowDeleteCallBack } = props
+  const { treeData, setTreeData, getWorkFlowTree, fileNames } = useGetWorkflowTree();
 
   const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
   const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
@@ -112,6 +115,38 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     setWorkFlowEditVisible(false);
   }
 
+  function onUploadFlow() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const response = await request.upload("/api/workflow/upload", formData, {});
+        if (response.flag === "success") {
+          getWorkFlowTree();
+          Toast.success("upload success")
+        } else {
+          // Handle error
+          //console.error(response.msg);
+          Toast.error("upload failed")
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+      }
+    };
+    input.click();
+  }
+  function onDownload(fileName: string) {
+
+    //const fileName = fileNames[workFlowName] ;
+    const url = `/api/workflow/download?file_path=${fileName}`;
+    request.download(url, {})
+  }
+
   const renderBtn = (workFlow: TreeNodeData) => {
     return (
       <Dropdown
@@ -170,7 +205,9 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
                 delete
               </Popconfirm>
             </Dropdown.Item>
-            <Dropdown.Item></Dropdown.Item>
+            <Dropdown.Item onClick={() => onDownload(workFlow.label as string)}>
+              download
+            </Dropdown.Item>
           </Dropdown.Menu>
         }
       >
@@ -231,15 +268,22 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     <div className="tree-workflow">
       <div className="tree-workflow-header">
         <Text>workFlows</Text>
-        <Tooltip content="add branch" position="top">
-          {/* <Text
+        <Text
+          link
+          icon={<IconPlus />}
+          onClick={() => onUploadFlow()}
+        ></Text>
+
+
+        {/* <Tooltip content="add branch" position="top">
+          <Text
             link
             icon={<IconPlus />}
             onClick={() =>
               onBranchEdit({ id: "", name: "", parentId: "", type: "branch" })
             }
-          ></Text> */}
-        </Tooltip>
+          ></Text>
+        </Tooltip> */}
       </div>
       <Tree
         treeData={treeData}

@@ -21,7 +21,7 @@ export class AxiosRequest implements IRequest {
       transformRequest: [
         function (data, headers) {
           try {
-            if ( !headers['Content-Type']  || headers['Content-Type'] && headers['Content-Type']?.includes('application/x-www-form-urlencoded')) {
+            if (!headers['Content-Type'] || headers['Content-Type'] && headers['Content-Type']?.includes('application/x-www-form-urlencoded')) {
               return qs.stringify(data)
             } else if (headers['Content-Type'] && headers['Content-Type']?.includes('multipart/form-data')) {
               return data
@@ -78,17 +78,17 @@ export class AxiosRequest implements IRequest {
         }
 
         if (isArray(businessData.jsonArray)) { //jreap组织机构树查询结果使用这个字段
-            //debugger;
-            businessData.result.records = businessData.jsonArray
-            delete businessData.jsonArray
-          }
+          //debugger;
+          businessData.result.records = businessData.jsonArray
+          delete businessData.jsonArray
+        }
 
         if (Reflect.has(businessData, 'rows')) {
           businessData.result.records = businessData.rows
           delete businessData.rows
         }
         if (Reflect.has(businessData, 'totalrecords')) {
-          ;(businessData.result as IPage).total = parseInt(businessData.totalrecords)
+          ; (businessData.result as IPage).total = parseInt(businessData.totalrecords)
         }
         return response
       },
@@ -224,46 +224,55 @@ export class AxiosRequest implements IRequest {
     var method: AxiosRequestConfig['method'] = 'GET'
 
 
-   
+
     if (config && config.method == 'POST') {
       method = 'POST'
     }
 
-    if(method == 'GET'){
-        var tempConfig: AxiosRequestConfig = {
-            url,
-            method,
-            
-            params,
-      
-            headers: contentType.form,
-            responseType: 'blob',
-            ...config,
-          }
-    }else{
-        var tempConfig: AxiosRequestConfig = {
-            url,
-            method,           
-            data: params,
-      
-            headers: contentType.form,
-            responseType: 'blob',
-            ...config,
-          }
+    if (method == 'GET') {
+      var tempConfig: AxiosRequestConfig = {
+        url,
+        method,
+
+        params,
+
+        headers: contentType.form,
+        responseType: 'blob',
+        ...config,
+      }
+    } else {
+      var tempConfig: AxiosRequestConfig = {
+        url,
+        method,
+        data: params,
+
+        headers: contentType.form,
+        responseType: 'blob',
+        ...config,
+      }
     }
 
-   
-   
+
+
     var response = await this.axiosInstance.request<any>(tempConfig)
 
     const { data, headers } = response
     //   var fileName:string = headers['content-disposition'].replace(/\w+;filename=(.*)/, '$1')
     //   var filename2 = decodeURI(fileName);
 
-     fileName = fileName ?? response.headers['content-disposition'].split(';')[1].split('=')[1]
+    fileName = fileName ?? response.headers['content-disposition'].split(';')[1].split('=')[1]
 
     //fileName = fileName.substring("utf-8''".length);
-    fileName = decodeURI(fileName!)
+
+    function trim(str: string, char: string): string {
+      if (char === '^' || char === '$' || char === '\\' || char === '.' || char === '*' || char === '+' || char === '?' || char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}' || char === '|') {
+        char = '\\' + char; // 转义正则表达式中的特殊字符
+      }
+      return str.replace(new RegExp(`^${char}+|${char}+$`, 'g'), '');
+    }
+    fileName = trim(fileName!, "\"")
+
+    //fileName = fileName.trim("_")
 
     // 此处当返回json文件时需要先对data进行JSON.stringify处理，其他类型文件不用做处理
     //const blob = new Blob([JSON.stringify(data)], ...)
@@ -271,7 +280,7 @@ export class AxiosRequest implements IRequest {
     var dom = document.createElement('a')
     var href = window.URL.createObjectURL(blob)
     dom.href = href
-    dom.download = decodeURI(fileName)
+    dom.download = fileName
     dom.style.display = 'none'
     document.body.appendChild(dom)
     dom.click()

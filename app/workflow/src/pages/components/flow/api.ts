@@ -21,7 +21,13 @@ export async function getNodeRegistry() {
 
   const response = await apiGetNodeList()
 
-  const nodeRegistry: FlowNodeRegistry[] = response.result.map((item) => {
+  const nodes = response.result.filter((item) => {
+    return item.type == 'leaf'
+  }).map(item=>{
+    return item.nodeEntity!
+  })
+
+  const nodeRegistry: FlowNodeRegistry[] = nodes.map((item) => {
     return buildNodeRegistry(item)
   })
 
