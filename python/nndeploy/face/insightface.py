@@ -46,7 +46,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
             if self.is_one_face_:
                 selected_face = min(faces, key=lambda x: x.bbox[0])
                 face = [selected_face]  # 返回包含单个face的列表，保持与faces一致的类型
-                print(type(face))
+                # print(type(face))
             else:
                 face = faces  # 返回所有faces，保持原有类型
         self.get_output(0).set(face)
@@ -367,7 +367,7 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         if len(target_face) == 0:
             swapped_frame = temp_frame
         self.get_output(0).set(swapped_frame)
-        print(type(swapped_frame))
+        # print(type(swapped_frame))
         return nndeploy.base.Status.ok()
     
     def serialize(self):
@@ -443,12 +443,12 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         detected_faces_centroids = []
         for face in target_face:
             detected_faces_centroids.append(face.normed_embedding)
-        print(map)
+        # print(map)
         for i, target_embedding in enumerate(map['target_embeddings']):
             closest_centroid_index, _ = find_closest_centroid(detected_faces_centroids, target_embedding)
-            print(closest_centroid_index)
-            print(type(target_face[closest_centroid_index]))
-            print(type(source_face[0]))
+            # print(closest_centroid_index)
+            # print(type(target_face[closest_centroid_index]))
+            # print(type(source_face[0]))
             if closest_centroid_index >= 0:
                 swapped_frame = self.swapper.get(swapped_frame, target_face[closest_centroid_index], source_face[0], paste_back=True)
                     

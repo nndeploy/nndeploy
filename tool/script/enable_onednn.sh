@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 设置oneAPI环境变量
+# Set oneAPI environment variables
 
 # Default oneAPI root path
 ONEAPI_ROOT=${1:-"/opt/intel/oneapi"}
@@ -20,6 +20,6 @@ if [[ ":$LD_LIBRARY_PATH:" != *":$ONEAPI_LIB:"* ]]; then
     export LD_LIBRARY_PATH="${ONEAPI_LIB}:${LD_LIBRARY_PATH}"
 fi
 
-# 当脚本不生效时，直接在终端执行
+# When script is not working, execute directly in terminal
 # source /opt/intel/oneapi/setvars.sh
 # export LD_LIBRARY_PATH=/opt/intel/oneapi/compiler/latest/lib:$LD_LIBRARY_PATH

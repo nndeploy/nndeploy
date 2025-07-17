@@ -45,7 +45,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             std::string module_name = module.cast<std::string>();
             std::string type_name = py_type.attr("__name__").cast<std::string>();
             self.type_name_ = module_name + "." + type_name;
-            NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
+            // NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
             self.type_ptr_ = &typeid(py::type);
             self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
           }
@@ -89,7 +89,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           }
           
           self.type_name_ = full_type_name;
-          NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
+          // NNDEPLOY_LOGI("type_name: %s.\n", self.type_name_.c_str());
           self.type_ptr_ = &typeid(py::type);
           self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
         }

@@ -1063,7 +1063,7 @@ std::vector<Edge *> Graph::forward(Edge *input) {
   if (isForwardApiOk()) {
     return outputs;
   } else {
-    NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n", name_.c_str());
+    NNDEPLOY_LOGI("graph[%s] is not implemented forward api!\n", name_.c_str());
     is_forward_api_ok_ = false;
     return std::vector<Edge *>();
   }
@@ -1385,7 +1385,7 @@ base::Status Graph::toStaticGraph() {
     if (isForwardApiOk()) {
       return base::kStatusCodeOk;
     } else {
-      NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n",
+      NNDEPLOY_LOGI("graph[%s] is not implemented forward api!\n",
                     name_.c_str());
       return base::kStatusCodeErrorNotSupport;
     }

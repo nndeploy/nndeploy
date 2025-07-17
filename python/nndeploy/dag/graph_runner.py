@@ -19,6 +19,7 @@ from .base import EdgeTypeInfo
 class GraphRunner:
     def __init__(self):
         self.graph = None
+        self.is_dump = False
     
     def _build_graph(self, graph_json_str: str, name: str):
         self.graph = Graph(name)
@@ -60,9 +61,8 @@ class GraphRunner:
         
         parallel_type = self.graph.get_parallel_type()
         results = []
-        
-        is_dump = True
-        if is_dump:
+
+        if self.is_dump:
             self.graph.dump()
         
         nndeploy.base.time_point_start("sum_" + name)
@@ -95,20 +95,15 @@ class GraphRunner:
         nndeploy.base.time_point_end("sum_" + name)
         
         nodes_name = self.graph.get_nodes_name_recursive()
-        time_profiler_map = {}
-        for node_name in nodes_name:
-            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
-        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
-        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
-        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
         
-        print(time_profiler_map)
-        nndeploy.base.time_profiler_print(name)
+        # print(time_profiler_map)
+        # nndeploy.base.time_profiler_print(name)
         
         # 另一个线程启动的函数
-        run_status_map = self.get_run_status()
-        print(run_status_map)
+        # run_status_map = self.get_run_status()
+        # print(run_status_map)
             
+        nndeploy.base.time_point_start("deinit_" + name)    
         status = self.graph.deinit()
         if status != nndeploy.base.StatusCode.Ok:
             raise RuntimeError(f"deinit failed: {status}")
@@ -120,9 +115,17 @@ class GraphRunner:
                 torch.cuda.empty_cache()
             except ImportError:
                 pass
+        nndeploy.base.time_point_end("deinit_" + name)  
             
-        run_status_map = self.get_run_status()
-        print(run_status_map)
+        # run_status_map = self.get_run_status()
+        # print(run_status_map)
+        
+        time_profiler_map = {}
+        for node_name in nodes_name:
+            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
+        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
+        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
+        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
         
         return time_profiler_map, results
         
