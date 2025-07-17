@@ -503,7 +503,7 @@ def sub_remove_node_keys(node_keys: list[str]):
 
 
 def get_all_node_json():
-    # Import all required modules
+    # 导入所有必需的模块
     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
     import_global_import_lib()
@@ -519,23 +519,118 @@ def get_all_node_json():
     # 排序
     real_node_keys.sort()
     
-    node_json = "{\"nodes\":["
-    for node_key in real_node_keys:
-        json = get_node_json(node_key)
-        if json == "":
-            continue
-        node_json += json
-        if node_key != real_node_keys[-1]:
-            node_json += ","
-    node_json += "]}"
+    # 初始化节点列表
+    nodes = []
     
-    # print(node_json)
+    # 按命名空间分组并创建多级目录结构
+    namespace_groups = {}
+    for node_key in real_node_keys:
+        # 处理 . 和 :: 分隔符
+        if "::" in node_key:
+            parts = node_key.split("::")
+        else:
+            parts = node_key.split(".")
+        
+        # 跳过一级命名空间nndeploy，从二级开始
+        if len(parts) > 1 and parts[0] == "nndeploy":
+            if len(parts) > 2:
+                # 从二级命名空间开始构建，去掉一级nndeploy
+                if "::" in node_key:
+                    namespace = "::".join(parts[1:-1])
+                else:
+                    namespace = ".".join(parts[1:-1])
+            else:
+                namespace = ""
+        else:
+            # 获取命名空间（除了最后一个节点名）
+            if len(parts) > 1:
+                namespace = "::".join(parts[:-1]) if "::" in node_key else ".".join(parts[:-1])
+            else:
+                namespace = ""
+        
+        # 将节点添加到对应的命名空间组
+        if namespace not in namespace_groups:
+            namespace_groups[namespace] = []
+        namespace_groups[namespace].append(node_key)
+    
+    # 收集所有需要创建的目录路径
+    all_directories = set()
+    for namespace in namespace_groups.keys():
+        if namespace != "":
+            # 根据分隔符类型拆分命名空间
+            if "::" in namespace:
+                parts = namespace.split("::")
+                separator = "::"
+            else:
+                parts = namespace.split(".")
+                separator = "."
+            
+            # 生成所有层级的目录路径
+            current_path = ""
+            for part in parts:
+                current_path = f"{current_path}{separator}{part}" if current_path else part
+                all_directories.add(current_path)
+    
+    # 按路径长度排序，确保父目录先创建
+    sorted_directories = sorted(all_directories, key=lambda x: len(x.split("::" if "::" in x else ".")))
+    
+    # 创建目录节点
+    for directory_path in sorted_directories:
+        # 根据分隔符类型拆分路径
+        if "::" in directory_path:
+            parts = directory_path.split("::")
+            separator = "::"
+        else:
+            parts = directory_path.split(".")
+            separator = "."
+        
+        # 确定父目录ID
+        if len(parts) > 1:
+            parent_path = separator.join(parts[:-1])
+        else:
+            parent_path = ""
+        
+        # 创建目录节点
+        branch_node = {
+            "id": directory_path,
+            "name": parts[-1],
+            "desc": f"{directory_path}",
+            "parentId": parent_path,
+            "type": "branch"
+        }
+        nodes.append(branch_node)
+    
+    # 添加叶子节点
+    for namespace, node_keys_in_namespace in namespace_groups.items():
+        for node_key in node_keys_in_namespace:
+            json_str = get_node_json(node_key)
+            if json_str != "":
+                node_data = json.loads(json_str)
+                
+                # 获取节点名称（最后一部分）
+                if "::" in node_key:
+                    node_name = node_key.split("::")[-1]
+                else:
+                    node_name = node_key.split(".")[-1]
+                
+                leaf_node = {
+                    "id": node_key,
+                    "name": node_name,
+                    "parentId": namespace,
+                    "desc": f"{node_key}",
+                    "type": "leaf",
+                    "nodeEntity": node_data
+                }
+                nodes.append(leaf_node)
+    
+    result = {"nodes": nodes}
     # 美化json
-    node_json = nndeploy.base.pretty_json_str(node_json)
+    node_json = json.dumps(result, ensure_ascii=False, indent=2)
     return node_json
 
+
 # def get_all_node_json():
-#     # Import all required modules
+#     # 导入所有必需的模块
 #     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
 #     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
 #     import_global_import_lib()
@@ -548,32 +643,66 @@ def get_all_node_json():
 #             continue
 #         real_node_keys.append(node_key)
         
-#     # 排序
 #     real_node_keys.sort()
-    
-#     # 按照key的二级目录进行分组
-#     node_groups = {}
-#     for node_key in real_node_keys:
-#         # 解析key，获取二级目录
-#         parts = node_key.split("::") if "::" in node_key else node_key.split(".")
-#         if len(parts) >= 2:
-#             category = parts[1]  # 取第二部分作为分类
-#         else:
-#             category = "other"  # 默认分类
         
-#         if category not in node_groups:
-#             node_groups[category] = []
-#         node_groups[category].append(node_key)
+#     # 解析命名空间
+#     namespace_tree = {}
     
-#     # 构建简单的分层JSON结构，保留最外层的nodes
-#     result = {"nodes": {}}
-#     for category, keys in node_groups.items():
-#         result["nodes"][category] = []
-#         for node_key in keys:
-#             json_str = get_node_json(node_key)
-#             if json_str != "":
-#                 result["nodes"][category].append(json.loads(json_str))
+#     for node_key in real_node_keys:
+#         json_str = get_node_json(node_key)
+#         if json_str == "":
+#             continue
+        
+#         node_data = json.loads(json_str)
+        
+#         # 分析命名空间路径
+#         if "::" in node_key:
+#             parts = node_key.split("::")
+#             separator = "::"
+#         else:
+#             parts = node_key.split(".")
+#             separator = "."
+            
+#         # 跳过第一级命名空间，从第二级开始构建
+#         namespace_parts = parts[1:-1]  # 跳过第一级和最后的节点名
+#         node_name = parts[-1]
+        
+#         # 构建嵌套结构
+#         current_tree = namespace_tree
+        
+#         part = ""
+#         for i, part in enumerate(namespace_parts):
+#             if part not in current_tree:
+#                 # 计算当前节点的完整ID和父ID
+#                 current_id = separator.join(parts[1:i+2])  # 从第二级开始的路径
+                
+#                 if i == 0:
+#                     # 第二级节点，父ID为空（根级别）
+#                     parent_id = ""
+#                 else:
+#                     # 更深层级，父ID是上一级的完整路径
+#                     parent_id = separator.join(parts[1:i+1])
+                
+#                 current_tree[part] = {
+#                     "id": current_id,
+#                     "parentId": parent_id,
+#                     "type": "branch",
+#                     "children_dict": {},
+#                     "leaf_nodes": []
+#                 }
+            
+#             # 移动到下一级
+#             current_tree = current_tree[part]
+        
+#         # 添加叶子节点到最后一级
+#         if "leaf_nodes" not in current_tree:
+#             current_tree["leaf_nodes"] = []
+#         current_tree["leaf_nodes"].append(node_data)
+        
+    
+#     result = {"nodes": namespace_tree}
     
 #     # 美化json
 #     node_json = json.dumps(result, ensure_ascii=False, indent=2)
 #     return node_json
+    
