@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 自动设置第三方库环境变量
+# Automatically set environment variables for third-party libraries
 # Usage: source set_install_env.sh
 
 WORKSPACE="$(pwd)"
@@ -8,16 +8,16 @@ THIRDPARTY_DIR="${WORKSPACE}/third_party"
 
 echo "Checking third_party directory: $THIRDPARTY_DIR"
 
-# 检查third_party目录是否存在
+# Check if third_party directory exists
 if [ ! -d "$THIRDPARTY_DIR" ]; then
     echo "Warning: third_party directory not found: $THIRDPARTY_DIR"
     return 1
 fi
 
-# 收集所有lib路径
+# Collect all lib paths
 LIB_PATHS=""
 
-# 遍历third_party下的所有目录
+# Traverse all directories under third_party
 for lib_dir in "${THIRDPARTY_DIR}"/*; do
     if [ -d "$lib_dir" ]; then
         lib_path="${lib_dir}/lib"
@@ -32,9 +32,7 @@ for lib_dir in "${THIRDPARTY_DIR}"/*; do
     fi
 done
 
-
-
-# 设置LD_LIBRARY_PATH
+# Set LD_LIBRARY_PATH
 if [ -n "$LIB_PATHS" ]; then
     if [ -n "$LD_LIBRARY_PATH" ]; then
         export LD_LIBRARY_PATH="${LIB_PATHS}:${LD_LIBRARY_PATH}"
@@ -47,7 +45,7 @@ else
     echo "No library paths found in $THIRDPARTY_DIR"
 fi
 
-# 设置nndeploy库路径
+# Set nndeploy library path
 NNDEPLOY_LIB_PATH="${WORKSPACE}/lib"
 
 if [ -n "$NNDEPLOY_LIB_PATH" ]; then

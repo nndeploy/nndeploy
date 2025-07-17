@@ -20,11 +20,11 @@ CompositeNode::~CompositeNode() {
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
       std::string name = edge_wrapper->edge_->getName();
-      NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n", getName().c_str(),
-                    name.c_str());
+      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n", getName().c_str(),
+      //               name.c_str());
       delete edge_wrapper->edge_;
-      NNDEPLOY_LOGE("composite node [%s] delete edge[%s] success\n",
-                    name.c_str());
+      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s] success\n",
+      //               name.c_str());
     }
     delete edge_wrapper;
   }

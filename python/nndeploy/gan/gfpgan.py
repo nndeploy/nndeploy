@@ -21,7 +21,7 @@ class GFPGAN(nndeploy.dag.Node):
         self.model_path_ = "GFPGANv1.4.pth"
         self.upscale_ = 1
         self.device_, _ = nndeploy.device.get_available_device()
-        print(self.device_)
+        # print(self.device_)
         
     def init(self):
         self.gfpgan = gfpgan.GFPGANer(self.model_path_, upscale=self.upscale_, device=self.device_)

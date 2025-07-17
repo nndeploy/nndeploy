@@ -295,7 +295,8 @@ def get_node_json(node_key: str):
     status = nndeploy.base.StatusCode.Ok
     status = node.default_param()
     if status != nndeploy.base.StatusCode.Ok:
-        raise RuntimeError(f"node key[{node.get_key()}] default_param failed: {status}")
+        print(f"node key[{node.get_key()}] default_param failed: {status}")
+        return ""
     
     # print(node)   
     is_graph = node.get_graph_flag()
@@ -309,7 +310,8 @@ def get_node_json(node_key: str):
         node.set_inner_flag(True)
         status = node.to_static_graph()
         if status != nndeploy.base.StatusCode.Ok:
-            print(f"to_static_graph failed: {status}")     
+            print(f"node key[{node.get_key()}] to_static_graph failed: {status}")   
+            return ""
     if status == nndeploy.base.StatusCode.Ok:
         json_str = node.serialize()
         return json_str
