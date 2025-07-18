@@ -269,3 +269,6 @@ server/resources/**
 
 # llm node temporary file
 .tmp/
+
+# front resources dir
+resources/
