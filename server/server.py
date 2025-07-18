@@ -236,7 +236,7 @@ class NnDeployServer:
         async def delete_workflow_json(file_name: str):
             workflow_dir = Path(self.args.resources) / "workflow"
 
-            file_path = workflow_dir / f"{file_name}.json"
+            file_path = workflow_dir / f"{file_name}"
 
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
