@@ -5,9 +5,9 @@ import logging
 import os
 import traceback
 from logging.handlers import QueueHandler
-from executor import GraphExecutor
+from .executor import GraphExecutor
 from queue import Empty
-from task_queue import ExecutionStatus
+from .task_queue import ExecutionStatus
 
 def configure_worker_logger(log_q) -> None:
     root = logging.getLogger()

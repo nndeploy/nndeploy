@@ -8,17 +8,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
-from frontend import FrontendManager
+from .frontend import FrontendManager
 import os
 import json
 import asyncio
 import uuid
 import logging
-from utils import extract_encode_output_paths
+from .utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
-from task_queue import TaskQueue
-from schemas import (
+from .task_queue import TaskQueue
+from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
     QueueStateResponse,
@@ -33,8 +33,8 @@ from schemas import (
     ParamTypeResponse,
     WsPreviewPayload
 )
-import files
-from files import router as files_router
+from .files import router as files_router
+from .files import get_workdir
 
 class NnDeployServer:
     instance: "NnDeployServer" = None
@@ -336,7 +336,7 @@ class NnDeployServer:
             files_router,
             dependencies=[Depends(self._get_workdir)]
         )
-        self.app.dependency_overrides[files.get_workdir] = self._get_workdir
+        self.app.dependency_overrides[get_workdir] = self._get_workdir
 
         self.app.include_router(api)
 

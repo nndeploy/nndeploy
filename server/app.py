@@ -11,9 +11,9 @@ import sys
 import time
 from pathlib import Path
 from typing import Tuple
-from task_queue import TaskQueue
-from server import NnDeployServer
-from worker import run as worker_run
+from .task_queue import TaskQueue
+from .server import NnDeployServer
+from .worker import run as worker_run
 from logging.handlers import QueueHandler, QueueListener
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -100,6 +100,8 @@ def start_finisher(queue: TaskQueue, result_q: mp.Queue):
     th.start()
 
 def main() -> None:
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    
     mp.set_start_method("spawn", force=True)
 
     args = cli()
@@ -141,5 +143,4 @@ def main() -> None:
         listener.stop()
 
 if __name__ == "__main__":
-    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     main()

@@ -117,8 +117,8 @@ class GraphRunner:
                 pass
         nndeploy.base.time_point_end("deinit_" + name)  
             
-        # run_status_map = self.get_run_status()
-        # print(run_status_map)
+        run_status_map = self.get_run_status()
+        print(run_status_map)
         
         time_profiler_map = {}
         for node_name in nodes_name:
