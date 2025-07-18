@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
-from .frontend import FrontendManager
+# from .frontend import FrontendManager
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json

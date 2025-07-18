@@ -266,3 +266,6 @@ server/resources/**
 
 # keep readme file
 !server/resources/README*
+
+# llm node temporary file
+.tmp/

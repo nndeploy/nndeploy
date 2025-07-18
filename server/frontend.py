@@ -15,7 +15,7 @@ import requests
 from typing_extensions import NotRequired
 
 REQUEST_TIMEOUT = 60  # second
-FRONTEND_ROOT = Path.cwd() / "frontend"
+FRONTEND_ROOT = Path.cwd() / "server/frontend"
 FRONTEND_ROOT.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_PROVIDER = ("csrdxka", "xRingBuf", "1.0.0")

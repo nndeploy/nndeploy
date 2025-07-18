@@ -245,7 +245,7 @@ base::Status PrintNode::run() {
 
   time_t t = time(NULL);
   std::ostringstream oss;
-  oss << cwd << "/.tmp_";
+  oss << cwd << "/.tmp";
   std::string tmp_dir = oss.str();
 
   if (access(tmp_dir.c_str(), F_OK) != 0) {
