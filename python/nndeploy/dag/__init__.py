@@ -18,3 +18,4 @@ from .loop import Loop
 from .condition import Condition
 from .running_condition import RunningCondition
 from .graph_runner import GraphRunner
+from .run_json import main

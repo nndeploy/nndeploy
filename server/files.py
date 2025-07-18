@@ -9,7 +9,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from schemas import (UploadResponse, DeleteResponse, FileListResponse)
+from .schemas import (UploadResponse, DeleteResponse, FileListResponse)
 
 # ──────────────────────────────────────────────
 # Router

@@ -7,9 +7,9 @@ import contextvars
 import threading
 import traceback
 from logging.handlers import QueueHandler
-from executor import GraphExecutor
+from .executor import GraphExecutor
 from queue import Empty
-from task_queue import ExecutionStatus
+from .task_queue import ExecutionStatus
 
 PROGRESS_INTERVAL_SEC = 0.5
 

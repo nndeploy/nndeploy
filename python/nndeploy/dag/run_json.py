@@ -10,7 +10,7 @@ import argparse
 
 import nndeploy.base
 import nndeploy.device
-from nndeploy.dag import GraphRunner
+from .graph_runner import GraphRunner
      
 
 def parse_args():

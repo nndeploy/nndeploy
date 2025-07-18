@@ -70,7 +70,8 @@ std::string typeName() {
   return type_str;
 }
 
-std::string removeNamespace(const std::string& type_name_with_namespace);
+extern NNDEPLOY_CC_API std::string removeNamespace(
+    const std::string& type_name_with_namespace);
 
 /**
  * @brief 输入输出类型信息

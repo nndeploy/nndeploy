@@ -11,9 +11,9 @@ import sys
 import time
 from pathlib import Path
 from typing import Tuple
-from task_queue import TaskQueue
-from server import NnDeployServer
-from worker import run as worker_run
+from .task_queue import TaskQueue
+from .server import NnDeployServer
+from .worker import run as worker_run
 from logging.handlers import QueueHandler, QueueListener
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from log_broadcast import LogBroadcaster
@@ -129,6 +129,8 @@ def load_existing_plugins(plugin_dir: Path):
     import_global_import_lib()
 
 def main() -> None:
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    
     mp.set_start_method("spawn", force=True)
 
     args = cli()
@@ -182,5 +184,4 @@ def main() -> None:
         log_listener.stop()
 
 if __name__ == "__main__":
-    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     main()
