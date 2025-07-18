@@ -685,6 +685,33 @@ Graph::getNodesRunStatusRecursive() {
   return run_status_map;
 }
 
+base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
+  std::vector<Edge *> inputs,
+  std::vector<Edge *> outputs){
+
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      // input_wrapper = this->addEdge(input, is_external);
+      input_wrapper = this->addEdge(input, true);
+      // input_wrapper->consumers_.emplace_back(node_wrapper);
+      insertUnique(input_wrapper->consumers_, node_wrapper);
+    }
+    
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      // output_wrapper = this->addEdge(output, is_external);
+      output_wrapper = this->addEdge(output, true);
+      // output_wrapper->producers_.emplace_back(node_wrapper);
+      insertUnique(output_wrapper->producers_, node_wrapper);
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+
 base::Status Graph::setNodeParam(const std::string &node_name,
                                  base::Param *param) {
   base::Status status = base::kStatusCodeOk;
@@ -1442,6 +1469,9 @@ base::Status Graph::construct() {
   for (auto node_wrapper : node_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
                                          "edge_repository_ node is null!");
+    std::vector<Edge *> inputs = node_wrapper->node_->getAllInput();
+    std::vector<Edge *> outputs = node_wrapper->node_->getAllOutput();
+    this->addNodeInputAndOutput(node_wrapper, inputs, outputs);
     // NNDEPLOY_LOGE("Node: %s\n", node_wrapper->node_->getName().c_str());
     // NNDEPLOY_LOGE("Predecessors:\n");
     // for (auto pred : node_wrapper->predecessors_) {

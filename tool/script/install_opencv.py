@@ -43,7 +43,11 @@ with zipfile.ZipFile(filename, 'r') as zip_ref:
 # Rename directory
 if (OPENCV_BUILD_DIR / "opencv").exists():
     shutil.rmtree(OPENCV_BUILD_DIR / "opencv")
-os.rename(f"opencv-{OPENCV_VER}", "opencv")
+# rename
+try:
+    os.rename(f"opencv-{OPENCV_VER}", "opencv")
+except PermissionError:
+    shutil.move(f"opencv-{OPENCV_VER}", "opencv")
 
 # Create and change to build directory
 os.chdir("opencv")
@@ -72,5 +76,28 @@ os.system(cmake_cmd)
 print("Building OpenCV...")
 os.system("cmake --build . --config Release -j6")
 os.system("cmake --install . --config Release")
+
+if platform.system() == "Windows":
+    # 创建目标目录结构
+    target_lib_dir = OPENCV_INSTALL_DIR / "lib"
+    target_bin_dir = OPENCV_INSTALL_DIR / "bin"
+    
+    # 确保目录存在
+    target_lib_dir.mkdir(parents=True, exist_ok=True)
+    target_bin_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 拷贝lib目录内容
+    opencv_lib_dir = OPENCV_INSTALL_DIR / "x64" / "vc16" / "lib"
+    if opencv_lib_dir.exists():
+        for lib_file in opencv_lib_dir.glob("*"):
+            if lib_file.is_file():
+                shutil.copy2(lib_file, target_lib_dir)
+    
+    # 拷贝bin目录内容
+    opencv_bin_dir = OPENCV_INSTALL_DIR / "x64" / "vc16" / "bin"
+    if opencv_bin_dir.exists():
+        for bin_file in opencv_bin_dir.glob("*"):
+            if bin_file.is_file():
+                shutil.copy2(bin_file, target_bin_dir)
 
 print(f"OpenCV {OPENCV_VER} installation completed!")
