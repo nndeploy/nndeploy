@@ -16,6 +16,7 @@ from server import NnDeployServer
 from worker import run as worker_run
 from logging.handlers import QueueHandler, QueueListener
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
+from log_broadcast import LogBroadcaster
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -28,18 +29,24 @@ def cli():
     ap.add_argument("--front-end-version", default="!", help="GitHub frontend, as owner/repo@0.0.1 or @latest,default latest")
     return ap.parse_args()
 
-def configure_root_logger(log_q: mp.Queue, log_file: str) -> QueueListener:
+def configure_root_logger(log_q: mp.Queue, log_file: str, server) -> QueueListener:
     log_fmt = "%(asctime)s %(processName)s %(levelname)s %(message)s"
     root = logging.getLogger()
     root.setLevel(logging.INFO)
     root.handlers.clear()
     root.addHandler(QueueHandler(log_q))
 
+    log_broadcaster = LogBroadcaster(
+        get_loop=lambda: server.loop,
+        get_ws_map=lambda: server.task_ws_map,
+    )
+
     handlers = [
         logging.StreamHandler(sys.stdout),
         logging.handlers.RotatingFileHandler(
             log_file, maxBytes=10 * 1024 * 1024, backupCount=5
         ),
+        log_broadcaster
     ]
     for h in handlers:
         h.setFormatter(logging.Formatter(log_fmt))
@@ -139,8 +146,6 @@ def main() -> None:
     log_q: mp.Queue = mp.Queue(-1)                     # all ➜ logger
     plugin_update_q: mp.Queue = mp.Queue()
 
-    listener = configure_root_logger(log_q, args.log)
-
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
@@ -159,6 +164,8 @@ def main() -> None:
     )
     monitor_t.start()
 
+    log_listener = configure_root_logger(log_q, args.log, server)
+
     # progress listener
     start_progress_listener(server, progress_q)
 
@@ -172,7 +179,7 @@ def main() -> None:
             worker.terminate()
             worker.join(timeout=3)
 
-        listener.stop()
+        log_listener.stop()
 
 if __name__ == "__main__":
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
