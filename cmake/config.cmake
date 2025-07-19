@@ -64,8 +64,8 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV "D:\\Documents\\Code\\opencv\\build\\install") # Whether to link the third-party OpenCV library, default is ON
-set(NNDEPLOY_OPENCV_LIBS "opencv_calib3d455" "opencv_core455" "opencv_dnn455" "opencv_features2d455" "opencv_flann455" "opencv_gapi455" "opencv_highgui455" "opencv_imgcodecs455" "opencv_imgproc455" "opencv_ml455" "opencv_objdetect455" "opencv_photo455" "opencv_stitching455" "opencv_video455" "opencv_videoio455") # Link all OpenCV libraries by default
+set(ENABLE_NNDEPLOY_OPENCV "/home/jodio/code/opencv/build/install/") # Whether to link the third-party OpenCV library, default is ON
+set(NNDEPLOY_OPENCV_LIBS "libopencv_world") # Link all OpenCV libraries by default
 set(ENABLE_NNDEPLOY_FFMPEG ON)
 
 ## Tokenizer-cpp

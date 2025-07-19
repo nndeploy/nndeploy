@@ -5,7 +5,6 @@
 namespace nndeploy {
 namespace codec {
 base::Status FFmpegImageDecode::init() { 
-    av_register_all()
     return base::kStatusCodeOk; 
 }
 
@@ -60,7 +59,7 @@ base::Status FFmpegImageDecode::run() {
   }
   // NNDEPLOY_LOGI("OpenCvImageDecode::run() path_[%s]\n", path_.c_str());
   // 打开图片文件
-  if (avformat_open_input(&format_ctx_, path_, NULL, NULL) < 0) {
+  if (avformat_open_input(&format_ctx_, path_.c_str(), NULL, NULL) < 0) {
     fprintf(stderr, "Could not open input file %s\n", path_.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
@@ -87,7 +86,7 @@ base::Status FFmpegImageDecode::run() {
   
   // 获取视频解码器
   AVCodecParameters *codecpar = format_ctx_->streams[video_stream_index]->codecpar;
-  AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
+  const AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
   if (!codec) {
     fprintf(stderr, "Codec not found\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -111,7 +110,7 @@ base::Status FFmpegImageDecode::run() {
   if (av_read_frame(format_ctx_, &packet) >= 0) {
       if (packet.stream_index == video_stream_index) {
           if (avcodec_send_packet(codec_ctx_, &packet) >= 0) {
-              while (avcodec_receive_frame(codec_ctx_, frame_frame_) >= 0) {
+              while (avcodec_receive_frame(codec_ctx_, frame_) >= 0) {
                   // 处理解码后的图像数据
                   printf("Decoded frame: width=%d, height=%d\n", frame_->width, frame_->height);
                   // 这里可以将图像数据渲染、保存或进行其他处理

@@ -63,6 +63,14 @@ cv::Mat *FixedEdge::getCvMat(const Node *node) {
 cv::Mat *FixedEdge::getGraphOutputCvMat() { return data_packet_->getCvMat(); }
 #endif
 
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+base::Status FixedEdge::set(AVFrame *ffmpeg_frame, bool is_external) {
+  this->increaseIndex();
+  data_packet_->setIndex(index_);
+  return data_packet_->set(ffmpeg_frame, is_external);
+}
+#endif
+
 base::Status FixedEdge::set(device::Tensor *tensor, bool is_external) {
   this->increaseIndex();
   data_packet_->setIndex(index_);

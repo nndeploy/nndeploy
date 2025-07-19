@@ -7,6 +7,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/opencv_include.h"
+#include "nndeploy/base/ffmpeg_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/base.h"
@@ -45,6 +46,13 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
   virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat();
+#endif
+
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+  virtual base::Status set(AVFrame *ffmpeg_frame, bool is_external);
+  // cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
+  // virtual bool notifyWritten(cv::Mat *cv_mat);
+  // virtual cv::Mat *getCvMat();
 #endif
 
   virtual base::Status set(device::Tensor *tensor, bool is_external);

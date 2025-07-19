@@ -31,6 +31,7 @@ enum class EdgeTypeFlag {
   kCvMat = 2,
   kTensor = 4,
   kParam = 8,
+  kFFmpegFrame = 16,
   kAny = 1 << 30,
   kNone = 1 << 31,
 };

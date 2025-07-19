@@ -52,6 +52,14 @@ class PipelineEdge : public AbstractEdge {
   virtual cv::Mat *getGraphOutputCvMat();
 #endif
 
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+  virtual base::Status set(AVFrame *ffmpeg_frame, bool is_external);
+  // virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
+  // virtual bool notifyWritten(cv::Mat *cv_mat);
+  // virtual cv::Mat *getCvMat(const Node *node);
+  // virtual cv::Mat *getGraphOutputCvMat();
+#endif
+
   virtual base::Status set(device::Tensor *tensor, bool is_external);
   virtual device::Tensor *create(device::Device *device,
                                  const device::TensorDesc &desc,

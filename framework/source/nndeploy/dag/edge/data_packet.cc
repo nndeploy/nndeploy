@@ -141,6 +141,22 @@ cv::Mat *DataPacket::getCvMat() {
 }
 #endif
 
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+base::Status DataPacket::set(AVFrame *ffmpeg_frame, bool is_external) {
+  base::Status status = base::kStatusCodeOk;
+  if (ffmpeg_frame != anything_) {
+    destory();
+  }
+  is_external_ = is_external;
+  flag_ = EdgeTypeFlag::kFFmpegFrame;
+  written_ = true;
+  anything_ = (void *)ffmpeg_frame;
+  deleter_ = [](void *d) { delete static_cast<AVFrame *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(AVFrame));
+  return status;
+}
+#endif
+
 base::Status DataPacket::set(device::Tensor *tensor, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (tensor != anything_) {

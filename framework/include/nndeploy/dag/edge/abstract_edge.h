@@ -7,6 +7,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/opencv_include.h"
+#include "nndeploy/base/ffmpeg_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/data_packet.h"
@@ -43,6 +44,15 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   virtual bool notifyWritten(cv::Mat *cv_mat) = 0;
   virtual cv::Mat *getCvMat(const Node *node) = 0;
   virtual cv::Mat *getGraphOutputCvMat() = 0;
+#endif
+
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+  virtual base::Status set(AVFrame *ffmpeg_frame, bool is_external) = 0;
+  // virtual cv::Mat *create(int rows, int cols, int type,
+  //                         const cv::Vec3b &value) = 0;
+  // virtual bool notifyWritten(cv::Mat *cv_mat) = 0;
+  // virtual cv::Mat *getCvMat(const Node *node) = 0;
+  // virtual cv::Mat *getGraphOutputCvMat() = 0;
 #endif
 
   virtual base::Status set(device::Tensor *tensor, bool is_external) = 0;

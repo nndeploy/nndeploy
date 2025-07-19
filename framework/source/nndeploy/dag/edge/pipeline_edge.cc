@@ -229,6 +229,14 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
 }
 #endif
 
+#ifdef ENABLE_NNDEPLOY_FFMPEG
+base::Status PipelineEdge::set(AVFrame *ffmpeg_frame, bool is_external) {
+  this->increaseIndex();
+  data_packet_->setIndex(index_);
+  return data_packet_->set(ffmpeg_frame, is_external);
+}
+#endif
+
 base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
