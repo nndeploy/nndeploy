@@ -51,7 +51,8 @@ QwenConfig parseConfig(const std::string& file_path);
 
 class NNDEPLOY_CC_API PromptParam : public base::Param {
  public:
-  std::string prompt_template_;
+  std::string prompt_template_ =
+      "<|im_start|>user\n%s<|im_end|>\n<|im_start|>assistant\n";
   std::string user_content_;
 
  public:

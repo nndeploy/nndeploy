@@ -52,13 +52,13 @@ class GraphRunner:
         self.graph.set_debug_flag(False)
         # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
         # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
-        
+
         nndeploy.base.time_point_start("init_" + name)
         status = self.graph.init()
         if status != nndeploy.base.StatusCode.Ok:
             raise RuntimeError(f"init failed: {status}")
         nndeploy.base.time_point_end("init_" + name)
-        
+
         parallel_type = self.graph.get_parallel_type()
         results = []
 
