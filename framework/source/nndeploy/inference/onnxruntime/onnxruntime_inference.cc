@@ -255,8 +255,8 @@ base::Status OnnxRuntimeInference::run() {
     for (size_t i = 0; i < output_values.size(); ++i) {
       auto output_name = outputs_desc_[i].name;
       device::Tensor *output_tensor = output_tensors_[output_name];
-      OnnxRuntimeConvert::convertToTensor(output_values[i], output_name,
-                                          device, output_tensor);
+      OnnxRuntimeConvert::convertToTensor(output_values[i], output_name, device,
+                                          output_tensor);
     }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());

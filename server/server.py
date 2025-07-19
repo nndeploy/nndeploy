@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from .files import get_workdir
 # from .frontend import FrontendManager
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
@@ -452,7 +453,7 @@ class NnDeployServer:
         )
         self.app.dependency_overrides[get_workdir] = self._get_workdir
 
-        self.app.include_router(api)
+        self.app.include_router(api,dependencies=[Depends(lambda: get_workdir(self))])
 
     # task progress notify
     def notify_task_progress(self, task_id: str, status_dict: dict):

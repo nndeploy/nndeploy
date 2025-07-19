@@ -22,8 +22,8 @@ router = APIRouter(
 # ──────────────────────────────────────────────
 # dependency_overrides or include_router.dependencies
 # ──────────────────────────────────────────────
-def get_workdir() -> Path:
-    return Path.cwd()
+def get_workdir(server) -> Path:
+    return server._get_workdir()
 
 # ──────────────────────────────────────────────
 # save function
