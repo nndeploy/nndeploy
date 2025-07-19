@@ -34,7 +34,7 @@ class GraphRunner:
         run_status_map = self.graph.get_nodes_run_status_recursive()
         json_obj = {}
         for node_name, run_status in run_status_map.items():
-            json_obj[node_name] = run_status.to_json()
+            json_obj[node_name] = {"time": run_status.average_time, "status": run_status.get_status()}
         return json_obj
     
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
