@@ -24,9 +24,14 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: Python API
+
+   version_record/v0_1_0.md
+
+.. toctree::
+   :maxdepth: 1
    :caption: 开发者指南
 
-   developer_guide/how_to_support_new_model.md
    developer_guide/how_to_support_new_inference.md
    developer_guide/how_to_support_new_device.md
 
@@ -46,15 +51,15 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: 开发调试记录
+   :caption: 自研推理框架
 
-   debug_record/debug_record.md
+   inference/README_INFERENCE.md
 
 .. toctree::
    :maxdepth: 1
    :caption: 版本发行
 
-   version_record/v1_0_0_0.md
+   version_record/v0_1_0.md
 
 .. toctree::
    :maxdepth: 1
@@ -62,19 +67,9 @@
    
    faq/faq.md
 
-.. toctree::
-   :maxdepth: 1
-   :caption: 讨论
-   
-   discussion/discussion.md
-   discussion/python.md
 
 .. toctree::
    :maxdepth: 1
    :caption: 知识分享
 
    knowledge_shared/nndeploy_from_requirement_analysis_to_architecture_design.md
-   knowledge_shared/export_onnx.md
-   knowledge_shared/sd_impl.md
-   knowledge_shared/stable_diffusion.md
-   knowledge_shared/onednn_research.md

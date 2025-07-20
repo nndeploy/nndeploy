@@ -223,7 +223,7 @@ docs/build
 third_party/
 
 # docs
-docs/
+# docs/
 
 cmake-build-debug/
 
