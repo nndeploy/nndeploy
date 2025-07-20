@@ -25,8 +25,10 @@
 .. toctree::
    :maxdepth: 1
    :caption: Python API
-
-   version_record/v0_1_0.md
+   :template: autosummary/module.rst
+   {% for module in all_modules %}
+   {{ module }}
+   {% endfor %}
 
 .. toctree::
    :maxdepth: 1
