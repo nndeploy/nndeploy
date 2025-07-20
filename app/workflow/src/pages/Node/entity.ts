@@ -1,6 +1,13 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { JsonSchema } from "../components/type-selector/types";
+import { IBusinessNode } from "../Layout/Design/WorkFlow/entity";
 
+
+export interface IDagGraphInfo{
+  accepted_edge_types: {[nodeKey:string]:string[]}
+  graph: IBusinessNode, 
+  nodes: INodeTreeNodeEntity[]
+}
 
 export interface INodeTreeNodeEntity{
   id: string;  //可以是目录的名字
