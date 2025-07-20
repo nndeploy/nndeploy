@@ -266,3 +266,11 @@ server/resources/**
 
 # keep readme file
 !server/resources/README*
+
+weights/
+
+# server/resources rule
+resources/**
+
+# # keep readme file
+# !resources/README*

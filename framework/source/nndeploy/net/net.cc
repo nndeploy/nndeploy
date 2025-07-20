@@ -273,6 +273,8 @@ base::Status Net::init() {
   status = inferDataType();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferDataType failed!");
 
+
+
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
 
@@ -287,6 +289,8 @@ base::Status Net::init() {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "graph optimizer failed!");
   }
+
+  
 
   status = this->runtime();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph runtime failed!");

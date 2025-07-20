@@ -30,3 +30,6 @@
 
 ## 大语言模型
 - QWen-0.5B, [详情](https://github.com/nndeploy/nndeploy/blob/deploy_model/demo/llama/README.md)
+
+## 换脸
+- deep-live-cam
