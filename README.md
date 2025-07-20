@@ -13,7 +13,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.png" width=80%>
+    <img alt="nndeploy" src="docs/image/workflow.png" width=100%>
   </picture>
 </p>
 
@@ -26,7 +26,7 @@
 
 ---
 
-## [已部署模型列表](docs/zh_cn/quick_start/model_list.md)
+## 已部署模型
 
 | 模型类别 | 支持模型 |
 |---------|---------|
@@ -37,6 +37,8 @@
 | **生成模型** | Stable Diffusion 1.5 |
 | **大语言模型** | QWen-0.5B |
 | **换脸** | deep-live-cam |
+
+> [已部署模型详情列表](docs/zh_cn/quick_start/model_list.md)
 
 ## 介绍
 
@@ -86,10 +88,12 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 
 > TODO组合算法的展示
 
+
 ## 快速开始
 
-- [如何编译运行](docs/zh_cn/quick_start/build.md)
+- [如何编译](docs/zh_cn/quick_start/build.md)TODO包含python的部分
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [如何执行](docs/zh_cn/quick_start/example.md)TODO包含python的部分
 - [工作流教程](视频转换为文档)TODO
 
 ## 下一步计划
