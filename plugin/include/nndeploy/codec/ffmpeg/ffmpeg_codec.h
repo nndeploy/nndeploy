@@ -48,10 +48,24 @@ class NNDEPLOY_CC_API FFmpegImageDecode : public Decode {
   AVFormatContext* format_ctx_ = nullptr;
   AVCodecContext* codec_ctx_ = nullptr;
   AVFrame *frame_ = nullptr;
+  AVPacket packet_;
 };
 
 class NNDEPLOY_CC_API FFmpegAudioDecode : public Decode {};
 class NNDEPLOY_CC_API FFmpegVideoDecode : public Decode {};
+
+extern NNDEPLOY_CC_API Decode *createFFmpegDecode(base::CodecFlag flag,
+                                   const std::string &name, dag::Edge *output);
+
+extern NNDEPLOY_CC_API std::shared_ptr<Decode> createFFmpegDecodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output);
+
+extern NNDEPLOY_CC_API Encode *createFFmpegEncode(base::CodecFlag flag,
+                                   const std::string &name, dag::Edge *input);
+
+extern NNDEPLOY_CC_API std::shared_ptr<Encode> createFFmpegEncodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *input);
+
 
 }
 }

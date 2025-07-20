@@ -44,7 +44,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSOR
 set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF) # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "/home/jodio/code/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1/") # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_MNN OFF) # Whether to enable INFERENCE MNN, default is OFF
@@ -65,7 +65,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
 set(ENABLE_NNDEPLOY_OPENCV "/home/jodio/code/opencv/build/install/") # Whether to link the third-party OpenCV library, default is ON
-set(NNDEPLOY_OPENCV_LIBS "libopencv_world") # Link all OpenCV libraries by default
+set(NNDEPLOY_OPENCV_LIBS "opencv_world") # Link all OpenCV libraries by default
 set(ENABLE_NNDEPLOY_FFMPEG ON)
 
 ## Tokenizer-cpp
@@ -76,3 +76,5 @@ set(ENABLE_NNDEPLOY_PLUGIN_LLM OFF) # Whether to enable language model plugin, d
 
 ## Stable Diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # Whether to enable text-to-image plugin, default is OFF
+
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)

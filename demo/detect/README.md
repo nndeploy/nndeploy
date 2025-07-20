@@ -303,3 +303,9 @@ encode_node run()                  97          843.250            8.693         
 #### 输出图片
 
 ![sample_output](../../docs/image/demo/detect/sample_output.jpg)
+
+
+
+
+> temp
+set args --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/jodio/code/nndeploy/models/yolo11s.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg

@@ -52,12 +52,12 @@ base::Status FFmpegImageDecode::run() {
   // }
   // TODO: 
   if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
-    // NNDEPLOY_LOGI("OpenCvImageDecode::run() path_[%s]\n", path_.c_str());
+    // NNDEPLOY_LOGI("FFmpegImageDecode::run() path_[%s]\n", path_.c_str());
     std::unique_lock<std::mutex> lock(path_mutex_);
     // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
   }
-  // NNDEPLOY_LOGI("OpenCvImageDecode::run() path_[%s]\n", path_.c_str());
+  // NNDEPLOY_LOGI("FFmpegImageDecode::run() path_[%s]\n", path_.c_str());
   // 打开图片文件
   if (avformat_open_input(&format_ctx_, path_.c_str(), NULL, NULL) < 0) {
     fprintf(stderr, "Could not open input file %s\n", path_.c_str());
@@ -105,11 +105,11 @@ base::Status FFmpegImageDecode::run() {
   }
 
   // 获取解码后的图像帧
-  AVPacket packet;
+  // AVPacket packet;
   frame_ = av_frame_alloc();
-  if (av_read_frame(format_ctx_, &packet) >= 0) {
-      if (packet.stream_index == video_stream_index) {
-          if (avcodec_send_packet(codec_ctx_, &packet) >= 0) {
+  if (av_read_frame(format_ctx_, &packet_) >= 0) {
+      if (packet_.stream_index == video_stream_index) {
+          if (avcodec_send_packet(codec_ctx_, &packet_) >= 0) {
               while (avcodec_receive_frame(codec_ctx_, frame_) >= 0) {
                   // 处理解码后的图像数据
                   printf("Decoded frame: width=%d, height=%d\n", frame_->width, frame_->height);
@@ -119,16 +119,113 @@ base::Status FFmpegImageDecode::run() {
               }
           }
       }
-      av_packet_unref(&packet);
+      // av_packet_unref(&packet);
   }
 
-  // NNDEPLOY_LOGE("OpenCvImageDecode::run() width_[%d] height_[%d]\n",
+  // NNDEPLOY_LOGE("FFmpegImageDecode::run() width_[%d] height_[%d]\n",
   // width_, height_);
   outputs_[0]->set(frame_, false);
   index_++;
   return base::kStatusCodeOk;
 }
 
+
+TypeCreatelDecodeRegister g_type_create_ffmpeg_decode_node_register(
+    base::kCodecTypeFFmpeg, createFFmpegDecode);
+TypeCreatelDecodeSharedPtrRegister
+    g_type_create_ffmpeg_decode_node_shared_ptr_register(
+        base::kCodecTypeFFmpeg, createFFmpegDecodeSharedPtr);
+
+Decode *createFFmpegDecode(base::CodecFlag flag,
+                                   const std::string &name, dag::Edge *output) {
+  Decode *temp = nullptr;
+  if (flag == base::kCodecFlagImage) {
+    temp = new FFmpegImageDecode(name, {}, {output}, flag);
+  } else if (flag == base::kCodecFlagImages) {
+    temp = new FFmpegImageDecode(name, {}, {output}, flag);
+  // } else if (flag == base::kCodecFlagVideo) {
+  //   temp = new FFmpegVideoDecode(name, {}, {output}, flag);
+  // } else if (flag == base::kCodecFlagCamera) {
+  //   temp = new FFmpegAudioDecode(name, {}, {output}, flag);
+  }
+
+  return temp;
+}
+
+std::shared_ptr<Decode> createFFmpegDecodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output) {
+  std::shared_ptr<Decode> temp = nullptr;
+  if (flag == base::kCodecFlagImage) {
+    temp = std::shared_ptr<FFmpegImageDecode>(
+        new FFmpegImageDecode(name, {}, {output}, flag));
+  } else if (flag == base::kCodecFlagImages) {
+    temp = std::shared_ptr<FFmpegImageDecode>(
+        new FFmpegImageDecode(name, {}, {output}, flag));
+  // } else if (flag == base::kCodecFlagVideo) {
+  //   temp = std::shared_ptr<FFmpegVideoDecode>(
+  //       new FFmpegVideoDecode(name, {}, {output}, flag));
+  // } else if (flag == base::kCodecFlagCamera) {
+  //   temp = std::shared_ptr<FFmpegAudioDecode>(
+  //       new FFmpegAudioDecode(name, {}, {output}, flag));
+  }
+
+  return temp;
+}
+
+// TypeCreatelEncodeRegister g_type_create_encode_node_register(
+//     base::kCodecTypeFFmpeg, createFFmpegEncode);
+// TypeCreatelEncodeSharedPtrRegister
+//     g_type_create_encode_node_shared_ptr_register(
+//         base::kCodecTypeFFmpeg, createFFmpegEncodeSharedPtr);
+
+// Encode *createFFmpegEncode(base::CodecFlag flag,
+//                                    const std::string &name, dag::Edge *input) {
+//   Encode *temp = nullptr;
+//   if (flag == base::kCodecFlagImage) {
+//     temp = new FFmpegImageEncode(name, {input}, {}, flag);
+//   } else if (flag == base::kCodecFlagImages) {
+//     temp = new FFmpegImagesEncode(name, {input}, {}, flag);
+//   } else if (flag == base::kCodecFlagVideo) {
+//     temp = new FFmpegVedioEncode(name, {input}, {}, flag);
+//   } else if (flag == base::kCodecFlagCamera) {
+//     temp = new FFmpegCameraEncode(name, {input}, {}, flag);
+//   }
+
+//   return temp;
+// }
+
+// std::shared_ptr<Encode> createFFmpegEncodeSharedPtr(
+//     base::CodecFlag flag, const std::string &name, dag::Edge *input) {
+//   std::shared_ptr<Encode> temp = nullptr;
+//   if (flag == base::kCodecFlagImage) {
+//     temp = std::shared_ptr<FFmpegImageEncode>(
+//         new FFmpegImageEncode(name, {input}, {}, flag));
+//   } else if (flag == base::kCodecFlagImages) {
+//     temp = std::shared_ptr<FFmpegImagesEncode>(
+//         new FFmpegImagesEncode(name, {input}, {}, flag));
+//   } else if (flag == base::kCodecFlagVideo) {
+//     temp = std::shared_ptr<FFmpegVedioEncode>(
+//         new FFmpegVedioEncode(name, {input}, {}, flag));
+//   } else if (flag == base::kCodecFlagCamera) {
+//     temp = std::shared_ptr<FFmpegCameraEncode>(
+//         new FFmpegCameraEncode(name, {input}, {}, flag));
+//   }
+
+//   return temp;
+// }
+
+// REGISTER_NODE("nndeploy::codec::FFmpegImageDecode", FFmpegImageDecode);
+REGISTER_NODE("nndeploy::codec::FFmpegImagesDecode",
+              FFmpegImageDecode);
+// REGISTER_NODE("nndeploy::codec::FFmpegVideoDecode", FFmpegVideoDecode);
+// REGISTER_NODE("nndeploy::codec::FFmpegCameraDecode",
+//               FFmpegAudioDecode);
+// REGISTER_NODE("nndeploy::codec::FFmpegImageEncode", FFmpegImageEncode);
+// REGISTER_NODE("nndeploy::codec::FFmpegImagesEncode",
+//               FFmpegImagesEncode);
+// REGISTER_NODE("nndeploy::codec::FFmpegVedioEncode", FFmpegVedioEncode);
+// REGISTER_NODE("nndeploy::codec::FFmpegCameraEncode",
+//               FFmpegCameraEncode);
 
 }
 }

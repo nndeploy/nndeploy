@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
 
   // 解码节点
   codec::Decode *decode_node = codec::createDecode(
-      base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
+      base::kCodecTypeFFmpeg, codec_flag, "decode_node", input);
   graph->addNode(decode_node, false);
 
   // draw box

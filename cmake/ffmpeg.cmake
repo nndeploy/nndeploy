@@ -17,13 +17,13 @@ elseif (ENABLE_NNDEPLOY_FFMPEG STREQUAL "ON")
   #                     ${AVFILTER_INCLUDE_DIRS} ${AVDEVICE_INCLUDE_DIRS} ${SWRESAMPLE_INCLUDE_DIRS}
   #                     ${SWSCALE_INCLUDE_DIRS})
   include_directories(${FFMPEG_PATH}/include)
-  set(AVCODEC_LIBRARIES ${FFMPEG_PATH}/lib/libavcodec.a)
-  set(AVFORMAT_LIBRARIES ${FFMPEG_PATH}/lib/libavformat.a)
-  set(AVUTIL_LIBRARIES ${FFMPEG_PATH}/lib/libavutil.a)
-  set(AVFILTER_LIBRARIES ${FFMPEG_PATH}/lib/libavfilter.a)
-  set(AVDEVICE_LIBRARIES ${FFMPEG_PATH}/lib/libavdevice.a)
-  set(SWRESAMPLE_LIBRARIES ${FFMPEG_PATH}/lib/libswresample.a)
-  set(SWSCALE_LIBRARIES ${FFMPEG_PATH}/lib/libswscale.a)
+  set(AVCODEC_LIBRARIES ${FFMPEG_PATH}/lib/libavcodec.so)
+  set(AVFORMAT_LIBRARIES ${FFMPEG_PATH}/lib/libavformat.so)
+  set(AVUTIL_LIBRARIES ${FFMPEG_PATH}/lib/libavutil.so)
+  set(AVFILTER_LIBRARIES ${FFMPEG_PATH}/lib/libavfilter.so)
+  set(AVDEVICE_LIBRARIES ${FFMPEG_PATH}/lib/libavdevice.so)
+  set(SWRESAMPLE_LIBRARIES ${FFMPEG_PATH}/lib/libswresample.so)
+  set(SWSCALE_LIBRARIES ${FFMPEG_PATH}/lib/libswscale.so)
   set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} 
                                    ${AVCODEC_LIBRARIES} ${AVFORMAT_LIBRARIES} ${AVUTIL_LIBRARIES}
                                    ${AVFILTER_LIBRARIES} ${AVDEVICE_LIBRARIES} ${SWRESAMPLE_LIBRARIES}
