@@ -276,7 +276,7 @@ class NnDeployServer:
                 raise HTTPException(status_code=500, detail=f"reading file error: {e}")
         
         @api.get(
-            "/nodes",
+            "/dag/info",
             tags=["Node"],
             response_model=NodeListResponse,
             summary="return register nodes",
@@ -286,7 +286,7 @@ class NnDeployServer:
             nodes = json.loads(json_str)
             flag = "success"
             message = ""
-            return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
+            return NodeListResponse(flag=flag, message=message, result=nodes)
 
         @api.post(
                 "/nodes/upload",
