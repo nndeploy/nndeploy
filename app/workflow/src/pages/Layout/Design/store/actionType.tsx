@@ -9,3 +9,16 @@ export function initDagGraphInfo(payload:any){
     }
 }
 
+
+export const INIT_FRESH_FLOW_TREE:string = 'INIT_FRESH_FLOW_TREE'  
+
+export function initFreshFlowTree(payload:any){
+
+    //debugger;
+    return {
+        type: INIT_FRESH_FLOW_TREE, 
+        payload
+    }
+}
+
+

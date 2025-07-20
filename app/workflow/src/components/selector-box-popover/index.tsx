@@ -1,4 +1,4 @@
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent, useContext, useState } from 'react';
 
 import { FlowNodeEntity, SelectorBoxPopoverProps, useClientContext, WorkflowEdgeJSON, WorkflowNodeLinesData } from '@flowgram.ai/free-layout-editor';
 import { WorkflowGroupCommand } from '@flowgram.ai/free-group-plugin';
@@ -11,6 +11,8 @@ import { designDataToBusinessData } from '../../pages/components/flow/FlowSaveDr
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import FlowSaveDrawer from '../../pages/components/flow/FlowSaveDrawer';
 import { IWorkFlowEntity } from '../../pages/Layout/Design/WorkFlow/entity';
+import store from '../../pages/Layout/Design/store/store';
+import { initFreshFlowTree } from '../../pages/Layout/Design/store/actionType';
 
 const BUTTON_HEIGHT = 24;
 
@@ -23,34 +25,38 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
 
   const ctx = useClientContext()
 
+  const { state, dispatch } = useContext(store)
+
+
+
   const [entity, setEntity] = useState<IWorkFlowEntity>({
-      id: "",
-      name: "",
-      parentId: "",
-      designContent: {
-        nodes: [],
-        edges: [],
-      },
-      businessContent: {
-        key_: "nndeploy::dag::Graph",
-        name_: "demo",
-        device_type_: "kDeviceTypeCodeX86:0",
-        inputs_: [],
-        outputs_: [
-          {
-            name_: "detect_out",
-            type_: "kNotSet",
-          },
-        ],
-        is_external_stream_: false,
-        is_inner_: false,
-        is_time_profile_: true,
-        is_debug_: false,
-        is_graph_node_share_stream_: true,
-        queue_max_size_: 16,
-        node_repository_: [],
-      },
-    });
+    id: "",
+    name: "",
+    parentId: "",
+    designContent: {
+      nodes: [],
+      edges: [],
+    },
+    businessContent: {
+      key_: "nndeploy::dag::Graph",
+      name_: "demo",
+      device_type_: "kDeviceTypeCodeX86:0",
+      inputs_: [],
+      outputs_: [
+        {
+          name_: "detect_out",
+          type_: "kNotSet",
+        },
+      ],
+      is_external_stream_: false,
+      is_inner_: false,
+      is_time_profile_: true,
+      is_debug_: false,
+      is_graph_node_share_stream_: true,
+      queue_max_size_: 16,
+      node_repository_: [],
+    },
+  });
 
   const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
@@ -59,6 +65,8 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
   }
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
+
+     dispatch(initFreshFlowTree({}))
     setSaveDrawerVisible(false);
 
   }
@@ -171,9 +179,11 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
     // var i = 0;
 
     let designContent: FlowDocumentJSON = buildDesignData(selectedNodes)
-   // let businessContent = designDataToBusinessData(designData)
+    // let businessContent = designDataToBusinessData(designData)
 
-    setEntity({...entity, designContent})
+    setEntity({ ...entity, designContent })
+
+   
     setSaveDrawerVisible(true)
   }
 

@@ -10,7 +10,7 @@ import {
 } from "@douyinfe/semi-ui";
 import { useGetWorkflowTree } from "./effect";
 import { IconMore, IconPlus } from "@douyinfe/semi-icons";
-import { forwardRef, ReactNode, useImperativeHandle, useState } from "react";
+import { forwardRef, ReactNode, useContext, useEffect, useImperativeHandle, useState } from "react";
 
 import "./index.scss";
 import BranchEditDrawer from "./BranchEditDrawer";
@@ -21,17 +21,22 @@ import { PopconfirmWithInput } from "../../../components/PopconfirmWithInput";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { IResourceTreeNodeEntity } from "../Resource/entity";
 import request from "../../../../request";
+import store from "../store/store";
 
-export interface WorkFlowComponentHandle {
-  refresh: () => void;
-}
+// export interface WorkFlowComponentHandle {
+//   refresh: () => void;
+// }
 
 interface WorkFlowProps {
   onShowFlow: (node: TreeNodeData) => void;
   onFlowDeleteCallBack: (flowName: string) => void
 }
 const { Text, Paragraph } = Typography;
-const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref) => {
+function WorkFlow (props: WorkFlowProps) {
+
+
+  const {state} = useContext(store)
+  const {freshFlowTreeCnt} = state
 
   const { onFlowDeleteCallBack } = props
   const { treeData, setTreeData, getWorkFlowTree, fileNames } = useGetWorkflowTree();
@@ -39,9 +44,13 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
   const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
   const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
 
-  useImperativeHandle(ref, () => ({
-    refresh: getWorkFlowTree,
-  }));
+  // useImperativeHandle(ref, () => ({
+  //   refresh: getWorkFlowTree,
+  // }));
+
+  useEffect(()=>{
+    getWorkFlowTree()
+  }, [freshFlowTreeCnt])
 
   function handleResoureDrawerClose() {
     setWorkFlowEditVisible(false);
@@ -320,6 +329,6 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
       </SideSheet>
     </div>
   );
-});
+};
 
 export default WorkFlow;
