@@ -1,16 +1,24 @@
 import { Button, Dropdown, List, Toast, Tooltip, Tree, Typography } from "@douyinfe/semi-ui";
-import { useGetNodeList, useGetNoteTree } from "./effect";
 import { IconMore, IconPlus } from "@douyinfe/semi-icons";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { ReactNode } from "react";
 import "./index.scss";
-import { INodeEntity, NodeTreeNodeData } from "../../../Node/entity";
+import {  NodeTreeNodeData } from "../../../Node/entity";
 import request from "../../../../request";
+import React from "react";
+import store from "../store/store";
+import { initDagGraphInfo } from "../store/actionType";
+import { apiGetDagInfo } from "../api";
 
 const { Text, Paragraph } = Typography;
 
 const NodeTree: React.FC = () => {
-  const { treeData, getNodeTree } = useGetNoteTree();
+  //const { treeData, getNodeTree } = useGetNoteTree();
+
+  const { state, dispatch } = React.useContext(store);
+
+  const { treeData } = state
+
   //const nodeList = useGetNodeList();
 
   const renderBtn = (content: string) => {
@@ -36,6 +44,17 @@ const NodeTree: React.FC = () => {
       </Dropdown>
     );
   };
+
+
+  async function getDagInfo() {
+    var response = await apiGetDagInfo()
+    if (response.flag != 'success') {
+      return
+    }
+
+    dispatch(initDagGraphInfo(response.result))
+
+  }
 
   const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => (
     <div
@@ -67,7 +86,7 @@ const NodeTree: React.FC = () => {
       try {
         const response = await request.upload("/api/nodes/upload", formData, {});
         if (response.flag === "success") {
-          getNodeTree();
+          getDagInfo();
           Toast.success("upload node success")
         } else {
           // Handle error
@@ -88,7 +107,7 @@ const NodeTree: React.FC = () => {
     dragEvent: React.DragEvent<HTMLDivElement>
   ) {
 
-    if(node.type != 'leaf'){
+    if (node.type != 'leaf') {
       return
     }
     const dragImage = document.getElementById("drag-image");
@@ -125,6 +144,7 @@ const NodeTree: React.FC = () => {
         </div>
         <Tree
           treeData={treeData}
+          ///@ts-ignore todo fix
           renderLabel={renderLabel}
           className="tree-node"
         //draggable

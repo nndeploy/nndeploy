@@ -20,19 +20,24 @@ import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry, setupWebSocket } from "./api";
+import { apiGetNodeById, apiGetWorkFlow, setupWebSocket } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
-import { useGetNodeList, useGetParamTypes, useGetRegistry } from "./effect";
+import { 
+  //useGetNodeList, 
+  useGetParamTypes, 
+  //useGetRegistry
+ } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
-import { initialState, reducer } from "./store/store";
 import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
+import store, { initialState, reducer } from "../../Layout/Design/store/store";
+import React from "react";
 
 let nameId = 0;
 
@@ -44,7 +49,10 @@ interface FlowProps {
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
-  const [state, dispatch] = useReducer(reducer, (initialState))
+ // const [state, dispatch] = useReducer(reducer, (initialState))
+ const { state } = React.useContext(store);
+
+  const {nodeRegistries, nodeList} = state
 
   const [outputResources, setOutputResources] = useState<string[]>([])
 
@@ -93,19 +101,19 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
-  const nodeList = useGetNodeList()
+ // const nodeList = useGetNodeList()
 
   const paramTypes = useGetParamTypes()
 
-  const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
+  //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
   const fetchData = async (flowName: string) => {
     //setLoading(true);
 
-    const nodeRegistries = await getNodeRegistry();
-    setNodeRegistries(nodeRegistries);
+    //const nodeRegistries = await getNodeRegistry();
+   // setNodeRegistries(nodeRegistries);
 
-    if (!flowName) {
+    if (!flowName ) {
       setLoading(false);
       return;
     }
@@ -143,8 +151,12 @@ const Flow: React.FC<FlowProps> = (props) => {
     setLoading(false);
   };
   useEffect(() => {
+
+    if(nodeRegistries.length < 1){
+      return
+    }
     fetchData(props.id);
-  }, [props.id]);
+  }, [props.id, nodeRegistries]);
 
   // useEffect(() => {
   //   if (ref.current) {
@@ -156,7 +168,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   //   }
   // }, [props.activeKey, ref.current])
 
-  const flowRef = useRef<HTMLDivElement | null>(null);
+  const demoContainerRef = useRef<HTMLDivElement | null>(null);
 
   const dropzone = useRef<HTMLDivElement | null>(null);
 
@@ -438,11 +450,11 @@ const Flow: React.FC<FlowProps> = (props) => {
   const editorProps = useEditorProps(entity.designContent, nodeRegistries);
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
-      {loading ? (
+      {loading  ? (
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: flowRef, onSave, onRun, nodeList, paramTypes, outputResources }}
+          value={{ element: demoContainerRef, onSave, onRun, nodeList, paramTypes, outputResources }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
@@ -450,7 +462,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             ref={ref}
           >
             <SidebarProvider>
-              <div className="demo-container" ref={flowRef}>
+              <div className="demo-container" ref={demoContainerRef}>
                 <EditorRenderer className="demo-editor" />
               </div>
 
