@@ -26,11 +26,11 @@ import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
-import { 
+import {
   //useGetNodeList, 
-  useGetParamTypes, 
+  useGetParamTypes,
   //useGetRegistry
- } from "./effect";
+} from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
@@ -39,6 +39,7 @@ import { getNextNameNumberSuffix } from "./functions";
 import store, { initialState, reducer } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
+import { IFlowNodesRunningStatus } from "./entity";
 
 let nameId = 0;
 
@@ -50,12 +51,14 @@ interface FlowProps {
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
- // const [state, dispatch] = useReducer(reducer, (initialState))
- const { state, dispatch } = React.useContext(store);
+  // const [state, dispatch] = useReducer(reducer, (initialState))
+  const { state, dispatch } = React.useContext(store);
 
-  const {nodeRegistries, nodeList} = state
+  const { nodeRegistries, nodeList } = state
 
   const [outputResources, setOutputResources] = useState<string[]>([])
+
+  const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -102,7 +105,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
- // const nodeList = useGetNodeList()
+  // const nodeList = useGetNodeList()
 
   const paramTypes = useGetParamTypes()
 
@@ -112,9 +115,9 @@ const Flow: React.FC<FlowProps> = (props) => {
     //setLoading(true);
 
     //const nodeRegistries = await getNodeRegistry();
-   // setNodeRegistries(nodeRegistries);
+    // setNodeRegistries(nodeRegistries);
 
-    if (!flowName ) {
+    if (!flowName) {
       setLoading(false);
       return;
     }
@@ -153,7 +156,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   };
   useEffect(() => {
 
-    if(nodeRegistries.length < 1){
+    if (nodeRegistries.length < 1) {
       return
     }
     fetchData(props.id);
@@ -200,19 +203,6 @@ const Flow: React.FC<FlowProps> = (props) => {
         flowJson
       );
 
-
-
-
-
-      // const socket = setupWebSocket()
-
-      // socket.onopen = async () => {
-
-
-
-
-      // };
-
       const response = await apiWorkFlowRun(businessContent);
 
       if (response.flag == "error") {
@@ -257,60 +247,22 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
         const response = JSON.parse(event.data);
-        if (response.flag === "success" && response.result?.task_id && response.result?.path) {
 
+        if (response.flag != "success") {
+          return;
+        }
+
+        if (response.result.type == 'preview') {
           const nodeNames: string[] = response.result?.path.map((item: any) => item.name)
 
           setOutputResources(nodeNames)
-          // const taskId = response.result.task_id;
-
-          // for (let i = 0; i < response.result.path.length; i++) {
-          //   const item = response.result.path[i]
-
-          //   const { name: nodeName, path: path_ } = item as { name: string, path: string }
-
-
-          //   const designContent: FlowDocumentJSON = ref?.current?.document.toJSON() as any
-
-          //   //modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
-
-
-          //   const newDesinContent = JSON.parse(JSON.stringify(designContent))
-          //   setEntity({ ...entity, designContent: newDesinContent });
-
-          //   ref?.current?.document.reload(newDesinContent);
-          //   setTimeout(() => {
-          //     // 加载后触发画布的 fitview 让节点自动居中
-          //     //ref?.current?.document.fitView();
-          //     //ref?.current?.document.fireRender()
-
-          //     //autoLayOutRef.current?.autoLayout()
-          //     //tools.autoLayout()
-
-          //   }, 100);
-
-          //   //  ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
-
-
-          //   //   const form = getNodeForm(node);
-
-          //   //   if (form?.getValueIn('name_') == nodeName) {
-          //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
-          //   //     //form?.render()
-          //   //     //  const formModel = node.getData<FlowNodeFormData>(FlowNodeFormData)?.getFormModel<FormModelV2>();
-          //   //     //  formModel.render()
-          //   //   }
-
-
-          //   //   //   //node.path_ =  `${path_}&time=${Date.now()}`
-
-          // }
-          //   // ref?.current?.document.fitView();
-          //   // autoLayOutRef.current?.autoLayout()
-
-        } else if (response.flag === "error") {
-          //showError(response.result?.task_id, response.message || "任务失败");
+        }else if(response.result.type == 'progress'){
+          setFlowNodesRunningStatus(response.result.detail)
         }
+
+
+
+       
       };
 
       socket!.onerror = (err) => {
@@ -354,31 +306,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       const entity = JSON.parse(nodeString)
 
-      //const response = await apiGetNodeById(nodeId!);
-
-      //const entity = nodeList.find(item=>item.key_ == nodeId)!
-      //nodeRegistries.find(item=>item.)
-
-      //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-      //var type = entity.is_graph_ ? 'group':  entity.key_
       var type = entity.key_
-
-      // function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
-      //   let result = 0;
-      //   //const allNode = ref?.current?.document.toJSON() as FlowDocumentJSON;
-      //    documentJSON.nodes.map(item => {
-
-      //     var nameParts = item.data.name_.split('_')
-      //     if (item.data.name_ && nameParts.length > 1) {
-      //       var numberPart = parseInt(nameParts[nameParts.length - 1])
-      //       if (!isNaN(numberPart)) {
-      //         result = Math.max(result, numberPart);
-      //       }
-      //     }
-      //   })
-      //   return result + 1;
-      // }
-
 
       let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
 
@@ -455,11 +383,11 @@ const Flow: React.FC<FlowProps> = (props) => {
   const editorProps = useEditorProps(entity.designContent, nodeRegistries);
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
-      {loading  ? (
+      {loading ? (
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: demoContainerRef, onSave, onRun, nodeList, paramTypes, outputResources }}
+          value={{ element: demoContainerRef, onSave, onRun, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
