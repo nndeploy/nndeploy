@@ -22,13 +22,17 @@
    quick_start/plugin.md
    quick_start/model_list.md
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Python API
-   :template: autosummary/module.rst
-   {% for module in all_modules %}
-   {{ module }}
-   {% endfor %}
+.. .. toctree::
+..    :maxdepth: 2
+..    :caption: Python API
+
+..    python_api/index
+
+.. .. toctree::
+..    :maxdepth: 2
+..    :caption: C++ API
+
+..    cpp_api/library_root
 
 .. toctree::
    :maxdepth: 1

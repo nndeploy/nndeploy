@@ -12,12 +12,15 @@ import sphinx_rtd_theme
 project = 'nndeploy'
 copyright = 'nndeploy'
 author = 'nndeploy'
-release = '0.2.0.0'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['recommonmark','sphinx_markdown_tables'] 
+extensions = [
+    'recommonmark',
+    'sphinx_markdown_tables',
+] 
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -36,55 +39,120 @@ gettext_uuid = True  # optional.
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = ['../source/_templates']
 html_static_path = ['../source/_static']
-source_suffix = {'.rst': 'restructuredtext','.md': 'markdown'}
+source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
-# python api
-sys.path.insert(0, os.path.abspath('../../python/nndeploy'))  # 指向源码目录
+# # Python API 配置
+# extensions.extend([
+#         'sphinx.ext.autodoc',
+#         'sphinx.ext.autosummary',
+#         'sphinx.ext.viewcode',
+#         'sphinx.ext.napoleon',
+#         'sphinx.ext.intersphinx',
+#     ])
 
-# 自动发现所有模块
-def find_all_modules():
-    from pathlib import Path
+# sys.path.insert(0, os.path.abspath('../../python/nndeploy'))
+
+# # autodoc 配置
+# autodoc_default_options = {
+#     'members': True,                # 包含所有成员
+#     'undoc-members': True,          # 包含无文档字符串的成员
+#     'private-members': False,       # 排除私有成员
+#     'special-members': '__init__',  # 包含特殊方法
+#     'inherited-members': True,      # 包含继承的成员
+#     'show-inheritance': True,       # 显示继承关系
+# }
+
+# # autosummary 配置
+# autosummary_generate = True              # 自动生成摘要文件
+# autosummary_generate_overwrite = True    # 覆盖已存在的文件
+# autosummary_imported_members = True      # 包含导入的成员
+
+# # Napoleon 配置（docstring 风格）
+# napoleon_google_docstring = True         # 支持 Google 风格
+# napoleon_numpy_docstring = True          # 支持 NumPy 风格
+# napoleon_include_init_with_doc = False   # __init__ 文档处理
+# napoleon_include_private_with_doc = False
+# napoleon_use_admonition_for_examples = False
+# napoleon_use_admonition_for_notes = False
+# napoleon_use_admonition_for_references = False
+# napoleon_use_ivar = False
+# napoleon_use_param = True
+# napoleon_use_rtype = True
+
+# # Intersphinx 配置（链接外部文档）
+# intersphinx_mapping = {
+#     'python': ('https://docs.python.org/3/', None),
+#     'numpy': ('https://numpy.org/doc/stable/', None),
+#     'torch': ('https://pytorch.org/docs/stable/', None),
+# }
+
+# # -- C++ API 配置 -------------------------------------------------------------
+# extensions.extend([
+#     'breathe',
+#     'exhale',
+#     ])
+
+# # Breathe 配置
+# breathe_projects = {
+#     "nndeploy": "build/doxygen/xml"
+# }
+# breathe_default_project = "nndeploy"
+# breathe_default_members = ('members', 'undoc-members')
+
+# # Exhale 配置
+# exhale_args = {
+#     # 输出目录
+#     "containmentFolder": "./cpp_api",
+#     "rootFileName": "library_root.rst",
+#     "rootFileTitle": "C++ API 参考",
     
-    base_path = Path(os.path.abspath('../../python/nndeploy'))
-    modules = []
+#     # Doxygen 配置
+#     "doxygenStripFromPath": "../..",
+#     "createTreeView": True,
+#     "exhaleExecutesDoxygen": True,
     
-    for path in base_path.glob('**/*.py'):
-        if path.name == '__init__.py':
-            module_path = path.relative_to(base_path).parent
-        else:
-            module_path = path.relative_to(base_path).with_suffix('')
+#     # 自定义 Doxygen 配置
+#     "exhaleDoxygenStdin": """
+#         PROJECT_NAME           = "nndeploy"
+#         PROJECT_NUMBER         = "0.2.0"
+#         PROJECT_BRIEF          = "高性能神经网络部署框架"
         
-        module_str = f"nndeploy.{str(module_path).replace('/', '.')}"
+#         # 输入路径
+#         INPUT                  = ../../framework
+#         RECURSIVE              = YES
+#         FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.c
         
-        if '__pycache__' not in module_str:
-            modules.append(module_str)
-    
-    return sorted(set(modules))
-
-# 在模板中暴露模块列表
-def setup(app):
-    app.add_config_value('all_modules', find_all_modules(), 'env')
-
-# 扩展配置
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',  # 支持 Google/Numpy 风格
-]
-
-# 启用自动摘要
-autosummary_generate = True
-autosummary_imported_members = True
-
-# 自动包含所有成员
-autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'private-members': False,
-    'show-inheritance': True,
-    'special-members': '__init__',
-}
-
-# 自动为所有模块生成文档
-autosummary_generate_overwrite = True
+#         # 排除路径
+#         EXCLUDE_PATTERNS       = */third_party/* */build/* */.git/* */test/*
+        
+#         # 提取配置
+#         EXTRACT_ALL            = YES
+#         EXTRACT_PRIVATE        = NO
+#         EXTRACT_STATIC         = YES
+#         EXTRACT_LOCAL_CLASSES  = YES
+#         EXTRACT_ANON_NSPACES   = NO
+        
+#         # 输出配置
+#         GENERATE_HTML          = NO
+#         GENERATE_XML           = YES
+#         XML_OUTPUT             = ../build/doxygen/xml
+#         XML_PROGRAMLISTING     = YES
+        
+#         # 预处理配置
+#         ENABLE_PREPROCESSING   = YES
+#         MACRO_EXPANSION        = YES
+#         EXPAND_ONLY_PREDEF     = YES
+        
+#         # 图形配置
+#         HAVE_DOT               = YES
+#         DOT_IMAGE_FORMAT       = svg
+#         DOT_TRANSPARENT        = YES
+#         CALL_GRAPH             = YES
+#         CALLER_GRAPH           = YES
+        
+#         # 其他配置
+#         QUIET                  = YES
+#         WARNINGS               = YES
+#         WARN_IF_UNDOCUMENTED   = NO
+#         """,
+# }
