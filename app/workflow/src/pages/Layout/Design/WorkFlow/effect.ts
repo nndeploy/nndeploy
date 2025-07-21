@@ -65,9 +65,9 @@ export function useGetWorkflowTree(): {
 
   }
 
-  useEffect(() => {
-    getWorkFlowTree()
-  }, []);
+  // useEffect(() => {
+  //   getWorkFlowTree()
+  // }, []);
 
   // useEffect(() => {
   //   const tree = buildTreeFromArray(flatData);

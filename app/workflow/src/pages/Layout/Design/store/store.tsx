@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { INIT_DAG_GRAPH_INFO, } from './actionType'
+import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, } from './actionType'
 import { IDagGraphInfo, INodeEntity, INodeTreeNodeEntity, NodeTreeNodeData } from '../../../Node/entity';
 import { FlowNodeRegistry } from '../../../../typings';
 import { buildNodeRegistry } from '../../../components/flow/nodeRegistry/buildNodeRegistry';
@@ -8,7 +8,8 @@ interface state {
   dagGraphInfo: IDagGraphInfo,
   nodeList: INodeEntity[],
   nodeRegistries: FlowNodeRegistry[],
-  treeData: NodeTreeNodeData[]
+  treeData: NodeTreeNodeData[], 
+  freshFlowTreeCnt: number, 
 }
 
 export const initialState: state = {
@@ -33,7 +34,8 @@ export const initialState: state = {
   },
   nodeList: [], 
   nodeRegistries: [],
-  treeData: []
+  treeData: [], 
+  freshFlowTreeCnt: 0
 
 }
 
@@ -95,7 +97,9 @@ export function reducer(state: state, action: any): state {
       return temp
 
 
-
+      case INIT_FRESH_FLOW_TREE: 
+         var temp = { ...state, freshFlowTreeCnt: state.freshFlowTreeCnt +1}
+          return temp
     default:
       throw new Error();
   }

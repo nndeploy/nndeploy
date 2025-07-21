@@ -38,7 +38,7 @@ import Flow from "../../components/flow/Index";
 import companyLogo from "../../../assets/kapybara_logo.png";
 import NodeTree from "./Node";
 import Resource from "./Resource";
-import WorkFlow, { WorkFlowComponentHandle } from "./WorkFlow";
+import WorkFlow from "./WorkFlow";
 import { IResourceTreeNodeEntity } from "./Resource/entity";
 import { IWorkFlowEntity } from "./WorkFlow/entity";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
@@ -76,7 +76,7 @@ const Design: React.FC = () => {
     getDagInfo()
   }, [])
 
-  const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
+ // const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
 
 
 
@@ -138,7 +138,7 @@ const Design: React.FC = () => {
       return tab;
     })
     setTabs(newTabs);
-    workFlowTreeRef.current?.refresh()
+    //workFlowTreeRef.current?.refresh()
     //setActiveKey(activeKey);
   }
 
@@ -299,7 +299,9 @@ const Design: React.FC = () => {
                   <Nav mode="vertical" >
                     {selectedFirstLevel === "nodes" ? <NodeTree />
                       : selectedFirstLevel === "resources" ? <Resource />
-                        : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow} ref={workFlowTreeRef} onFlowDeleteCallBack={onFlowDeleteCallBack} />
+                        : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow} 
+                        //ref={workFlowTreeRef} 
+                        onFlowDeleteCallBack={onFlowDeleteCallBack} />
                           : <></>
                     }
 

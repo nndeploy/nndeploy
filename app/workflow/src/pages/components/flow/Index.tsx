@@ -38,6 +38,7 @@ import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
 import store, { initialState, reducer } from "../../Layout/Design/store/store";
 import React from "react";
+import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
 
 let nameId = 0;
 
@@ -50,7 +51,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
  // const [state, dispatch] = useReducer(reducer, (initialState))
- const { state } = React.useContext(store);
+ const { state, dispatch } = React.useContext(store);
 
   const {nodeRegistries, nodeList} = state
 
@@ -326,6 +327,10 @@ const Flow: React.FC<FlowProps> = (props) => {
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
     setEntity({ ...entity });
+
+    dispatch(initFreshFlowTree({}))
+
+
     props.onFlowSave(entity);
   }
   function onFlowSaveDrawerClose() {
