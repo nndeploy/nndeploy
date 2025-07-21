@@ -2,6 +2,7 @@ import React from 'react';
 import { FlowDocumentJSON } from '../typings';
 import { INodeEntity } from '../pages/Node/entity';
 import { IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
+import { IFlowNodesRunningStatus } from '../pages/components/flow/entity';
 
 export const FlowEnviromentContext = React.createContext<
   {
@@ -11,10 +12,12 @@ export const FlowEnviromentContext = React.createContext<
     onRun?: (flowJson: FlowDocumentJSON) => void;
     paramTypes: IParamTypes;
     outputResources: string[];
+    flowNodesRunningStatus: IFlowNodesRunningStatus
   }
 
 >({
-  outputResources: []
+  outputResources: [], 
+  flowNodesRunningStatus: {}
 } as any);
 
 export function useFlowEnviromentContext() {
