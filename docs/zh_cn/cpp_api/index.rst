@@ -1,70 +1,70 @@
-C++ API 参考
-===============
+C++ API Reference
+=================
 
-本页面展示 nndeploy C++ API 文档。
+This page shows the nndeploy C++ API documentation.
 
 .. note::
-   此文档从源码自动生成。
-   如果下面的内容为空，请检查 Breathe 配置。
+   This documentation is automatically generated from source code.
+   If the content below is empty, please check the Breathe configuration.
 
-快速测试
---------
+Quick Test
+----------
 
 .. breathe:class:: nndeploy::device::Device
    :project: nndeploy_device
    :outline:
 
-核心类详细文档
---------------
+Core Class Detailed Documentation
+---------------------------------
 
-设备信息结构
-~~~~~~~~~~~~
+Device Information Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. breathe:struct:: nndeploy::device::DeviceInfo
    :project: nndeploy_device
    :members:
 
-设备架构管理类
-~~~~~~~~~~~~~~~~
+Device Architecture Management Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. breathe:class:: nndeploy::device::Architecture
    :project: nndeploy_device
    :members:
    :protected-members:
 
-设备基类
-~~~~~~~~
+Device Base Class
+~~~~~~~~~~~~~~~~~
 
 .. breathe:class:: nndeploy::device::Device
    :project: nndeploy_device
    :members:
    :protected-members:
 
-流管理类
-~~~~~~~~
+Stream Management Class
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. breathe:class:: nndeploy::device::Stream
    :project: nndeploy_device
    :members:
    :protected-members:
 
-事件管理类
-~~~~~~~~~~
+Event Management Class
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. breathe:class:: nndeploy::device::Event
    :project: nndeploy_device
    :members:
    :protected-members:
 
-模板类
-------
+Template Classes
+----------------
 
 .. breathe:class:: nndeploy::device::TypeArchitectureRegister
    :project: nndeploy_device
    :members:
 
-全局函数
---------
+Global Functions
+----------------
 
 .. breathe:function:: nndeploy::device::getDevice
    :project: nndeploy_device
@@ -75,8 +75,8 @@ C++ API 参考
 .. breathe:function:: nndeploy::device::createEvent
    :project: nndeploy_device
 
-完整索引
---------
+Complete Index
+--------------
 
 .. breathe:doxygen-index::
    :project: nndeploy_device

@@ -9,7 +9,7 @@ RECURSIVE              = YES
 FILE_PATTERNS          = *.h
 
 # 输出配置
-OUTPUT_DIRECTORY       = ./build/doxygen
+OUTPUT_DIRECTORY       = ./build_doxygen
 GENERATE_HTML          = YES
 GENERATE_XML           = YES
 XML_OUTPUT             = xml
@@ -17,7 +17,7 @@ HTML_OUTPUT            = html
 
 # 提取设置
 EXTRACT_ALL            = YES
-EXTRACT_PRIVATE        = YES
+EXTRACT_PRIVATE        = NO
 EXTRACT_STATIC         = YES
 EXTRACT_LOCAL_CLASSES  = YES
 

@@ -23,16 +23,12 @@
    quick_start/model_list.md
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Python API
-
-   python_api/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: C++ API
+   :maxdepth: 1
+   :caption: API
 
    cpp_api/index
+
+   python_api/index 
 
 .. toctree::
    :maxdepth: 1
