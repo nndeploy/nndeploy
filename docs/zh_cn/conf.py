@@ -20,6 +20,7 @@ release = '0.2.0'
 extensions = [
     'recommonmark',
     'sphinx_markdown_tables',
+    'breathe',  # <--- 核心修复：在这里添加 breathe
 ] 
 
 templates_path = ['_templates']
@@ -41,118 +42,76 @@ html_theme_path = ['../source/_templates']
 html_static_path = ['../source/_static']
 source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
-# # Python API 配置
-# extensions.extend([
-#         'sphinx.ext.autodoc',
-#         'sphinx.ext.autosummary',
-#         'sphinx.ext.viewcode',
-#         'sphinx.ext.napoleon',
-#         'sphinx.ext.intersphinx',
-#     ])
+# Python API 配置
 
-# sys.path.insert(0, os.path.abspath('../../python/nndeploy'))
+# autodoc_mock_imports = [
+#     'nndeploy._nndeploy_internal',
+#     'nndeploy._C', # 也可能需要模拟整个 _C 包
+# ]
 
-# # autodoc 配置
-# autodoc_default_options = {
-#     'members': True,                # 包含所有成员
-#     'undoc-members': True,          # 包含无文档字符串的成员
-#     'private-members': False,       # 排除私有成员
-#     'special-members': '__init__',  # 包含特殊方法
-#     'inherited-members': True,      # 包含继承的成员
-#     'show-inheritance': True,       # 显示继承关系
-# }
+extensions.extend([
+        'sphinx.ext.autodoc',
+        'sphinx.ext.autosummary',
+        'sphinx.ext.viewcode',
+        'sphinx.ext.napoleon',
+        'sphinx.ext.intersphinx',
+    ])
 
-# # autosummary 配置
-# autosummary_generate = True              # 自动生成摘要文件
-# autosummary_generate_overwrite = True    # 覆盖已存在的文件
-# autosummary_imported_members = True      # 包含导入的成员
+sys.path.insert(0, os.path.abspath('../../python'))
 
-# # Napoleon 配置（docstring 风格）
-# napoleon_google_docstring = True         # 支持 Google 风格
-# napoleon_numpy_docstring = True          # 支持 NumPy 风格
-# napoleon_include_init_with_doc = False   # __init__ 文档处理
-# napoleon_include_private_with_doc = False
-# napoleon_use_admonition_for_examples = False
-# napoleon_use_admonition_for_notes = False
-# napoleon_use_admonition_for_references = False
-# napoleon_use_ivar = False
-# napoleon_use_param = True
-# napoleon_use_rtype = True
+# autodoc 默认选项
+autodoc_default_options = {
+    'members': True,                # 包含所有公共成员
+    'undoc-members': True,          # 包含没有文档字符串的成员
+    'private-members': False,       # 不包含私有成员（如 _private）
+    'special-members': '__init__',  # 包含特殊成员（如 __init__）
+    'inherited-members': True,      # 包含继承的成员
+    'show-inheritance': True,       # 显示类继承关系
+}
+autodoc_member_order = 'bysource'   # 按源代码顺序排列成员
 
-# # Intersphinx 配置（链接外部文档）
-# intersphinx_mapping = {
-#     'python': ('https://docs.python.org/3/', None),
-#     'numpy': ('https://numpy.org/doc/stable/', None),
-#     'torch': ('https://pytorch.org/docs/stable/', None),
-# }
+# Napoleon 配置（用于解析 Google/NumPy 风格的 docstrings）
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False # 通常只选择一种风格
+napoleon_include_init_with_doc = True
+napoleon_use_param = True
+napoleon_use_rtype = True
 
-# # -- C++ API 配置 -------------------------------------------------------------
-# extensions.extend([
-#     'breathe',
-#     'exhale',
-#     ])
+# Intersphinx 配置（链接外部文档）
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'torch': ('https://pytorch.org/docs/stable/', None),
+}
 
-# # Breathe 配置
-# breathe_projects = {
-#     "nndeploy": "build/doxygen/xml"
-# }
-# breathe_default_project = "nndeploy"
-# breathe_default_members = ('members', 'undoc-members')
+# -- C++ API 配置 -------------------------------------------------------------
+xml_dir = os.path.abspath("./build/doxygen/xml")
 
-# # Exhale 配置
-# exhale_args = {
-#     # 输出目录
-#     "containmentFolder": "./cpp_api",
-#     "rootFileName": "library_root.rst",
-#     "rootFileTitle": "C++ API 参考",
-    
-#     # Doxygen 配置
-#     "doxygenStripFromPath": "../..",
-#     "createTreeView": True,
-#     "exhaleExecutesDoxygen": True,
-    
-#     # 自定义 Doxygen 配置
-#     "exhaleDoxygenStdin": """
-#         PROJECT_NAME           = "nndeploy"
-#         PROJECT_NUMBER         = "0.2.0"
-#         PROJECT_BRIEF          = "高性能神经网络部署框架"
-        
-#         # 输入路径
-#         INPUT                  = ../../framework
-#         RECURSIVE              = YES
-#         FILE_PATTERNS          = *.h *.hpp *.cpp *.cc *.c
-        
-#         # 排除路径
-#         EXCLUDE_PATTERNS       = */third_party/* */build/* */.git/* */test/*
-        
-#         # 提取配置
-#         EXTRACT_ALL            = YES
-#         EXTRACT_PRIVATE        = NO
-#         EXTRACT_STATIC         = YES
-#         EXTRACT_LOCAL_CLASSES  = YES
-#         EXTRACT_ANON_NSPACES   = NO
-        
-#         # 输出配置
-#         GENERATE_HTML          = NO
-#         GENERATE_XML           = YES
-#         XML_OUTPUT             = ../build/doxygen/xml
-#         XML_PROGRAMLISTING     = YES
-        
-#         # 预处理配置
-#         ENABLE_PREPROCESSING   = YES
-#         MACRO_EXPANSION        = YES
-#         EXPAND_ONLY_PREDEF     = YES
-        
-#         # 图形配置
-#         HAVE_DOT               = YES
-#         DOT_IMAGE_FORMAT       = svg
-#         DOT_TRANSPARENT        = YES
-#         CALL_GRAPH             = YES
-#         CALLER_GRAPH           = YES
-        
-#         # 其他配置
-#         QUIET                  = YES
-#         WARNINGS               = YES
-#         WARN_IF_UNDOCUMENTED   = NO
-#         """,
-# }
+breathe_projects = {
+    "nndeploy_device": xml_dir
+}
+breathe_default_project = "nndeploy_device"
+breathe_default_members = ('members', 'undoc-members')
+
+# Breathe 显示配置
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
+
+# 调试信息
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
+# breathe_implementation_filename_extensions = ['.c', '.cc', '.cpp']
+breathe_domain_by_extension = {
+    "h": "cpp",
+    "hpp": "cpp",
+}
+
+# 调试信息
+print(f"🔧 Breathe 配置:")
+print(f"   XML 目录: {xml_dir}")
+print(f"   目录存在: {os.path.exists(xml_dir)}")
+if os.path.exists(xml_dir):
+    xml_files = [f for f in os.listdir(xml_dir) if f.endswith('.xml')]
+    print(f"   XML 文件数: {len(xml_files)}")
+    if len(xml_files) > 0:
+        print(f"   示例文件: {xml_files[:3]}")
