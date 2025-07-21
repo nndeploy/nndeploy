@@ -1,12 +1,41 @@
-# 专门为 device.h 文件生成文档的配置
+# Doxygen 配置文件，用于 nndeploy 项目
+# ---------------------------------------------------------------------------
+# 项目信息
+# ---------------------------------------------------------------------------
 PROJECT_NAME           = "nndeploy C++ API"
 PROJECT_NUMBER         = "0.2.0"
 PROJECT_BRIEF          = "nndeploy C++ API"
 
 # 输入配置
-INPUT                  = ../../framework/include/nndeploy ../../plugin/include/nndeploy
-RECURSIVE              = YES
+INPUT                  = ../../framework/include/nndeploy/base \
+                        ../../framework/include/nndeploy/thread_pool \
+                        ../../framework/include/nndeploy/device \
+                        ../../framework/include/nndeploy/ir \
+                        ../../framework/include/nndeploy/op \
+                        ../../framework/include/nndeploy/net \
+                        ../../framework/include/nndeploy/inference \
+                        ../../plugin/include/nndeploy/template \
+                        ../../plugin/include/nndeploy/infer \
+                        ../../plugin/include/nndeploy/preprocess \
+                        ../../plugin/include/nndeploy/codec \
+                        ../../plugin/include/nndeploy/classification \
+                        ../../plugin/include/nndeploy/detect \
+                        ../../plugin/include/nndeploy/face_align \
+                        ../../plugin/include/nndeploy/face_id \
+                        ../../plugin/include/nndeploy/gan \
+                        ../../plugin/include/nndeploy/llm \
+                        ../../plugin/include/nndeploy/matting \
+                        ../../plugin/include/nndeploy/ocr \
+                        ../../plugin/include/nndeploy/qwen \
+                        ../../plugin/include/nndeploy/segment \
+                        ../../plugin/include/nndeploy/stable_diffusion \
+                        ../../plugin/include/nndeploy/super_resolution \
+                        ../../plugin/include/nndeploy/template \
+                        ../../plugin/include/nndeploy/tokenizer \
+                        ../../plugin/include/nndeploy/track
+RECURSIVE              = NO
 FILE_PATTERNS          = *.h
+EXCLUDE_PATTERNS       = */third_party/* */test/*
 
 # 输出配置
 OUTPUT_DIRECTORY       = ./build_doxygen
@@ -18,8 +47,8 @@ HTML_OUTPUT            = html
 # 提取设置
 EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = NO
-EXTRACT_STATIC         = YES
-EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = NO
 
 # XML 设置
 XML_PROGRAMLISTING     = YES
@@ -35,7 +64,7 @@ PREDEFINED             = NNDEPLOY_CC_API= \
 
 # 调试设置
 QUIET                  = NO
-WARNINGS               = YES
+WARNINGS               = NO
 WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 

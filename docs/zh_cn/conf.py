@@ -18,9 +18,19 @@ release = '0.2.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    # 基础扩展
     'recommonmark',
     'sphinx_markdown_tables',
-    'breathe',  # <--- 核心修复：在这里添加 breathe
+    
+    # C++ API 扩展
+    'breathe',
+    
+    # Python API 扩展
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
 ] 
 
 templates_path = ['_templates']
@@ -43,20 +53,6 @@ html_static_path = ['../source/_static']
 source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
 # Python API 配置
-
-# autodoc_mock_imports = [
-#     'nndeploy._nndeploy_internal',
-#     'nndeploy._C', # 也可能需要模拟整个 _C 包
-# ]
-
-extensions.extend([
-        'sphinx.ext.autodoc',
-        'sphinx.ext.autosummary',
-        'sphinx.ext.viewcode',
-        'sphinx.ext.napoleon',
-        'sphinx.ext.intersphinx',
-    ])
-
 sys.path.insert(0, os.path.abspath('../../python'))
 
 # autodoc 默认选项
@@ -85,33 +81,10 @@ intersphinx_mapping = {
 }
 
 # -- C++ API 配置 -------------------------------------------------------------
-xml_dir = os.path.abspath("./build/doxygen/xml")
+# 定义 Doxygen XML 的输出路径
+# doxygen_xml_path = os.path.abspath("./build_doxygen/xml")
 
-breathe_projects = {
-    "nndeploy_device": xml_dir
-}
-breathe_default_project = "nndeploy_device"
-breathe_default_members = ('members', 'undoc-members')
-
-# Breathe 显示配置
-breathe_show_define_initializer = True
-breathe_show_enumvalue_initializer = True
-
-# 调试信息
-breathe_show_define_initializer = True
-breathe_show_enumvalue_initializer = True
-# breathe_implementation_filename_extensions = ['.c', '.cc', '.cpp']
-breathe_domain_by_extension = {
-    "h": "cpp",
-    "hpp": "cpp",
-}
-
-# 调试信息
-print(f"🔧 Breathe 配置:")
-print(f"   XML 目录: {xml_dir}")
-print(f"   目录存在: {os.path.exists(xml_dir)}")
-if os.path.exists(xml_dir):
-    xml_files = [f for f in os.listdir(xml_dir) if f.endswith('.xml')]
-    print(f"   XML 文件数: {len(xml_files)}")
-    if len(xml_files) > 0:
-        print(f"   示例文件: {xml_files[:3]}")
+# breathe_projects = {
+#     "nndeploy": doxygen_xml_path
+# }
+# breathe_default_project = "nndeploy"

@@ -1,83 +1,28 @@
-C++ API Reference
-=================
-
-This page shows the nndeploy C++ API documentation.
+C++ API 参考
+============
 
 .. note::
-   This documentation is automatically generated from source code.
-   If the content below is empty, please check the Breathe configuration.
+   C++ API 文档需要手动生成。
 
-Quick Test
-----------
+如何构建和查看文档
+------------------
 
-.. breathe:class:: nndeploy::device::Device
-   :project: nndeploy_device
-   :outline:
+1. 下载源码::
 
-Core Class Detailed Documentation
----------------------------------
+   git clone https://github.com/nndeploy/nndeploy.git
 
-Device Information Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   cd nndeploy
 
-.. breathe:struct:: nndeploy::device::DeviceInfo
-   :project: nndeploy_device
-   :members:
+2. 构建 C++ API 文档::
 
-Device Architecture Management Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   cd docs/zh_cn
 
-.. breathe:class:: nndeploy::device::Architecture
-   :project: nndeploy_device
-   :members:
-   :protected-members:
+   doxygen
 
-Device Base Class
-~~~~~~~~~~~~~~~~~
+3. 启动本地服务器查看文档::
 
-.. breathe:class:: nndeploy::device::Device
-   :project: nndeploy_device
-   :members:
-   :protected-members:
+   cd build_doxygen/html
+   
+   python -m http.server 8000
 
-Stream Management Class
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. breathe:class:: nndeploy::device::Stream
-   :project: nndeploy_device
-   :members:
-   :protected-members:
-
-Event Management Class
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. breathe:class:: nndeploy::device::Event
-   :project: nndeploy_device
-   :members:
-   :protected-members:
-
-Template Classes
-----------------
-
-.. breathe:class:: nndeploy::device::TypeArchitectureRegister
-   :project: nndeploy_device
-   :members:
-
-Global Functions
-----------------
-
-.. breathe:function:: nndeploy::device::getDevice
-   :project: nndeploy_device
-
-.. breathe:function:: nndeploy::device::createStream(base::DeviceType)
-   :project: nndeploy_device
-
-.. breathe:function:: nndeploy::device::createEvent
-   :project: nndeploy_device
-
-Complete Index
---------------
-
-.. breathe:doxygen-index::
-   :project: nndeploy_device
-   :outline:
+4. 在浏览器中打开 `http://localhost:8000` 查看生成的文档
