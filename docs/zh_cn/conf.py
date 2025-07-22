@@ -55,6 +55,33 @@ source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 # Python API 配置
 sys.path.insert(0, os.path.abspath('../../python'))
 
+# Mock导入，当C++库不可用时使用
+class MockModule:
+    def __getattr__(self, name):
+        return MockModule()
+    def __call__(self, *args, **kwargs):
+        return MockModule()
+
+# 尝试导入nndeploy，失败时使用mock
+try:
+    import nndeploy
+    print("✅ nndeploy导入成功")
+except ImportError as e:
+    print(f"⚠️  nndeploy导入失败: {e}")
+    print("🔧 使用mock模块进行文档生成")
+    sys.modules['nndeploy'] = MockModule()
+    sys.modules['nndeploy._nndeploy_internal'] = MockModule()
+    sys.modules['_C'] = MockModule()
+    for submodule in ['base', 'classification', 'codec', 'dag', 'detect', 'device', 
+                      'face', 'gan', 'infer', 'inference', 'ir', 'matting', 
+                      'net', 'op', 'preprocess', 'segment', 'server', 'stable_diffusion', 
+                      'thread_pool', 'tokenizer', 'track']:
+        sys.modules[f'nndeploy.{submodule}'] = MockModule()
+
+# autosummary配置
+autosummary_generate = True
+autosummary_imported_members = True
+
 # autodoc 默认选项
 autodoc_default_options = {
     'members': True,                # 包含所有公共成员
