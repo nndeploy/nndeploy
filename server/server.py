@@ -484,11 +484,11 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path = extract_encode_output_paths(graph_json)
+        path, text = extract_encode_output_paths(graph_json)
 
         flag = "success"
         message = "notify task done"
-        result = {"task_id": task_id, "type": "preview", "path": path}
+        result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
         for ws in ws_set.copy():
