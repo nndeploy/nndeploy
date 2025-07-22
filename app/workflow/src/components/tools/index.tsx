@@ -2,8 +2,8 @@ import { useState, useEffect, forwardRef, useRef, useImperativeHandle } from 're
 
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { Tooltip, IconButton, Divider } from '@douyinfe/semi-ui';
-import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
+import { Tooltip, IconButton, Divider, Button } from '@douyinfe/semi-ui';
+import { IconUndo, IconRedo, IconSetting } from '@douyinfe/semi-icons';
 
 import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
@@ -18,6 +18,9 @@ import { Interactive } from './interactive';
 import { FitView } from './fit-view';
 import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
+import { IconConfig } from '@douyinfe/semi-icons-lab';
+import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
+import { Config } from './config';
 
 export interface AutoLayoutHandle {
   autoLayout: () => void;
@@ -51,11 +54,12 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
     }
   }));
 
+
   return (
     <ToolContainer className="demo-free-layout-tools">
       <ToolSection>
         <Interactive />
-        <AutoLayout ref={autoLayoutRef}/>
+        <AutoLayout ref={autoLayoutRef} />
         <SwitchLine />
         <ZoomSelect />
         <FitView />
@@ -84,6 +88,17 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         {/* <AddNode disabled={playground.config.readonly} />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} /> */}
+
+        {/* <Tooltip content="config">
+          <IconButton
+            type="tertiary"
+            theme="borderless"
+            icon={<IconSetting />}
+           
+            onClick={() => history.undo()}
+          />
+        </Tooltip> */}
+        <Config />
         <Save disabled={playground.config.readonly} />
         <Run />
       </ToolSection>

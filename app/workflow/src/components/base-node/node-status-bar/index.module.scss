@@ -4,14 +4,21 @@
  */
 
 .nodeStatus {
-  &Succeed {
-    background-color: rgba(105, 209, 140, 0.3);
-    color: #00b42a;
+
+
+  &nodeStatusPending {
+    background-color: rgba(153, 187, 255, 0.3);
+    color: rgba(153, 187, 255, 0.3);
   }
 
-  &Processing {
-    background-color: rgba(153, 187, 255, 0.3);
-    color: #4d53e8;
+  &nodeStatusRunning {
+    background-color: rgba(201, 198, 10, 0.995);
+    color: rgba(201, 198, 10, 0.995);
+  }
+
+  &nodeStatusSuccess {
+    background-color: rgba(105, 209, 140, 0.3);
+    color: #00b42a;
   }
 
   &Failed {
@@ -20,11 +27,19 @@
   }
 }
 
-.icon {
-  &.processing {
-    color: rgba(77, 83, 232, 1);
-  }
+.pending {
+  color: rgba(153, 187, 255, 0.3);
 }
+
+.running {
+  color: rgba(201, 198, 10, 0.995);
+}
+
+.success {
+  color: #00b42a;
+}
+
+.icon {}
 
 .round {
   border-radius: 50%;

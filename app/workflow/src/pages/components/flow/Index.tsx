@@ -39,7 +39,8 @@ import { getNextNameNumberSuffix } from "./functions";
 import store, { initialState, reducer } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
-import { IFlowNodesRunningStatus } from "./entity";
+import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
+import FlowConfigDrawer from "./FlowConfigDrawer";
 
 let nameId = 0;
 
@@ -56,9 +57,16 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const { nodeRegistries, nodeList } = state
 
-  const [outputResources, setOutputResources] = useState<string[]>([])
+  const [outputResources, setOutputResources] = useState<IOutputResource>({path: [], text: []})
 
   const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
+
+  const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  useEffect(() => {
+    setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
+  }, [state.dagGraphInfo.graph])
+
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -98,6 +106,16 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
   const autoLayOutRef = useRef<AutoLayoutHandle>();
+  const [configDrawerVisible, setConfigDrawerVisible] = useState(false);
+
+  function onflowConfigDrawerSure(values: any) {
+    setConfigDrawerVisible(false)
+    setGraphTopNode(values)
+  }
+
+  function handleConfigDrawerClose() {
+    setConfigDrawerVisible(false)
+  }
 
   const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
@@ -185,6 +203,20 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
+  useEffect(() => {
+    const socket = setupWebSocket()
+    setSocket(socket)
+
+    return () => {
+      socket.close()
+    }
+  }, [])
+
+  function onConfig() {
+
+    setConfigDrawerVisible(true);
+  }
+
   const [socket, setSocket] = useState<WebSocket>();
 
   useEffect(() => {
@@ -195,6 +227,8 @@ const Flow: React.FC<FlowProps> = (props) => {
       socket.close()
     }
   }, [])
+
+
 
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
@@ -253,16 +287,16 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
 
         if (response.result.type == 'preview') {
-          const nodeNames: string[] = response.result?.path.map((item: any) => item.name)
+          const resource = response.result
 
-          setOutputResources(nodeNames)
-        }else if(response.result.type == 'progress'){
+          setOutputResources(resource)
+        } else if (response.result.type == 'progress') {
           setFlowNodesRunningStatus(response.result.detail)
         }
 
 
 
-       
+
       };
 
       socket!.onerror = (err) => {
@@ -387,7 +421,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: demoContainerRef, onSave, onRun, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
+          value={{ element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
@@ -419,6 +453,19 @@ const Flow: React.FC<FlowProps> = (props) => {
           entity={entity!}
           onSure={onflowSaveDrawrSure}
           onClose={onFlowSaveDrawerClose}
+        />
+      </SideSheet>
+
+      <SideSheet
+        width={"30%"}
+        visible={configDrawerVisible}
+        onCancel={handleConfigDrawerClose}
+        title={"save flow"}
+      >
+        <FlowConfigDrawer
+          //entity={entity!}
+          onSure={onflowConfigDrawerSure}
+          onClose={handleConfigDrawerClose}
         />
       </SideSheet>
     </div>
