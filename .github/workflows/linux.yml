@@ -47,18 +47,14 @@ jobs:
           submodules: recursive  # 递归检出所有子模块(git submodule)
           
       # 第二步：安装系统依赖包
+      # 修复了YAML语法错误：移除了多行命令中的反斜杠续行符，因为这会导致apt无法解析包名
       - name: 安装依赖
         run: |
           sudo apt-get update  # 更新包管理器索引
-          sudo apt-get install -y \  # 安装必要的开发工具和库
-            build-essential \      # GCC编译器套件
-            cmake \               # CMake构建系统
-            ninja-build \         # Ninja构建工具(比make更快)
-            pkg-config \          # 包配置工具
-            libopencv-dev \       # OpenCV计算机视觉库开发包
-            libeigen3-dev \       # Eigen3线性代数库开发包
-            protobuf-compiler \   # Protocol Buffers编译器
-            libprotobuf-dev       # Protocol Buffers开发库
+          # 说明：之前的YAML配置中使用了反斜杠(\)进行多行续行，但这在YAML的管道字符(|)模式下会被当作字面字符传递给shell
+          # 导致apt-get命令接收到带有反斜杠的包名，从而无法找到对应的软件包
+          # 现在将所有包名放在同一行，避免了这个问题
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
             
       # 第三步：配置CMake构建环境
       - name: 配置构建

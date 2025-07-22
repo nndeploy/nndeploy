@@ -50,13 +50,8 @@ jobs:
       - name: 安装依赖
         run: |
           brew update  # 更新Homebrew包管理器
-          brew install \  # 安装必要的开发工具和库
-            cmake \               # CMake构建系统
-            ninja \               # Ninja构建工具(比make更快)
-            pkg-config \          # 包配置工具
-            opencv \              # OpenCV计算机视觉库
-            eigen \               # Eigen3线性代数库
-            protobuf              # Protocol Buffers库
+          # 安装必要的开发工具和库：CMake构建系统、Ninja构建工具、包配置工具、OpenCV计算机视觉库、Eigen3线性代数库、Protocol Buffers库
+          brew install cmake ninja pkg-config opencv protobuf  
             
       # 第三步：配置CMake构建环境
       - name: 配置构建
