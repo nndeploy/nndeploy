@@ -1,126 +1,100 @@
 # GitHub Actions 工作流配置文件 - Android平台编译
 # 该文件用于配置在Android环境下自动编译项目的CI/CD流程
 
-name: Android  # 工作流名称，会显示在GitHub Actions界面中
+name: Android  # 工作流名称
 
 # 触发条件配置
 on:
-  # 当代码推送到指定分支时触发
   push:
-    branches:
-      - main  # 仅当推送到main分支时触发
-      - develop  # 仅当推送到develop分支时触发
-      - 'feature/**'
-    paths:  # 仅当以下路径的文件发生变化时才触发构建
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录(pybind11相关)
-      - 'test/**'          # 单元测试和集成测试代码目录
-      - 'demo/**'          # 示例和演示代码目录
-      - 'cmake/**'         # CMake构建配置文件目录
-      - 'CMakeLists.txt'   # 项目主要的CMake构建配置文件
-      - '.github/workflows/android.yml'  # 当前工作流文件自身
-  # 当创建Pull Request到指定分支时触发
+    branches: [main, develop, 'feature/**']
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/android.yml'
   pull_request:
-    branches: [main]  # 仅当PR目标分支为main时触发
-    paths:  # 与push相同的路径过滤条件
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录
-      - 'test/**'          # 测试代码目录
-      - 'demo/**'          # 示例代码目录
-      - 'cmake/**'         # CMake配置文件目录
-      - 'CMakeLists.txt'   # 主CMake构建文件
-      - '.github/workflows/android.yml'  # 当前工作流文件
+    branches: [main]
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/android.yml'
 
 # 环境变量定义
 env:
-  ANDROID_API_LEVEL: 21  # 最低Android API级别
-  ANDROID_NDK_VERSION: r25c  # NDK版本
-  CCACHE_DIR: ${{ github.workspace }}/.ccache  # ccache缓存目录
+  ANDROID_API_LEVEL: 21
+  ANDROID_NDK_VERSION: r25c
 
 # 工作任务定义
 jobs:
-  build:  # 任务ID
-    name: Android编译构建  # 任务显示名称
-    runs-on: ubuntu-latest  # 指定运行环境为Ubuntu Linux(用于Android交叉编译)
+  build:
+    name: Android编译构建
+    runs-on: ubuntu-latest
   
-    steps:  # 构建步骤序列
-      # 第一步：检出源代码
+    steps:
+      # 检出源代码
       - name: 检出代码
-        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+        uses: actions/checkout@v4
         with:
-          submodules: recursive  # 递归检出所有子模块(git submodule)
+          submodules: recursive
           
-      # 第二步：设置JDK环境
+      # 设置JDK环境
       - name: 设置JDK环境
-        uses: actions/setup-java@v4  # 升级到v4版本
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'  # 使用Eclipse Temurin JDK发行版
-          java-version: '17'       # 升级到Java 17版本（Android推荐）
+          distribution: 'temurin'
+          java-version: '17'
           
-      # 第三步：缓存设置
-      - name: 设置构建缓存
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ${{ env.CCACHE_DIR }}
-          key: android-arm64-v8a-api21-${{ hashFiles('**/CMakeLists.txt', 'cmake/**/*.cmake') }}
-          restore-keys: |
-            android-arm64-v8a-api21-
-            android-arm64-v8a-
-            android-
-          
-      # 第四步：安装Android NDK和工具
+      # 安装Android开发工具
       - name: 安装Android开发工具
         run: |
-          sudo apt-get update  # 更新包管理器索引
-          sudo apt-get install -y build-essential cmake ninja-build unzip wget ccache
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
             
-          # 设置ccache
-          ccache --max-size=2G
-          ccache --zero-stats
-            
-      # 第五步：设置Android NDK
+      # 设置Android NDK
       - name: 设置Android NDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
           
-      # 第六步：配置CMake构建环境
+      # 配置CMake构建环境
       - name: 配置构建
         run: |
-          # 创建构建目录(out-of-source构建)
-          mkdir -p build
-          cp cmake/config_minimal.cmake build/config.cmake   # 复制minimal配置文件并重命名为config.cmake
-          cd build && cmake -G Ninja \              # 使用Ninja生成器
-            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \  # Android工具链
-            -DANDROID_ABI=arm64-v8a \  # 使用arm64-v8a架构
-            -DANDROID_PLATFORM=android-21 \     # 使用API级别21
-            -DCMAKE_BUILD_TYPE=Release \             # 使用Release构建类型
-            ..                            # 源代码目录
-          
-      # 第七步：执行编译
+          mkdir build
+          cp cmake/config_minimal.cmake build/config.cmake
+          cd build
+          cmake -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-21 \
+            -DCMAKE_BUILD_TYPE=Release \
+            ..
+      
+      # 执行编译
       - name: 编译
         run: |
-          cd build   # 进入构建目录
-          ninja -j$(nproc)           # 使用所有CPU核心并行编译
+          cd build
+          ninja -j$(nproc)
           
-      # 第八步：验证编译结果
+      # 验证编译结果
       - name: 编译结果检查
         run: |
-          cd build   # 进入构建目录
-          ls -la               # 列出所有生成的文件和目录
-          echo "Android arm64-v8a 架构 API21 编译完成"  # 输出完成信息
+          cd build
+          ls -la
+          echo "Android arm64-v8a 架构 API21 编译完成"
           
-      # 第九步：上传编译产物
-      # 注意：升级到v4版本以解决GitHub Actions的弃用警告
-      # GitHub在2024年4月16日宣布弃用v3版本的artifact actions
+      # 上传编译产物
       - name: 上传编译产物
-        uses: actions/upload-artifact@v4  # 从v3升级到v4版本
+        uses: actions/upload-artifact@v4
         with:
-          name: android-arm64-v8a-api21-release-libs  # 产物名称
-          path: build/lib/  # 只上传lib目录
-          retention-days: 7  # 保留7天
+          name: android-arm64-v8a-api21-release-libs
+          path: build/lib/
+          retention-days: 7

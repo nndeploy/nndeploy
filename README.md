@@ -16,11 +16,17 @@
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
 </a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml/badge.svg" alt="Android">
+</a>
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
 </a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS">
 </a>
 </p>
 
