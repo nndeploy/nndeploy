@@ -31,8 +31,8 @@ python3 clone_submodule.py
     + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
 
 > 注：所有后端均可选。三方库可使用自己的，也可使用nndeploy预编译版本：
-> + huggingface：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
-> + modelscope：https://www.modelscope.cn/models/nndeploy/third_party
+> + [huggingface](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party)：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
+> + [modelscope](https://www.modelscope.cn/models/nndeploy/third_party)：https://www.modelscope.cn/models/nndeploy/third_party
 
 ## 3. 编译方法
 
@@ -69,9 +69,9 @@ make install                # 在build目录下生成安装目录
 
 ## 4. 主库编译
 
-+ 默认编译产物为：libnndeploy_framework.so
-+ 算法插件编译产物为：libnndeploy_plugin_xxx.so
-+ 可执行程序编译产物为：nndeploy_demo_xxx
++ 默认编译产物为：libnndeploy_framework.so(Windows下为nndeploy_framework.dll)
++ 算法插件编译产物为：libnndeploy_plugin_xxx.so(Windows下为nndeploy_plugin_xxx.dll)
++ 可执行程序编译产物为：nndeploy_demo_xxx(Windows下为nndeploy_demo_xxx.exe)
 
 > 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag  
 
@@ -91,16 +91,19 @@ make install                # 在build目录下生成安装目录
 > 注: 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
 
 ## 6. 补充说明    
+
 - TensorRT
   - 安装TensorRT cpp sdk [参考链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-debian)、cudnn、cuda、GPU driver
   - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
   - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
+
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
 
-+ 安装opencv
-  + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
+
+- 安装opencv
+  - `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
       
       
       
