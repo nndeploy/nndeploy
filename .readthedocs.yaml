@@ -29,15 +29,17 @@ build:
       # 确保所有子模块被正确初始化和更新
       - git submodule update --init --recursive
     pre_build:
+      # 返回到项目根目录(包含CMakeLists.txt的目录)
+      - cd "$READTHEDOCS_OUTPUT/html"
+      - cd "../.."
       # 创建构建目录并复制配置文件
       - mkdir -p build
       - cp cmake/config.cmake build/
-      # 配置和编译nndeploy
+      # 配置和编译nndeploy(从项目根目录开始)
       - cd build
       - cmake -G Ninja ..
-      - cd build 
       - ninja -j$(nproc)
-      - inja install
+      - ninja install
       # 安装nndeploy Python包(开发者模式)
       - cd ../python 
       - pip install -e .

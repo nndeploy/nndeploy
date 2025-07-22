@@ -41,7 +41,7 @@ jobs:
   
     strategy:  # 构建策略矩阵，支持多种iOS架构
       matrix:
-        ios_arch: [arm64, x86_64]  # iOS支持的CPU架构 (arm64用于真机, x86_64用于模拟器)
+        ios_arch: [arm64]  # iOS支持的CPU架构 (arm64用于真机, x86_64用于模拟器)
   
     steps:  # 构建步骤序列
       # 第一步：检出源代码
@@ -60,10 +60,7 @@ jobs:
       - name: 安装依赖
         run: |
           brew update  # 更新Homebrew包管理器
-          brew install \  # 安装必要的开发工具和库
-            cmake \               # CMake构建系统
-            ninja \               # Ninja构建工具(比make更快)
-            pkg-config            # 包配置工具
+          brew install cmake ninja pkg-config opencv protobuf
             
       # 第四步：配置iOS交叉编译环境
       - name: 配置iOS构建

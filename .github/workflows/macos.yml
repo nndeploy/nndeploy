@@ -59,7 +59,7 @@ jobs:
           mkdir build                    # 创建构建目录(out-of-source构建)
           cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
-          cmake -G Ninja ..             # 使用Ninja生成器配置CMake项目
+          cmake -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..             # 使用Ninja生成器配置CMake项目
           
       # 第四步：执行编译
       - name: 编译

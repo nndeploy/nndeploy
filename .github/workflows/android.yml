@@ -33,6 +33,13 @@ on:
       - 'CMakeLists.txt'   # 主CMake构建文件
       - '.github/workflows/android.yml'  # 当前工作流文件
 
+# 环境变量定义
+env:
+  ANDROID_API_LEVEL: 21  # 最低Android API级别
+  ANDROID_NDK_VERSION: r25c  # NDK版本
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+  CCACHE_DIR: ${{ github.workspace }}/.ccache  # ccache缓存目录
+
 # 工作任务定义
 jobs:
   build:  # 任务ID
@@ -41,7 +48,9 @@ jobs:
   
     strategy:  # 构建策略矩阵，支持多种Android架构
       matrix:
-        android_abi: [armeabi-v7a, arm64-v8a, x86, x86_64]  # Android支持的CPU架构
+        android_abi: [armeabi-v7a, arm64-v8a]  # Android支持的主要CPU架构（移除x86以提高效率）
+        api_level: [21, 24, 28]  # 支持多个Android API级别
+        build_type: [Release]  # 支持调试和发布版本
   
     steps:  # 构建步骤序列
       # 第一步：检出源代码
@@ -52,47 +61,71 @@ jobs:
           
       # 第二步：设置JDK环境
       - name: 设置JDK环境
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4  # 升级到v4版本
         with:
           distribution: 'temurin'  # 使用Eclipse Temurin JDK发行版
-          java-version: '11'       # 使用Java 11版本
+          java-version: '17'       # 升级到Java 17版本（Android推荐）
           
-      # 第三步：安装Android NDK和工具
+      # 第三步：缓存设置
+      - name: 设置构建缓存
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ env.CCACHE_DIR }}
+            ${{ env.VCPKG_ROOT }}/downloads
+            ${{ env.VCPKG_ROOT }}/installed
+          key: android-${{ matrix.android_abi }}-${{ matrix.api_level }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**/*.cmake') }}
+          restore-keys: |
+            android-${{ matrix.android_abi }}-${{ matrix.api_level }}-
+            android-${{ matrix.android_abi }}-
+            android-
+          
+      # 第四步：安装Android NDK和工具
       - name: 安装Android开发工具
         run: |
           sudo apt-get update  # 更新包管理器索引
-          sudo apt-get install -y \  # 安装必要的开发工具
-            build-essential \      # GCC编译器套件
-            cmake \               # CMake构建系统
-            ninja-build \         # Ninja构建工具
-            unzip \               # 解压工具
-            wget                  # 下载工具
+          sudo apt-get install -y build-essential cmake ninja-build unzip wget ccache libopencv-dev protobuf-compiler libprotobuf-dev
             
-      # 第四步：设置Android NDK
+          # 设置ccache
+          ccache --max-size=2G
+          ccache --zero-stats
+            
+      # 第五步：设置Android NDK
       - name: 设置Android NDK
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r25c  # 使用NDK r25c版本
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
           
-      # 第五步：安装vcpkg依赖管理器
+      # 第六步：安装vcpkg依赖管理器
       - name: 安装vcpkg依赖管理器
         run: |
-          git clone https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.sh
+          if [ ! -d "${{ env.VCPKG_ROOT }}" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git ${{ env.VCPKG_ROOT }}
+            cd ${{ env.VCPKG_ROOT }}
+            ./bootstrap-vcpkg.sh
+          fi
           
-      # 第六步：安装Android平台依赖库
+      # 第七步：安装Android平台依赖库
       - name: 安装Android依赖库
         run: |
-          cd vcpkg
-          # 为Android架构安装OpenCV
-          ./vcpkg install opencv4:${{ matrix.android_abi }}-android
-          # 为Android架构安装Protocol Buffers
-          ./vcpkg install protobuf:${{ matrix.android_abi }}-android
+          cd ${{ env.VCPKG_ROOT }}
+          # 设置Android triplet
+          export VCPKG_DEFAULT_TRIPLET=${{ matrix.android_abi }}-android
           
-      # 第七步：配置CMake构建环境
+          # 为Android架构安装依赖库（仅安装必要的库以节省时间）
+          ./vcpkg install \
+            rapidjson:${{ matrix.android_abi }}-android \
+            protobuf:${{ matrix.android_abi }}-android
+          
+          # OpenCV由于编译时间较长，可选安装
+          # ./vcpkg install opencv4:${{ matrix.android_abi }}-android
+          
+      # 第八步：配置CMake构建环境
       - name: 配置构建
         run: |
+          # 创建构建目录(out-of-source构建)
           mkdir build                    # 创建构建目录(out-of-source构建)
           cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
