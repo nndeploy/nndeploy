@@ -1,17 +1,35 @@
 C++ API Reference
 =================
 
-.. raw:: html
+This section contains the complete API reference documentation for the nndeploy C++ package.
 
-   <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-     <h3>🚀 访问 C++ API 文档</h3>
-     <p><a href="../index.html" target="_blank" style="font-size: 1.2em; color: #2980b9; text-decoration: none; font-weight: bold;">📖 点击打开完整 C++ API 文档</a></p>
-   </div>
+.. note::
+   If you cannot navigate to the C++ API documentation, please manually build the C++ API documentation.
 
-快速导航
---------
+   1. Download the source code::
+   
+      git clone https://github.com/nndeploy/nndeploy.git
+   
+      cd nndeploy
+   
+   2. Build C++ API documentation::
+   
+      cd docs/zh_cn
+   
+      doxygen
+   
+   3. Start a local server to view the documentation::
+   
+      cd build_doxygen/html
+      
+      python -m http.server 8000
+   
+   4. Open `http://localhost:8000` in your browser to view the generated documentation
 
-- `完整 API 文档 <../index.html>`_
-- `所有类列表 <../annotated.html>`_
-- `文件列表 <../files.html>`_
-- `命名空间列表 <../namespaces.html>`_
+
+Navigation
+----------
+
+- `All Classes List <../annotated.html>`_
+- `File List <../files.html>`_
+- `Namespace List <../namespaces.html>`_

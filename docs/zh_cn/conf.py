@@ -88,6 +88,15 @@ intersphinx_mapping = {
 #     "nndeploy": doxygen_xml_path
 # }
 # breathe_default_project = "nndeploy"
-
+print("🧬 运行 Doxygen...")
+try:
+    import subprocess
+    if os.path.exists('Doxyfile'):
+        subprocess.run(['doxygen'], check=True)
+        print("✅ Doxygen 完成")
+    else:
+        print("⚠️  Doxyfile 不存在，跳过")
+except:
+    print("❌ Doxygen 失败")
 doxygen_html_dir = os.path.abspath('./build_doxygen/html')
 html_extra_path = [doxygen_html_dir]

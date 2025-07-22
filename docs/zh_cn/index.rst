@@ -19,14 +19,14 @@
    quick_start/build.md
    quick_start/model.md
    quick_start/example.md
+   quick_start/python.md
    quick_start/plugin.md
    quick_start/model_list.md
+   quick_start/ascend_env.md
 
 .. toctree::
    :maxdepth: 1
    :caption: API
-
-   cpp_api/index
 
    cpp_api/doxygen
 
