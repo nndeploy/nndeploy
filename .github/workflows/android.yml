@@ -53,6 +53,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           
+      # 设置Rust工具链
+      - name: 设置Rust工具链
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+          
+      # 添加Android目标平台
+      - name: 添加Android目标平台
+        run: |
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
+          
       # 安装Android开发工具
       - name: 安装Android开发工具
         run: |
