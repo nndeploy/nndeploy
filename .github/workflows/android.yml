@@ -1,0 +1,127 @@
+# GitHub Actions 工作流配置文件 - Android平台编译
+# 该文件用于配置在Android环境下自动编译项目的CI/CD流程
+
+name: Android  # 工作流名称，会显示在GitHub Actions界面中
+
+# 触发条件配置
+on:
+  # 当代码推送到指定分支时触发
+  push:
+    branches:
+      - main  # 仅当推送到main分支时触发
+      - develop  # 仅当推送到develop分支时触发
+      - 'feature/**'
+    paths:  # 仅当以下路径的文件发生变化时才触发构建
+      - 'framework/**'     # 框架核心代码目录
+      - 'plugin/**'        # 插件扩展代码目录
+      - 'python/src/**'    # Python绑定代码目录(pybind11相关)
+      - 'test/**'          # 单元测试和集成测试代码目录
+      - 'demo/**'          # 示例和演示代码目录
+      - 'cmake/**'         # CMake构建配置文件目录
+      - 'CMakeLists.txt'   # 项目主要的CMake构建配置文件
+      - '.github/workflows/android.yml'  # 当前工作流文件自身
+  # 当创建Pull Request到指定分支时触发
+  pull_request:
+    branches: [main]  # 仅当PR目标分支为main时触发
+    paths:  # 与push相同的路径过滤条件
+      - 'framework/**'     # 框架核心代码目录
+      - 'plugin/**'        # 插件扩展代码目录
+      - 'python/src/**'    # Python绑定代码目录
+      - 'test/**'          # 测试代码目录
+      - 'demo/**'          # 示例代码目录
+      - 'cmake/**'         # CMake配置文件目录
+      - 'CMakeLists.txt'   # 主CMake构建文件
+      - '.github/workflows/android.yml'  # 当前工作流文件
+
+# 工作任务定义
+jobs:
+  build:  # 任务ID
+    name: Android编译构建  # 任务显示名称
+    runs-on: ubuntu-latest  # 指定运行环境为Ubuntu Linux(用于Android交叉编译)
+  
+    strategy:  # 构建策略矩阵，支持多种Android架构
+      matrix:
+        android_abi: [armeabi-v7a, arm64-v8a, x86, x86_64]  # Android支持的CPU架构
+  
+    steps:  # 构建步骤序列
+      # 第一步：检出源代码
+      - name: 检出代码
+        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+        with:
+          submodules: recursive  # 递归检出所有子模块(git submodule)
+          
+      # 第二步：设置JDK环境
+      - name: 设置JDK环境
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'  # 使用Eclipse Temurin JDK发行版
+          java-version: '11'       # 使用Java 11版本
+          
+      # 第三步：安装Android NDK和工具
+      - name: 安装Android开发工具
+        run: |
+          sudo apt-get update  # 更新包管理器索引
+          sudo apt-get install -y \  # 安装必要的开发工具
+            build-essential \      # GCC编译器套件
+            cmake \               # CMake构建系统
+            ninja-build \         # Ninja构建工具
+            unzip \               # 解压工具
+            wget                  # 下载工具
+            
+      # 第四步：设置Android NDK
+      - name: 设置Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c  # 使用NDK r25c版本
+          
+      # 第五步：安装vcpkg依赖管理器
+      - name: 安装vcpkg依赖管理器
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          ./bootstrap-vcpkg.sh
+          
+      # 第六步：安装Android平台依赖库
+      - name: 安装Android依赖库
+        run: |
+          cd vcpkg
+          # 为Android架构安装OpenCV
+          ./vcpkg install opencv4:${{ matrix.android_abi }}-android
+          # 为Android架构安装Protocol Buffers
+          ./vcpkg install protobuf:${{ matrix.android_abi }}-android
+          
+      # 第七步：配置CMake构建环境
+      - name: 配置构建
+        run: |
+          mkdir build                    # 创建构建目录(out-of-source构建)
+          cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
+          cd build                       # 进入构建目录
+          cmake -G Ninja \              # 使用Ninja生成器
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \  # Android工具链
+            -DANDROID_ABI=${{ matrix.android_abi }} \  # 指定Android ABI架构
+            -DANDROID_PLATFORM=android-21 \           # 指定最低Android API级别
+            -DCMAKE_BUILD_TYPE=Release \               # 发布版本构建
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.android_abi }}-android \  # vcpkg目标三元组
+            -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake \  # vcpkg工具链
+            ..                            # 源代码目录
+          
+      # 第八步：执行编译
+      - name: 编译
+        run: |
+          cd build                    # 进入构建目录
+          ninja -j$(nproc)           # 使用所有CPU核心并行编译
+          
+      # 第九步：验证编译结果
+      - name: 编译结果检查
+        run: |
+          cd build              # 进入构建目录
+          ls -la               # 列出所有生成的文件和目录
+          echo "Android ${{ matrix.android_abi }} 架构编译完成"  # 输出完成信息
+          
+      # 第十步：上传编译产物
+      - name: 上传编译产物
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-${{ matrix.android_abi }}-build  # 产物名称
+          path: build/  # 上传整个构建目录
+          retention-days: 7  # 保留7天

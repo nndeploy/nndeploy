@@ -1,30 +1,80 @@
-name: macos
+# GitHub Actions 工作流配置文件 - macOS平台编译
+# 该文件用于配置在macOS环境下自动编译项目的CI/CD流程
+
+name: macOS  # 工作流名称，会显示在GitHub Actions界面中
+
+# 触发条件配置
 on:
+  # 当代码推送到指定分支时触发
   push:
     branches:
-     - main
-     - 'feature/**'
-    paths:
-      - 'src/**'
-      - '.github/workflows/macos.yml'
+      - main  # 仅当推送到main分支时触发
+      - develop  # 仅当推送到develop分支时触发
+      - 'feature/**'
+    paths:  # 仅当以下路径的文件发生变化时才触发构建
+      - 'framework/**'     # 框架核心代码目录
+      - 'plugin/**'        # 插件扩展代码目录
+      - 'python/src/**'    # Python绑定代码目录(pybind11相关)
+      - 'test/**'          # 单元测试和集成测试代码目录
+      - 'demo/**'          # 示例和演示代码目录
+      - 'cmake/**'         # CMake构建配置文件目录
+      - 'CMakeLists.txt'   # 项目主要的CMake构建配置文件
+      - '.github/workflows/macos.yml'  # 当前工作流文件自身
+  # 当创建Pull Request到指定分支时触发
   pull_request:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - '.github/workflows/macos.yml'
+    branches: [main]  # 仅当PR目标分支为main时触发
+    paths:  # 与push相同的路径过滤条件
+      - 'framework/**'     # 框架核心代码目录
+      - 'plugin/**'        # 插件扩展代码目录
+      - 'python/src/**'    # Python绑定代码目录
+      - 'test/**'          # 测试代码目录
+      - 'demo/**'          # 示例代码目录
+      - 'cmake/**'         # CMake配置文件目录
+      - 'CMakeLists.txt'   # 主CMake构建文件
+      - '.github/workflows/macos.yml'  # 当前工作流文件
 
+# 工作任务定义
 jobs:
-  build:
-    name: macos-build
-    runs-on: macos-latest
+  build:  # 任务ID
+    name: macOS编译构建  # 任务显示名称
+    runs-on: macos-latest  # 指定运行环境为最新版macOS
   
-    steps:
-      - uses: actions/checkout@v3
-      # build
-      - name: build
+    steps:  # 构建步骤序列
+      # 第一步：检出源代码
+      - name: 检出代码
+        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+        with:
+          submodules: recursive  # 递归检出所有子模块(git submodule)
+          
+      # 第二步：安装系统依赖包
+      - name: 安装依赖
         run: |
-            mkdir build
-            cp cmake/config.cmake build
-            cd build
-            cmake ..
-            make -j4
+          brew update  # 更新Homebrew包管理器
+          brew install \  # 安装必要的开发工具和库
+            cmake \               # CMake构建系统
+            ninja \               # Ninja构建工具(比make更快)
+            pkg-config \          # 包配置工具
+            opencv \              # OpenCV计算机视觉库
+            eigen \               # Eigen3线性代数库
+            protobuf              # Protocol Buffers库
+            
+      # 第三步：配置CMake构建环境
+      - name: 配置构建
+        run: |
+          mkdir build                    # 创建构建目录(out-of-source构建)
+          cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
+          cd build                       # 进入构建目录
+          cmake -G Ninja ..             # 使用Ninja生成器配置CMake项目
+          
+      # 第四步：执行编译
+      - name: 编译
+        run: |
+          cd build                    # 进入构建目录
+          ninja -j$(sysctl -n hw.ncpu)  # 使用所有CPU核心并行编译
+          
+      # 第五步：验证编译结果
+      - name: 编译结果检查
+        run: |
+          cd build              # 进入构建目录
+          ls -la               # 列出所有生成的文件和目录
+          echo "编译完成"       # 输出完成信息
