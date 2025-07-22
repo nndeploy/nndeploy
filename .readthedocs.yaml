@@ -40,6 +40,10 @@ build:
       # 安装nndeploy Python包(开发者模式)
       - echo "export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH" >> ~/.bashrc
       - cd python && pip install -e .
+      # 验证Python包是否能正确导入
+      - python -c "import sys; print('Python path:', sys.path)"
+      - python -c "import os; print('LD_LIBRARY_PATH:', os.environ.get('LD_LIBRARY_PATH', 'Not set'))"
+      - python -c "try: import nndeploy; print('✅ nndeploy import successful'); except Exception as e: print('❌ nndeploy import failed:', e)"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

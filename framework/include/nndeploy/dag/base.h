@@ -276,9 +276,6 @@ struct NNDEPLOY_CC_API RunStatus {
     } else if (run_size > 0 && completed_size > 0 &&
                graph_run_size == completed_size) {
       return "DONE";
-    } else if (run_size > 0 && completed_size > 0 &&
-               graph_run_size > run_size) {
-      return "PENDING";
     } else {
       return "IDLE";
     }

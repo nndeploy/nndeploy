@@ -67,7 +67,13 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 set(ENABLE_NNDEPLOY_OPENCV OFF) # Whether to link the third-party OpenCV library, default is ON
 set(NNDEPLOY_OPENCV_LIBS) # Link all OpenCV libraries by default
 
-set(ENABLE_NNDEPLOY_PLUGIN OFF) # Whether to enable C++ tokenizer plugin, default is OFF
+set(ENABLE_NNDEPLOY_IR OFF) # Whether to enable IR, default is OFF
+
+set(ENABLE_NNDEPLOY_OP OFF) # Whether to enable operator plugin, default is OFF
+
+set(ENABLE_NNDEPLOY_NET OFF) # Whether to enable network plugin, default is OFF
+
+set(ENABLE_NNDEPLOY_PLUGIN OFF) # Whether to enable plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_DEMO OFF) # Whether to enable language model plugin, default is OFF
 
