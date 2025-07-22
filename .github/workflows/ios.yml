@@ -56,13 +56,20 @@ jobs:
         with:
           xcode-version: latest-stable  # 使用最新稳定版Xcode
           
-      # 第三步：安装基础构建工具
+      # 第三步：设置Rust环境并添加iOS目标
+      - name: 设置Rust环境
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios  # 为iOS arm64架构添加Rust目标
+          
+      # 第四步：安装基础构建工具
       - name: 安装构建工具
         run: |
           brew update  # 更新Homebrew包管理器
           brew install cmake ninja  # 仅安装基础构建工具，无需额外三方库
             
-      # 第四步：配置iOS交叉编译环境
+      # 第五步：配置iOS交叉编译环境
       - name: 配置iOS构建
         run: |
           # 设置iOS SDK路径
@@ -92,20 +99,20 @@ jobs:
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ..
           
-      # 第五步：执行编译
+      # 第六步：执行编译
       - name: 编译
         run: |
           cd build-${{ matrix.ios_arch }}  # 进入对应架构的构建目录
           ninja -j$(sysctl -n hw.ncpu)     # 使用所有CPU核心并行编译
           
-      # 第六步：验证编译结果
+      # 第七步：验证编译结果
       - name: 编译结果检查
         run: |
           cd build-${{ matrix.ios_arch }}  # 进入构建目录
           ls -la                          # 列出所有生成的文件和目录
           echo "iOS ${{ matrix.ios_arch }} 架构编译完成"  # 输出完成信息
           
-      # 第七步：上传编译产物
+      # 第八步：上传编译产物
       # 修复: 将actions/upload-artifact从v3升级到v4解决弃用警告
       - name: 上传编译产物
         uses: actions/upload-artifact@v4

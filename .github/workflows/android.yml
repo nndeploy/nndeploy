@@ -45,12 +45,6 @@ jobs:
     name: Android编译构建  # 任务显示名称
     runs-on: ubuntu-latest  # 指定运行环境为Ubuntu Linux(用于Android交叉编译)
   
-    strategy:  # 构建策略矩阵，支持多种Android架构
-      matrix:
-        android_abi: [armeabi-v7a, arm64-v8a]  # Android支持的主要CPU架构（移除x86以提高效率）
-        api_level: [21, 24, 28]  # 支持多个Android API级别
-        build_type: [Release]  # 支持调试和发布版本
-  
     steps:  # 构建步骤序列
       # 第一步：检出源代码
       - name: 检出代码
@@ -73,10 +67,10 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ${{ env.CCACHE_DIR }}
-          key: android-${{ matrix.android_abi }}-${{ matrix.api_level }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**/*.cmake') }}
+          key: android-arm64-v8a-api21-${{ hashFiles('**/CMakeLists.txt', 'cmake/**/*.cmake') }}
           restore-keys: |
-            android-${{ matrix.android_abi }}-${{ matrix.api_level }}-
-            android-${{ matrix.android_abi }}-
+            android-arm64-v8a-api21-
+            android-arm64-v8a-
             android-
           
       # 第四步：安装Android NDK和工具
@@ -99,28 +93,28 @@ jobs:
       - name: 配置构建
         run: |
           # 创建构建目录(out-of-source构建)
-          mkdir build-${{ matrix.android_abi }}-${{ matrix.api_level }}
-          cp cmake/config_minimal.cmake build-${{ matrix.android_abi }}-${{ matrix.api_level }}/config.cmake   # 复制minimal配置文件并重命名为config.cmake
-          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
+          mkdir -p build
+          cp cmake/config_minimal.cmake build/config.cmake   # 复制minimal配置文件并重命名为config.cmake
+          cd build   # 进入构建目录
           cmake -G Ninja \              # 使用Ninja生成器
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \  # Android工具链
-            -DANDROID_ABI=${{ matrix.android_abi }} \  # 指定Android ABI架构
-            -DANDROID_PLATFORM=android-${{ matrix.api_level }} \     # 使用matrix中的API级别
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \             # 使用matrix中的构建类型
+            -DANDROID_ABI=arm64-v8a \  # 使用arm64-v8a架构
+            -DANDROID_PLATFORM=android-21 \     # 使用API级别21
+            -DCMAKE_BUILD_TYPE=Release \             # 使用Release构建类型
             ..                            # 源代码目录
           
       # 第七步：执行编译
       - name: 编译
         run: |
-          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
+          cd build   # 进入构建目录
           ninja -j$(nproc)           # 使用所有CPU核心并行编译
           
       # 第八步：验证编译结果
       - name: 编译结果检查
         run: |
-          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
+          cd build   # 进入构建目录
           ls -la               # 列出所有生成的文件和目录
-          echo "Android ${{ matrix.android_abi }} 架构 API${{ matrix.api_level }} 编译完成"  # 输出完成信息
+          echo "Android arm64-v8a 架构 API21 编译完成"  # 输出完成信息
           
       # 第九步：上传编译产物
       # 注意：升级到v4版本以解决GitHub Actions的弃用警告
@@ -128,6 +122,6 @@ jobs:
       - name: 上传编译产物
         uses: actions/upload-artifact@v4  # 从v3升级到v4版本
         with:
-          name: android-${{ matrix.android_abi }}-api${{ matrix.api_level }}-${{ matrix.build_type }}-libs  # 产物名称
-          path: build-${{ matrix.android_abi }}-${{ matrix.api_level }}/lib/  # 只上传lib目录
+          name: android-arm64-v8a-api21-release-libs  # 产物名称
+          path: build/lib/  # 只上传lib目录
           retention-days: 7  # 保留7天
