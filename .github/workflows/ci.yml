@@ -1,0 +1,347 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+      - 'feature/**'
+      - 'hotfix/**'
+    paths:
+      - 'src/**'
+      - 'framework/**'
+      - 'test/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'framework/**'
+      - 'test/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: '是否运行测试'
+        required: false
+        default: 'true'
+        type: boolean
+      build_type:
+        description: '构建类型'
+        required: false
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
+          - RelWithDebInfo
+
+env:
+  CMAKE_BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+jobs:
+  # 代码质量检查
+  code-quality:
+    name: 代码质量检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 安装Python依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install cpplint cppcheck-codequality
+      
+      - name: C++代码格式检查
+        run: |
+          python run_clang_format.py --check
+      
+      - name: C++静态分析
+        run: |
+          cppcheck --enable=all --xml --xml-version=2 framework/ src/ 2> cppcheck-report.xml || true
+      
+      - name: 上传代码质量报告
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-quality-report
+          path: |
+            cppcheck-report.xml
+
+  # 多平台构建矩阵
+  build:
+    name: 构建-${{ matrix.os }}-${{ matrix.config }}
+    needs: code-quality
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        config: [Debug, Release]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            generator: "Unix Makefiles"
+          - os: windows-latest
+            platform: windows
+            generator: "Visual Studio 17 2022"
+          - os: macos-latest
+            platform: macos
+            generator: "Unix Makefiles"
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: 设置缓存(Linux/macOS)
+        if: matrix.platform != 'windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ccache
+            ${{ github.workspace }}/.ccache
+          key: ${{ matrix.platform }}-${{ matrix.config }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.platform }}-${{ matrix.config }}-ccache-
+      
+      - name: 安装依赖(Ubuntu)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ccache \
+            libopencv-dev \
+            pkg-config
+          ccache --set-config=max_size=2G
+      
+      - name: 安装依赖(macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          brew install cmake ccache opencv pkg-config
+          ccache --set-config=max_size=2G
+      
+      - name: 配置构建(Linux/macOS)
+        if: matrix.platform != 'windows'
+        run: |
+          mkdir -p build
+          cp cmake/config.cmake build/
+          cd build
+          cmake .. \
+            -G "${{ matrix.generator }}" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DENABLE_NNDEPLOY_OPENCV=ON \
+            -DCMAKE_INSTALL_PREFIX=install
+      
+      - name: 配置构建(Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          mkdir build
+          cp cmake/config.cmake build/
+          cd build
+          cmake .. -G "${{ matrix.generator }}" -A x64 -DENABLE_NNDEPLOY_OPENCV=ON -DCMAKE_INSTALL_PREFIX=install
+      
+      - name: 编译项目
+        run: |
+          cd build
+          cmake --build . --config ${{ matrix.config }} --parallel 4
+      
+      - name: 安装项目
+        run: |
+          cd build
+          cmake --install . --config ${{ matrix.config }}
+      
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: nndeploy-${{ matrix.platform }}-${{ matrix.config }}
+          path: |
+            build/install/
+            !build/install/**/*.pdb
+          retention-days: 7
+
+  # 单元测试
+  test:
+    name: 测试-${{ matrix.os }}
+    if: ${{ github.event.inputs.run_tests != 'false' }}
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          name: nndeploy-${{ matrix.os == 'ubuntu-latest' && 'linux' || 'macos' }}-Release
+          path: build/install/
+      
+      - name: 运行测试
+        run: |
+          # 如果有测试可执行文件，在这里运行
+          if [ -d "test" ]; then
+            echo "运行测试套件..."
+            # find build/install -name "*test*" -executable -type f -exec {} \;
+          fi
+      
+      - name: 上传测试报告
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-${{ matrix.os }}
+          path: |
+            test-results/
+          retention-days: 30
+
+  # 性能基准测试
+  benchmark:
+    name: 性能基准测试
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 下载构建产物
+        uses: actions/download-artifact@v4
+        with:
+          name: nndeploy-linux-Release
+          path: build/install/
+      
+      - name: 运行基准测试
+        run: |
+          echo "运行性能基准测试..."
+          # 在这里添加您的基准测试命令
+      
+      - name: 上传基准测试结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results/
+
+  # 文档构建
+  docs:
+    name: 构建文档
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: 安装文档依赖
+        run: |
+          pip install -r requirements.txt
+          # 如果有文档相关的requirements文件
+          # pip install sphinx breathe sphinx-rtd-theme
+      
+      - name: 构建文档
+        run: |
+          # 在这里添加文档构建命令
+          echo "构建文档..."
+      
+      - name: 部署到GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+
+  # 安全扫描
+  security:
+    name: 安全扫描
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 运行CodeQL分析
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp
+      
+      - name: 自动构建
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: 执行CodeQL分析
+        uses: github/codeql-action/analyze@v3
+
+  # 发布(仅在tag推送时)
+  release:
+    name: 创建发布
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      
+      - name: 打包发布文件
+        run: |
+          cd artifacts
+          for dir in nndeploy-*; do
+            if [ -d "$dir" ]; then
+              tar -czf "${dir}.tar.gz" "$dir"
+            fi
+          done
+      
+      - name: 创建GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 通知
+  notify:
+    name: 构建通知
+    if: always()
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 发送构建状态通知
+        if: ${{ needs.build.result == 'failure' || needs.test.result == 'failure' }}
+        run: |
+          echo "构建或测试失败，需要关注！"
+          # 在这里添加通知逻辑，如发送邮件、Slack消息等 
