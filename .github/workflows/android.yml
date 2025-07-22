@@ -93,7 +93,7 @@ jobs:
       - name: 配置构建
         run: |
           # 创建构建目录(out-of-source构建)
-          mkdir -p build
+          mkdir build
           cp cmake/config_minimal.cmake build/config.cmake   # 复制minimal配置文件并重命名为config.cmake
           cd build   # 进入构建目录
           cmake -G Ninja \              # 使用Ninja生成器

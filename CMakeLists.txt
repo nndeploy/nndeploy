@@ -535,6 +535,12 @@ set(NNDEPLOY_DEMO_DEPEND_LIBRARY)
 set(NNDEPLOY_DEMO_SYSTEM_LIBRARY)
 set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY)
 
+# nndeploy system library
+if(SYSTEM.iOS)
+  find_library(ACCELERATE_FRAMEWORK Accelerate)
+  set(NNDEPLOY_SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY} ${ACCELERATE_FRAMEWORK})
+endif()
+
 # nndeploy third party lib
 include(${ROOT_PATH}/cmake/nndeploy.cmake)
 

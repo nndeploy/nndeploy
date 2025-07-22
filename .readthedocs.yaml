@@ -33,16 +33,16 @@ build:
       - which cmake
       - cmake --version
     pre_build:
-      # 验证当前目录并确认CMakeLists.txt存在
       - pwd
       - ls -la
       - ls -la CMakeLists.txt
       # 创建构建目录并复制配置文件
-      - mkdir build
+      - mkdir -p build
       - ls -la 
       - ls -la build
       - cp cmake/config.cmake build/config.cmake
-      - cd build
+      # 进入构建目录进行配置和编译
+      - pushd build
       - pwd
       - ls -la 
       - echo "开始CMake配置..."
@@ -50,9 +50,11 @@ build:
       - echo "开始编译..."
       - make -j$(nproc)
       - make install
+      - popd
       # 安装nndeploy Python包(开发者模式)
-      - cd ../python 
+      - pushd python 
       - pip install -e .
+      - popd
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
