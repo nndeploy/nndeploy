@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false  # 当一个语言扫描失败时，不停止其他语言的扫描
       matrix:
-        language: [ 'cpp', 'python', 'javascript' ]  # 扫描C++、Python和JavaScript代码
+        language: [ 'cpp', 'python' ]  # 扫描C++和Python代码
         # CodeQL支持的语言: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby'
         # 了解更多CodeQL语言支持: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
 
@@ -49,15 +49,7 @@ jobs:
           submodules: recursive  # 递归检出所有子模块
           fetch-depth: 0         # 获取完整的git历史记录，有助于更准确的代码分析
 
-      # 第二步：设置Node.js环境(仅对JavaScript代码扫描需要)
-      - name: 设置Node.js环境
-        if: matrix.language == 'javascript'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'  # 使用Node.js 18 LTS版本
-          cache: 'npm'        # 启用npm缓存加速依赖安装
-
-      # 第三步：初始化CodeQL工具
+      # 第二步：初始化CodeQL工具
       - name: 初始化CodeQL扫描工具
         uses: github/codeql-action/init@v3
         with:
@@ -67,25 +59,14 @@ jobs:
           # 在列表前加上"+"可以同时使用这些查询和配置文件中的查询
           # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-      # 第四步：安装构建依赖(仅对C++代码扫描需要)
+      # 第三步：安装构建依赖(仅对C++代码扫描需要)
       - name: 安装构建依赖
         if: matrix.language == 'cpp'
         run: |
           sudo apt-get update  # 更新包管理器索引
           sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
 
-      # 第五步：安装JavaScript依赖(仅对JavaScript代码扫描需要)
-      - name: 安装JavaScript依赖
-        if: matrix.language == 'javascript'
-        run: |
-          # 检查是否存在package.json文件
-          if [ -f "package.json" ]; then
-            npm ci  # 使用npm ci进行干净的依赖安装
-          else
-            echo "未找到package.json文件，跳过JavaScript依赖安装"
-          fi
-
-      # 第六步：手动构建项目(替代自动构建)
+      # 第四步：手动构建项目(替代自动构建)
       # 对于复杂的C++项目，手动构建通常比自动构建更可靠
       - name: 手动构建项目
         if: matrix.language == 'cpp'
@@ -96,17 +77,12 @@ jobs:
           cmake -G Ninja ..             # 配置CMake项目
           ninja -j$(nproc)              # 并行编译项目
 
-      # 第七步：对于Python代码，使用自动构建
+      # 第五步：对于Python代码，使用自动构建
       - name: Python自动构建
         if: matrix.language == 'python'
         uses: github/codeql-action/autobuild@v3
 
-      # 第八步：对于JavaScript代码，使用自动构建
-      - name: JavaScript自动构建
-        if: matrix.language == 'javascript'
-        uses: github/codeql-action/autobuild@v3
-
-      # 第九步：执行CodeQL分析
+      # 第六步：执行CodeQL分析
       - name: 执行CodeQL安全分析
         uses: github/codeql-action/analyze@v3
         with:

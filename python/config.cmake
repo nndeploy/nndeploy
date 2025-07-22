@@ -237,99 +237,101 @@ if(ENABLE_NNDEPLOY_DAG)
 endif()
 
 # plugin
-if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
-  file(GLOB_RECURSE PYTHON_PREPROCESS_SOURCE
-    "${ROOT_PATH}/python/src/preprocess/*.h"
-    "${ROOT_PATH}/python/src/preprocess/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_PREPROCESS_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
-  file(GLOB_RECURSE PYTHON_CODEC_SOURCE
-    "${ROOT_PATH}/python/src/codec/*.h"
-    "${ROOT_PATH}/python/src/codec/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_CODEC_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_INFER)
-  file(GLOB_RECURSE PYTHON_INFER_SOURCE
-    "${ROOT_PATH}/python/src/infer/*.h"
-    "${ROOT_PATH}/python/src/infer/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_INFER_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
-  file(GLOB PYTHON_TOKENIZER_SOURCE
-    "${ROOT_PATH}/python/src/tokenizer/*.h"
-    "${ROOT_PATH}/python/src/tokenizer/*.cc"
-  )
-  if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
-    file(GLOB_RECURSE PYTHON_TOKENIZER_CPP_SOURCE
-      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.h"
-      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.cc"
+if(ENABLE_NNDEPLOY_PLUGIN)
+  if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+    file(GLOB_RECURSE PYTHON_PREPROCESS_SOURCE
+      "${ROOT_PATH}/python/src/preprocess/*.h"
+      "${ROOT_PATH}/python/src/preprocess/*.cc"
     )
-    set(PYTHON_TOKENIZER_SOURCE ${PYTHON_TOKENIZER_SOURCE} ${PYTHON_TOKENIZER_CPP_SOURCE})
+    set(SOURCE ${SOURCE} ${PYTHON_PREPROCESS_SOURCE})
   endif()
-  set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
-  file(GLOB_RECURSE PYTHON_DETECT_SOURCE
-    "${ROOT_PATH}/python/src/detect/*.h"
-    "${ROOT_PATH}/python/src/detect/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_DETECT_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
-  file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
-    "${ROOT_PATH}/python/src/segment/*.h"
-    "${ROOT_PATH}/python/src/segment/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_SEGMENT_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
-  file(GLOB_RECURSE PYTHON_CLASSIFICATION_SOURCE
-    "${ROOT_PATH}/python/src/classification/*.h"
-    "${ROOT_PATH}/python/src/classification/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_CLASSIFICATION_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
-  file(GLOB_RECURSE PYTHON_TRACK_SOURCE
-    "${ROOT_PATH}/python/src/track/*.h"
-    "${ROOT_PATH}/python/src/track/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_TRACK_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
-  file(GLOB_RECURSE PYTHON_MATTING_SOURCE
-    "${ROOT_PATH}/python/src/matting/*.h"
-    "${ROOT_PATH}/python/src/matting/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_MATTING_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_LLM)
-  file(GLOB_RECURSE PYTHON_LLM_SOURCE
-    "${ROOT_PATH}/python/src/llm/*.h"
-    "${ROOT_PATH}/python/src/llm/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_LLM_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
-  file(GLOB_RECURSE PYTHON_STABLE_DIFFUSION_SOURCE
-    "${ROOT_PATH}/python/src/stable_diffusion/*.h"
-    "${ROOT_PATH}/python/src/stable_diffusion/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_STABLE_DIFFUSION_SOURCE})
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
+    file(GLOB_RECURSE PYTHON_CODEC_SOURCE
+      "${ROOT_PATH}/python/src/codec/*.h"
+      "${ROOT_PATH}/python/src/codec/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_CODEC_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_INFER)
+    file(GLOB_RECURSE PYTHON_INFER_SOURCE
+      "${ROOT_PATH}/python/src/infer/*.h"
+      "${ROOT_PATH}/python/src/infer/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_INFER_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
+    file(GLOB PYTHON_TOKENIZER_SOURCE
+      "${ROOT_PATH}/python/src/tokenizer/*.h"
+      "${ROOT_PATH}/python/src/tokenizer/*.cc"
+    )
+    if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
+      file(GLOB_RECURSE PYTHON_TOKENIZER_CPP_SOURCE
+        "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.h"
+        "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.cc"
+      )
+      set(PYTHON_TOKENIZER_SOURCE ${PYTHON_TOKENIZER_SOURCE} ${PYTHON_TOKENIZER_CPP_SOURCE})
+    endif()
+    set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+    file(GLOB_RECURSE PYTHON_DETECT_SOURCE
+      "${ROOT_PATH}/python/src/detect/*.h"
+      "${ROOT_PATH}/python/src/detect/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_DETECT_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+    file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
+      "${ROOT_PATH}/python/src/segment/*.h"
+      "${ROOT_PATH}/python/src/segment/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_SEGMENT_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+    file(GLOB_RECURSE PYTHON_CLASSIFICATION_SOURCE
+      "${ROOT_PATH}/python/src/classification/*.h"
+      "${ROOT_PATH}/python/src/classification/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_CLASSIFICATION_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
+    file(GLOB_RECURSE PYTHON_TRACK_SOURCE
+      "${ROOT_PATH}/python/src/track/*.h"
+      "${ROOT_PATH}/python/src/track/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_TRACK_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
+    file(GLOB_RECURSE PYTHON_MATTING_SOURCE
+      "${ROOT_PATH}/python/src/matting/*.h"
+      "${ROOT_PATH}/python/src/matting/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_MATTING_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+    file(GLOB_RECURSE PYTHON_LLM_SOURCE
+      "${ROOT_PATH}/python/src/llm/*.h"
+      "${ROOT_PATH}/python/src/llm/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_LLM_SOURCE})
+  endif()
+  
+  if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+    file(GLOB_RECURSE PYTHON_STABLE_DIFFUSION_SOURCE
+      "${ROOT_PATH}/python/src/stable_diffusion/*.h"
+      "${ROOT_PATH}/python/src/stable_diffusion/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_STABLE_DIFFUSION_SOURCE})
+  endif()
 endif()
 
 # 创建 Python 模块

@@ -28,14 +28,18 @@ build:
     post_checkout:
       # 确保所有子模块被正确初始化和更新
       - git submodule update --init --recursive
+    post_install:
+      # 在安装依赖包后立即验证cmake是否可用
+      - which cmake
+      - cmake --version
     pre_build:
-      # 返回到项目根目录(包含CMakeLists.txt的目录)
-      - cd "$READTHEDOCS_OUTPUT/html"
-      - cd "../.."
+      # 确保我们在项目根目录
+      - pwd
+      - ls -la
       # 创建构建目录并复制配置文件
       - mkdir -p build
       - cp cmake/config.cmake build/
-      # 配置和编译nndeploy(从项目根目录开始)
+      # 配置和编译nndeploy
       - cd build
       - cmake -G Ninja ..
       - ninja -j$(nproc)

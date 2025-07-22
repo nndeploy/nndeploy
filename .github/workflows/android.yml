@@ -37,7 +37,6 @@ on:
 env:
   ANDROID_API_LEVEL: 21  # 最低Android API级别
   ANDROID_NDK_VERSION: r25c  # NDK版本
-  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
   CCACHE_DIR: ${{ github.workspace }}/.ccache  # ccache缓存目录
 
 # 工作任务定义
@@ -74,8 +73,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             ${{ env.CCACHE_DIR }}
-            ${{ env.VCPKG_ROOT }}/downloads
-            ${{ env.VCPKG_ROOT }}/installed
           key: android-${{ matrix.android_abi }}-${{ matrix.api_level }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**/*.cmake') }}
           restore-keys: |
             android-${{ matrix.android_abi }}-${{ matrix.api_level }}-
@@ -86,7 +83,7 @@ jobs:
       - name: 安装Android开发工具
         run: |
           sudo apt-get update  # 更新包管理器索引
-          sudo apt-get install -y build-essential cmake ninja-build unzip wget ccache libopencv-dev protobuf-compiler libprotobuf-dev
+          sudo apt-get install -y build-essential cmake ninja-build unzip wget ccache
             
           # 设置ccache
           ccache --max-size=2G
@@ -98,60 +95,34 @@ jobs:
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
           
-      # 第六步：安装vcpkg依赖管理器
-      - name: 安装vcpkg依赖管理器
-        run: |
-          if [ ! -d "${{ env.VCPKG_ROOT }}" ]; then
-            git clone https://github.com/Microsoft/vcpkg.git ${{ env.VCPKG_ROOT }}
-            cd ${{ env.VCPKG_ROOT }}
-            ./bootstrap-vcpkg.sh
-          fi
-          
-      # 第七步：安装Android平台依赖库
-      - name: 安装Android依赖库
-        run: |
-          cd ${{ env.VCPKG_ROOT }}
-          # 设置Android triplet
-          export VCPKG_DEFAULT_TRIPLET=${{ matrix.android_abi }}-android
-          
-          # 为Android架构安装依赖库（仅安装必要的库以节省时间）
-          ./vcpkg install \
-            rapidjson:${{ matrix.android_abi }}-android \
-            protobuf:${{ matrix.android_abi }}-android
-          
-          # OpenCV由于编译时间较长，可选安装
-          # ./vcpkg install opencv4:${{ matrix.android_abi }}-android
-          
-      # 第八步：配置CMake构建环境
+      # 第六步：配置CMake构建环境
       - name: 配置构建
         run: |
           # 创建构建目录(out-of-source构建)
           mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
+          cp cmake/config_minimal.cmake build/config.cmake   # 复制minimal配置文件并重命名为config.cmake
           cd build                       # 进入构建目录
           cmake -G Ninja \              # 使用Ninja生成器
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \  # Android工具链
             -DANDROID_ABI=${{ matrix.android_abi }} \  # 指定Android ABI架构
             -DANDROID_PLATFORM=android-21 \           # 指定最低Android API级别
             -DCMAKE_BUILD_TYPE=Release \               # 发布版本构建
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.android_abi }}-android \  # vcpkg目标三元组
-            -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake \  # vcpkg工具链
             ..                            # 源代码目录
           
-      # 第八步：执行编译
+      # 第七步：执行编译
       - name: 编译
         run: |
           cd build                    # 进入构建目录
           ninja -j$(nproc)           # 使用所有CPU核心并行编译
           
-      # 第九步：验证编译结果
+      # 第八步：验证编译结果
       - name: 编译结果检查
         run: |
           cd build              # 进入构建目录
           ls -la               # 列出所有生成的文件和目录
           echo "Android ${{ matrix.android_abi }} 架构编译完成"  # 输出完成信息
           
-      # 第十步：上传编译产物
+      # 第九步：上传编译产物
       # 注意：升级到v4版本以解决GitHub Actions的弃用警告
       # GitHub在2024年4月16日宣布弃用v3版本的artifact actions
       - name: 上传编译产物

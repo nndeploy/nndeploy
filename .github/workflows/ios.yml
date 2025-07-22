@@ -56,11 +56,11 @@ jobs:
         with:
           xcode-version: latest-stable  # 使用最新稳定版Xcode
           
-      # 第三步：安装系统依赖包
-      - name: 安装依赖
+      # 第三步：安装基础构建工具
+      - name: 安装构建工具
         run: |
           brew update  # 更新Homebrew包管理器
-          brew install cmake ninja pkg-config opencv protobuf
+          brew install cmake ninja  # 仅安装基础构建工具，无需额外三方库
             
       # 第四步：配置iOS交叉编译环境
       - name: 配置iOS构建
@@ -79,7 +79,7 @@ jobs:
           fi
           
           mkdir build-${{ matrix.ios_arch }}  # 为每个架构创建单独的构建目录
-          cp cmake/config.cmake build-${{ matrix.ios_arch }}  # 复制项目特定的CMake配置文件
+          cp cmake/config_minimal.cmake build-${{ matrix.ios_arch }}/config.cmake  # 复制项目特定的CMake配置文件并重命名
           cd build-${{ matrix.ios_arch }}  # 进入构建目录
           
           # 配置CMake进行iOS交叉编译
