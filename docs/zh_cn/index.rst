@@ -28,6 +28,8 @@
 
    cpp_api/index
 
+   cpp_api/doxygen
+
    python_api/index 
 
 .. toctree::

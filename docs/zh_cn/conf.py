@@ -88,3 +88,6 @@ intersphinx_mapping = {
 #     "nndeploy": doxygen_xml_path
 # }
 # breathe_default_project = "nndeploy"
+
+doxygen_html_dir = os.path.abspath('./build_doxygen/html')
+html_extra_path = [doxygen_html_dir]
