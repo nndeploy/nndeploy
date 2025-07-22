@@ -99,28 +99,28 @@ jobs:
       - name: 配置构建
         run: |
           # 创建构建目录(out-of-source构建)
-          mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config_minimal.cmake build/config.cmake   # 复制minimal配置文件并重命名为config.cmake
-          cd build                       # 进入构建目录
+          mkdir build-${{ matrix.android_abi }}-${{ matrix.api_level }}
+          cp cmake/config_minimal.cmake build-${{ matrix.android_abi }}-${{ matrix.api_level }}/config.cmake   # 复制minimal配置文件并重命名为config.cmake
+          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
           cmake -G Ninja \              # 使用Ninja生成器
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \  # Android工具链
             -DANDROID_ABI=${{ matrix.android_abi }} \  # 指定Android ABI架构
-            -DANDROID_PLATFORM=android-21 \           # 指定最低Android API级别
-            -DCMAKE_BUILD_TYPE=Release \               # 发布版本构建
+            -DANDROID_PLATFORM=android-${{ matrix.api_level }} \     # 使用matrix中的API级别
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \             # 使用matrix中的构建类型
             ..                            # 源代码目录
           
       # 第七步：执行编译
       - name: 编译
         run: |
-          cd build                    # 进入构建目录
+          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
           ninja -j$(nproc)           # 使用所有CPU核心并行编译
           
       # 第八步：验证编译结果
       - name: 编译结果检查
         run: |
-          cd build              # 进入构建目录
+          cd build-${{ matrix.android_abi }}-${{ matrix.api_level }}   # 进入构建目录
           ls -la               # 列出所有生成的文件和目录
-          echo "Android ${{ matrix.android_abi }} 架构编译完成"  # 输出完成信息
+          echo "Android ${{ matrix.android_abi }} 架构 API${{ matrix.api_level }} 编译完成"  # 输出完成信息
           
       # 第九步：上传编译产物
       # 注意：升级到v4版本以解决GitHub Actions的弃用警告
@@ -128,6 +128,6 @@ jobs:
       - name: 上传编译产物
         uses: actions/upload-artifact@v4  # 从v3升级到v4版本
         with:
-          name: android-${{ matrix.android_abi }}-build  # 产物名称
-          path: build/  # 上传整个构建目录
+          name: android-${{ matrix.android_abi }}-api${{ matrix.api_level }}-${{ matrix.build_type }}-libs  # 产物名称
+          path: build-${{ matrix.android_abi }}-${{ matrix.api_level }}/lib/  # 只上传lib目录
           retention-days: 7  # 保留7天

@@ -41,9 +41,10 @@ build:
       - cp cmake/config.cmake build/
       # 配置和编译nndeploy
       - cd build
-      - cmake -G Ninja ..
-      - ninja -j$(nproc)
-      - ninja install
+      - ls -ls
+      - cmake ..
+      - make -j$(nproc)
+      - make install
       # 安装nndeploy Python包(开发者模式)
       - cd ../python 
       - pip install -e .

@@ -89,7 +89,7 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
             -DCMAKE_IOS_INSTALL_COMBINED=YES \
             -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_NNDEPLOY_PYTHON=OFF \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ..
           
       # 第五步：执行编译
