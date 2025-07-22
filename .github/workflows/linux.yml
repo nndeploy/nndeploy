@@ -1,31 +1,68 @@
-name: linux
+name: Linux编译
+
 on:
   push:
     branches:
-     - main
-     - 'feature/**'
+      - main
     paths:
-      - 'src/**'
-      - '.github/workflows/linux.yml'
+      - 'framework/**'     # 框架代码目录
+      - 'plugin/**'        # 插件代码目录
+      - 'python/src/**'    # pybind目录
+      - 'test/**'          # 测试代码目录
+      - 'demo/**'          # 示例代码目录
+      - 'cmake/**'         # CMake配置文件目录
+      - 'CMakeLists.txt'   # 主CMake构建文件
+      - '.github/workflows/linux.yml'  # 当前工作流文件
   pull_request:
     branches: [main]
     paths:
-      - 'src/**'
-      - '.github/workflows/linux.yml'
+      - 'framework/**'     # 框架代码目录
+      - 'plugin/**'        # 插件代码目录
+      - 'python/src/**'    # pybind目录
+      - 'test/**'          # 测试代码目录
+      - 'demo/**'          # 示例代码目录
+      - 'cmake/**'         # CMake配置文件目录
+      - 'CMakeLists.txt'   # 主CMake构建文件
+      - '.github/workflows/linux.yml'  # 当前工作流文件
 
 jobs:
   build:
-    name: linux-build
+    name: Linux编译构建
     runs-on: ubuntu-latest
   
     steps:
-      - uses: actions/checkout@v3
-      # build
-      - name: build
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: 安装依赖
         run: |
-            mkdir build
-            cp cmake/config.cmake build
-            cd build
-            cmake ..
-            make -j4
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libopencv-dev \
+            libeigen3-dev \
+            protobuf-compiler \
+            libprotobuf-dev
             
+      - name: 配置构建
+        run: |
+          mkdir build
+          cp cmake/config.cmake build
+          cd build
+          cmake -G Ninja ..
+          
+      - name: 编译
+        run: |
+          cd build
+          ninja -j$(nproc)
+          
+      - name: 编译结果检查
+        run: |
+          cd build
+          ls -la
+          echo "编译完成"
