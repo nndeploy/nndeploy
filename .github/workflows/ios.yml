@@ -109,8 +109,9 @@ jobs:
           echo "iOS ${{ matrix.ios_arch }} 架构编译完成"  # 输出完成信息
           
       # 第七步：上传编译产物
+      # 修复: 将actions/upload-artifact从v3升级到v4解决弃用警告
       - name: 上传编译产物
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-${{ matrix.ios_arch }}-libs
           path: build-${{ matrix.ios_arch }}/lib/

@@ -119,8 +119,10 @@ jobs:
           echo "Android ${{ matrix.android_abi }} 架构编译完成"  # 输出完成信息
           
       # 第十步：上传编译产物
+      # 注意：升级到v4版本以解决GitHub Actions的弃用警告
+      # GitHub在2024年4月16日宣布弃用v3版本的artifact actions
       - name: 上传编译产物
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 从v3升级到v4版本
         with:
           name: android-${{ matrix.android_abi }}-build  # 产物名称
           path: build/  # 上传整个构建目录

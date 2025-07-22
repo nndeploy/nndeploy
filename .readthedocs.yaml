@@ -24,16 +24,23 @@ build:
     - libopencv-dev
     - protobuf-compiler
     - libprotobuf-dev
-  commands:
-    # 创建构建目录并复制配置文件
-    - mkdir -p build
-    - cp cmake/config.cmake build/
-    # 配置和编译nndeploy
-    - cd build && cmake -G Ninja ..
-    - cd build && ninja -j$(nproc)
-    - cd build && ninja install
-    # 安装nndeploy Python包(开发者模式)
-    - cd python && pip install -e .
+  jobs:
+    post_checkout:
+      # 确保所有子模块被正确初始化和更新
+      - git submodule update --init --recursive
+    pre_build:
+      # 创建构建目录并复制配置文件
+      - mkdir -p build
+      - cp cmake/config.cmake build/
+      # 配置和编译nndeploy
+      - cd build
+      - cmake -G Ninja ..
+      - cd build 
+      - ninja -j$(nproc)
+      - inja install
+      # 安装nndeploy Python包(开发者模式)
+      - cd ../python 
+      - pip install -e .
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

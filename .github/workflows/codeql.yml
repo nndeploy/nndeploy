@@ -1,0 +1,113 @@
+# GitHub Actions 工作流配置文件 - CodeQL代码安全扫描
+# 该文件用于配置自动化代码安全扫描和代码质量检查流程
+# CodeQL是GitHub提供的静态应用安全测试(SAST)工具
+
+name: "CodeQL"  # 工作流名称，会显示在GitHub Actions界面中
+
+# 触发条件配置
+on:
+  # 当代码推送到指定分支时触发
+  push:
+    branches: 
+      - main      # 仅当推送到main分支时触发
+      - develop   # 仅当推送到develop分支时触发
+      - 'feature/**'  # 匹配所有以feature/开头的分支
+      
+  # 当创建Pull Request到指定分支时触发
+  pull_request:
+    branches: [main]  # 仅当PR目标分支为main时触发
+      
+  # 定期扫描：每周二下午5点执行一次完整的安全扫描
+  schedule:
+    - cron: '0 17 * * 2'
+
+# 工作任务定义
+jobs:
+  analyze:  # 任务ID
+    name: CodeQL安全分析  # 任务显示名称
+    runs-on: ubuntu-latest  # 指定运行环境为最新版Ubuntu Linux
+    
+    # 权限配置：确保工作流有足够的权限执行代码扫描和上传结果
+    permissions:
+      actions: read           # 读取Actions相关信息
+      contents: read          # 读取仓库内容
+      security-events: write  # 写入安全事件(上传扫描结果到GitHub Security tab)
+
+    # 策略配置：支持多语言并行扫描
+    strategy:
+      fail-fast: false  # 当一个语言扫描失败时，不停止其他语言的扫描
+      matrix:
+        language: [ 'cpp', 'python', 'javascript' ]  # 扫描C++、Python和JavaScript代码
+        # CodeQL支持的语言: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby'
+        # 了解更多CodeQL语言支持: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
+
+    steps:  # 构建步骤序列
+      # 第一步：检出源代码
+      - name: 检出代码
+        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+        with:
+          submodules: recursive  # 递归检出所有子模块
+          fetch-depth: 0         # 获取完整的git历史记录，有助于更准确的代码分析
+
+      # 第二步：设置Node.js环境(仅对JavaScript代码扫描需要)
+      - name: 设置Node.js环境
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # 使用Node.js 18 LTS版本
+          cache: 'npm'        # 启用npm缓存加速依赖安装
+
+      # 第三步：初始化CodeQL工具
+      - name: 初始化CodeQL扫描工具
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}  # 指定要扫描的编程语言
+          # 可以在此处或配置文件中指定自定义查询
+          # 默认情况下，此处列出的查询将覆盖配置文件中指定的任何查询
+          # 在列表前加上"+"可以同时使用这些查询和配置文件中的查询
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+      # 第四步：安装构建依赖(仅对C++代码扫描需要)
+      - name: 安装构建依赖
+        if: matrix.language == 'cpp'
+        run: |
+          sudo apt-get update  # 更新包管理器索引
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
+
+      # 第五步：安装JavaScript依赖(仅对JavaScript代码扫描需要)
+      - name: 安装JavaScript依赖
+        if: matrix.language == 'javascript'
+        run: |
+          # 检查是否存在package.json文件
+          if [ -f "package.json" ]; then
+            npm ci  # 使用npm ci进行干净的依赖安装
+          else
+            echo "未找到package.json文件，跳过JavaScript依赖安装"
+          fi
+
+      # 第六步：手动构建项目(替代自动构建)
+      # 对于复杂的C++项目，手动构建通常比自动构建更可靠
+      - name: 手动构建项目
+        if: matrix.language == 'cpp'
+        run: |
+          mkdir build                    # 创建构建目录
+          cp cmake/config.cmake build   # 复制项目配置文件
+          cd build                       # 进入构建目录
+          cmake -G Ninja ..             # 配置CMake项目
+          ninja -j$(nproc)              # 并行编译项目
+
+      # 第七步：对于Python代码，使用自动构建
+      - name: Python自动构建
+        if: matrix.language == 'python'
+        uses: github/codeql-action/autobuild@v3
+
+      # 第八步：对于JavaScript代码，使用自动构建
+      - name: JavaScript自动构建
+        if: matrix.language == 'javascript'
+        uses: github/codeql-action/autobuild@v3
+
+      # 第九步：执行CodeQL分析
+      - name: 执行CodeQL安全分析
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"  # 为不同语言的分析结果分类
