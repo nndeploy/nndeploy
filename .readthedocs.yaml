@@ -43,7 +43,7 @@ build:
       # 验证Python包是否能正确导入
       - python -c "import sys; print('Python path:', sys.path)"
       - python -c "import os; print('LD_LIBRARY_PATH:', os.environ.get('LD_LIBRARY_PATH', 'Not set'))"
-      - python -c "try: import nndeploy; print('✅ nndeploy import successful'); except Exception as e: print('❌ nndeploy import failed:', e)"
+      - python -c "import nndeploy; print(nndeploy.__version__)"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

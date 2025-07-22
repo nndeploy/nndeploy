@@ -73,6 +73,8 @@ set(ENABLE_NNDEPLOY_OP OFF) # Whether to enable operator plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_NET OFF) # Whether to enable network plugin, default is OFF
 
+set(ENABLE_NNDEPLOY_INFERENCE_DEFAULT OFF) # 
+
 set(ENABLE_NNDEPLOY_PLUGIN OFF) # Whether to enable plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_DEMO OFF) # Whether to enable language model plugin, default is OFF
