@@ -99,4 +99,7 @@ try:
 except:
     print("❌ Doxygen 失败")
 doxygen_html_dir = os.path.abspath('./build_doxygen/html')
+# 删除doxygen_html_dir下index.html
+if os.path.exists(os.path.join(doxygen_html_dir, 'index.html')):
+    os.remove(os.path.join(doxygen_html_dir, 'index.html'))
 html_extra_path = [doxygen_html_dir]
