@@ -35,18 +35,49 @@ export const NodeStatusBar: React.FC<any> = (props) => {
   const isNodeDone = nodeInfo.status === WorkflowNodeStatus.DONE;
 
   const tagColor = () => {
+
+    if (isNodePending) {
+      return styles.nodeStatusPending;
+    }
+
+    if (isNodeRunning) {
+      return styles.nodeStatusRunning;
+    }
     if (isNodeDone) {
       return styles.nodeStatusSucceed;
     }
-    if (isNodePending) {
-      return styles.nodeStatusProcessing;
-    }
+
+
+
     return ""
+  }
+
+  const renderStatus = () => {
+    if (isNodePending) {
+      return <span className={classnames(styles.pending)}>
+        {nodeInfo.status}
+      </span>
+    }
+    if (isNodeRunning) {
+      return <span className={classnames(styles.running)}>
+        {nodeInfo.status}
+      </span>
+    }
+    if (isNodeDone) {
+      return <span className={classnames(styles.success)}>
+        {nodeInfo.status}
+      </span>
+    }
+
   }
 
   const renderIcon = () => {
     if (isNodePending) {
-      return <IconSpin spin className={classnames(styles.icon, styles.processing)} />;
+      return <IconSpin spin className={classnames(styles.icon, styles.pending)} />;
+    }
+
+    if (isNodeRunning) {
+      return <IconSpin spin className={classnames(styles.icon, styles.running)} />;
     }
     if (isNodeDone) {
       return <IconSuccessFill />;
@@ -64,7 +95,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
     header={
       <>
         {renderIcon()}
-        {nodeInfo.status}
+        {renderStatus()}
         {renderCost()}
       </>
     }
