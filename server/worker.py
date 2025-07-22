@@ -88,31 +88,47 @@ def malloc_trim():
 
 PROGRESS_INTERVAL_SEC = 0.5
 
-current_task_id_var = contextvars.ContextVar("task_id", default="0")
+_CURRENT_TASK_ID = "0"
+
+# current_task_id_var = contextvars.ContextVar("task_id", default="0")
 
 def set_current_task_id(task_id: str):
-    current_task_id_var.set(task_id)
+    global _CURRENT_TASK_ID
+    _CURRENT_TASK_ID = task_id
+    # current_task_id_var.set(task_id)
 
 def get_current_task_id() -> str:
-    return current_task_id_var.get()
+    return _CURRENT_TASK_ID
 
 class TaskLoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         task_id = get_current_task_id()
         return f"[task_id={task_id}] {msg}", kwargs
 
-def redirect_fd_to_logger(fd, level, label, logger):
-        read_fd, write_fd = os.pipe()
-        os.dup2(write_fd, fd)
-        ctx = contextvars.copy_context()
+# ---- global state ----
+_STDIO_REDIRECTED = False
+
+def redirect_fd_to_logger_once(logger):
+    global _STDIO_REDIRECTED
+    if _STDIO_REDIRECTED:
+        return
+    for fd, level, label in [(1, logging.INFO, "stdout"),
+                             (2, logging.ERROR, "stderr")]:
+        r, w = os.pipe()
+        os.dup2(w, fd)
+        os.close(w)
 
         def reader():
-            with os.fdopen(read_fd, "r") as pipe_reader:
-                for line in pipe_reader:
-                    line = line.strip()
+            with os.fdopen(r, "r", buffering=1) as pr:
+                for line in pr:
+                    line = line.rstrip()
                     if line:
-                        logger.log(level, f"[C++ {label}] {line}")
-        threading.Thread(target=lambda: ctx.run(reader), daemon=True).start()
+                        logger.log(level, f"[C++ {label}]{line}")
+
+        t = threading.Thread(target=reader, daemon=True,
+                             name=f"FDReader-{label}")
+        t.start()
+    _STDIO_REDIRECTED = True
 
 def configure_worker_logger(log_q) -> logging.LoggerAdapter:
     import sys
@@ -152,15 +168,16 @@ def poll_plugin_updates(plugin_update_q):
 
 def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
     logger = configure_worker_logger(log_q)
+    redirect_fd_to_logger_once(logger)
 
     executor = GraphExecutor()
+    logging.info("Worker PID=%s started", os.getpid())
 
     while True:
         try:
             item = task_q.get(timeout=1.0)
         except Empty:
             continue
-        logging.info("Worker PID=%s started", os.getpid())
 
         poll_plugin_updates(plugin_update_q)
 
@@ -171,9 +188,7 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
         done_evt = threading.Event()
 
         def _exec():
-            # set_current_task_id(task_id)
-            # redirect_fd_to_logger(1, logging.INFO, "stdout", logger)
-            # redirect_fd_to_logger(2, logging.ERROR, "stderr", logger)
+            set_current_task_id(task_id)
             try:
                 tp_map, results = executor.execute(payload["graph_json"], task_id)
                 result_holder["tp_map"] = tp_map
@@ -210,22 +225,23 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
         try:
             executor.runner.release()
         except Exception:
-            logging.warning("Graph release failed", exc_info=True)
+            logger.warning("Graph release failed", exc_info=True)
 
         # memory reclamation
         malloc_trim()
 
         if "error" in result_holder:
-            logging.error("Run failed: %s\n%s", result_holder["error"], result_holder.get("trace", ""))
+            logger.error("Run failed: %s\n%s", result_holder["error"], result_holder.get("trace", ""))
             status = ExecutionStatus(False, str(result_holder["error"]))
         else:
             time_profiler_map = result_holder["tp_map"]
             sum = time_profiler_map["sum_" + payload["graph_json"]["name_"]]
             status = ExecutionStatus(True, f"{sum:.2f}s")
-            logging.info("Task %s done in %.2fms", task_id, sum)
+            logger.info("Task %s done in %.2fms", task_id, sum)
 
         result_holder.pop("results", None)
         result_holder.pop("tp_map", None)
 
         gc.collect()
+        set_current_task_id("0")
         result_q.put((idx, status))
