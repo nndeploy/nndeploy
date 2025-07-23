@@ -8,6 +8,7 @@
 import os
 import sys
 import shutil
+import subprocess
 import sphinx_rtd_theme
 
 project = 'nndeploy'
@@ -199,9 +200,11 @@ def safe_import_with_fallback():
     if nndeploy_path not in sys.path:
         sys.path.insert(0, nndeploy_path)
     
-    try:       
+    try:
+        import nndeploy._nndeploy_internal
+        print("✅ nndeploy._nndeploy_internal模块导入成功")     
         # 尝试导入完整的nndeploy
-        import nndeploy
+        import nndeploy.dag
         print("✅ nndeploy模块导入成功")
         return True
         
@@ -301,23 +304,16 @@ intersphinx_mapping = {
 }
 
 # -- C++ API 配置 -------------------------------------------------------------
-# 定义 Doxygen XML 的输出路径
-# doxygen_xml_path = os.path.abspath("./build_doxygen/xml")
-
-# breathe_projects = {
-#     "nndeploy": doxygen_xml_path
-# }
-# breathe_default_project = "nndeploy"
-print("🧬 运行 Doxygen...")
-try:
-    import subprocess
-    if os.path.exists('Doxyfile'):
-        subprocess.run(['doxygen'], check=True)
-        print("✅ Doxygen 完成")
-    else:
-        print("⚠️  Doxyfile 不存在，跳过")
-except:
-    print("❌ Doxygen 失败")
+# print("🧬 运行 Doxygen...")
+# try:
+#     import subprocess
+#     if os.path.exists('Doxyfile'):
+#         subprocess.run(['doxygen'], check=True)
+#         print("✅ Doxygen 完成")
+#     else:
+#         print("⚠️  Doxyfile 不存在，跳过")
+# except:
+#     print("❌ Doxygen 失败")
 doxygen_html_dir = os.path.abspath('./build_doxygen/html')
 # 删除doxygen_html_dir下index.html
 if os.path.exists(os.path.join(doxygen_html_dir, 'index.html')):
