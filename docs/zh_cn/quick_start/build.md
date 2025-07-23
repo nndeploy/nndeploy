@@ -34,6 +34,23 @@ python3 clone_submodule.py
 > + [huggingface](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party)：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
 > + [modelscope](https://www.modelscope.cn/models/nndeploy/third_party)：https://www.modelscope.cn/models/nndeploy/third_party
 
+
+### 编译宏编辑规则
+
+对于绝大部分编译选项，只用ON/OFF即可。
+
+但对于外部依赖的三方库，有如下三种`使能并链接外部的第三方库的方法`
+
++ `方法一`：路径`path`，头文件以及库的根路径，其形式必须修改为
+  + 头文件：`path/include`
+  + 库：`path/lib `
+  + windows dll: `path/bin`
+  + 相应的库：ONNXRuntime、OpenVINO、TNN、MNN、Window已经编译好的OpenCV的库
++ `方法二`：开关`ON`，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式
+  + 相应的库：Linux平台下的CUDA、CUDNN、TenosrRT、OpenCV
++ `方法三`：源码`ON`，使用源码编译该库，对应third_party目录下的库，可以采用该方式
+  + 相应的库：tokenizer-cpp、rapidjson、gflags、ONNX
+
 ## 3. 编译方法
 
 [config.cmake](../../../cmake/config.cmake)是nndeploy的编译配置文件，用于控制项目的编译选项。

@@ -28,37 +28,37 @@ def build_and_install_nndeploy():
     python_dir = os.path.join(project_root, 'python')
     
     try:
-        # 1. 初始化子模块
-        print("📦 初始化子模块...")
-        subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], 
-                      cwd=project_root, check=True, capture_output=True)
-        print("✅ 子模块初始化完成")
+        # # 1. 初始化子模块
+        # print("📦 初始化子模块...")
+        # subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], 
+        #               cwd=project_root, check=True, capture_output=True)
+        # print("✅ 子模块初始化完成")
         
-        # 2. 创建并进入build目录
-        print("🏗️  创建build目录...")
-        os.makedirs(build_dir, exist_ok=True)
-        # 拷贝cmake/config.cmake到build/config.cmake
-        config_src = os.path.join(project_root, 'cmake', 'config.cmake')
-        config_dst = os.path.join(build_dir, 'config.cmake')
-        shutil.copyfile(config_src, config_dst)
-        print("✅ 已拷贝 config.cmake 到 build 目录")
+        # # 2. 创建并进入build目录
+        # print("🏗️  创建build目录...")
+        # os.makedirs(build_dir, exist_ok=True)
+        # # 拷贝cmake/config.cmake到build/config.cmake
+        # config_src = os.path.join(project_root, 'cmake', 'config.cmake')
+        # config_dst = os.path.join(build_dir, 'config.cmake')
+        # shutil.copyfile(config_src, config_dst)
+        # print("✅ 已拷贝 config.cmake 到 build 目录")
         
-        # 3. CMAKE配置
-        print("⚙️  执行CMAKE配置...")
-        cmake_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '..']
-        subprocess.run(cmake_cmd, cwd=build_dir, check=True, capture_output=True)
-        print("✅ CMAKE配置完成")
+        # # 3. CMAKE配置
+        # print("⚙️  执行CMAKE配置...")
+        # cmake_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '..']
+        # subprocess.run(cmake_cmd, cwd=build_dir, check=True, capture_output=True)
+        # print("✅ CMAKE配置完成")
         
-        # 4. 编译
-        print("🔨 开始编译...")
-        make_cmd = ['make', f'-j{os.cpu_count()}']
-        subprocess.run(make_cmd, cwd=build_dir, check=True, capture_output=True)
-        print("✅ 编译完成")
+        # # 4. 编译
+        # print("🔨 开始编译...")
+        # make_cmd = ['make', f'-j{os.cpu_count()}']
+        # subprocess.run(make_cmd, cwd=build_dir, check=True, capture_output=True)
+        # print("✅ 编译完成")
         
-        # 5. 安装
-        print("📦 执行make install...")
-        subprocess.run(['make', 'install'], cwd=build_dir, check=True, capture_output=True)
-        print("✅ make install完成")
+        # # 5. 安装
+        # print("📦 执行make install...")
+        # subprocess.run(['make', 'install'], cwd=build_dir, check=True, capture_output=True)
+        # print("✅ make install完成")
         
         # 6. 设置库路径并安装Python包
         print("🐍 安装Python包...")
@@ -248,8 +248,7 @@ def safe_import_with_fallback():
             print("✅ Mock模块设置完成")
             return False
         
-        
-
+           
 # 执行安全导入
 is_real_module = safe_import_with_fallback()
 
