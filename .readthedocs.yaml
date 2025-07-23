@@ -38,11 +38,7 @@ build:
       # 进入构建目录进行配置和编译
       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
       # 安装nndeploy Python包(开发者模式)
-      - echo "export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH" >> ~/.bashrc
-      - cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
-      # 验证Python包是否能正确导入
-      - python -c "import os; print('LD_LIBRARY_PATH:', os.environ.get('LD_LIBRARY_PATH', 'Not set'))"
-      - python -c "import nndeploy; print(nndeploy.__version__)"
+      - export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH && cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
