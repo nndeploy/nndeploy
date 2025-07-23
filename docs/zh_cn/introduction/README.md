@@ -1,9 +1,27 @@
 
 [English](README_EN.md) | 简体中文
 
-<h3 align="center">
-基于工作流的多端AI部署工具
-</h3>
+<h1 align="center">
+nndeploy：一款基于工作流的多端AI部署工具
+</h1>
+
+<p align="center">
+<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml/badge.svg" alt="Android">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS">
+</a>
+</p>
 
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
@@ -14,31 +32,19 @@
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
 </p>
 
-<p align="center">
-<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
-</a>
-</p>
 
-<!-- 动图形式 -->
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
-    <img alt="nndeploy" src="../../image/workflow.png" width=100%>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
+    <img alt="nndeploy" src="docs/image/workflow.png" width=100%>
   </picture>
 </p>
 
 ---
 
 ## 最新动态
-- [2025/07/20] 🔥 **可视化工作流**：通过拖拉拽部署AI算法 ([视频](视频连接))
-- [2025/07/20] 🔥 **Python API**：快速入门，便捷开发 ([文档](文档连接))
+- [2025/07/20] 🔥 **可视化工作流**：通过拖拉拽部署AI算法
+- [2025/07/20] 🔥 **Python API**：快速入门，便捷开发 ([文档](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
 - [2025/05/29] 🔥 **与华为昇腾合作推理框架课程**：官方认证，专业指导 ([链接](https://www.hiascend.com/developer/courses/detail/1923211251905150977))
 
 ---
@@ -55,7 +61,7 @@
 | **大语言模型** | QWen-0.5B |
 | **换脸** | deep-live-cam |
 
-> [已部署模型详情列表](../../zh_cn/quick_start/model_list.md)
+> [已部署模型详情列表](docs/zh_cn/quick_start/model_list.md)
 
 ## 介绍
 
@@ -83,7 +89,7 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅ |
   | [TVM](https://github.com/apache/tvm) | ✅ |
   | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | ✅ |
-  | [自研推理框架](../../zh_cn/inference/README_INFERENCE.md) | ✅ |
+  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | ✅ |
 
 ### 2. AI部署的性能工具
 
@@ -93,8 +99,6 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
   
 - **高性能优化**：内置C++/CUDA/SIMD等优化实现的节点
 
-> TODO性能图表
-
 ### 3. AI部署的创意工具
 
 - **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
@@ -103,15 +107,14 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 
 - **所调即所见**：前端可视化调节AI算法部署的所有节点参数，快速预览算法调参后的效果
 
-> TODO组合算法的展示
-
 ## 快速开始
 
-- [如何编译](../../zh_cn/quick_start/build.md)
-- [如何获取模型](../../zh_cn/quick_start/model.md)
-- [如何执行](../../zh_cn/quick_start/example.md)
-- [nndeploy Python 快速入门](../../zh_cn/quick_start/python.md)
-- [工作流教程](视频转换为文档)
+- [如何编译](docs/zh_cn/quick_start/build.md)
+- [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [如何执行](docs/zh_cn/quick_start/example.md)
+- [nndeploy C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [nndeploy Python 快速入门](docs/zh_cn/quick_start/python.md)
+- [nndeploy Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 
 ## 下一步计划
 
@@ -123,7 +126,7 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 ## 联系我们
 - 欢迎加入交流群！微信：titian5566（请简单备注个人信息^_^）
   
-  <img src="../../image/wechat.jpg" width="225px">
+  <img src="docs/image/wechat.jpg" width="225px">
 
 ## 致谢
 

@@ -303,16 +303,16 @@ intersphinx_mapping = {
 }
 
 # -- C++ API 配置 -------------------------------------------------------------
-# print("🧬 运行 Doxygen...")
-# try:
-#     import subprocess
-#     if os.path.exists('Doxyfile'):
-#         subprocess.run(['doxygen'], check=True)
-#         print("✅ Doxygen 完成")
-#     else:
-#         print("⚠️  Doxyfile 不存在，跳过")
-# except:
-#     print("❌ Doxygen 失败")
+print("🧬 运行 Doxygen...")
+try:
+    import subprocess
+    if os.path.exists('Doxyfile'):
+        subprocess.run(['doxygen'], check=True)
+        print("✅ Doxygen 完成")
+    else:
+        print("⚠️  Doxyfile 不存在，跳过")
+except:
+    print("❌ Doxygen 失败")
 doxygen_html_dir = os.path.abspath('./build_doxygen/html')
 # 删除doxygen_html_dir下index.html
 if os.path.exists(os.path.join(doxygen_html_dir, 'index.html')):
