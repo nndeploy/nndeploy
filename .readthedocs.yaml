@@ -24,21 +24,21 @@ build:
     - libopencv-dev
     - protobuf-compiler
     - libprotobuf-dev
-  jobs:
-    post_checkout:
-      # 确保所有子模块被正确初始化和更新
-      - git submodule update --init --recursive
-    post_install:
-      # 在安装依赖包后立即验证cmake是否可用
-      - which cmake
-      - cmake --version
-    pre_build:
-      # 创建build目录
-      - mkdir -p build
-      # 进入构建目录进行配置和编译
-      - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
-      # 安装nndeploy Python包(开发者模式)
-      - export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH && cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
+#   jobs:
+#     post_checkout:
+#       # 确保所有子模块被正确初始化和更新
+#       - git submodule update --init --recursive
+#     post_install:
+#       # 在安装依赖包后立即验证cmake是否可用
+#       - which cmake
+#       - cmake --version
+#     pre_build:
+#       # 创建build目录
+#       - mkdir -p build
+#       # 进入构建目录进行配置和编译
+#       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
+#       # 安装nndeploy Python包(开发者模式)
+#       - export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH && cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

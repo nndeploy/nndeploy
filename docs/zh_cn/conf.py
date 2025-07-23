@@ -7,6 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+import shutil
 import sphinx_rtd_theme
 
 project = 'nndeploy'
@@ -26,15 +27,20 @@ def build_and_install_nndeploy():
     python_dir = os.path.join(project_root, 'python')
     
     try:
-        # # 1. 初始化子模块
-        # print("📦 初始化子模块...")
-        # subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], 
-        #               cwd=project_root, check=True, capture_output=True)
-        # print("✅ 子模块初始化完成")
+        # 1. 初始化子模块
+        print("📦 初始化子模块...")
+        subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], 
+                      cwd=project_root, check=True, capture_output=True)
+        print("✅ 子模块初始化完成")
         
-        # # 2. 创建并进入build目录
-        # print("🏗️  创建build目录...")
-        # os.makedirs(build_dir, exist_ok=True)
+        # 2. 创建并进入build目录
+        print("🏗️  创建build目录...")
+        os.makedirs(build_dir, exist_ok=True)
+        # 拷贝cmake/config.cmake到build/config.cmake
+        config_src = os.path.join(project_root, 'cmake', 'config.cmake')
+        config_dst = os.path.join(build_dir, 'config.cmake')
+        shutil.copyfile(config_src, config_dst)
+        print("✅ 已拷贝 config.cmake 到 build 目录")
         
         # 3. CMAKE配置
         print("⚙️  执行CMAKE配置...")
