@@ -23,7 +23,7 @@ def extract_encode_output_paths(task_json: Dict[str, Any]) -> List[Dict[str, str
                     preview_path.append({"name": name, "path": path})
             if node.get("key_") in text_target_keys:
                 name = node.get("name_", "")
-                text = Path(".tmp/output.txt").read_text(encoding="utf-8")
+                text = Path(".tmp/output_" + name + ".txt").read_text(encoding="utf-8")
                 if text:
                     preview_text.append({"name": name, "text":text})
 

@@ -255,7 +255,8 @@ base::Status PrintNode::run() {
     }
   }
 
-  std::string file_path = tmp_dir + "/output.txt";
+  // std::string file_path = tmp_dir + "/output.txt";
+  std::string file_path = tmp_dir + "/output_" + name_ + ".txt";
 
   std::ofstream ofs(file_path.c_str());
   if (!ofs) {
