@@ -106,6 +106,9 @@ instance/
 
 # Sphinx documentation
 docs/build/
+docs/zh_cn/build_doxygen/
+docs/zh_cn/python_api/generated/
+docs/zh_cn/build/
 
 # PyBuilder
 .pybuilder/
@@ -267,8 +270,12 @@ server/resources/**
 # keep readme file
 !server/resources/README*
 
-# llm node temporary file
 .tmp/
 
-# front resources dir
-resources/
+weights/
+
+# server/resources rule
+resources/**
+
+# # keep readme file
+# !resources/README*

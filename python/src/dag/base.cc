@@ -24,7 +24,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(py::init<>())
       .def(py::init<const EdgeTypeInfo&>())
       .def("set_buffer_type", &EdgeTypeInfo::setType<device::Buffer>)
+#ifdef ENABLE_NNDEPLOY_OPENCV
       .def("set_cvmat_type", &EdgeTypeInfo::setType<cv::Mat>)
+#endif
       .def("set_tensor_type", &EdgeTypeInfo::setType<device::Tensor>)
       .def("set_param_type", &EdgeTypeInfo::setType<base::Param>)
       .def("set_type", [](EdgeTypeInfo& self, py::object type_val) {
@@ -101,7 +103,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_unique_type_name", &EdgeTypeInfo::getUniqueTypeName)
       .def("get_type_ptr", &EdgeTypeInfo::getTypePtr)
       .def("is_buffer_type", &EdgeTypeInfo::isType<device::Buffer>)
+#ifdef ENABLE_NNDEPLOY_OPENCV
       .def("is_cvmat_type", &EdgeTypeInfo::isType<cv::Mat>)
+#endif
       .def("is_tensor_type", &EdgeTypeInfo::isType<device::Tensor>)
       .def("is_param_type", &EdgeTypeInfo::isType<base::Param>)
       // .def("create_buffer", &EdgeTypeInfo::createType<device::Buffer>)
@@ -109,7 +113,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       // .def("create_tensor", &EdgeTypeInfo::createType<device::Tensor>)
       // .def("create_param", &EdgeTypeInfo::createType<base::Param>)
       .def("check_buffer_type", &EdgeTypeInfo::checkType<device::Buffer>)
+#ifdef ENABLE_NNDEPLOY_OPENCV
       .def("check_cvmat_type", &EdgeTypeInfo::checkType<cv::Mat>)
+#endif
       .def("check_tensor_type", &EdgeTypeInfo::checkType<device::Tensor>)
       .def("check_param_type", &EdgeTypeInfo::checkType<base::Param>)
       .def("set_edge_name", &EdgeTypeInfo::setEdgeName)

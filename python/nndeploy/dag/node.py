@@ -452,9 +452,9 @@ def import_global_import_lib():
     
 remove_node_keys = [
     "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition",
-    # "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
-    # "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
-    # "nndeploy::preprocess::BatchPreprocess"
+    "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
+    "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
+    "nndeploy::preprocess::BatchPreprocess"
 ]
 
 

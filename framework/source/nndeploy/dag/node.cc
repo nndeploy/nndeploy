@@ -101,8 +101,8 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
         // NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
         inputs_.push_back(input_name);
       } else {
-        NNDEPLOY_LOGE("Invalid input format at index %d\n", i);
-        return base::kStatusCodeErrorInvalidValue;
+        NNDEPLOY_LOGI("Invalid input format at index %d\n", i);
+        // return base::kStatusCodeErrorInvalidValue;
       }
     }
   }
@@ -116,9 +116,9 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
         // NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
         outputs_.push_back(output_name);
       } else {
-        NNDEPLOY_LOGE("node[%s] Invalid output format at index %d\n",
+        NNDEPLOY_LOGI("node[%s] Invalid output format at index %d\n",
                       node_name_.c_str(), i);
-        return base::kStatusCodeErrorInvalidValue;
+        // return base::kStatusCodeErrorInvalidValue;
       }
     }
   }

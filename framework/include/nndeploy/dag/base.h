@@ -59,14 +59,14 @@ std::string typeName() {
   const size_t start = function.find(prefix) + prefix.size();
   const size_t end = function.find(suffix, start);
   std::string_view type_view = function.substr(start, end - start);
-  
+
   // 查找分号位置，如果存在则只返回分号前的部分
   std::string type_str(type_view);
   size_t semicolon_pos = type_str.find(';');
   if (semicolon_pos != std::string::npos) {
     return type_str.substr(0, semicolon_pos);
   }
-  
+
   return type_str;
 }
 
@@ -114,10 +114,14 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
     if constexpr (std::is_same<DT, device::Buffer>::value) {
       type_ = EdgeTypeFlag::kBuffer;
       // type_name_ = "Buffer";
-    } else if constexpr (std::is_same<DT, cv::Mat>::value) {
+    }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+    else if constexpr (std::is_same<DT, cv::Mat>::value) {
       type_ = EdgeTypeFlag::kCvMat;
       // type_name_ = "numpy.ndarray";
-    } else if constexpr (std::is_same<DT, device::Tensor>::value) {
+    }
+#endif
+    else if constexpr (std::is_same<DT, device::Tensor>::value) {
       type_ = EdgeTypeFlag::kTensor;
       // type_name_ = "Tensor";
     } else if constexpr (std::is_base_of<base::Param, DT>::value) {
@@ -272,9 +276,6 @@ struct NNDEPLOY_CC_API RunStatus {
     } else if (run_size > 0 && completed_size > 0 &&
                graph_run_size == completed_size) {
       return "DONE";
-    } else if (run_size > 0 && completed_size > 0 &&
-               graph_run_size > run_size) {
-      return "PENDING";
     } else {
       return "IDLE";
     }
