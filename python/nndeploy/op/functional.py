@@ -97,10 +97,20 @@ def rms_norm(input, weight, epsilon=1e-5):
     return Tensor(_C.op.rms_norm(input, weight, param))
 
 
+def reshape(input, shape, allowzero=0):
+    param = _C.ir.ReshapeParam()
+    param.allowzero_  = allowzero
+    return Tensor(_C.op.reshape(input, shape, param))
+
+
 def softmax(input, axis=1):
     param = _C.ir.SoftmaxParam()
     param.axis_ = axis
     return Tensor(_C.op.softmax(input, param))
+
+
+def slice(input, starts, ends, axes, steps):
+    return _C.op.slice(input, starts, ends, axes, steps)
 
 
 def sigmoid(input):

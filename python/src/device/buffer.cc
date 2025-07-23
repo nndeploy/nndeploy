@@ -84,6 +84,9 @@ base::DataType getDataTypeFromNumpy(char kind, int itemsize) {
     case 'd':
       data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
       break;
+    case 'l':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
     default:
       std::stringstream ss;
       ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "

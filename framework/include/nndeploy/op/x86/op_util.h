@@ -16,6 +16,7 @@ void read_from_dnnl_memory(void* handle, dnnl::memory& mem);
 
 void print_memory_desc(const dnnl::memory::desc &md);
 
+long long normalize_index(long long index, long long dim_size);
 }  // namespace op
 }  // namespace nndeploy
 

@@ -15,6 +15,7 @@ class TestGeluOp(unittest.TestCase):
 
     def test_gelu(self):
         src_shape = [1, 3, 16, 1000]
+        torch.slice_copy
 
         np_src = np.random.uniform(-5, 5, src_shape).astype(np.float32)
 
