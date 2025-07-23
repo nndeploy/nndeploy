@@ -17,6 +17,11 @@ export interface IWorkFlowBranchEntity{
   
 }
 
+export interface ITreeWorkFlowResponseData{
+  fileNames: string[],
+  workflows: IBusinessNode[]
+}
+
 export interface IBusinessNode{
   key_: string; 
   name_: string; 

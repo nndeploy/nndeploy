@@ -25,8 +25,7 @@ NNDEPLOY_API_PYBIND11_MODULE("classification", m) {
                     std::vector<dag::Edge *>>())
       .def("run", &ClassificationPostProcess::run);
 
-  py::class_<ClassificationGraph, dag::Graph>(m,
-                                                    "ClassificationGraph")
+  py::class_<ClassificationGraph, dag::Graph>(m, "ClassificationGraph")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
                     std::vector<dag::Edge *>>())
@@ -38,6 +37,20 @@ NNDEPLOY_API_PYBIND11_MODULE("classification", m) {
       .def("setTopk", &ClassificationGraph::setTopk)
       .def("setSoftmax", &ClassificationGraph::setSoftmax)
       .def("forward", &ClassificationGraph::forward,
+           py::return_value_policy::reference);
+
+  py::class_<ResnetGraph, dag::Graph>(m, "ResnetGraph")
+      .def(py::init<const std::string &>())
+      .def(py::init<const std::string &, std::vector<dag::Edge *>,
+                    std::vector<dag::Edge *>>())
+      .def("defaultParam", &ResnetGraph::defaultParam)
+      .def("make", &ResnetGraph::make)
+      .def("setInferenceType", &ResnetGraph::setInferenceType)
+      .def("setInferParam", &ResnetGraph::setInferParam)
+      .def("setSrcPixelType", &ResnetGraph::setSrcPixelType)
+      .def("setTopk", &ResnetGraph::setTopk)
+      .def("setSoftmax", &ResnetGraph::setSoftmax)
+      .def("forward", &ResnetGraph::forward,
            py::return_value_policy::reference);
 }
 

@@ -416,3 +416,30 @@ py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
 - cpp的枚举导出，python侧继承，传参更方便
 
 - python侧对于大类，继承+门面模式
+
+## 2025.07.14
++ 界面细节
+  + port端口名称（基本数据结构 buffer、tensor、numpy.numpy、cv::Mat、param）（ok）
+  + 报错信息(ok)
+  + 连线验证
+  + 参数验证(ok)
+  + 节点窗口大小保持一致
++ 建立标准的workflow - github仓库
++ 分类算法
++ graph node不该导出等等节点的屏蔽（ok）
++ 二级目录（ok）
+
+## 2025.07.15
++ 给红哥提供 - 一个接口 
+  + all_node_json
+  + edge_json
+  + graph_json
++ 完善换脸算法
++ comfyui的pytorch实现
++ workflow
+  + 分类
+  + 检测
+  + 分割
+  + 分类 + 检测 + 分割
+  + 换脸
+  + 换脸 + 分割

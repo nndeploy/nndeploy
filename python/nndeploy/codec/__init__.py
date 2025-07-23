@@ -5,12 +5,12 @@ from nndeploy.codec.codec import create_encode_node
 
 from nndeploy.codec.codec import OpenCvImageDecode
 from nndeploy.codec.codec import OpenCvImagesDecode
-from nndeploy.codec.codec import OpenCvVedioDecode
+from nndeploy.codec.codec import OpenCvVideoDecode
 from nndeploy.codec.codec import OpenCvCameraDecode
 
 from nndeploy.codec.codec import OpenCvImageEncode
 from nndeploy.codec.codec import OpenCvImagesEncode
-from nndeploy.codec.codec import OpenCvVedioEncode
+from nndeploy.codec.codec import OpenCvVideoEncode
 from nndeploy.codec.codec import OpenCvCameraEncode
 
 from nndeploy.codec.codec import create_opencv_decode

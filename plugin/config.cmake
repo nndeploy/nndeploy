@@ -43,6 +43,7 @@ endif()
 # # llm 
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/llm/config.cmake)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/qwen/config.cmake)
 endif()
 
 # # detect

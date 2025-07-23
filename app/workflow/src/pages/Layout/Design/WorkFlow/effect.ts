@@ -6,13 +6,15 @@ import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 export function useGetWorkflowTree(): {
  // flatData: IBusinessNode[];
   //setFlatData: React.Dispatch<React.SetStateAction<IBusinessNode[]>>;
-
+  fileNames: string[];
   treeData: TreeNodeData[];
   setTreeData: React.Dispatch<React.SetStateAction<TreeNodeData[]>>;
   getWorkFlowTree: () => Promise<void>;
 } {
  // const [flatData, setFlatData] = useState<IBusinessNode[]>([]);
   const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
+
+  const [fileNames, setFileNames] = useState<string[]>([]);
 
   // function buildTreeFromArray(
   //   data: IWorkFlowTreeNodeEntity[],
@@ -40,10 +42,18 @@ export function useGetWorkflowTree(): {
 
   async function getWorkFlowTree() {
     const res = await apiGetWorkFlowTree();
-    const treeData = res.result.map(item=>{
+    if(res.flag != 'success'){
+      return
+    }
+
+    const {fileNames, workflows}  =res.result
+
+    setFileNames(fileNames)
+
+    const treeData = workflows.map((item, index)=>{
       return {
         key: item.name_, 
-        label: item.name_, 
+        label: fileNames[index], 
         children: undefined
       }
     })
@@ -55,16 +65,16 @@ export function useGetWorkflowTree(): {
 
   }
 
-  useEffect(() => {
-    getWorkFlowTree()
-  }, []);
+  // useEffect(() => {
+  //   getWorkFlowTree()
+  // }, []);
 
   // useEffect(() => {
   //   const tree = buildTreeFromArray(flatData);
   //   setTreeData(tree);
   // }, [flatData]);
 
-  return { treeData, setTreeData,  getWorkFlowTree };
+  return { treeData, setTreeData,  getWorkFlowTree,  fileNames};
 }
 
 // export function useGetWorkflowBranch(): {

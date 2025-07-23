@@ -17,53 +17,70 @@ from .edge import Edge
 from .base import EdgeTypeInfo
 
 class GraphRunner:
+    def __init__(self):
+        self.graph = None
+        self.is_dump = False
+    
     def _build_graph(self, graph_json_str: str, name: str):
-        graph = Graph(name)
-        status = graph.deserialize(graph_json_str)
+        self.graph = Graph(name)
+        status = self.graph.deserialize(graph_json_str)
         if status != nndeploy.base.StatusCode.Ok:
             raise RuntimeError(f"deserialize failed: {status}")
-        return graph
+        return self.graph
     
+    def get_run_status(self):
+        if self.graph is None:
+            return "{}"
+        run_status_map = self.graph.get_nodes_run_status_recursive()
+        json_obj = {}
+        for node_name, run_status in run_status_map.items():
+            json_obj[node_name] = {"time": run_status.average_time, "status": run_status.get_status()}
+        return json_obj
+
+    def release(self):
+        if self.graph is not None:
+            self.graph = None
+        import gc; gc.collect()
+
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
-        add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-        add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
-        import_global_import_lib()
-        
+        # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+        # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+        # import_global_import_lib()
+
         nndeploy.base.time_profiler_reset()
-        
+
         nndeploy.base.time_point_start("deserialize_" + name)
-        graph = self._build_graph(graph_json_str, name)
+        self.graph = self._build_graph(graph_json_str, name)
         nndeploy.base.time_point_end("deserialize_" + name)
 
-        graph.set_time_profile_flag(True)
-        graph.set_debug_flag(True)
-        # graph.set_parallel_type(nndeploy.base.ParallelType.Task)
-        # graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
-        
+        self.graph.set_time_profile_flag(True)
+        self.graph.set_debug_flag(False)
+        # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
+        # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+
         nndeploy.base.time_point_start("init_" + name)
-        status = graph.init()
+        status = self.graph.init()
         if status != nndeploy.base.StatusCode.Ok:
             raise RuntimeError(f"init failed: {status}")
         nndeploy.base.time_point_end("init_" + name)
-        
-        parallel_type = graph.get_parallel_type()
+
+        parallel_type = self.graph.get_parallel_type()
         results = []
-        
-        is_dump = True
-        if is_dump:
-            graph.dump()
+
+        if self.is_dump:
+            self.graph.dump()
         
         nndeploy.base.time_point_start("sum_" + name)
-        count = graph.get_loop_count()
+        count = self.graph.get_loop_count()
         for i in range(count):
             t0_0 = time.perf_counter()
-            status = graph.run()
+            status = self.graph.run()
             if status != nndeploy.base.StatusCode.Ok:
                 raise RuntimeError(f"run failed: {status}")
             t1_0 = time.perf_counter()
             print(f"run {i} times, time: {t1_0 - t0_0}")   
             if parallel_type != nndeploy.base.ParallelType.Pipeline:
-                outputs = graph.get_all_output()
+                outputs = self.graph.get_all_output()
                 for output in outputs:
                     result = output.get_graph_output()
                     if result is not None:
@@ -71,35 +88,30 @@ class GraphRunner:
                         results.append(copy_result)
         if parallel_type == nndeploy.base.ParallelType.Pipeline:
             for i in range(count):
-                outputs = graph.get_all_output()
+                outputs = self.graph.get_all_output()
                 for output in outputs:
                     result = output.get_graph_output()
                     if result is not None:
                         copy_result = copy.deepcopy(result)
                         results.append(copy_result)
-        flag = graph.synchronize()
+        flag = self.graph.synchronize()
         if not flag:
             raise RuntimeError(f"synchronize failed")  
         nndeploy.base.time_point_end("sum_" + name)
         
-        nodes_name = graph.get_nodes_name_recursive()
-        time_profiler_map = {}
-        for node_name in nodes_name:
-            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
-        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
-        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
-        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
+        nodes_name = self.graph.get_nodes_name_recursive()
         
-        print(time_profiler_map)
-        nndeploy.base.time_profiler_print(name)
+        # print(time_profiler_map)
+        # nndeploy.base.time_profiler_print(name)
         
         # 另一个线程启动的函数
-        run_status_map = graph.get_nodes_run_status_recursive()
-        for node_name, run_status in run_status_map.items():
-            print(f"{node_name}: {run_status.get_status()}, {run_status}")
+        # run_status_map = self.get_run_status()
+        # print(run_status_map)
             
-        graph.deinit()
-        del graph
+        nndeploy.base.time_point_start("deinit_" + name)    
+        status = self.graph.deinit()
+        if status != nndeploy.base.StatusCode.Ok:
+            raise RuntimeError(f"deinit failed: {status}")
         
         is_release_cuda_cache = True
         if is_release_cuda_cache:
@@ -108,6 +120,17 @@ class GraphRunner:
                 torch.cuda.empty_cache()
             except ImportError:
                 pass
+        nndeploy.base.time_point_end("deinit_" + name)  
+            
+        run_status_map = self.get_run_status()
+        print(run_status_map)
+        
+        time_profiler_map = {}
+        for node_name in nodes_name:
+            time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
+        time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
+        time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
+        time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
         
         return time_profiler_map, results
         

@@ -498,7 +498,30 @@ base::Status InferenceParam::serialize(
       model_value_array.PushBack(str, allocator);
     }
     json.AddMember("model_value_", model_value_array, allocator);
+
+    rapidjson::Value external_model_data_array(rapidjson::kArrayType);
+    std::vector<std::string> model_data_temp;
+    if (external_model_data_.size() == 0) {
+      model_data_temp.push_back("");
+    } else {
+      model_data_temp = external_model_data_;
+    }
+    for (const auto& value : model_data_temp) {
+      rapidjson::Value str;
+      str.SetString(value.c_str(), value.length(), allocator);
+      external_model_data_array.PushBack(str, allocator);
+    }
+    json.AddMember("external_model_data_", external_model_data_array,
+                   allocator);
   }
+
+  std::string device_type_str = base::deviceTypeToString(device_type_);
+  json.AddMember("device_type_",
+                 rapidjson::Value(device_type_str.c_str(),
+                                  device_type_str.length(), allocator),
+                 allocator);
+  json.AddMember("num_thread_", num_thread_, allocator);
+  json.AddMember("gpu_tune_kernel_", gpu_tune_kernel_, allocator);
 
   json.AddMember("input_num_", input_num_, allocator);
   rapidjson::Value input_name_array(rapidjson::kArrayType);
@@ -555,13 +578,7 @@ base::Status InferenceParam::serialize(
       "license_",
       rapidjson::Value(license_.c_str(), license_.length(), allocator),
       allocator);
-  std::string device_type_str = base::deviceTypeToString(device_type_);
-  json.AddMember("device_type_",
-                 rapidjson::Value(device_type_str.c_str(),
-                                  device_type_str.length(), allocator),
-                 allocator);
-  json.AddMember("num_thread_", num_thread_, allocator);
-  json.AddMember("gpu_tune_kernel_", gpu_tune_kernel_, allocator);
+
   std::string share_memory_type_str =
       base::shareMemoryTypeToString(share_memory_mode_);
   json.AddMember("share_memory_mode_",
@@ -665,6 +682,19 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
       } else {
         for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
           model_value_.push_back(model_value_array[i].GetString());
+        }
+      }
+    }
+
+    if (json.HasMember("external_model_data_")) {
+      const rapidjson::Value& model_data_array = json["external_model_data_"];
+      external_model_data_.clear();
+      if (model_data_array.Size() == 1 &&
+          model_data_array[0].GetString() == "") {
+        ;
+      } else {
+        for (rapidjson::SizeType i = 0; i < model_data_array.Size(); i++) {
+          external_model_data_.push_back(model_data_array[i].GetString());
         }
       }
     }
@@ -784,12 +814,12 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
     min_shape_.clear();
     auto size = min_shape_obj.Size();
     if (size == 1) {
-      std::string name = min_shape_obj.GetObject().MemberBegin()->name.GetString();
-      auto shape_array = min_shape_obj.GetObject().MemberBegin()->value.GetArray();
-      if (shape_array.Size() == 4 &&
-          shape_array[0].GetInt() == -1 &&
-          shape_array[1].GetInt() == -1 &&
-          shape_array[2].GetInt() == -1 &&
+      std::string name =
+          min_shape_obj.GetObject().MemberBegin()->name.GetString();
+      auto shape_array =
+          min_shape_obj.GetObject().MemberBegin()->value.GetArray();
+      if (shape_array.Size() == 4 && shape_array[0].GetInt() == -1 &&
+          shape_array[1].GetInt() == -1 && shape_array[2].GetInt() == -1 &&
           shape_array[3].GetInt() == -1) {
         // NNDEPLOY_LOGE("min_shape_ is empty\n");
         ;
@@ -822,12 +852,12 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
     opt_shape_.clear();
     auto size = opt_shape_obj.Size();
     if (size == 1) {
-      std::string name = opt_shape_obj.GetObject().MemberBegin()->name.GetString();
-      auto shape_array = opt_shape_obj.GetObject().MemberBegin()->value.GetArray();
-      if (shape_array.Size() == 4 &&
-          shape_array[0].GetInt() == -1 &&
-          shape_array[1].GetInt() == -1 &&
-          shape_array[2].GetInt() == -1 &&
+      std::string name =
+          opt_shape_obj.GetObject().MemberBegin()->name.GetString();
+      auto shape_array =
+          opt_shape_obj.GetObject().MemberBegin()->value.GetArray();
+      if (shape_array.Size() == 4 && shape_array[0].GetInt() == -1 &&
+          shape_array[1].GetInt() == -1 && shape_array[2].GetInt() == -1 &&
           shape_array[3].GetInt() == -1) {
         // NNDEPLOY_LOGE("opt_shape_ is empty\n");
         ;
@@ -850,7 +880,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
         }
         // NNDEPLOY_LOGE("opt_shape_ %s %d %d %d %d\n", key.c_str(), shape[0],
         //               shape[1], shape[2], shape[3]);
-        opt_shape_[key] = shape;         
+        opt_shape_[key] = shape;
       }
     }
   }
@@ -860,12 +890,12 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
     max_shape_.clear();
     auto size = max_shape_obj.Size();
     if (size == 1) {
-      std::string name = max_shape_obj.GetObject().MemberBegin()->name.GetString();
-      auto shape_array = max_shape_obj.GetObject().MemberBegin()->value.GetArray();
-      if (shape_array.Size() == 4 &&
-          shape_array[0].GetInt() == -1 &&
-          shape_array[1].GetInt() == -1 &&
-          shape_array[2].GetInt() == -1 &&
+      std::string name =
+          max_shape_obj.GetObject().MemberBegin()->name.GetString();
+      auto shape_array =
+          max_shape_obj.GetObject().MemberBegin()->value.GetArray();
+      if (shape_array.Size() == 4 && shape_array[0].GetInt() == -1 &&
+          shape_array[1].GetInt() == -1 && shape_array[2].GetInt() == -1 &&
           shape_array[3].GetInt() == -1) {
         // NNDEPLOY_LOGE("max_shape_ is empty\n");
         ;

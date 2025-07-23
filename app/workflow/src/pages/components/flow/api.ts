@@ -1,6 +1,6 @@
 import request from "../../../request";
 import { FlowNodeRegistry } from "../../../typings";
-import { apiGetNodeList } from "../../Layout/Design/Node/api";
+//import { apiGetNodeList } from "../../Layout/Design/Node/api";
 import { IBusinessNode, IParamTypes, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import { buildNodeRegistry } from "./nodeRegistry/buildNodeRegistry";
@@ -17,18 +17,24 @@ export async function apiGetWorkFlow(flowName: string) {
   return response;
 }
 
-export async function getNodeRegistry() {
+// export async function getNodeRegistry() {
 
-  const response = await apiGetNodeList()
+//   const response = await apiGetNodeList()
 
-  const nodeRegistry: FlowNodeRegistry[] = response.result.map((item) => {
-    return buildNodeRegistry(item)
-  })
+//   const nodes = response.result.filter((item) => {
+//     return item.type == 'leaf'
+//   }).map(item=>{
+//     return item.nodeEntity!
+//   })
 
-  return nodeRegistry
+//   const nodeRegistry: FlowNodeRegistry[] = nodes.map((item) => {
+//     return buildNodeRegistry(item)
+//   })
+
+//   return nodeRegistry
 
 
-}
+// }
 
 export async function apiGetParamTypes() {
 

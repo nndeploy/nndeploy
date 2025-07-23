@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   dag::GraphRunner* graph_runner = new dag::GraphRunner();
   auto result = graph_runner->run(json_file, name, task_id);
   if (result->status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("run failed. ERROR: %d\n", result->status);
+    NNDEPLOY_LOGE("run failed. ERROR: %s\n", result->status.desc().c_str());
     return -1;
   }
 

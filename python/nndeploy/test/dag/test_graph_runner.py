@@ -65,6 +65,7 @@ def main():
         graph_json_str = f.read()
     gr = GraphRunner()
     gr.run(graph_json_str, args.name, "test_graph_runner")
+    gr.release()
 
 if __name__ == "__main__":
     main()

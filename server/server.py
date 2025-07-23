@@ -2,42 +2,44 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from .files import get_workdir
+# from .frontend import FrontendManager
+from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json
 import asyncio
 import uuid
 import logging
-from utils import extract_encode_output_paths
+from .utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
-from task_queue import TaskQueue
-from schemas import (
+from .task_queue import TaskQueue
+from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
     QueueStateResponse,
     HistoryItem,
-    ProgressPayload,
     UploadResponse,
     NodeListResponse,
     WorkFlowSaveResponse,
     WorkFlowListResponse,
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
-    ParamTypeResponse,
-    WsPreviewPayload
+    ParamTypeResponse
 )
-import files
-from files import router as files_router
+from .files import router as files_router
+from .files import get_workdir
 
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, args, job_mp_queue):
+    def __init__(self, args, job_mp_queue, plugin_update_q):
         NnDeployServer.instance = self
         self.loop: Optional[asyncio.AbstractEventLoop] = None # lazy loading
         self.args = args
@@ -53,6 +55,18 @@ class NnDeployServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        # web_root = FrontendManager.init_frontend(args.front_end_version)
+        # dist_inside = Path(web_root) / "dist"
+        # if dist_inside.is_dir():
+        #     web_root = str(dist_inside)
+
+        # self.app.mount("/design", StaticFiles(directory=web_root, html=True), name="frontend")
+        # static_dir = Path(web_root) / "static"
+        # if static_dir.is_dir():
+        #     self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
+
+        self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
@@ -97,6 +111,7 @@ class NnDeployServer:
 
         @api.post(
             "/workflow/save",
+            tags=["Workflow"],
             response_model=WorkFlowSaveResponse,
             summary="save workflow to file",
         )
@@ -119,8 +134,73 @@ class NnDeployServer:
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
 
+        @api.post(
+                "/workflow/upload",
+                tags=["Workflow"],
+                response_model=UploadResponse,
+                status_code=status.HTTP_201_CREATED,
+                summary="upload workflow",
+        )
+        async def upload_workflow(
+            file: UploadFile = File(...)
+        ):
+            allowed_extensions = {".json", ".yaml", ".yml"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed_extensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Only .json, .yml and .yaml files are allowed, got: {suffix}"
+                )
+            folder = Path(self.args.resources) / "workflow"
+            if not folder.exists():
+                folder.mkdir(parents=True, exist_ok=True)
+            dst = folder / file.filename
+            with dst.open("wb") as w:
+                w.write(file.file.read())
+
+            flag = "success"
+            message = f"workflow {dst.name} has been uploaded successfully"
+            result = {
+                "filename":file.filename,
+                "saved_path":str(dst.resolve()),
+                "size":dst.stat().st_size,
+                "uploaded_at":datetime.utcnow(),
+                "extension": (dst.suffix or "unknown").lstrip(".")
+            }
+            return UploadResponse(flag=flag, message=message, result=result)
+
+        @api.get(
+            "/workflow/download",
+            tags=["Workflow"],
+            summary="download workflow",
+            response_class=FileResponse,
+        )
+        async def download_workflow(file_path: str = Query(..., description="absolute_path or relative path")):
+            """
+            download existed workflow file
+            """
+            f = Path(self.args.resources) / "workflow" / file_path
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+            
+            MIME_MAP: dict[str, str] = {
+                ".json": "application/json",
+                ".yaml": "application/x-yaml",
+                ".yml":  "application/x-yaml"
+            }
+
+            media_type = MIME_MAP.get(f.suffix.lower(), "application/octet-stream")
+
+            if media_type is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported download type"
+                )
+            return FileResponse(f, media_type=media_type, filename=f.name)
+
         @api.get(
             "/workflow",
+            tags=["Workflow"],
             response_model=WorkFlowListResponse,
             summary="load workflow lists",
         )
@@ -130,12 +210,17 @@ class NnDeployServer:
             if not workflow_dir.exists():
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
-            result = []
+            workflow = []
+            filenames = []
+            result = {}
             try:
                 for json_file in workflow_dir.glob("*.json"):
                     with open(json_file, 'r') as f:
                         data = json.load(f)
-                        result.append(data)
+                        workflow.append(data)
+                        filenames.append(json_file.name)
+                result["fileNames"]=filenames
+                result["workflows"]=workflow
                 flag = "success"
                 message = "success"
                 return WorkFlowListResponse(flag=flag, message=message, result=result)
@@ -145,13 +230,14 @@ class NnDeployServer:
 
         @api.post(
             "/workflow/delete/{file_name}",
+            tags=["Workflow"],
             response_model=WorkFlowDeleteResponse,
             summary="delete workflow json",
         )
         async def delete_workflow_json(file_name: str):
             workflow_dir = Path(self.args.resources) / "workflow"
 
-            file_path = workflow_dir / f"{file_name}.json"
+            file_path = workflow_dir / f"{file_name}"
 
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
@@ -167,13 +253,14 @@ class NnDeployServer:
 
         @api.get(
             "/workflow/{file_name}",
+            tags=["Workflow"],
             response_model=WorkFlowLoadResponse,
             summary="get workflow json",
         )
         async def get_workflow_json(file_name: str):
             workflow_dir = Path(self.args.resources) / "workflow"
 
-            file_path = workflow_dir / f"{file_name}.json"
+            file_path = workflow_dir / f"{file_name}"
 
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
@@ -189,17 +276,58 @@ class NnDeployServer:
                 raise HTTPException(status_code=500, detail=f"reading file error: {e}")
         
         @api.get(
-            "/nodes",
+            "/dag/info",
+            tags=["Node"],
             response_model=NodeListResponse,
             summary="return register nodes",
         )
         async def register_nodes():
-            json_str = nndeploy.dag.get_all_node_json()
+            json_str = nndeploy.dag.get_dag_json()
             nodes = json.loads(json_str)
             flag = "success"
             message = ""
-            return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
-        
+            return NodeListResponse(flag=flag, message=message, result=nodes)
+
+        @api.post(
+                "/nodes/upload",
+                tags=["Node"],
+                response_model=UploadResponse,
+                status_code=status.HTTP_201_CREATED,
+                summary="upload node",
+        )
+        async def upload_plugin(
+            file: UploadFile = File(...)
+        ):
+            allowed_extensions = {".py", ".so"}
+            suffix = Path(file.filename).suffix.lower()
+            if suffix not in allowed_extensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Only .py and .so files are allowed, got: {suffix}"
+                )
+
+            folder = Path(self.args.resources) / "plugin"
+            if not folder.exists():
+                folder.mkdir(parents=True, exist_ok=True)
+            dst = folder / file.filename
+            with dst.open("wb") as w:
+                w.write(file.file.read())
+
+            self.plugin_update_q.put(str(dst.resolve()))
+            add_global_import_lib(str(dst.resolve()))
+            import_global_import_lib()
+
+            flag = "success"
+            message = f"workflow {dst.name} has been uploaded successfully"
+            result = {
+                "filename":file.filename,
+                "saved_path":str(dst.resolve()),
+                "size":dst.stat().st_size,
+                "uploaded_at":datetime.utcnow(),
+                "extension": (dst.suffix or "unknown").lstrip(".")
+            }
+            return UploadResponse(flag=flag, message=message, result=result)
+
         @api.get(
             "/param/types",
             response_model=ParamTypeResponse,
@@ -221,7 +349,7 @@ class NnDeployServer:
             return self.queue.get_history(max_items)
 
         # index
-        @self.app.get("/", tags=["Web"])
+        @self.app.get("/", tags=["Root"])
         async def root():
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
@@ -323,9 +451,32 @@ class NnDeployServer:
             files_router,
             dependencies=[Depends(self._get_workdir)]
         )
-        self.app.dependency_overrides[files.get_workdir] = self._get_workdir
+        self.app.dependency_overrides[get_workdir] = self._get_workdir
 
-        self.app.include_router(api)
+        self.app.include_router(api,dependencies=[Depends(lambda: get_workdir(self))])
+
+    # task progress notify
+    def notify_task_progress(self, task_id: str, status_dict: dict):
+        flag = "success"
+        message = "task running"
+        result = {
+            "task_id": task_id,
+            "type": "progress",
+            "detail": status_dict
+        }
+        payload = {"flag": flag, "message": message, "result": result}
+        ws_set = self.task_ws_map.get(task_id, set())
+        if not ws_set:
+            return
+
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self._broadcast(payload, ws),
+                    self.loop
+                )
+            else:
+                logging.warning("[notify_task_progress] Event loop not ready or not running")
 
     # task done notify
     def notify_task_done(self, task_id: str):
@@ -333,11 +484,11 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path = extract_encode_output_paths(graph_json)
+        path, text = extract_encode_output_paths(graph_json)
 
         flag = "success"
         message = "notify task done"
-        result = {"task_id": task_id, "path": path}
+        result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
         for ws in ws_set.copy():
@@ -358,20 +509,3 @@ class NnDeployServer:
             except Exception as e:
                 logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
-
-    # queue progress notification
-    # def queue_updated(self):
-    #     payload = {"pending": len(self.queue.get_current_queue()[1])}
-    #     self.send_sync("queue_update", payload)
-
-    # def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
-    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
-
-    # async def _broadcast(self, event, data, ws):
-    #     msg = ProgressPayload(type=event, data=data).model_dump()
-    #     targets = [ws] if ws else list(self.sockets)
-    #     for w in targets:
-    #         try:
-    #             await w.send_json(msg)
-    #         except Exception:
-    #             self.sockets.discard(w)

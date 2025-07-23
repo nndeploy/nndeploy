@@ -13,8 +13,9 @@
 
 #ifdef WIN32
 #define NOMINMAX
-#include <libloaderapi.h>
 #include <windows.h>
+/////////////////////
+#include <libloaderapi.h>
 #else
 #include <dlfcn.h>
 #endif

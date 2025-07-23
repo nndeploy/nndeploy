@@ -5,8 +5,8 @@ from typing import List, Union, Optional
 
 from .util import *
 from .base import EdgeTypeInfo
-from .edge import Edge
-from .node import Node, NodeDesc, NodeCreator, register_node
+from .edge import Edge, get_accepted_edge_type_json, get_accepted_edge_type_map
+from .node import Node, NodeDesc, NodeCreator, register_node, get_all_node_json
 
 
 class Graph(_C.dag.Graph):
@@ -384,11 +384,12 @@ class Graph(_C.dag.Graph):
                 else:
                     # 否则创建新节点
                     node = self.create_node(node_key)
-                    # print(f"create node: {node_key}, {node}")
                     if node is None:
+                        print(f"create node: {node_key}, {node}")
+                        print(f"node_count: {node_count}, i: {i}")
                         raise RuntimeError("创建节点失败")
                     if node not in self.nodes:
-                        print(f"add node: {node_key}, {node}")
+                        # print(f"add node: {node_key}, {node}")
                         self.nodes.append(node)
         return super().deserialize(json_str)
     
@@ -592,4 +593,40 @@ class GraphCreator(NodeCreator):
       
 graph_node_creator = GraphCreator()
 register_node("nndeploy.dag.Graph", graph_node_creator)   
+
+
+def get_graph_json():
+    graph = Graph("Graph")
+    status = graph.default_param()
+    if status != nndeploy.base.StatusCode.Ok:
+        raise RuntimeError(f"graph default_param failed: {status}")
+    graph.set_inner_flag(False)
+    json_str = graph.serialize()
+    graph_json = "{\"graph\":" + json_str + "}"
+    # 美化json
+    graph_json = nndeploy.base.pretty_json_str(graph_json)
+    return graph_json
+
+
+def get_dag_json():
+    graph_json = get_graph_json()
+    node_json = get_all_node_json()
+    # edge_json = get_accepted_edge_type_json()
+    
+    # 解析各个json字符串，提取内容
+    import json
+    graph_data = json.loads(graph_json)
+    node_data = json.loads(node_json)
+    # edge_data = json.loads(edge_json)
+    
+    # 合并为指定格式的json
+    dag_data = {
+        "graph": graph_data["graph"],
+        "nodes": node_data["nodes"],
+        "accepted_edge_types": get_accepted_edge_type_map()
+    }
+    
+    dag_json = json.dumps(dag_data, ensure_ascii=False, indent=2)
+    
+    return dag_json
 

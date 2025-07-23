@@ -285,8 +285,8 @@ const nodes: INodeEntity[] = [
     },
   },
   {
-    key_: "nndeploy::codec::OpenCvVedioDecode",
-    name_: "OpenCvVedioDecode",
+    key_: "nndeploy::codec::OpenCvVideoDecode",
+    name_: "OpenCvVideoDecode",
     desc_:
       "Decode video using OpenCV, from video file to cv::Mat frames, default color space is BGR",
     device_type_: "kDeviceTypeCodeCpu:0",
@@ -516,8 +516,8 @@ const nodes: INodeEntity[] = [
     size_: 0,
   },
   {
-    key_: "nndeploy::codec::OpenCvVedioEncode",
-    name_: "OpenCvVedioEncode",
+    key_: "nndeploy::codec::OpenCvVideoEncode",
+    name_: "OpenCvVideoEncode",
     desc_:
       "Encode video using OpenCV, from cv::Mat frames to video file, supports common video formats",
     device_type_: "kDeviceTypeCodeCpu:0",

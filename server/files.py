@@ -9,7 +9,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from schemas import (UploadResponse, DeleteResponse, FileListResponse)
+from .schemas import (UploadResponse, DeleteResponse, FileListResponse)
 
 # ──────────────────────────────────────────────
 # Router
@@ -22,8 +22,8 @@ router = APIRouter(
 # ──────────────────────────────────────────────
 # dependency_overrides or include_router.dependencies
 # ──────────────────────────────────────────────
-def get_workdir() -> Path:
-    return Path.cwd()
+def get_workdir(server) -> Path:
+    return server._get_workdir()
 
 # ──────────────────────────────────────────────
 # save function
@@ -40,7 +40,7 @@ def _save(file: UploadFile, workdir: Path, subdir: str) -> UploadResponse:
     message = f"file {dst.name} has been uploaded successfully"
     result = {
         "filename":file.filename,
-        "saved_path":str(dst.relative_to(workdir)),
+        "saved_path":str(dst.resolve()),
         "size":dst.stat().st_size,
         "uploaded_at":datetime.utcnow(),
         "extension": (dst.relative_to(workdir).suffix or "unknown").lstrip(".")

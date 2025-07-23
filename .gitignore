@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+*.recipe
 
 # Precompiled Headers
 *.gch
@@ -105,6 +106,9 @@ instance/
 
 # Sphinx documentation
 docs/build/
+docs/zh_cn/build_doxygen/
+docs/zh_cn/python_api/generated/
+docs/zh_cn/build/
 
 # PyBuilder
 .pybuilder/
@@ -232,6 +236,7 @@ compile_commands.json
 
 # model
 *.onnx
+*.onnx.data
 *.json
 *.safetensors
 *.pth
@@ -264,3 +269,13 @@ server/resources/**
 
 # keep readme file
 !server/resources/README*
+
+.tmp/
+
+weights/
+
+# server/resources rule
+resources/**
+
+# # keep readme file
+# !resources/README*

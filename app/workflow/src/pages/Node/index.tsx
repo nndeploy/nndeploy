@@ -192,7 +192,7 @@ const NodePage: React.FC = () => {
             item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
           } */}
 
-        {renderBtn(item.entity)}
+        {renderBtn(item.nodeEntity)}
       </div>
     </div>
   );

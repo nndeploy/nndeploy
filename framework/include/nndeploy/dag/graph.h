@@ -102,6 +102,11 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatus();
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatusRecursive();
 
+  // help function
+  base::Status addNodeInputAndOutput(NodeWrapper *node_wrapper,
+                                     std::vector<Edge *> inputs,
+                                     std::vector<Edge *> outputs);
+
   // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);

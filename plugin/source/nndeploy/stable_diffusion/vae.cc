@@ -39,24 +39,35 @@ class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
 
   virtual ~ScaleLatents() {}
 
-  virtual base::Status run() {
-    ScaleLatentsParam *param = (ScaleLatentsParam *)param_.get();
-    vae_scale_factor_ = param->vae_scale_factor_;
-
-    float scale_factor = 1 / vae_scale_factor_;
+  virtual base::Status init() {
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc scalar_desc;
     scalar_desc.data_type_ = base::dataTypeOf<float>();
     scalar_desc.data_format_ = base::kDataFormatNC;
     scalar_desc.shape_ = {1};
-    device::Tensor *scalar = new device::Tensor(device, scalar_desc);
-    scalar->set(scale_factor);
+    scalar_ = new device::Tensor(device, scalar_desc);
+    return base::kStatusCodeOk;
+  }
+
+  virtual base::Status deinit() {
+    if (scalar_ != nullptr) {
+      delete scalar_;
+    }
+    return base::kStatusCodeOk;
+  }
+
+  virtual base::Status run() {
+    device::Device *device = device::getDefaultHostDevice();
+    ScaleLatentsParam *param = (ScaleLatentsParam *)param_.get();
+    vae_scale_factor_ = param->vae_scale_factor_;
+    float scale_factor = 1 / vae_scale_factor_;
+    scalar_->set(scale_factor);
 
     device::Tensor *latents = this->getInput(0)->getTensor(this);
     device::Tensor *latents_scale =
         this->getOutput(0)->create(device, latents->getDesc());
 
-    op::muls(scalar, latents, latents_scale);
+    op::muls(scalar_, latents, latents_scale);
 
     this->getOutput(0)->notifyWritten(latents_scale);
 
@@ -65,6 +76,7 @@ class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
 
  private:
   float vae_scale_factor_ = 0.18215;
+  device::Tensor *scalar_;
 };
 
 class NNDEPLOY_CC_API VaeGraph : public dag::Graph {

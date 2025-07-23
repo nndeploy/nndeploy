@@ -31,8 +31,25 @@ python3 clone_submodule.py
     + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
 
 > 注：所有后端均可选。三方库可使用自己的，也可使用nndeploy预编译版本：
-> + huggingface：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
-> + modelscope：https://www.modelscope.cn/models/nndeploy/third_party
+> + [huggingface](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party)：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
+> + [modelscope](https://www.modelscope.cn/models/nndeploy/third_party)：https://www.modelscope.cn/models/nndeploy/third_party
+
+
+### 编译宏编辑规则
+
+对于绝大部分编译选项，只用ON/OFF即可。
+
+但对于外部依赖的三方库，有如下三种`使能并链接外部的第三方库的方法`
+
++ `方法一`：路径`path`，头文件以及库的根路径，其形式必须修改为
+  + 头文件：`path/include`
+  + 库：`path/lib `
+  + windows dll: `path/bin`
+  + 相应的库：ONNXRuntime、OpenVINO、TNN、MNN、Window已经编译好的OpenCV的库
++ `方法二`：开关`ON`，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式
+  + 相应的库：Linux平台下的CUDA、CUDNN、TenosrRT、OpenCV
++ `方法三`：源码`ON`，使用源码编译该库，对应third_party目录下的库，可以采用该方式
+  + 相应的库：tokenizer-cpp、rapidjson、gflags、ONNX
 
 ## 3. 编译方法
 
@@ -51,191 +68,31 @@ cd build                    # 进入build目录
 vim config.cmake            # 使用编辑器vscode等工具直接修改config.cmake文件
 cmake ..                    # 生成构建文件
 make -j                     # 使用8个线程并行编译
+make install                # 在build目录下生成安装目录
 ```
+
+> 注：不同平台编译方式
+> - **Linux**：使用上述 make 命令编译
+> - **Windows**：使用 Visual Studio 编译
+> - **Android**：使用 android-ndk 交叉编译
+>   ```shell
+>   cmake .. -DCMAKE_TOOLCHAIN_FILE=<NDK_PATH>/build/cmake/android.toolchain.cmake \
+>            -DANDROID_ABI=arm64-v8a \
+>            -DANDROID_STL=c++_static \
+>            -DANDROID_NATIVE_API_LEVEL=android-14
+>   ```
+> - **macOS/iOS**：使用 Xcode 编译
 
 
 ## 4. 主库编译
 
-+ 默认编译产物为：libnndeploy_framework.so
-+ 算法插件编译产物为：libnndeploy_plugin_xxx.so
-+ 可执行程序编译产物为：nndeploy_demo_xxx
++ 默认编译产物为：libnndeploy_framework.so(Windows下为nndeploy_framework.dll)
++ 算法插件编译产物为：libnndeploy_plugin_xxx.so(Windows下为nndeploy_plugin_xxx.dll)
++ 可执行程序编译产物为：nndeploy_demo_xxx(Windows下为nndeploy_demo_xxx.exe)
 
 > 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag  
 
-## 5. Windows
-
-+ 环境要求
-  + cmake >= 3.12
-  + Microsoft Visual Studio >= 2017
-  
-+ nndeploy提供的第三方库
-
-  |                        第三方库                         |  主版本  |                                       Windows下载链接                                       | 备注  |
-  | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :---: |
-  |       [opencv](https://github.com/opencv/opencv)        |  4.8.0   | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-  |          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-  |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-  |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  | [下载链接](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z) |       |
-
-  注：将上述所有库打包为一个压缩包windows_x64.7z，存放在huggingface上，使用前请将压缩包windows_x64.7z解压
-
-+ 具体步骤
-  + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
-    ```
-    mkdir build
-    cp cmake/config.cmake build
-    cd build
-    ```
-     
-  + 开始`cmake`
-    ```
-    cmake ..
-    ```
-
-  + 通过visual studio打开`build/nndeploy.sln`，开始编译、安装、执行
-
-## 6. Linux
-
-+ 环境要求
-  + cmake >= 3.12
-  + gcc >= 5.1
-
-+ nndeploy提供的第三方库
-
-  |                        第三方库                         |  主版本  |                                       Linux下载链接                                       | 备注  |
-  | :-----------------------------------------------------: | :------: | :---------------------------------------------------------------------------------------: | :---: |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-  |          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-  |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-  |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-
-  注：将上述所有库打包为一个压缩包ubuntu22.04_x64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_x64.tar解压
-
-  + 安装opencv
-    + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
-  + 安装TensorRT cpp sdk [参考链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-debian)、cudnn、cuda、GPU driver
-
-  
-+ 具体步骤
-  + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
-    ```
-    mkdir build
-    cp cmake/config.cmake build
-    cd build
-    ```
-      
-  + `cmake`
-    ```
-    cmake ..
-    ```
-
-  + 编译
-     ```
-    make -j
-    ```
-
-  + 安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib
-     ```
-    make install
-    ```
-
-## 7. Android
-
-+ 环境要求
-  + cmake >= 3.12
-  + ndk
-
-+ nndeploy提供的第三方库
-
-  |                  第三方库                  | 主版本 |                                  Android下载链接                                  | 备注  |
-  | :----------------------------------------: | :----: | :-------------------------------------------------------------------------------: | :---: |
-  | [opencv](https://github.com/opencv/opencv) | 4.8.0  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/android.tar |       |
-  |   [MNN](https://github.com/alibaba/MNN)    | 2.6.2  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/android.tar |       |
-  |   [TNN](https://github.com/Tencent/TNN)    | v0.3.0 | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/android.tar |       |
-  |  [ncnn](https://github.com/Tencent/ncnn/)  | v0.3.0 | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/android.tar |       |
-
-  注：将上述所有库打包为一个压缩包android.tar，存放在huggingface上，使用前请将压缩包android.tar解压
-
-+ 具体步骤
-  + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
-    ```
-    mkdir build
-    cp cmake/config.cmake build
-    cd build
-    ```
-      
-  + 开始`cmake`，需要指定ndk
-    ```
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=/snap/android-ndk-r25c/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_STL=c++_static -DANDROID_NATIVE_API_LEVEL=android-14 -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true
-    ```
-
-  + 开始编译
-     ```
-    make -j8
-    ```
-
-  + 开始安装, 将nndeploy相关库可执行文件、第三方库安装至build/install/lib
-     ```
-    make install
-    ```
-
-## 8. Mac（TODO）
-
-+ 环境要求
-  + cmake >= 3.12
-  + xcode
-
-
-## 9. iOS（TODO）
-
-+ 环境要求
-  + cmake >= 3.12
-  + xcode
-
-
-## 10. Linux + 华为昇腾
-
-
-+ 环境要求
-  + cmake >= 3.12
-  + gcc >= 5.1
-
-+ 三方库
-
-  + 安装opencv
-    + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
-  + 安装AscendCL sdk [ascend_env.md](./ascend_env.md)
-
-  
-+ 具体步骤
-  + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
-    ```
-    mkdir build
-    cp cmake/config.cmake build
-    vim config.cmake # 使用编辑器vscode等工具直接修改config.cmake文件，需要打开昇腾的编译宏：setENABLE_NNDEPLOY_DEVICE_ASCEND_CL ON）
-    cd build
-    ```
-      
-  + `cmake`
-    ```
-    cmake ..
-    ```
-
-  + 编译
-     ```
-    make -j
-    ```
-
-  + 安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib
-     ```
-    make install
-    ```
-
-
-## 11. 第三方库官方编译文档以及下载链接
+## 5. 第三方库官方编译文档以及下载链接
 
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |         备注         |
 | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------: |
@@ -248,16 +105,22 @@ make -j                     # 使用8个线程并行编译
 |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  |            [链接](https://github.com/Tencent/ncnn/tree/master/docs/how-to-build)            |                                                       [链接](https://github.com/Tencent/ncnn/releases/tag/20230816)                                                        |                      |
 
 
-## 12. 补充说明    
+> 注: 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
 
-- 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
+## 6. 补充说明    
 
 - TensorRT
+  - 安装TensorRT cpp sdk [参考链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-debian)、cudnn、cuda、GPU driver
   - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
   - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
+
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
+
+
+- 安装opencv
+  - `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
       
       
       

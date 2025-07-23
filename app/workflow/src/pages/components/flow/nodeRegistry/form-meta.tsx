@@ -10,7 +10,7 @@ import {
   useNodeRender,
   useWatchFormValues,
 } from "@flowgram.ai/free-layout-editor";
-import { Modal, Select, SideSheet, Switch, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { Modal, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -102,8 +102,25 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     return false
   }
 
+  function isTextNode() {
+    const textNodes: string[] = ['nndeploy::qwen::PrintNode',]
+    if (textNodes.includes(key_)) {
+      return true
+    }
+    return false
+  }
+
+  function needShowTextContent() {
+
+    const nodeNames = outputResources.text.map(item => item.name)
+
+    const needShow = isTextNode() && nodeNames.includes(form.getValueIn('name_')) //path_.includes('&time=')
+
+    return needShow
+  }
+
   function isInputMediaNode() {
-    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode']
+    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvVideoDecode']
     if (imageNodes.includes(key_)) {
       return true
     }
@@ -111,7 +128,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
 
   function isOutputMediaNode() {
-    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageEncode']
+    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageEncode', 'nndeploy::codec::OpenCvVideoEncode']
     if (imageNodes.includes(key_)) {
       return true
     }
@@ -125,12 +142,19 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     const lowerFilename = filename.toLowerCase();
     return imageExtensions.some(ext => lowerFilename.endsWith(ext));
   }
+  // 新增判断视频文件的函数
+  function isVideoFile(filename: string) {
+    // 支持的视频后缀（不区分大小写）
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm', '.mpeg', '.mpg'];
+    const lowerFilename = filename.toLowerCase();
+    return videoExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
 
   const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
   const [resoureEditVisible, setResoureEditVisible] = useState(false)
 
 
-  function onShowMediaFile(event: React.MouseEvent<HTMLImageElement, MouseEvent>, file: string) {
+  function onShowMediaFile(event: React.MouseEvent<HTMLElement, MouseEvent>, file: string) {
     event.stopPropagation();
     event.preventDefault();
 
@@ -172,7 +196,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     //  return container
   }
   function needShowMedia() {
-    const needShow = isInputMediaNode() || (isOutputMediaNode() && outputResources.includes(form.getValueIn('name_')))  //path_.includes('&time=')
+
+    const nodeNames = outputResources.path.map(item => item.name)
+    const needShow = isInputMediaNode() || (isOutputMediaNode() && nodeNames.includes(form.getValueIn('name_')))  //path_.includes('&time=')
 
     return needShow
   }
@@ -186,6 +212,15 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   // useEffect(()=>{
 
   // }, [updateVal])
+
+  useEffect(() => {
+    if (outputResources) {
+      console.log('outputResources', outputResources,)
+      console.log('name', form.getValueIn('name_'))
+    }
+
+
+  }, [outputResources])
 
   return (
     <div className="drawer-render-form" ref={renderFormRef}>
@@ -277,26 +312,47 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 </FieldArray>
               </div>
             </div>
+
+            <Field key={'path_'} name={'path_'}>
+              {({ field, fieldState }) => {
+
+                if (needShowMedia() && field.value && isImageFile(field.value as string)) {
+
+                  const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
+                  return <div className="resource-preview">
+                    <img src={url} onClick={((event) => onShowMediaFile(event, field.value as string))}
+
+                    />
+                  </div>
+                } else if (needShowMedia() && field.value && isVideoFile(field.value as string)) {
+
+                  const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
+                  return <div className="resource-preview"
+                    onClick={((event) => onShowMediaFile(event, field.value as string))}
+                  >
+                    <VideoPlayer
+                      height={100}
+                      controlsList={[]}
+                      clickToPlay={false}
+                      autoPlay={true}
+
+                      src={`/api/preview?file_path=${field.value}&time=${new Date().getTime()}`}
+                    //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
+                    />
+
+
+                  </div>
+                } else {
+                  return <></>
+                }
+              }}
+
+            </Field>
             {
+              isTextNode() && needShowTextContent() &&
+              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
-              <Field key={'path_'} name={'path_'}>
-                {({ field, fieldState }) => {
-
-                  if (needShowMedia() && field.value && isImageFile(field.value as string)) {
-
-                    const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
-                    return <div className="resource-preview">
-                      <img src={url} onClick={((event) => onShowMediaFile(event, field.value as string))} 
-                      
-                      />
-                    </div>
-                  } else {
-                    return <></>
-                  }
-                }}
-
-              </Field>
-
+              </TextArea>
             }
 
           </>
@@ -357,7 +413,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                     //setUpdateVal({})
                                   }
                                   }
-                                  readonly={!isSidebar}
+                                  readonly={!isSidebar || fieldName == 'desc_'}
                                   hasError={
                                     Object.keys(fieldState?.errors || {}).length > 0
                                   }
@@ -437,6 +493,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                 }}
               </Field>
+
+              
+            }
+             {
+              isTextNode() && needShowTextContent() &&
+              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
+
+              </TextArea>
             }
 
           </>

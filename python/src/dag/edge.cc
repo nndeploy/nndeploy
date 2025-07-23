@@ -340,6 +340,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
               char kind = info.format.front();
               int channels = (info.ndim == 3) ? info.shape[2] : 1;
               int cv_depth;
+#ifdef ENABLE_NNDEPLOY_OPENCV
               // 根据numpy数组的数据类型和每个元素的大小来确定OpenCV的数据类型
               switch (kind) {
                 case 'B':
@@ -375,6 +376,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                 throw std::runtime_error("Failed to set cv::Mat");
               }
               return status;
+#else 
+              NNDEPLOY_LOGE("set cv::Mat is not supported");
+              base::Status status = base::StatusCode::kStatusCodeErrorNotSupport;
+              return status;
+#endif
             } else if (py::isinstance<device::Tensor>(obj)) {
               // Tensor类型
               auto* tensor = obj.cast<device::Tensor*>();
@@ -421,7 +427,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             } else if (auto* param = edge.getParam(node)) {
               py::gil_scoped_acquire acquire;
               return py::cast(param);
-            } else if (auto* mat = edge.getCvMat(node)) {
+            }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+            else if (auto* mat = edge.getCvMat(node)) {
               py::gil_scoped_acquire acquire;
               if (mat == nullptr) {
                 return py::object(py::array());  // 返回空数组
@@ -482,7 +490,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                                             shape,             // 形状
                                             strides            // 步长
                                             )));
-            } else if (auto* obj = edge.get<PyObject>(node)) {
+            }
+#endif
+            else if (auto* obj = edge.get<PyObject>(node)) {
               // 报错原因:
               // 1. 直接使用 obj->ob_type 访问 Python
               // 对象的类型不安全,可能导致段错误
@@ -520,7 +530,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
               // NNDEPLOY_LOGE("get_graph_output param: %p", param);
               py::gil_scoped_acquire acquire;
               return py::cast(param);
-            } else if (auto* mat = edge.getGraphOutputCvMat()) {
+            }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+            else if (auto* mat = edge.getGraphOutputCvMat()) {
               py::gil_scoped_acquire acquire;
               if (mat == nullptr) {
                 return py::object(py::array());  // 返回空数组
@@ -581,7 +593,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                                             shape,             // 形状
                                             strides            // 步长
                                             )));
-            } else if (auto* obj = edge.getGraphOutput<PyObject>()) {
+            }
+#endif
+            else if (auto* obj = edge.getGraphOutput<PyObject>()) {
               py::gil_scoped_acquire acquire;
               // 报错原因:
               // 1. 直接使用 obj->ob_type 访问 Python
@@ -636,9 +650,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                 edge.setTypeInfo<device::Buffer>();
               } else if (py_type.is(py::type::of<device::Tensor>())) {
                 edge.setTypeInfo<device::Tensor>();
-              } else if (py_type.is(py::type::of<base::Param>())) {
-                edge.setTypeInfo<base::Param>();
-              } else {
+              }
+              // else if (py_type.is(py::type::of<base::Param>())) {
+              //   edge.setTypeInfo<base::Param>();
+              // }
+              else {
                 std::shared_ptr<EdgeTypeInfo> type_info =
                     std::make_shared<EdgeTypeInfo>();
                 type_info->type_ = EdgeTypeFlag::kAny;

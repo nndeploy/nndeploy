@@ -1,4 +1,3 @@
-
 #include "nndeploy/inference/onnxruntime/onnxruntime_inference.h"
 
 #include "nndeploy/base/shape.h"
@@ -28,28 +27,46 @@ base::Status OnnxRuntimeInference::init() {
     stream_ = device::createStream(inference_param_->device_type_);
   }
 
-  std::string model_buffer;
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =
       dynamic_cast<OnnxRuntimeInferenceParam *>(inference_param_.get());
-  // NNDEPLOY_LOGE("onnxruntime_inference_param %p\n",
-  // onnxruntime_inference_param);
+  std::string buffer;
   if (onnxruntime_inference_param->is_path_) {
     if (onnxruntime_inference_param->model_value_.size() > 0) {
-      // NNDEPLOY_LOGE("open file[%s]!\n",
-      // onnxruntime_inference_param->model_value_[0].c_str());
-      model_buffer =
-          base::openFile(onnxruntime_inference_param->model_value_[0]);
+      std::string model_path = onnxruntime_inference_param->model_value_[0];
+      buffer = base::openFile(model_path);
     } else {
       NNDEPLOY_LOGE("model_value_ is empty!\n");
       return base::kStatusCodeErrorInvalidValue;
     }
   } else {
-    model_buffer = onnxruntime_inference_param->model_value_[0];
+    buffer = onnxruntime_inference_param->model_value_[0];
+  }
+
+  std::string external_bin_buffer;
+  if (onnxruntime_inference_param->is_path_) {
+    if (onnxruntime_inference_param->external_model_data_.size() > 0) {
+      std::string external_model_path =
+          onnxruntime_inference_param->external_model_data_[0];
+      external_bin_buffer = base::openFile(external_model_path);
+
+      size_t pos = external_model_path.find_last_of("/\\");
+      std::string external_data_file_name =
+          (pos == std::string::npos) ? external_model_path
+                                     : external_model_path.substr(pos + 1);
+
+      std::string external_file_name(external_data_file_name.begin(),
+                                     external_data_file_name.end());
+      std::vector<std::string> file_names{external_file_name};
+      std::vector<char *> file_buffers{external_bin_buffer.data()};
+      std::vector<size_t> lengths{external_bin_buffer.size()};
+      session_options_.AddExternalInitializersFromFilesInMemory(
+          file_names, file_buffers, lengths);
+    }
   }
 
   OnnxRuntimeConvert::convertFromInferenceParam(*onnxruntime_inference_param,
                                                 session_options_, stream_);
-  session_ = {env_, model_buffer.data(), model_buffer.size(), session_options_};
+  session_ = {env_, buffer.data(), buffer.size(), session_options_};
 
   binding_ = std::make_shared<Ort::IoBinding>(session_);
   auto memory_info =
@@ -255,8 +272,8 @@ base::Status OnnxRuntimeInference::run() {
     for (size_t i = 0; i < output_values.size(); ++i) {
       auto output_name = outputs_desc_[i].name;
       device::Tensor *output_tensor = output_tensors_[output_name];
-      OnnxRuntimeConvert::convertToTensor(output_values[i], output_name,
-                                          device, output_tensor);
+      OnnxRuntimeConvert::convertToTensor(output_values[i], output_name, device,
+                                          output_tensor);
     }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());

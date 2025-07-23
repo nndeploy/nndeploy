@@ -211,7 +211,7 @@ const NodeTree: React.FC<NodeTreeProps> = (props) => {
           item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
         } */}
 
-        {renderBtn(item.entity)}
+        {renderBtn(item.nodeEntity)}
       </div>
     </div>
   );

@@ -20,17 +20,27 @@ import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry, setupWebSocket } from "./api";
+import { apiGetNodeById, apiGetWorkFlow, setupWebSocket } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
-import { useGetNodeList, useGetParamTypes, useGetRegistry } from "./effect";
+import {
+  //useGetNodeList, 
+  useGetParamTypes,
+  //useGetRegistry
+} from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
-import { initialState, reducer } from "./store/store";
+import lodash from "lodash";
+import { getNextNameNumberSuffix } from "./functions";
+import store, { initialState, reducer } from "../../Layout/Design/store/store";
+import React from "react";
+import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
+import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
+import FlowConfigDrawer from "./FlowConfigDrawer";
 
 let nameId = 0;
 
@@ -42,9 +52,21 @@ interface FlowProps {
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
-  const [state, dispatch] = useReducer(reducer, (initialState))
+  // const [state, dispatch] = useReducer(reducer, (initialState))
+  const { state, dispatch } = React.useContext(store);
 
-  const [outputResources, setOutputResources] = useState<string[]>([])
+  const { nodeRegistries, nodeList } = state
+
+  const [outputResources, setOutputResources] = useState<IOutputResource>({path: [], text: []})
+
+  const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
+
+  const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  useEffect(() => {
+    setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
+  }, [state.dagGraphInfo.graph])
+
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -84,6 +106,16 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
   const autoLayOutRef = useRef<AutoLayoutHandle>();
+  const [configDrawerVisible, setConfigDrawerVisible] = useState(false);
+
+  function onflowConfigDrawerSure(values: any) {
+    setConfigDrawerVisible(false)
+    setGraphTopNode(values)
+  }
+
+  function handleConfigDrawerClose() {
+    setConfigDrawerVisible(false)
+  }
 
   const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
@@ -91,17 +123,17 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
-  const nodeList = useGetNodeList()
+  // const nodeList = useGetNodeList()
 
   const paramTypes = useGetParamTypes()
 
-  const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
+  //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
   const fetchData = async (flowName: string) => {
     //setLoading(true);
 
-    const nodeRegistries = await getNodeRegistry();
-    setNodeRegistries(nodeRegistries);
+    //const nodeRegistries = await getNodeRegistry();
+    // setNodeRegistries(nodeRegistries);
 
     if (!flowName) {
       setLoading(false);
@@ -129,8 +161,11 @@ const Flow: React.FC<FlowProps> = (props) => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
 
-      autoLayOutRef.current?.autoLayout()
-      //tools.autoLayout()
+      if (!response.result.nndeploy_ui_layout) {
+        autoLayOutRef.current?.autoLayout()
+      }
+
+
 
     }, 100);
 
@@ -138,8 +173,12 @@ const Flow: React.FC<FlowProps> = (props) => {
     setLoading(false);
   };
   useEffect(() => {
+
+    if (nodeRegistries.length < 1) {
+      return
+    }
     fetchData(props.id);
-  }, [props.id]);
+  }, [props.id, nodeRegistries]);
 
   // useEffect(() => {
   //   if (ref.current) {
@@ -151,7 +190,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   //   }
   // }, [props.activeKey, ref.current])
 
-  const flowRef = useRef<HTMLDivElement | null>(null);
+  const demoContainerRef = useRef<HTMLDivElement | null>(null);
 
   const dropzone = useRef<HTMLDivElement | null>(null);
 
@@ -162,6 +201,20 @@ const Flow: React.FC<FlowProps> = (props) => {
     });
 
     setSaveDrawerVisible(true);
+  }
+
+  useEffect(() => {
+    const socket = setupWebSocket()
+    setSocket(socket)
+
+    return () => {
+      socket.close()
+    }
+  }, [])
+
+  function onConfig() {
+
+    setConfigDrawerVisible(true);
   }
 
   const [socket, setSocket] = useState<WebSocket>();
@@ -175,25 +228,14 @@ const Flow: React.FC<FlowProps> = (props) => {
     }
   }, [])
 
+
+
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
       const businessContent = designDataToBusinessData(
         flowJson
       );
-
-
-
-
-
-      // const socket = setupWebSocket()
-
-      // socket.onopen = async () => {
-
-
-
-
-      // };
 
       const response = await apiWorkFlowRun(businessContent);
 
@@ -239,60 +281,22 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
         const response = JSON.parse(event.data);
-        if (response.flag === "success" && response.result?.task_id && response.result?.path) {
 
-          const nodeNames: string[] = response.result?.path.map((item: any) => item.name)
-
-          setOutputResources(nodeNames)
-          // const taskId = response.result.task_id;
-
-          // for (let i = 0; i < response.result.path.length; i++) {
-          //   const item = response.result.path[i]
-
-          //   const { name: nodeName, path: path_ } = item as { name: string, path: string }
-
-
-          //   const designContent: FlowDocumentJSON = ref?.current?.document.toJSON() as any
-
-          //   //modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
-
-
-          //   const newDesinContent = JSON.parse(JSON.stringify(designContent))
-          //   setEntity({ ...entity, designContent: newDesinContent });
-
-          //   ref?.current?.document.reload(newDesinContent);
-          //   setTimeout(() => {
-          //     // 加载后触发画布的 fitview 让节点自动居中
-          //     //ref?.current?.document.fitView();
-          //     //ref?.current?.document.fireRender()
-
-          //     //autoLayOutRef.current?.autoLayout()
-          //     //tools.autoLayout()
-
-          //   }, 100);
-
-          //   //  ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
-
-
-          //   //   const form = getNodeForm(node);
-
-          //   //   if (form?.getValueIn('name_') == nodeName) {
-          //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
-          //   //     //form?.render()
-          //   //     //  const formModel = node.getData<FlowNodeFormData>(FlowNodeFormData)?.getFormModel<FormModelV2>();
-          //   //     //  formModel.render()
-          //   //   }
-
-
-          //   //   //   //node.path_ =  `${path_}&time=${Date.now()}`
-
-          // }
-          //   // ref?.current?.document.fitView();
-          //   // autoLayOutRef.current?.autoLayout()
-
-        } else if (response.flag === "error") {
-          //showError(response.result?.task_id, response.message || "任务失败");
+        if (response.flag != "success") {
+          return;
         }
+
+        if (response.result.type == 'preview') {
+          const resource = response.result
+
+          setOutputResources(resource)
+        } else if (response.result.type == 'progress') {
+          setFlowNodesRunningStatus(response.result.detail)
+        }
+
+
+
+
       };
 
       socket!.onerror = (err) => {
@@ -309,6 +313,10 @@ const Flow: React.FC<FlowProps> = (props) => {
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
     setEntity({ ...entity });
+
+    dispatch(initFreshFlowTree({}))
+
+
     props.onFlowSave(entity);
   }
   function onFlowSaveDrawerClose() {
@@ -332,14 +340,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       const entity = JSON.parse(nodeString)
 
-      //const response = await apiGetNodeById(nodeId!);
-
-      //const entity = nodeList.find(item=>item.key_ == nodeId)!
-      //nodeRegistries.find(item=>item.)
-
-      //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-      //var type = entity.is_graph_ ? 'group':  entity.key_
       var type = entity.key_
+
+      let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
 
       let node = {
         // ...response.result,
@@ -354,7 +357,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         data: {
           //title: response.result.key_,
           ...entity,
-          name_: `${entity.name_}_${nameId++}`,
+          name_: `${entity.name_}_${numberSuffix}`,
         },
       }
       //if(response.result.is_dynamic_input_){
@@ -375,6 +378,9 @@ const Flow: React.FC<FlowProps> = (props) => {
           id: 'port' + Math.random().toString(36).substr(2, 9),
         }
       })
+
+
+
       //}
 
       ref?.current?.document.createWorkflowNode(node);
@@ -415,7 +421,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: flowRef, onSave, onRun, nodeList, paramTypes, outputResources }}
+          value={{ element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
@@ -423,7 +429,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             ref={ref}
           >
             <SidebarProvider>
-              <div className="demo-container" ref={flowRef}>
+              <div className="demo-container" ref={demoContainerRef}>
                 <EditorRenderer className="demo-editor" />
               </div>
 
@@ -447,6 +453,19 @@ const Flow: React.FC<FlowProps> = (props) => {
           entity={entity!}
           onSure={onflowSaveDrawrSure}
           onClose={onFlowSaveDrawerClose}
+        />
+      </SideSheet>
+
+      <SideSheet
+        width={"30%"}
+        visible={configDrawerVisible}
+        onCancel={handleConfigDrawerClose}
+        title={"save flow"}
+      >
+        <FlowConfigDrawer
+          //entity={entity!}
+          onSure={onflowConfigDrawerSure}
+          onClose={handleConfigDrawerClose}
         />
       </SideSheet>
     </div>

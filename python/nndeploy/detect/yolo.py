@@ -120,7 +120,7 @@ class YoloPyGraphCreator(nndeploy.dag.NodeCreator):
     
 
 yolo_py_graph_creator = YoloPyGraphCreator()
-nndeploy.dag.register_node("nndeploy::detect::YoloPyGraph", yolo_py_graph_creator)
+nndeploy.dag.register_node("nndeploy.detect.YoloPyGraph", yolo_py_graph_creator)
     
     
         

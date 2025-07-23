@@ -30,7 +30,7 @@ namespace segment {
 
 class NNDEPLOY_CC_API RMBGPostParam : public base::Param {
  public:
-  int version_ = -1;
+  int version_ = 14;
 
   using base::Param::serialize;
   virtual base::Status serialize(rapidjson::Value &json,
