@@ -39,9 +39,8 @@ build:
       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
       # 安装nndeploy Python包(开发者模式)
       - echo "export LD_LIBRARY_PATH=$PWD/python/nndeploy:$LD_LIBRARY_PATH" >> ~/.bashrc
-      - cd python && pip install -e .
+      - cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
       # 验证Python包是否能正确导入
-      - python -c "import sys; print('Python path:', sys.path)"
       - python -c "import os; print('LD_LIBRARY_PATH:', os.environ.get('LD_LIBRARY_PATH', 'Not set'))"
       - python -c "import nndeploy; print(nndeploy.__version__)"
 
