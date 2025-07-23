@@ -33,7 +33,7 @@ pip install -e .
 运行以下命令确认安装成功：
 
 ```bash
-python -c "import nndeploy; print(f'✅ nndeploy v{nndeploy.__version__} success!')"
+python -c "import nndeploy; print(nndeploy.__version__)"
 ```
 
 ## 快速上手
@@ -44,7 +44,8 @@ nndeploy 提供了直观的 Web 界面用于模型管理和推理：
 
 ```bash
 # 启动 Workflow 的 Web 服务
-python -m nndeploy.app --port 8000
+cd /path/nndeploy
+python app.py --port 8000
 
 # 或 使用简化命令 启动 Workflow 的 Web 服务
 nndeploy-app --port 8000
