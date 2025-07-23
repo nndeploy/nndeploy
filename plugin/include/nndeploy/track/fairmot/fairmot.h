@@ -55,10 +55,10 @@ class NNDEPLOY_CC_API FairMotPreParam : public base::Param {
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(rapidjson::Value& json);
 };
 
 class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
@@ -68,10 +68,10 @@ class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
   float min_box_area_ = 200.0f;
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(rapidjson::Value& json);
 };
 
 class NNDEPLOY_CC_API FairMotPreProcess : public dag::Node {
@@ -109,6 +109,7 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
     desc_ = "FairMot postprocess[device::Tensor->MOTResult]";
     param_ = std::make_shared<FairMotPostParam>();
     this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MOTResult>();
   }
   FairMotPostProcess(const std::string& name, std::vector<dag::Edge*> inputs,
@@ -117,6 +118,7 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
     key_ = "nndeploy::track::FairMotPostProcess";
     desc_ = "FairMot postprocess[device::Tensor->MOTResult]";
     param_ = std::make_shared<FairMotPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MOTResult>();
   }
@@ -212,10 +214,10 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
+  base::Status make(const dag::NodeDesc& pre_desc,
+                    const dag::NodeDesc& infer_desc,
                     base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
+                    const dag::NodeDesc& post_desc) {
     this->setNodeDesc(pre_, pre_desc);
     this->setNodeDesc(infer_, infer_desc);
     this->setNodeDesc(post_, post_desc);
