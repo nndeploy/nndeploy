@@ -6,6 +6,7 @@ import { ConfigProvider } from '@douyinfe/semi-ui';
 import { NodeRenderContext } from '../../context';
 import { ErrorIcon } from './styles';
 import { NodeWrapper } from './node-wrapper';
+import { NodeStatusBar } from './node-status-bar';
 
 export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
   /**
@@ -32,6 +33,7 @@ export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
           {form?.state.invalid && <ErrorIcon />}
           {form?.render()}
         </NodeWrapper>
+         <NodeStatusBar />
       </NodeRenderContext.Provider>
     </ConfigProvider>
   );

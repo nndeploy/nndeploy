@@ -34,9 +34,14 @@ class GraphRunner:
         run_status_map = self.graph.get_nodes_run_status_recursive()
         json_obj = {}
         for node_name, run_status in run_status_map.items():
-            json_obj[node_name] = run_status.to_json()
+            json_obj[node_name] = {"time": run_status.average_time, "status": run_status.get_status()}
         return json_obj
-    
+
+    def release(self):
+        if self.graph is not None:
+            self.graph = None
+        import gc; gc.collect()
+
     def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
         # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
         # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
@@ -52,13 +57,13 @@ class GraphRunner:
         self.graph.set_debug_flag(False)
         # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
         # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
-        
+
         nndeploy.base.time_point_start("init_" + name)
         status = self.graph.init()
         if status != nndeploy.base.StatusCode.Ok:
             raise RuntimeError(f"init failed: {status}")
         nndeploy.base.time_point_end("init_" + name)
-        
+
         parallel_type = self.graph.get_parallel_type()
         results = []
 

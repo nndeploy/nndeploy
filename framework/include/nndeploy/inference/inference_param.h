@@ -101,14 +101,15 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   void setLibraryPath(const std::string& library_path, int i = -1);
 
   base::InferenceType inference_type_ = base::kInferenceTypeNotSupport;
-  base::ModelType model_type_ = base::kModelTypeOnnx;                 // 模型的类型
-  bool is_path_ = true;                        // model_value_是否为路径
-  std::vector<std::string> model_value_;       // 模型的路径或者内容
-  int input_num_ = 1;                          // 输入的数量
-  std::vector<std::string> input_name_;        // 输入的名称
-  std::vector<std::vector<int>> input_shape_;  // 输入的形状
-  int output_num_ = 1;                         // 输出的数量
-  std::vector<std::string> output_name_;       // 输出的名称
+  base::ModelType model_type_ = base::kModelTypeOnnx;  // 模型的类型
+  bool is_path_ = true;                                // model_value_是否为路径
+  std::vector<std::string> model_value_;               // 模型的路径或者内容
+  std::vector<std::string> external_model_data_;       // 分离模型权重
+  int input_num_ = 1;                                  // 输入的数量
+  std::vector<std::string> input_name_;                // 输入的名称
+  std::vector<std::vector<int>> input_shape_;          // 输入的形状
+  int output_num_ = 1;                                 // 输出的数量
+  std::vector<std::string> output_name_;               // 输出的名称
   base::EncryptType encrypt_type_ =
       base::kEncryptTypeNone;     // 模型文件的加解密类型
   std::string license_;           // 模型文件的加解密密钥
@@ -121,17 +122,17 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
       base::kPrecisionTypeFp32;                          // 推理时的精度类型
   base::PowerType power_type_ = base::kPowerTypeNormal;  // 推理时的功耗类型
   bool is_dynamic_shape_ = false;                        // 是否是动态shape
-  base::ShapeMap min_shape_ = base::ShapeMap();  // 当为动态输入时最小shape
-  base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
-  base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
-  std::vector<std::string> cache_path_ = {""};          // 缓存路径
-  std::vector<std::string> library_path_ = {""};        // 第三方推理框架的动态库路径
+  base::ShapeMap min_shape_ = base::ShapeMap();   // 当为动态输入时最小shape
+  base::ShapeMap opt_shape_ = base::ShapeMap();   // 当为动态输入时最优shape
+  base::ShapeMap max_shape_ = base::ShapeMap();   // 当为动态输入时最大shape
+  std::vector<std::string> cache_path_ = {""};    // 缓存路径
+  std::vector<std::string> library_path_ = {""};  // 第三方推理框架的动态库路径
   base::ParallelType parallel_type_ = base::kParallelTypeSequential;
   int worker_num_ = 1;
 
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator);
-  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
+  virtual base::Status deserialize(rapidjson::Value& json);
 };
 
 /**
@@ -169,8 +170,9 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-extern NNDEPLOY_CC_API std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>&
-getGlobalInferenceParamCreatorMap();
+extern NNDEPLOY_CC_API
+    std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>&
+    getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

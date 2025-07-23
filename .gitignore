@@ -270,6 +270,8 @@ server/resources/**
 # keep readme file
 !server/resources/README*
 
+.tmp/
+
 weights/
 
 # server/resources rule

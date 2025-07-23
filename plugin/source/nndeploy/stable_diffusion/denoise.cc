@@ -448,6 +448,8 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     denoise_->setScheduleParam(ddim_param_);
     denoise_->setInferenceParam(infer_param);
 
+    delete infer_param;
+
     return base::kStatusCodeOk;
   }
 

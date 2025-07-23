@@ -245,7 +245,7 @@ base::Status PrintNode::run() {
 
   time_t t = time(NULL);
   std::ostringstream oss;
-  oss << cwd << "/.tmp_";
+  oss << cwd << "/.tmp";
   std::string tmp_dir = oss.str();
 
   if (access(tmp_dir.c_str(), F_OK) != 0) {
@@ -255,7 +255,8 @@ base::Status PrintNode::run() {
     }
   }
 
-  std::string file_path = tmp_dir + "/output.txt";
+  // std::string file_path = tmp_dir + "/output.txt";
+  std::string file_path = tmp_dir + "/output_" + name_ + ".txt";
 
   std::ofstream ofs(file_path.c_str());
   if (!ofs) {
@@ -509,19 +510,19 @@ base::Status QwenPrefill::run() {
       (tokenizer::TokenizerIds*)prefill_sample_node_->getOutput(0)->getParam(
           prefill_sample_node_);
   outputs_[0]->set(out_token, true);
-  // outputs_[0]->notifyWritten(out_token);
+  outputs_[0]->notifyWritten(out_token);
 
   device::Tensor* presents =
       (device::Tensor*)prefill_infer_node_->getOutput(1)->getTensor(
           prefill_infer_node_);
   outputs_[1]->set(presents, true);
-  // outputs_[1]->notifyWritten(presents);
+  outputs_[1]->notifyWritten(presents);
 
   tokenizer::TokenizerIds* history_token =
       (tokenizer::TokenizerIds*)prefill_token_node_->getOutput(0)->getParam(
           prefill_token_node_);
   outputs_[2]->set(history_token, true);
-  // outputs_[2]->notifyWritten(history_token);
+  outputs_[2]->notifyWritten(history_token);
 
   setRunningFlag(false);
   return status;
@@ -911,7 +912,7 @@ base::Status QwenDecode::run() {
   history_ids->ids_[0].push_back(prefill_token_ids->ids_[0][0]);
   history_ids_ = *history_ids;
 
-  decode_embedding_node_->getInput(0)->set(prefill_token_ids, true);
+  decode_embedding_node_->getInput(0)->set(prefill_token_ids, false);
   decode_embedding_node_->getInput(1)->set(present_kv, true);
   decode_embedding_node_->getInput(2)->set(history_ids, true);
 
@@ -1080,7 +1081,7 @@ dag::Graph* createQwenGraph(const std::string& name,
   prefill->setInferenceType(inference_type);
   prefill->defaultParam();
   prefill->setInferParams(is_path, model_type, device_type);
-  llm_graph->addNode(prefill);
+  llm_graph->addNode(prefill, false);
 
   std::vector<dag::Edge*> decode_out = {out};
   QwenDecode* decode = new QwenDecode("decode", prefill_out, decode_out);
@@ -1088,7 +1089,7 @@ dag::Graph* createQwenGraph(const std::string& name,
   decode->setInferenceType(inference_type);
   decode->defaultParam();
   decode->setInferParams(is_path, model_type, device_type);
-  llm_graph->addNode(decode);
+  llm_graph->addNode(decode, false);
 
   return llm_graph;
 }

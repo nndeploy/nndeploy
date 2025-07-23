@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 
 import { debounce } from "lodash-es";
 import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
@@ -25,11 +25,17 @@ import {
   LineAddButton,
   NodePanel,
 } from "../components";
+import { useFlowEnviromentContext } from "../context/flow-enviroment-context";
+import store from "../pages/Layout/Design/store/store";
+import React from "react";
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
+
+   const { state } = React.useContext(store);
+   const {dagGraphInfo } = state
   return useMemo<FreeLayoutProps>(() => {
     return {
       /**
@@ -84,6 +90,18 @@ export function useEditorProps(
         if (toPort.availableLines.length >= 1) {
           return false
         }
+
+      //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
+      //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
+      //   !succesorNodes && fromPort.type
+      
+      // ){
+      //     return false
+      //   }
+       // dagGraphInfo.accepted_edge_types[fromPort.node.]
+
+
+
         return true;
       },
       /**

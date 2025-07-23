@@ -207,13 +207,14 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
           entity.id ? <>
             {entity.parentId?.includes("images") && entity.name ? (
               <div className="image-preview">
-                <img src={`/api/preview?file_path=${entity.parentId}/${entity.name}`} />
+                <img src={`/api/preview?file_path=${entity.parentId}/${entity.name}&time=${new Date().getTime()}`} />
+
               </div>
             ) : entity.parentId?.includes("videos") && entity.name ? (
               <div className="video-preview">
                 <VideoPlayer
                   height={430}
-                  src={`/api/preview?file_path=${entity.parentId}/${entity.name}`}
+                  src={`/api/preview?file_path=${entity.parentId}/${entity.name}&time=${new Date().getTime()}`}
                 //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                 />
               </div>

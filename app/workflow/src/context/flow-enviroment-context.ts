@@ -1,7 +1,8 @@
 import React from 'react';
 import { FlowDocumentJSON } from '../typings';
 import { INodeEntity } from '../pages/Node/entity';
-import { IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
+import { IBusinessNode, IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
+import { IFlowNodesRunningStatus, IOutputResource } from '../pages/components/flow/entity';
 
 export const FlowEnviromentContext = React.createContext<
   {
@@ -9,12 +10,17 @@ export const FlowEnviromentContext = React.createContext<
     element?: React.MutableRefObject<HTMLDivElement | null>;
     onSave?: (flowJson: FlowDocumentJSON) => void;
     onRun?: (flowJson: FlowDocumentJSON) => void;
+    onConfig: ()=>void; 
+    graphTopNode: IBusinessNode;
     paramTypes: IParamTypes;
-    outputResources: string[];
+    outputResources: IOutputResource;
+    flowNodesRunningStatus: IFlowNodesRunningStatus
   }
 
 >({
-  outputResources: []
+  outputResources: {path: [], text: []}, 
+  flowNodesRunningStatus: {}, 
+  graphTopNode: {}
 } as any);
 
 export function useFlowEnviromentContext() {

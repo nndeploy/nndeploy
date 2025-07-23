@@ -31,7 +31,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     setRunningFlag(true);
     tokenizer::TokenizerText *prompt_text = new tokenizer::TokenizerText();
     prompt_text->texts_ = {prompt_};
-    this->getOutput(0)->set(prompt_text);
+    this->getOutput(0)->set(prompt_text, false);
     this->getOutput(0)->notifyWritten(prompt_text);
     index_++;
     setRunningFlag(false);
@@ -118,7 +118,7 @@ class NNDEPLOY_CC_API TensorToMat : public dag::Node {
     int h = input->getHeight();
     int w = input->getWidth();
     cv::Mat *mat = new cv::Mat(ToImages(ptr, n, c, h, w)[0]);
-    this->getOutput(0)->set(mat);
+    this->getOutput(0)->set(mat, false);
 
     setRunningFlag(false);
     return base::kStatusCodeOk;

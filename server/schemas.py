@@ -35,7 +35,7 @@ class ProgressPayload(BaseModel):
 class NodeListResponse(BaseModel):
     flag: str
     message: str
-    result: List[Any]
+    result: Dict[str, Any]
 
 class WorkFlowListResponse(BaseModel):
     flag: str

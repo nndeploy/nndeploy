@@ -498,6 +498,21 @@ base::Status InferenceParam::serialize(
       model_value_array.PushBack(str, allocator);
     }
     json.AddMember("model_value_", model_value_array, allocator);
+
+    rapidjson::Value external_model_data_array(rapidjson::kArrayType);
+    std::vector<std::string> model_data_temp;
+    if (external_model_data_.size() == 0) {
+      model_data_temp.push_back("");
+    } else {
+      model_data_temp = external_model_data_;
+    }
+    for (const auto& value : model_data_temp) {
+      rapidjson::Value str;
+      str.SetString(value.c_str(), value.length(), allocator);
+      external_model_data_array.PushBack(str, allocator);
+    }
+    json.AddMember("external_model_data_", external_model_data_array,
+                   allocator);
   }
 
   std::string device_type_str = base::deviceTypeToString(device_type_);
@@ -667,6 +682,19 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
       } else {
         for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
           model_value_.push_back(model_value_array[i].GetString());
+        }
+      }
+    }
+
+    if (json.HasMember("external_model_data_")) {
+      const rapidjson::Value& model_data_array = json["external_model_data_"];
+      external_model_data_.clear();
+      if (model_data_array.Size() == 1 &&
+          model_data_array[0].GetString() == "") {
+        ;
+      } else {
+        for (rapidjson::SizeType i = 0; i < model_data_array.Size(); i++) {
+          external_model_data_.push_back(model_data_array[i].GetString());
         }
       }
     }

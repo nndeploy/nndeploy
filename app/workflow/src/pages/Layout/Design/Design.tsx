@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, { useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
 import {
   Nav,
   Tabs,
@@ -38,10 +38,13 @@ import Flow from "../../components/flow/Index";
 import companyLogo from "../../../assets/kapybara_logo.png";
 import NodeTree from "./Node";
 import Resource from "./Resource";
-import WorkFlow, { WorkFlowComponentHandle } from "./WorkFlow";
+import WorkFlow from "./WorkFlow";
 import { IResourceTreeNodeEntity } from "./Resource/entity";
 import { IWorkFlowEntity } from "./WorkFlow/entity";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import { apiGetDagInfo } from "./api";
+import store, { initialState, reducer } from "./store/store";
+import { initDagGraphInfo } from "./store/actionType";
 
 var tabId = 2;
 
@@ -57,7 +60,23 @@ const Design: React.FC = () => {
     null
   );
 
-  const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
+  const [state, dispatch] = useReducer(reducer, (initialState))
+
+  async function getDagInfo() {
+    var response = await apiGetDagInfo()
+    if (response.flag != 'success') {
+      return
+    }
+
+    dispatch(initDagGraphInfo(response.result))
+
+  }
+
+  useEffect(() => {
+    getDagInfo()
+  }, [])
+
+ // const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
 
 
 
@@ -119,7 +138,7 @@ const Design: React.FC = () => {
       return tab;
     })
     setTabs(newTabs);
-    workFlowTreeRef.current?.refresh()
+    //workFlowTreeRef.current?.refresh()
     //setActiveKey(activeKey);
   }
 
@@ -170,165 +189,169 @@ const Design: React.FC = () => {
 
   return (
     <div className="container design-page">
-      <Nav mode="horizontal" className="topNav" >
-        <Nav.Header>
-          <img
-            src={companyLogo}
-            width="100"
-            alt="Logo"
-            className="companyLogo"
-          />
-        </Nav.Header>
-        <Nav.Footer>
-          <a href="https://github.com/nndeploy/nndeploy" target="_blank">
-            <Button icon={<IconGithubLogo />} theme="borderless" size='large' />
-          </a>
+      <store.Provider value={{ state, dispatch }} >
+        <Nav mode="horizontal" className="topNav" >
+          <Nav.Header>
+            <img
+              src={companyLogo}
+              width="100"
+              alt="Logo"
+              className="companyLogo"
+            />
+          </Nav.Header>
+          <Nav.Footer>
+            <a href="https://github.com/nndeploy/nndeploy" target="_blank">
+              <Button icon={<IconGithubLogo />} theme="borderless" size='large' />
+            </a>
 
-          <a
-            href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"
-            target="_blank"
-          >
-            <Button icon={<IconHelpCircle />} size='large' theme="borderless" />
-          </a>
-          <a
-            href="https://www.zhihu.com/column/c_1690464325314240512"
-            target="_blank"
-          >
-            <Button
-              icon={<FontAwesomeIcon icon={faZhihu} size="1x" />}
-              size='large'
-              theme="borderless"
-            />
-          </a>
-          <a href="https://discord.gg/xAWvmZn3" target="_blank">
-            <Button
-              icon={<FontAwesomeIcon icon={faDiscord} size="1x" />}
-              size='large'
-              theme="borderless"
-            />
-          </a>
-          <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"
-            target="_blank">
-            <Button
-              icon={<FontAwesomeIcon icon={faBilibili} size="1x" />}
-              size='large'
-              theme="borderless"
-            />
-          </a>
-          <a
-            href="https://github.com/nndeploy/nndeploy/blob/main/docs/zh_cn/knowledge_shared/wechat.md"
-            target="_blank"
-          >
-            <Button
-              icon={<FontAwesomeIcon icon={faWeixin} size="1x" />}
-              theme="borderless"
-              size='large'
-            />
-          </a>
-          <Dropdown
-            render={
-              <Dropdown.Menu>
-                <Dropdown.Item>Profile</Dropdown.Item>
-                <Dropdown.Item>Logout</Dropdown.Item>
-              </Dropdown.Menu>
-            }
-          >
-            <Avatar color="blue" size="small">
-              <IconUser size="small" />
-            </Avatar>
-          </Dropdown>
-        </Nav.Footer>
-      </Nav>
-      <div className="main">
-        <div className="leftNav">
-          <Nav
-            mode="vertical"
-            className="firstLevelNav"
-            selectedKeys={[selectedFirstLevel!]}
-          >
-            <Tooltip content="Resources" position="right">
-              <Nav.Item
-                itemKey="resources"
-                icon={<IconFile />}
-
-                onClick={() => handleFirstLevelClick("resources")}
+            <a
+              href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"
+              target="_blank"
+            >
+              <Button icon={<IconHelpCircle />} size='large' theme="borderless" />
+            </a>
+            <a
+              href="https://www.zhihu.com/column/c_1690464325314240512"
+              target="_blank"
+            >
+              <Button
+                icon={<FontAwesomeIcon icon={faZhihu} size="1x" />}
+                size='large'
+                theme="borderless"
               />
-            </Tooltip>
-
-            <Tooltip content="Nodes" position="right">
-              <Nav.Item
-                itemKey="nodes"
-                icon={<IconBranch />}
-
-                onClick={() => handleFirstLevelClick("nodes")}
+            </a>
+            <a href="https://discord.gg/xAWvmZn3" target="_blank">
+              <Button
+                icon={<FontAwesomeIcon icon={faDiscord} size="1x" />}
+                size='large'
+                theme="borderless"
               />
-            </Tooltip>
-            <Tooltip content="Workflow" position="right">
-              <Nav.Item
-                itemKey="workflow"
-                icon={<IconApps />}
-
-                onClick={() => handleFirstLevelClick("workflow")}
+            </a>
+            <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"
+              target="_blank">
+              <Button
+                icon={<FontAwesomeIcon icon={faBilibili} size="1x" />}
+                size='large'
+                theme="borderless"
               />
-            </Tooltip>
-          </Nav>
-          {
+            </a>
+            <a
+              href="https://github.com/nndeploy/nndeploy/blob/main/docs/zh_cn/knowledge_shared/wechat.md"
+              target="_blank"
+            >
+              <Button
+                icon={<FontAwesomeIcon icon={faWeixin} size="1x" />}
+                theme="borderless"
+                size='large'
+              />
+            </a>
+            <Dropdown
+              render={
+                <Dropdown.Menu>
+                  <Dropdown.Item>Profile</Dropdown.Item>
+                  <Dropdown.Item>Logout</Dropdown.Item>
+                </Dropdown.Menu>
+              }
+            >
+              <Avatar color="blue" size="small">
+                <IconUser size="small" />
+              </Avatar>
+            </Dropdown>
+          </Nav.Footer>
+        </Nav>
+        <div className="main">
+          <div className="leftNav">
+            <Nav
+              mode="vertical"
+              className="firstLevelNav"
+              selectedKeys={[selectedFirstLevel!]}
+            >
+              <Tooltip content="Resources" position="right">
+                <Nav.Item
+                  itemKey="resources"
+                  icon={<IconFile />}
 
-            selectedFirstLevel ?
-              <div className="secondLevelNav" style={{ width: `${secondNavWith}px` }}>
-                <Nav mode="vertical" >
-                  {selectedFirstLevel === "nodes" ? <NodeTree />
-                    : selectedFirstLevel === "resources" ? <Resource />
-                      : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow} ref={workFlowTreeRef} onFlowDeleteCallBack={onFlowDeleteCallBack} />
-                        : <></>
-                  }
-
-                </Nav>
-                <div className="second-level-dragger" onMouseDown={e => handleDrag(e)}></div>
-              </div>
-              : <></>
-          }
-
-
-
-        </div>
-        <div className="rightContent">
-          <Tabs
-            tabPosition="top"
-            activeKey={activeKey}
-            onChange={setActiveKey}
-            size="small"
-            className="tabs top-tabs"
-            onTabClose={handleTabClose}
-            tabPaneMotion={false}
-
-            keepDOM={true}
-            tabBarExtraContent={
-              <Tooltip content="add" position="top">
-                <Text
-                  link
-                  icon={<IconPlus />}
-                  onClick={() => handleAddTab()}
-                ></Text>
+                  onClick={() => handleFirstLevelClick("resources")}
+                />
               </Tooltip>
-            }
-          >
-            {tabs.map((tab) => (
-              <TabPane
-                tab={tab.name ? tab.name : tab.newName}
-                itemKey={tab.tabId}
-                key={tab.tabId}
-                closable={true}
 
-              >
-                <div className="tab-content">
-                  <Flow id={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} />
+              <Tooltip content="Nodes" position="right">
+                <Nav.Item
+                  itemKey="nodes"
+                  icon={<IconBranch />}
+
+                  onClick={() => handleFirstLevelClick("nodes")}
+                />
+              </Tooltip>
+              <Tooltip content="Workflow" position="right">
+                <Nav.Item
+                  itemKey="workflow"
+                  icon={<IconApps />}
+
+                  onClick={() => handleFirstLevelClick("workflow")}
+                />
+              </Tooltip>
+            </Nav>
+            {
+
+              selectedFirstLevel ?
+                <div className="secondLevelNav" style={{ width: `${secondNavWith}px` }}>
+                  <Nav mode="vertical" >
+                    {selectedFirstLevel === "nodes" ? <NodeTree />
+                      : selectedFirstLevel === "resources" ? <Resource />
+                        : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow} 
+                        //ref={workFlowTreeRef} 
+                        onFlowDeleteCallBack={onFlowDeleteCallBack} />
+                          : <></>
+                    }
+
+                  </Nav>
+                  <div className="second-level-dragger" onMouseDown={e => handleDrag(e)}></div>
                 </div>
-              </TabPane>
-            ))}
-          </Tabs>
+                : <></>
+            }
+
+
+
+          </div>
+          <div className="rightContent">
+            <Tabs
+              tabPosition="top"
+              activeKey={activeKey}
+              onChange={setActiveKey}
+              size="small"
+              className="tabs top-tabs"
+              onTabClose={handleTabClose}
+              tabPaneMotion={false}
+
+              keepDOM={true}
+              tabBarExtraContent={
+                <Tooltip content="add" position="top">
+                  <Text
+                    link
+                    icon={<IconPlus />}
+                    onClick={() => handleAddTab()}
+                  ></Text>
+                </Tooltip>
+              }
+            >
+              {tabs.map((tab) => (
+                <TabPane
+                  tab={tab.name ? tab.name : tab.newName}
+                  itemKey={tab.tabId}
+                  key={tab.tabId}
+                  closable={true}
+
+                >
+                  <div className="tab-content">
+                    <Flow id={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} />
+                  </div>
+                </TabPane>
+              ))}
+            </Tabs>
+          </div>
         </div>
-      </div>
+      </store.Provider>
     </div >
   );
 };

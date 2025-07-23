@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
-from .frontend import FrontendManager
+from .files import get_workdir
+# from .frontend import FrontendManager
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json
@@ -275,7 +276,7 @@ class NnDeployServer:
                 raise HTTPException(status_code=500, detail=f"reading file error: {e}")
         
         @api.get(
-            "/nodes",
+            "/dag/info",
             tags=["Node"],
             response_model=NodeListResponse,
             summary="return register nodes",
@@ -285,7 +286,7 @@ class NnDeployServer:
             nodes = json.loads(json_str)
             flag = "success"
             message = ""
-            return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
+            return NodeListResponse(flag=flag, message=message, result=nodes)
 
         @api.post(
                 "/nodes/upload",
@@ -452,7 +453,7 @@ class NnDeployServer:
         )
         self.app.dependency_overrides[get_workdir] = self._get_workdir
 
-        self.app.include_router(api)
+        self.app.include_router(api,dependencies=[Depends(lambda: get_workdir(self))])
 
     # task progress notify
     def notify_task_progress(self, task_id: str, status_dict: dict):
@@ -483,11 +484,11 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path = extract_encode_output_paths(graph_json)
+        path, text = extract_encode_output_paths(graph_json)
 
         flag = "success"
         message = "notify task done"
-        result = {"task_id": task_id, "type": "preview", "path": path}
+        result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
         for ws in ws_set.copy():
