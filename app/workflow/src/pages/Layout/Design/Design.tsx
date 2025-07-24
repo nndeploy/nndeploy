@@ -220,7 +220,7 @@ const Design: React.FC = () => {
                 theme="borderless"
               />
             </a>
-            <a href="https://discord.gg/xAWvmZn3" target="_blank">
+            <a href="https://discord.gg/9rUwfAaMbr" target="_blank">
               <Button
                 icon={<FontAwesomeIcon icon={faDiscord} size="1x" />}
                 size='large'

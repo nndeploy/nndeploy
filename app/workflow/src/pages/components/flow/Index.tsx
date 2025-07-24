@@ -76,7 +76,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: props.id,
+    name:   props.id,
     parentId: "",
     designContent: {
       nodes: [],
@@ -150,6 +150,8 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
     setEntity({ ...entity, designContent, businessContent: response.result });
+
+    setGraphTopNode(lodash.omit(response.result , ['nndeploy_ui_layout', 'node_repository_']) as any)
 
 
     ref?.current?.document.reload(designContent);
@@ -235,7 +237,8 @@ const Flow: React.FC<FlowProps> = (props) => {
     try {
 
       const businessContent = designDataToBusinessData(
-        flowJson
+        flowJson, 
+        graphTopNode
       );
 
       const response = await apiWorkFlowRun(businessContent);
@@ -304,7 +307,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         console.error("WebSocket error:", err);
       };
 
-      Toast.success("run sucess!");
+      //Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
     }

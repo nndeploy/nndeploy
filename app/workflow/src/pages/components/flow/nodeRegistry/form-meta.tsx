@@ -60,6 +60,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
 
   const excludeFields = [
+    "id",
     "key_",
     "param_",
     "inputs_",

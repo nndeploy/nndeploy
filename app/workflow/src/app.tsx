@@ -16,7 +16,7 @@ const app = createRoot(document.getElementById("root")!);
 app.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/design" element={<Design />} />
+      <Route path="/" element={<Design />} />
 
       
 
