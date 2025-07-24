@@ -121,5 +121,14 @@ void print_memory_desc(const dnnl::memory::desc &md) {
 
 }
 
+// Helper to handle negative indices and clamp values, similar to torch/numpy
+long long normalize_index(long long index, long long dim_size) {
+    if (index < 0) {
+        index += dim_size;
+    }
+    // Clamp to [0, dim_size] for starts and [0, dim_size] for ends
+    return std::max(0LL, std::min(index, dim_size));
+}
+
 }  // namespace op
 }  // namespace nndeploy
