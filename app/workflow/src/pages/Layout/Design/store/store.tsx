@@ -93,7 +93,7 @@ export function reducer(state: state, action: any): state {
 
       var treeData = buildTreeFromArray(dagGraphInfo.nodes)
 
-      var temp = { ...state, dagGraphInfo, nodeList: leafNodes , nodeRegistries, treeData }
+      var temp = { ...state, dagGraphInfo, nodeList: [dagGraphInfo.graph, ...leafNodes] , nodeRegistries, treeData }
       return temp
 
 

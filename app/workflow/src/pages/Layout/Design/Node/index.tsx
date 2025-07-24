@@ -3,7 +3,7 @@ import { IconMore, IconPlus } from "@douyinfe/semi-icons";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { ReactNode } from "react";
 import "./index.scss";
-import {  NodeTreeNodeData } from "../../../Node/entity";
+import { NodeTreeNodeData } from "../../../Node/entity";
 import request from "../../../../request";
 import React from "react";
 import store from "../store/store";
@@ -57,21 +57,26 @@ const NodeTree: React.FC = () => {
   }
 
   const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => (
-    <div
-      style={{ display: "flex", height: "24px" }}
-      draggable
-      ///@ts-ignore
-      onDragStart={(dragEvent) => onDragStart(item.nodeEntity, dragEvent)}
-    >
-      <Typography.Text
-        ellipsis={{ showTooltip: true }}
-        style={{ width: "calc(100% - 48px)" }}
-        className="label"
+
+    <Tooltip content={item.nodeEntity.desc} position="right">
+      <div
+        style={{ display: "flex", height: "24px" }}
+        draggable
+        ///@ts-ignore
+        onDragStart={(dragEvent) => onDragStart(item.nodeEntity, dragEvent)}
       >
-        {label}
-      </Typography.Text>
-      {/* {renderBtn(item?.key!)} */}
-    </div>
+        <Typography.Text
+          ellipsis={{ showTooltip: true }}
+          style={{ width: "calc(100% - 48px)" }}
+          className="label"
+        >
+
+          {label}
+
+        </Typography.Text>
+        {/* {renderBtn(item?.key!)} */}
+      </div>
+    </Tooltip>
   );
 
   function onUploadNode(): void {
@@ -124,7 +129,7 @@ const NodeTree: React.FC = () => {
       <div className="tree-node">
 
         <div className="tree-node-header">
-          <Text>nodes</Text>
+          <Text>Node</Text>
           <Text
             link
             icon={<IconPlus />}

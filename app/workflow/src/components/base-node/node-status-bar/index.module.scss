@@ -5,10 +5,14 @@
 
 .nodeStatus {
 
+ &nodeStatusIdle {
+    background-color: #999;
+    color: #999;
+  }
 
-  &nodeStatusPending {
-    background-color: rgba(153, 187, 255, 0.3);
-    color: rgba(153, 187, 255, 0.3);
+  &nodeStatusInit {
+    background-color: #d9f7be;
+    color: #d9f7be;
   }
 
   &nodeStatusRunning {
@@ -27,8 +31,12 @@
   }
 }
 
-.pending {
-  color: rgba(153, 187, 255, 0.3);
+.idle {
+  color: #999;
+}
+
+.init {
+  color: #d9f7be;
 }
 
 .running {

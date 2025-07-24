@@ -41,6 +41,7 @@ import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
 import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
 import FlowConfigDrawer from "./FlowConfigDrawer";
+import { NodeEntityForm } from "./NodeRepositoryEditor";
 
 let nameId = 0;
 
@@ -57,7 +58,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const { nodeRegistries, nodeList } = state
 
-  const [outputResources, setOutputResources] = useState<IOutputResource>({path: [], text: []})
+  const [outputResources, setOutputResources] = useState<IOutputResource>({ path: [], text: [] })
 
   const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
 
@@ -75,7 +76,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: props.id,
+    name:   props.id,
     parentId: "",
     designContent: {
       nodes: [],
@@ -108,7 +109,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   const autoLayOutRef = useRef<AutoLayoutHandle>();
   const [configDrawerVisible, setConfigDrawerVisible] = useState(false);
 
-  function onflowConfigDrawerSure(values: any) {
+  function handleConfigDrawerSure(values: any) {
     setConfigDrawerVisible(false)
     setGraphTopNode(values)
   }
@@ -149,6 +150,8 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
     setEntity({ ...entity, designContent, businessContent: response.result });
+
+    setGraphTopNode(lodash.omit(response.result , ['nndeploy_ui_layout', 'node_repository_']) as any)
 
 
     ref?.current?.document.reload(designContent);
@@ -234,7 +237,8 @@ const Flow: React.FC<FlowProps> = (props) => {
     try {
 
       const businessContent = designDataToBusinessData(
-        flowJson
+        flowJson, 
+        graphTopNode
       );
 
       const response = await apiWorkFlowRun(businessContent);
@@ -303,7 +307,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         console.error("WebSocket error:", err);
       };
 
-      Toast.success("run sucess!");
+      //Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
     }
@@ -441,33 +445,39 @@ const Flow: React.FC<FlowProps> = (props) => {
 
             </SidebarProvider>
           </FreeLayoutEditorProvider>
+
+          <SideSheet
+            width={"30%"}
+            visible={saveDrawerVisible}
+            onCancel={handleSaveDrawerClose}
+            title={"save flow"}
+          >
+            <FlowSaveDrawer
+              entity={entity!}
+              onSure={onflowSaveDrawrSure}
+              onClose={onFlowSaveDrawerClose}
+            />
+          </SideSheet>
+
+          <SideSheet
+            width={"30%"}
+            visible={configDrawerVisible}
+            onCancel={handleConfigDrawerClose}
+            title={"save flow"}
+          >
+            <NodeEntityForm
+              nodeEntity={graphTopNode}
+              visible={configDrawerVisible}
+              onClose={handleConfigDrawerClose}
+              onSave={handleConfigDrawerSure}
+              nodeList={nodeList!}
+              paramTypes={paramTypes}
+            />
+          </SideSheet>
+
         </FlowEnviromentContext.Provider>
       )}
-      <SideSheet
-        width={"30%"}
-        visible={saveDrawerVisible}
-        onCancel={handleSaveDrawerClose}
-        title={"save flow"}
-      >
-        <FlowSaveDrawer
-          entity={entity!}
-          onSure={onflowSaveDrawrSure}
-          onClose={onFlowSaveDrawerClose}
-        />
-      </SideSheet>
 
-      <SideSheet
-        width={"30%"}
-        visible={configDrawerVisible}
-        onCancel={handleConfigDrawerClose}
-        title={"save flow"}
-      >
-        <FlowConfigDrawer
-          //entity={entity!}
-          onSure={onflowConfigDrawerSure}
-          onClose={handleConfigDrawerClose}
-        />
-      </SideSheet>
     </div>
   );
 };

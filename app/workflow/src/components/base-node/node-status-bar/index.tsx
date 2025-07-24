@@ -30,14 +30,19 @@ export const NodeStatusBar: React.FC<any> = (props) => {
   }
 
   const isNodeIdle = nodeInfo.status === WorkflowNodeStatus.IDLE;
-  const isNodePending = nodeInfo.status === WorkflowNodeStatus.PENDING;
+  const isNodeInit = nodeInfo.status === WorkflowNodeStatus.INIT;
   const isNodeRunning = nodeInfo.status === WorkflowNodeStatus.RUNNING;
   const isNodeDone = nodeInfo.status === WorkflowNodeStatus.DONE;
 
   const tagColor = () => {
 
-    if (isNodePending) {
-      return styles.nodeStatusPending;
+
+    if (isNodeIdle) {
+      return styles.nodeStatusIdle;
+    }
+
+    if (isNodeInit) {
+      return styles.nodeStatusInit;
     }
 
     if (isNodeRunning) {
@@ -47,14 +52,18 @@ export const NodeStatusBar: React.FC<any> = (props) => {
       return styles.nodeStatusSucceed;
     }
 
-
-
     return ""
   }
 
   const renderStatus = () => {
-    if (isNodePending) {
-      return <span className={classnames(styles.pending)}>
+
+    if (isNodeIdle) {
+      return <span className={classnames(styles.idle)}>
+        {nodeInfo.status}
+      </span>
+    }
+    if (isNodeInit) {
+      return <span className={classnames(styles.init)}>
         {nodeInfo.status}
       </span>
     }
@@ -72,7 +81,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
   }
 
   const renderIcon = () => {
-    if (isNodePending) {
+    if (isNodeInit) {
       return <IconSpin spin className={classnames(styles.icon, styles.pending)} />;
     }
 
@@ -87,7 +96,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
 
   const renderCost = () => (
     <Tag size="small" className={tagColor()}>
-      {nodeInfo.time.toFixed(2)}
+      {nodeInfo.time.toFixed(2)} ms
     </Tag>
   );
 

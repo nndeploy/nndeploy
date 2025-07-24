@@ -218,7 +218,7 @@ const Resource: React.FC = () => {
   return (
     <div className="tree-resource">
       <div className="tree-resource-header">
-        <Text>resources</Text>
+        <Text>Resource</Text>
         {/* <Tooltip content="add branch" position="top">
           <Text
             link
