@@ -7,6 +7,7 @@ import {  useGetWorkflowTree } from "../../../Layout/Design/WorkFlow/effect";
 import { IBusinessNode, IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
 import { designDataToBusinessData } from "./functions";
+import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
@@ -16,6 +17,7 @@ export interface BranchEditDrawerProps {
 
 const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   const formRef = useRef<FormApi<any>>();
+  const flowEnviroment = useFlowEnviromentContext();
 
   // const { treeData } = useGetWorkflowBranch()
 
@@ -26,7 +28,8 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
       //console.log("Form Data:", formData);
 
         const businessContent = designDataToBusinessData(
-              props.entity.designContent
+              props.entity.designContent, 
+              flowEnviroment.graphTopNode
             );
 
       const data: IWorkFlowEntity = {

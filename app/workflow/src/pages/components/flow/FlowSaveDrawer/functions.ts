@@ -206,7 +206,8 @@ function getAllEdges(designData: FlowDocumentJSON) {
   return results;
 }
 
-export function designDataToBusinessData(designData: FlowDocumentJSON) {
+export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode) {
+
   let allEdges = getAllEdges(designData);
 
 
@@ -226,17 +227,19 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
   const layout = getNodesPostion()
 
   let businessData: IBusinessNode = {
-    key_: "nndeploy::dag::Graph",
-    name_: "demo",
-    device_type_: "kDeviceTypeCodeCpu:0",
-    inputs_: [],
-    outputs_: [],
-    is_external_stream_: false,
-    is_inner_: false,
-    is_time_profile_: false,
-    is_debug_: false,
-    is_graph_node_share_stream_: true,
-    queue_max_size_: 16,
+    // key_: "nndeploy::dag::Graph",
+    // name_: "demo",
+    // device_type_: "kDeviceTypeCodeCpu:0",
+    // inputs_: [],
+    // outputs_: [],
+    // is_external_stream_: false,
+    // is_inner_: false,
+    // is_time_profile_: false,
+    // is_debug_: false,
+    // is_graph_node_share_stream_: true,
+    // queue_max_size_: 16,
+    // node_repository_: [],
+    ...graphTopNode, 
     node_repository_: [],
     nndeploy_ui_layout: layout
   };
