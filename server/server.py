@@ -121,7 +121,7 @@ class NnDeployServer:
             save_dir = Path(self.args.resources) / "workflow"
             if not save_dir.exists():
                 save_dir.mkdir(parents=True, exist_ok=True)
-            file_path = save_dir / f"{file_name}.json"
+            file_path = save_dir / f"{file_name}"
 
             try:
                 with open(file_path, 'w') as f:
