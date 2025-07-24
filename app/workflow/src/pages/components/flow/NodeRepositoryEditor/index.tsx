@@ -31,7 +31,7 @@ interface NodeEntityFormProps {
  * 单个节点的独立表单，支持编辑当前节点及递归编辑子节点
  * 保存子节点时，更新当前表单对应字段
  */
-const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
+export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
   const { nodeEntity, visible, onClose, onSave, paramTypes, nodeList } = props
 
@@ -81,6 +81,12 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
   const excludeFields = [
     "key_",
+    "is_graph_",
+    "is_inner_",
+    "node_type_",
+    "is_time_profile_",
+    "is_debug_",
+    "is_external_stream_",
     "param_",
     "inputs_",
     "outputs_",

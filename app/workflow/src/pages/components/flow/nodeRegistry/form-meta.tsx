@@ -498,7 +498,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             }
              {
               isTextNode() && needShowTextContent() &&
-              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
+              <TextArea rows={8}  value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
             }

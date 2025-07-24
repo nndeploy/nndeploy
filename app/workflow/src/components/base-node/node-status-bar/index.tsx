@@ -87,7 +87,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
 
   const renderCost = () => (
     <Tag size="small" className={tagColor()}>
-      {nodeInfo.time.toFixed(2)}
+      {nodeInfo.time.toFixed(2)}ms
     </Tag>
   );
 
