@@ -20,6 +20,7 @@ from .utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
 from .task_queue import TaskQueue
+from .task_queue import ExecutionStatus
 from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
@@ -479,15 +480,15 @@ class NnDeployServer:
                 logging.warning("[notify_task_progress] Event loop not ready or not running")
 
     # task done notify
-    def notify_task_done(self, task_id: str):
+    def notify_task_done(self, task_id: str, status: ExecutionStatus):
         task_info = self.queue.get_task_by_id(task_id)
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
         path, text = extract_encode_output_paths(graph_json)
 
-        flag = "success"
-        message = "notify task done"
+        flag = status.str
+        message = status.messages
         result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
