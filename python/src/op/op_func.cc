@@ -80,6 +80,21 @@ device::Tensor* reluFunc(device::Tensor* input) {
   return output;
 }
 
+device::Tensor* reshapeFunc(device::Tensor* input, device::Tensor* shape,
+                            std::shared_ptr<ir::ReshapeParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("reshape.output");
+  base::Status status = op::reshape(input, shape, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::reshape failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2) {
   std::stringstream ss;
   device::Tensor* result = new device::Tensor("add.output");
@@ -201,6 +216,25 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
     pybind11::pybind11_fail(ss.str());
   }
   return result;
+}
+
+device::Tensor* sliceFunc(device::Tensor* input, 
+                          device::Tensor* starts,
+                          device::Tensor* ends, 
+                          device::Tensor* axes,
+                          device::Tensor* steps) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("slice.output");
+  base::Status status =
+      op::slice(input, starts, ends, axes, steps, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::slice failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
 }
 
 device::Tensor* softmaxFunc(device::Tensor* input1,

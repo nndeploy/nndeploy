@@ -19,7 +19,9 @@
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_gelu.h"
 #include "nndeploy/op/op_rmsnorm.h"
+#include "nndeploy/op/op_reshape.h"
 #include "nndeploy/op/op_softmax.h"
+#include "nndeploy/op/op_slice.h"
 #include "nndeploy/op/op_sigmoid.h"
 #include "nndeploy/op/op_quantize_linear.h"
 #include "nndeploy/op/op_dequantize_linear.h"
@@ -50,6 +52,9 @@ device::Tensor* batchNormFunc(
     std::shared_ptr<ir::BatchNormalizationParam> param);
 
 device::Tensor* reluFunc(device::Tensor* input);
+
+device::Tensor* reshapeFunc(device::Tensor* input, device::Tensor* shape,
+                            std::shared_ptr<ir::ReshapeParam> param);
 
 device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2);
 
@@ -92,6 +97,9 @@ device::Tensor* qlinearConvFunc(
 
 device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2, device::Tensor* condition);
 device::Tensor* transposeFunc(device::Tensor* input, std::shared_ptr<ir::TransposeParam> param);
+device::Tensor* sliceFunc(
+    device::Tensor* input, device::Tensor* starts, device::Tensor* ends,
+    device::Tensor* axes, device::Tensor* steps);
 }  // namespace nndeploy
 
 #endif

@@ -25,7 +25,7 @@ nndeploy：一款基于工作流的多端AI部署工具
 
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
+| <a href="../../zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
 | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> 
@@ -35,8 +35,8 @@ nndeploy：一款基于工作流的多端AI部署工具
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.png" width=100%>
+    <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
+    <img alt="nndeploy" src="../../image/workflow.png" width=100%>
   </picture>
 </p>
 
@@ -61,7 +61,7 @@ nndeploy：一款基于工作流的多端AI部署工具
 | **大语言模型** | QWen-0.5B |
 | **换脸** | deep-live-cam |
 
-> [已部署模型详情列表](docs/zh_cn/quick_start/model_list.md)
+> [已部署模型详情列表](../../zh_cn/quick_start/model_list.md)
 
 ## 介绍
 
@@ -89,7 +89,7 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅ |
   | [TVM](https://github.com/apache/tvm) | ✅ |
   | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | ✅ |
-  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | ✅ |
+  | [自研推理框架](../../zh_cn/inference/README_INFERENCE.md) | ✅ |
 
 ### 2. AI部署的性能工具
 
@@ -107,13 +107,19 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 
 - **所调即所见**：前端可视化调节AI算法部署的所有节点参数，快速预览算法调参后的效果
 
+  <img src="../../image/workflow/face_swap_segment.png">
+
+  <img src="../../image/workflow/qwen_sd.png">
+
+  <img src="../../image/workflow/sd_yolo.png">
+
 ## 快速开始
 
-- [如何编译](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
+- [如何编译](../../zh_cn/quick_start/build.md)
+- [如何获取模型](../../zh_cn/quick_start/model.md)
+- [如何执行](../../zh_cn/quick_start/example.md)
 - [nndeploy C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [nndeploy Python 快速入门](docs/zh_cn/quick_start/python.md)
+- [nndeploy Python 快速入门](../../zh_cn/quick_start/python.md)
 - [nndeploy Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 
 ## 下一步计划
@@ -126,7 +132,7 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 ## 联系我们
 - 欢迎加入交流群！微信：titian5566（请简单备注个人信息^_^）
   
-  <img src="docs/image/wechat.jpg" width="225px">
+  <img src="../../image/wechat.jpg" width="225px">
 
 ## 致谢
 
