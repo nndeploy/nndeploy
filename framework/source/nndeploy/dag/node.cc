@@ -501,14 +501,30 @@ base::ParallelType Node::getParallelType() { return parallel_type_; }
 void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
 
 void Node::setInitializedFlag(bool flag) {
-  initialized_ = flag;
+  // initialized_ = flag;
   if (is_debug_) {
-    if (initialized_) {
+    if (initialized_ == false && flag == true) {
       NNDEPLOY_LOGE("%s init finish.\n", name_.c_str());
-    } else {
-      NNDEPLOY_LOGE("%s not init or deinit.\n", name_.c_str());
+    } else if (initialized_ == true && flag == false) {
+      NNDEPLOY_LOGE("%s deinit.\n", name_.c_str());
+    } else if (initialized_ == false && flag == false) {
+      NNDEPLOY_LOGE("%s init start.\n", name_.c_str());
+    } else { // initialized_ = true && flag == true
+      NNDEPLOY_LOGE("%s double call setInitializedFlag.\n", name_.c_str());
     }
   }
+  if (is_time_profile_) {
+    if (initialized_ == false && flag == true) {
+      NNDEPLOY_TIME_POINT_END(name_ + " init()");
+    } else if (initialized_ == true && flag == false) {
+      ;
+    } else if (initialized_ == false && flag == false) {
+      NNDEPLOY_TIME_POINT_START(name_ + " init()");
+    } else { // initialized_ = true && flag == true
+      ;
+    }
+  }
+  initialized_ = flag;
 }
 bool Node::getInitialized() { return initialized_; }
 
@@ -558,16 +574,20 @@ size_t Node::getCompletedSize() { return completed_size_; }
 std::shared_ptr<RunStatus> Node::getRunStatus() {
   float cost_time = -1.0f;
   float average_time = -1.0f;
+  float init_time = -1.0f;
   if (is_time_profile_) {
     cost_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " run()");
     average_time = NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(name_ + " run()");
+    init_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " init()");
   }
   if (graph_ != nullptr) {
     return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
-                                       run_size_, completed_size_, cost_time, average_time);
+                                       run_size_, completed_size_, cost_time,
+                                       average_time, init_time);
   } else {
     return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
-                                       completed_size_, cost_time, average_time);
+                                       completed_size_, cost_time, average_time,
+                                       init_time);
   }
 }
 
