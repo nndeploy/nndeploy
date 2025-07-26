@@ -149,9 +149,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
   py::class_<RunStatus, std::shared_ptr<RunStatus>>(m, "RunStatus")
       .def(py::init<>())
-      .def(py::init<const std::string&, bool, size_t, size_t, size_t, float, float>(),
+      .def(py::init<const std::string&, bool, size_t, size_t, size_t, float, float, float>(),
            py::arg("node_name"), py::arg("is_running"), py::arg("graph_run_size"),
-           py::arg("run_size"), py::arg("completed_size"), py::arg("cost_time"), py::arg("average_time"))
+           py::arg("run_size"), py::arg("completed_size"), py::arg("cost_time"), py::arg("average_time"), py::arg("init_time"))
       .def(py::init<const RunStatus&>())
       .def("get_status", &RunStatus::getStatus)
       .def_readwrite("node_name", &RunStatus::node_name)
@@ -161,6 +161,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def_readwrite("completed_size", &RunStatus::completed_size)
       .def_readwrite("cost_time", &RunStatus::cost_time)
       .def_readwrite("average_time", &RunStatus::average_time)
+      .def_readwrite("init_time", &RunStatus::init_time)
       // 添加to_json方法来得到json对象
       .def("to_json", [](const RunStatus& self) {
         py::dict json_obj;
@@ -171,6 +172,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         json_obj["completed_size"] = self.completed_size;
         json_obj["cost_time"] = self.cost_time;
         json_obj["average_time"] = self.average_time;
+        json_obj["init_time"] = self.init_time;
         return json_obj;
       })
       .def("__str__", [](const RunStatus& self) {
@@ -188,6 +190,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         str += std::to_string(self.cost_time);
         str += ", average_time=";
         str += std::to_string(self.average_time);
+        str += ", init_time=";
+        str += std::to_string(self.init_time);
         str += ")";
         return str;
       });

@@ -204,6 +204,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       py::return_value_policy::take_ownership);
 
   m.def("rms_norm", &rmsNormFunc, py::return_value_policy::take_ownership);
+  m.def("reshape", &reshapeFunc, py::return_value_policy::take_ownership);
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);
   m.def("relu", &reluFunc, py::return_value_policy::take_ownership);
   m.def("conv", &convFunc, py::return_value_policy::take_ownership);
@@ -241,6 +242,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         py::return_value_policy::take_ownership);
   m.def("transpose", &transposeFunc, py::return_value_policy::take_ownership);
   m.def("where", &whereFunc, py::return_value_policy::take_ownership);
+  m.def("slice", &sliceFunc, py::return_value_policy::take_ownership);
 }
 
 }  // namespace op

@@ -66,7 +66,7 @@ class X86OpGather : public OpGather {
         // 获取维度的信息
         const auto& dims = index_dims_;
         const int ndims = (int)dims.size();
-        const long total_elements = dst_md_.get_size() / sizeof(float);
+        const long total_elements = dst_md_.get_size() / sizeof(float); //目前暂时只支持fp32
         // 预先计算源张量的步长 (strides)
         std::vector<long> src_strides(ndims);
         src_strides[ndims - 1] = 1;
@@ -89,7 +89,7 @@ class X86OpGather : public OpGather {
             // 这个多维索引大部分将直接用于源张量
             for (int d = ndims - 1; d >= 0; --d) {
                 // `out_dims` 和 `index_dims` 相同
-                long current_dim_size = index_dims_[d];
+                int current_dim_size = index_dims_[d];
                 src_coords[d] = temp_idx % current_dim_size;
                 temp_idx /= current_dim_size;
             }

@@ -16,7 +16,7 @@ base::Status ConditionExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
-    // iter->node_->setInitializedFlag(false);
+    iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());

@@ -917,7 +917,7 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  // setInitializedFlag(false);
+  setInitializedFlag(false);
 
   // NNDEPLOY_LOGE("###########################\n");
   // NNDEPLOY_LOGE("construct!\n");
@@ -1839,6 +1839,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
     json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
+    json.AddMember("loop_count_", loop_count_, allocator);
   }
 
   // if (!node_repository_.empty()) {
@@ -1903,6 +1904,15 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
+
+  // if (json.HasMember("loop_count_") && json["loop_count_"].IsInt()) {
+  //   int loop_count = json["loop_count_"].GetInt();
+  //   if (loop_count <= 0) {
+  //     loop_count_ = -1;
+  //   } else {
+  //     loop_count_ = loop_count;
+  //   }
+  // }
 
   if (!is_inner_) {
     if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
@@ -2024,6 +2034,16 @@ base::Status Graph::deserialize(const std::string &json_str) {
           return status;
         }
       }
+    }
+  }
+
+  if (json.HasMember("loop_count_") && json["loop_count_"].IsInt()) {
+    int loop_count = json["loop_count_"].GetInt();
+    if (loop_count <= 0) {
+      loop_count_ = -1;
+    } else {
+      loop_count_ = loop_count;
+      this->setLoopCount(loop_count);
     }
   }
 

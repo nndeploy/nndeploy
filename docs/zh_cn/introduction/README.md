@@ -1,32 +1,38 @@
 
 [English](README_EN.md) | 简体中文
 
-<h3 align="center">
-基于工作流的多端AI部署工具
-</h3>
+<h1 align="center">
+nndeploy：一款基于工作流的多端AI部署工具
+</h1>
+
+<p align="center">
+<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml/badge.svg" alt="Android">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS">
+</a>
+</p>
 
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
+| <a href="../../zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
 | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
 </p>
 
-<p align="center">
-<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
-</a>
-</p>
 
-<!-- 动图形式 -->
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
@@ -37,8 +43,8 @@
 ---
 
 ## 最新动态
-- [2025/07/20] 🔥 **可视化工作流**：通过拖拉拽部署AI算法 ([视频](视频连接))
-- [2025/07/20] 🔥 **Python API**：快速入门，便捷开发 ([文档](文档连接))
+- [2025/07/20] 🔥 **可视化工作流**：通过拖拉拽部署AI算法
+- [2025/07/20] 🔥 **Python API**：快速入门，便捷开发 ([文档](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
 - [2025/05/29] 🔥 **与华为昇腾合作推理框架课程**：官方认证，专业指导 ([链接](https://www.hiascend.com/developer/courses/detail/1923211251905150977))
 
 ---
@@ -93,8 +99,6 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
   
 - **高性能优化**：内置C++/CUDA/SIMD等优化实现的节点
 
-> TODO性能图表
-
 ### 3. AI部署的创意工具
 
 - **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
@@ -103,15 +107,20 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 
 - **所调即所见**：前端可视化调节AI算法部署的所有节点参数，快速预览算法调参后的效果
 
-> TODO组合算法的展示
+  <img src="../../image/workflow/face_swap_segment.png">
+
+  <img src="../../image/workflow/qwen_sd.png">
+
+  <img src="../../image/workflow/sd_yolo.png">
 
 ## 快速开始
 
 - [如何编译](../../zh_cn/quick_start/build.md)
 - [如何获取模型](../../zh_cn/quick_start/model.md)
 - [如何执行](../../zh_cn/quick_start/example.md)
+- [nndeploy C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [nndeploy Python 快速入门](../../zh_cn/quick_start/python.md)
-- [工作流教程](视频转换为文档)
+- [nndeploy Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 
 ## 下一步计划
 

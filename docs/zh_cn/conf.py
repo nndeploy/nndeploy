@@ -7,6 +7,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+import shutil
+import subprocess
 import sphinx_rtd_theme
 
 project = 'nndeploy'
@@ -35,23 +37,28 @@ def build_and_install_nndeploy():
         # # 2. 创建并进入build目录
         # print("🏗️  创建build目录...")
         # os.makedirs(build_dir, exist_ok=True)
+        # # 拷贝cmake/config.cmake到build/config.cmake
+        # config_src = os.path.join(project_root, 'cmake', 'config.cmake')
+        # config_dst = os.path.join(build_dir, 'config.cmake')
+        # shutil.copyfile(config_src, config_dst)
+        # print("✅ 已拷贝 config.cmake 到 build 目录")
         
-        # 3. CMAKE配置
-        print("⚙️  执行CMAKE配置...")
-        cmake_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '..']
-        subprocess.run(cmake_cmd, cwd=build_dir, check=True, capture_output=True)
-        print("✅ CMAKE配置完成")
+        # # 3. CMAKE配置
+        # print("⚙️  执行CMAKE配置...")
+        # cmake_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '..']
+        # subprocess.run(cmake_cmd, cwd=build_dir, check=True, capture_output=True)
+        # print("✅ CMAKE配置完成")
         
-        # 4. 编译
-        print("🔨 开始编译...")
-        make_cmd = ['make', f'-j{os.cpu_count()}']
-        subprocess.run(make_cmd, cwd=build_dir, check=True, capture_output=True)
-        print("✅ 编译完成")
+        # # 4. 编译
+        # print("🔨 开始编译...")
+        # make_cmd = ['make', f'-j{os.cpu_count()}']
+        # subprocess.run(make_cmd, cwd=build_dir, check=True, capture_output=True)
+        # print("✅ 编译完成")
         
-        # 5. 安装
-        print("📦 执行make install...")
-        subprocess.run(['make', 'install'], cwd=build_dir, check=True, capture_output=True)
-        print("✅ make install完成")
+        # # 5. 安装
+        # print("📦 执行make install...")
+        # subprocess.run(['make', 'install'], cwd=build_dir, check=True, capture_output=True)
+        # print("✅ make install完成")
         
         # 6. 设置库路径并安装Python包
         print("🐍 安装Python包...")
@@ -193,9 +200,11 @@ def safe_import_with_fallback():
     if nndeploy_path not in sys.path:
         sys.path.insert(0, nndeploy_path)
     
-    try:       
+    try:
+        import nndeploy._nndeploy_internal
+        print("✅ nndeploy._nndeploy_internal模块导入成功")     
         # 尝试导入完整的nndeploy
-        import nndeploy
+        import nndeploy.dag
         print("✅ nndeploy模块导入成功")
         return True
         
@@ -239,8 +248,7 @@ def safe_import_with_fallback():
             print("✅ Mock模块设置完成")
             return False
         
-        
-
+           
 # 执行安全导入
 is_real_module = safe_import_with_fallback()
 
@@ -295,13 +303,6 @@ intersphinx_mapping = {
 }
 
 # -- C++ API 配置 -------------------------------------------------------------
-# 定义 Doxygen XML 的输出路径
-# doxygen_xml_path = os.path.abspath("./build_doxygen/xml")
-
-# breathe_projects = {
-#     "nndeploy": doxygen_xml_path
-# }
-# breathe_default_project = "nndeploy"
 print("🧬 运行 Doxygen...")
 try:
     import subprocess

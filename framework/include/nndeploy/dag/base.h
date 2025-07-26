@@ -228,8 +228,9 @@ struct NNDEPLOY_CC_API RunStatus {
   size_t graph_run_size = 0;
   size_t run_size = 0;
   size_t completed_size = 0;
-  float cost_time = 0.0f;
-  float average_time = 0.0f;
+  float cost_time = -1.0f;
+  float average_time = -1.0f;
+  float init_time = -1.0f;
 
   RunStatus()
       : node_name(""),
@@ -238,17 +239,19 @@ struct NNDEPLOY_CC_API RunStatus {
         run_size(0),
         completed_size(0),
         cost_time(-1.0f),
-        average_time(-1.0f) {}
+        average_time(-1.0f),
+        init_time(-1.0f) {}
   RunStatus(const std::string& node_name, bool is_running,
             size_t graph_run_size, size_t run_size, size_t completed_size,
-            float cost_time, float average_time)
+            float cost_time, float average_time, float init_time)
       : node_name(node_name),
         is_running(is_running),
         graph_run_size(graph_run_size),
         run_size(run_size),
         completed_size(completed_size),
         cost_time(cost_time),
-        average_time(average_time) {}
+        average_time(average_time),
+        init_time(init_time) {}
   RunStatus(const RunStatus& other)
       : node_name(other.node_name),
         is_running(other.is_running),
@@ -256,7 +259,8 @@ struct NNDEPLOY_CC_API RunStatus {
         run_size(other.run_size),
         completed_size(other.completed_size),
         cost_time(other.cost_time),
-        average_time(other.average_time) {}
+        average_time(other.average_time),
+        init_time(other.init_time) {}
   RunStatus& operator=(const RunStatus& other) {
     if (this != &other) {
       node_name = other.node_name;
@@ -266,6 +270,7 @@ struct NNDEPLOY_CC_API RunStatus {
       completed_size = other.completed_size;
       cost_time = other.cost_time;
       average_time = other.average_time;
+      init_time = other.init_time;
     }
     return *this;
   }
@@ -276,6 +281,8 @@ struct NNDEPLOY_CC_API RunStatus {
     } else if (run_size > 0 && completed_size > 0 &&
                graph_run_size == completed_size) {
       return "DONE";
+    } else if (run_size == 0 && completed_size == 0) {
+      return "INIT";
     } else {
       return "IDLE";
     }
