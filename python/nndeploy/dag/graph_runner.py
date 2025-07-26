@@ -130,15 +130,19 @@ class GraphRunner:
                     pass
             nndeploy.base.time_point_end("deinit_" + name)
 
-            run_status_map = self.get_run_status()
-            print(run_status_map)
+            # run_status_map = self.get_run_status()
+            # print(run_status_map)
+
+            # time_profiler_map = {}
+            # for node_name in nodes_name:
+            #     time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
+            # time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
+            # time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
+            # time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
 
             time_profiler_map = {}
-            for node_name in nodes_name:
-                time_profiler_map[node_name] = nndeploy.base.time_profiler_get_cost_time(node_name + " run()")
-            time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
-            time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
-            time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
+            time_profiler_map["init_time"] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
+            time_profiler_map["run_time"] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
 
             return time_profiler_map, results, status, status.get_desc()
         except NnDeployGraphRuntimeError as e:

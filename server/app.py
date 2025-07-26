@@ -104,8 +104,8 @@ def start_scheduler(queue: TaskQueue, job_q: mp.Queue):
 def start_finisher(queue: TaskQueue, result_q: mp.Queue):
     def _loop():
         while True:
-            idx, status = result_q.get()  # blocks
-            queue.task_done(idx, status)
+            idx, status, time_profile_map = result_q.get()  # blocks
+            queue.task_done(idx, status, time_profile_map)
 
     th = threading.Thread(name="FinisherThread", target=_loop, daemon=True)
     th.start()

@@ -45,7 +45,7 @@ class TaskQueue:
 
             return idx, payload
 
-    def task_done(self, idx: int, status: ExecutionStatus):
+    def task_done(self, idx: int, status: ExecutionStatus, time_profile_map: Dict):
         with self._mtx:
             task = self._running.pop(idx)
             if len(self._hist) >= _MAX_HISTORY:
@@ -54,7 +54,7 @@ class TaskQueue:
                 "task": task,
                 "status": status.__dict__
             }
-            self.server.notify_task_done(task["id"], status)
+            self.server.notify_task_done(task["id"], status, time_profile_map)
 
     def get_current_queue(self):
         with self._mtx:
