@@ -98,6 +98,13 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     }
   }
 
+  void setLoopCount(int loop_count) {
+    if (loop_count > 0) {
+      loop_count_ = loop_count;
+      size_ = loop_count;
+    }
+  }
+
   virtual base::Status run() = 0;
 
   using dag::Node::serialize;
