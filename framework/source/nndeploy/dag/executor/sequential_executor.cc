@@ -19,7 +19,7 @@ base::Status SequentialExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
-    // iter->node_->setInitializedFlag(false);
+    iter->node_->setInitializedFlag(false);
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {

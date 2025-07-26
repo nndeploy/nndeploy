@@ -509,7 +509,7 @@ void Node::setInitializedFlag(bool flag) {
       NNDEPLOY_LOGE("%s deinit.\n", name_.c_str());
     } else if (initialized_ == false && flag == false) {
       NNDEPLOY_LOGE("%s init start.\n", name_.c_str());
-    } else { // initialized_ = true && flag == true
+    } else {  // initialized_ = true && flag == true
       NNDEPLOY_LOGE("%s double call setInitializedFlag.\n", name_.c_str());
     }
   }
@@ -520,7 +520,7 @@ void Node::setInitializedFlag(bool flag) {
       ;
     } else if (initialized_ == false && flag == false) {
       NNDEPLOY_TIME_POINT_START(name_ + " init()");
-    } else { // initialized_ = true && flag == true
+    } else {  // initialized_ = true && flag == true
       ;
     }
   }
@@ -543,8 +543,17 @@ bool Node::getGraphFlag() { return is_graph_; }
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
 
-void Node::setLoopCount(int loop_count) { loop_count_ = loop_count; }
-int Node::getLoopCount() { return loop_count_; }
+void Node::setLoopCount(int loop_count) {
+  if (loop_count > 0) {
+    loop_count_ = loop_count;
+  }
+}
+int Node::getLoopCount() {
+  if (loop_count_ <= 0) {
+    return 1;
+  }
+  return loop_count_;
+}
 
 void Node::setRunningFlag(bool flag) {
   if (flag) {
@@ -660,6 +669,7 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
   if (initialized_ == false && is_trace_ == false) {
     // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
+    this->setInitializedFlag(false);
     this->init();
     this->setInitializedFlag(true);
   }

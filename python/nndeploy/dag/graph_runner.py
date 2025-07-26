@@ -34,7 +34,11 @@ class GraphRunner:
         run_status_map = self.graph.get_nodes_run_status_recursive()
         json_obj = {}
         for node_name, run_status in run_status_map.items():
-            json_obj[node_name] = {"time": run_status.average_time, "status": run_status.get_status()}
+            status = run_status.get_status()
+            if status == "INIT":
+                json_obj[node_name] = {"time": run_status.init_time, "status": status}
+            else:
+                json_obj[node_name] = {"time": run_status.average_time, "status": status}
         return json_obj
 
     def release(self):
@@ -131,6 +135,7 @@ class GraphRunner:
         time_profiler_map["sum_" + name] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
         time_profiler_map["init_" + name] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
         time_profiler_map["deserialize_" + name] = nndeploy.base.time_profiler_get_cost_time("deserialize_" + name)
+        nndeploy.base.time_profiler_print(name)
         
         return time_profiler_map, results
         

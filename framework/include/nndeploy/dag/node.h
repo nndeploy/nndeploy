@@ -314,7 +314,7 @@ class NNDEPLOY_CC_API Node {
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
-  int loop_count_ = 1;
+  int loop_count_ = -1;
 };
 
 /**

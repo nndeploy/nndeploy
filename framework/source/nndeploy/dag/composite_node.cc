@@ -670,6 +670,7 @@ base::Status CompositeNode::init() {
     if (node_wrapper->node_->getInitialized()) {
       continue;
     }
+    node_wrapper->node_->setInitializedFlag(false);
     status = node_wrapper->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("node[%s] init failed!\n",

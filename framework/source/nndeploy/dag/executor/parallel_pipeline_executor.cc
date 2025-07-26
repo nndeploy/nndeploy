@@ -18,6 +18,7 @@ base::Status ParallelPipelineExecutor::init(
       continue;
     }
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
+    iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "failed iter->node_->init()");
