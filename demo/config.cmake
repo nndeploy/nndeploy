@@ -78,6 +78,10 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING)
+  include(${ROOT_PATH}/demo/segment_anything/config.cmake)
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
 endif()
