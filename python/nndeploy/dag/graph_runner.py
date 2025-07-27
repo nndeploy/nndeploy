@@ -35,7 +35,9 @@ class GraphRunner:
         json_obj = {}
         for node_name, run_status in run_status_map.items():
             status = run_status.get_status()
-            if status == "INIT":
+            if status == "INITING":
+                json_obj[node_name] = {"time": -1.0, "status": status}
+            elif status == "INITED":
                 json_obj[node_name] = {"time": run_status.init_time, "status": status}
             else:
                 json_obj[node_name] = {"time": run_status.average_time, "status": status}
