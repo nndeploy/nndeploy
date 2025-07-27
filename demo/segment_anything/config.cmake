@@ -20,7 +20,6 @@ file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.cc"
 )
 set(SOURCE ${SOURCE} ${DEMO_SOURCE})
-
 # OBJECT
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})

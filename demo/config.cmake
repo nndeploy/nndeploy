@@ -53,6 +53,8 @@ if(ENABLE_NNDEPLOY_DAG)
   include(${ROOT_PATH}/demo/run_json/config.cmake)
 endif()
 
+################################################################################
+
 # plugin
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${ROOT_PATH}/demo/preprocess/config.cmake)

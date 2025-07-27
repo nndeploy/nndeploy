@@ -22,6 +22,7 @@ endif()
 
 # set
 set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
 # 1. **Basic Build Options (Default Configuration Recommended)**: Such as whether to build as a shared library, C++ standard used, etc.
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "Build as shared library instead of static library" ON)
 nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "Hide symbols in the library to reduce binary size" OFF)

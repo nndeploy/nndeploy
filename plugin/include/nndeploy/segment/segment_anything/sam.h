@@ -156,6 +156,7 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
 
   dag::Node *postprocess_node_ = nullptr;
 };
+
 }  // namespace segment
 }  // namespace nndeploy
 

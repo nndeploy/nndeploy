@@ -13,6 +13,7 @@
 using namespace nndeploy;
 
 DEFINE_string(point_label, "", "point label");
+
 DEFINE_string(points, "", "points");
 
 #define CHECK_IF_ERROR_RETURN(ret, fmt, ...) \
