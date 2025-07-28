@@ -1,12 +1,16 @@
 import { FC, useState } from 'react';
 
 import { Field } from '@flowgram.ai/free-layout-editor';
-import { Input } from '@douyinfe/semi-ui';
+import { Button, Input } from '@douyinfe/semi-ui';
 
 import { GroupField } from '../constant';
 
 export const GroupTitle: FC = () => {
   const [inputting, setInputting] = useState(false);
+
+  function hanleSubFlowSave(groupName:string){
+    var j = 0
+  }
   return (
     <Field<string> name={  GroupField.Title}>
       {({ field }) =>
@@ -23,9 +27,12 @@ export const GroupTitle: FC = () => {
             onEnterPress={() => setInputting(false)}
           />
         ) : (
-          <p className="workflow-group-title" onDoubleClick={() => setInputting(true)}>
+          <>
+          <span className="workflow-group-title" onDoubleClick={() => setInputting(true)}>
             {field.value ?? 'Group'}
-          </p>
+          </span>
+          <Button onClick={()=>hanleSubFlowSave(field.value)} >save</Button>
+          </>
         )
       }
     </Field>
