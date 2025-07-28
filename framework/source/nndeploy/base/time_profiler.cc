@@ -89,7 +89,15 @@ float TimeProfiler::getCostTime(const std::string &key) const {
     return -1.0f;
   }
   std::shared_ptr<Record> record = records_.find(key)->second;
-  int index = (record->call_times_ - 1) % max_size_;
+  int index = -1;
+  if (record->type_ == kStart) {
+    index = (record->call_times_ - 2) % max_size_;
+  } else {
+    index = (record->call_times_ - 1) % max_size_;
+  }
+  if (index < 0) {
+    return -1.0f;
+  }
   return record->cost_time_[index];
 }
 

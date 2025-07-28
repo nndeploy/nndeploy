@@ -281,8 +281,12 @@ struct NNDEPLOY_CC_API RunStatus {
     } else if (run_size > 0 && completed_size > 0 &&
                graph_run_size == completed_size) {
       return "DONE";
-    } else if (run_size == 0 && completed_size == 0) {
-      return "INIT";
+    } else if (run_size == 0 && completed_size == 0 &&
+               std::abs(cost_time - 1.0f) < 1e-6) {
+      return "INITING";
+    } else if (run_size == 0 && completed_size == 0 &&
+               std::abs(cost_time - 1.0f) > 1e-6) {
+      return "INITED";
     } else {
       return "IDLE";
     }

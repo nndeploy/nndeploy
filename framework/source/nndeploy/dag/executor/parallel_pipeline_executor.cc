@@ -45,10 +45,10 @@ base::Status ParallelPipelineExecutor::deinit() {
     // std::unique_lock<std::mutex> lock(pipeline_mutex_);
     // // NNDEPLOY_LOGE("deinit start!\n");
     // pipeline_cv_.wait(lock, [this]() {
-    //   // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //   //               std::this_thread::get_id(), completed_size_, run_size_);
-    //   bool flag = completed_size_ == run_size_;
-    //   return flag;
+    //   // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_:
+    //   %d\n",
+    //   //               std::this_thread::get_id(), completed_size_,
+    //   run_size_); bool flag = completed_size_ == run_size_; return flag;
     // });
     this->synchronize();
   }
@@ -91,7 +91,15 @@ bool ParallelPipelineExecutor::synchronize() {
   pipeline_cv_.wait(lock, [this]() {
     // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
     //               std::this_thread::get_id(), completed_size_, run_size_);
-    bool flag = completed_size_ == run_size_;
+    bool flag = false;
+    for (auto iter : topo_sort_node_) {
+      if (iter->node_->getCompletedSize() < run_size_) {
+        flag = false;
+        break;
+      }
+      completed_size_ = run_size_;
+      flag = true;
+    }
     return flag;
   });
   for (auto iter : topo_sort_node_) {
@@ -120,13 +128,16 @@ void ParallelPipelineExecutor::commitThreadPool() {
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                  "node execute failed!\n");
           iter->node_->setRunningFlag(false);
-          if (iter == topo_sort_node_.back()) {
-            std::lock_guard<std::mutex> lock(pipeline_mutex_);
-            completed_size_++;
-            if (completed_size_ == run_size_) {
-              // NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
-              pipeline_cv_.notify_all();
-            }
+          // if (iter == topo_sort_node_.back()) {
+          //   std::lock_guard<std::mutex> lock(pipeline_mutex_);
+          //   completed_size_++;
+          //   if (completed_size_ == run_size_) {
+          //     // NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
+          //     pipeline_cv_.notify_all();
+          //   }
+          // }
+          if (iter->node_->getCompletedSize() == run_size_) {
+            pipeline_cv_.notify_all();
           }
           // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());
