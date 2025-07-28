@@ -76,7 +76,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name:   props.id,
+    name: props.id,
     parentId: "",
     designContent: {
       nodes: [],
@@ -151,7 +151,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     setEntity({ ...entity, designContent, businessContent: response.result });
 
-    setGraphTopNode(lodash.omit(response.result , ['nndeploy_ui_layout', 'node_repository_']) as any)
+    setGraphTopNode(lodash.omit(response.result, ['nndeploy_ui_layout', 'node_repository_']) as any)
 
 
     ref?.current?.document.reload(designContent);
@@ -223,11 +223,28 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [socket, setSocket] = useState<WebSocket>();
 
   useEffect(() => {
+
+
+
     const socket = setupWebSocket()
     setSocket(socket)
 
+    socket!.onerror = (err) => {
+      console.error("WebSocket error:", err);
+
+      //connect()
+
+    };
+
+    socket!.onclose = () => {
+      console.log("WebSocket 已断开连接");
+
+      //connect()
+
+    };
+
     return () => {
-      socket.close()
+      socket!.close()
     }
   }, [])
 
@@ -237,7 +254,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     try {
 
       const businessContent = designDataToBusinessData(
-        flowJson, 
+        flowJson,
         graphTopNode
       );
 
@@ -303,9 +320,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       };
 
-      socket!.onerror = (err) => {
-        console.error("WebSocket error:", err);
-      };
+
 
       //Toast.success("run sucess!");
     } catch (error) {
@@ -447,7 +462,7 @@ const Flow: React.FC<FlowProps> = (props) => {
           </FreeLayoutEditorProvider>
 
           <SideSheet
-            width={"30%"}
+            width={"80%"}
             visible={saveDrawerVisible}
             onCancel={handleSaveDrawerClose}
             title={"save flow"}
@@ -459,21 +474,21 @@ const Flow: React.FC<FlowProps> = (props) => {
             />
           </SideSheet>
 
-          <SideSheet
+          {/* <SideSheet
             width={"30%"}
             visible={configDrawerVisible}
             onCancel={handleConfigDrawerClose}
-            title={"save flow"}
-          >
-            <NodeEntityForm
-              nodeEntity={graphTopNode}
-              visible={configDrawerVisible}
-              onClose={handleConfigDrawerClose}
-              onSave={handleConfigDrawerSure}
-              nodeList={nodeList!}
-              paramTypes={paramTypes}
-            />
-          </SideSheet>
+            title={"config flow"}
+          > */}
+          <NodeEntityForm
+            nodeEntity={graphTopNode}
+            visible={configDrawerVisible}
+            onClose={handleConfigDrawerClose}
+            onSave={handleConfigDrawerSure}
+            nodeList={nodeList!}
+            paramTypes={paramTypes}
+          />
+          {/* </SideSheet> */}
 
         </FlowEnviromentContext.Provider>
       )}

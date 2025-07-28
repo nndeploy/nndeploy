@@ -11,14 +11,14 @@
   }
 
   &nodeStatusInitting {
-    background-color: #d9f7be;
-    color: #d9f7be;
+    background-color: #0f2801;
+    color: #0f2801;
   }
 
   
   &nodeStatusInitted {
-    background-color: #d9f7be;
-    color: #d9f7be;
+    background-color: #71ec05;
+    color: #71ec05;
   }
 
   &nodeStatusRunning {
@@ -42,11 +42,11 @@
 }
 
 .initting {
-  color: #d9f7be;
+  color: #0f2801;
 }
 
 .initted {
-  color: #d9f7be;
+  color: #71ec05;
 }
 
 .running {
