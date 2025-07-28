@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   dag::Edge *output = new dag::Edge("llm_out");
 
   // graph
-  dag::Graph *graph = new dag::Graph("demo", {}, {output});
+  dag::Graph *graph = new dag::Graph("demo", {}, {});
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;

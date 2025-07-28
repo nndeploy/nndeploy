@@ -280,10 +280,33 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
   virtual ~PromptNode() {}
   virtual base::Status run();
 
+  virtual base::EdgeUpdateFlag updateInput() {
+    if (index_ < size_) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      if (size_ == 0) {
+        return base::kEdgeUpdateFlagComplete;
+      } else {
+        return base::kEdgeUpdateFlagTerminate;
+      }
+    }
+  }
+
+  void setSize(int size) {
+    if (size > 0) {
+      size_ = size;
+    }
+  }
+  int getSize() { return size_; }
+
  protected:
   std::string applyTemplate(std::string prompt_template,
                             const std::string& content,
                             const std::string& role = "");
+
+ private:
+  int index_ = 0;
+  int size_ = 1;
 };
 
 class NNDEPLOY_CC_API PrintNode : public dag::Node {

@@ -35,11 +35,11 @@
 namespace nndeploy {
 namespace qwen {
 
-// void printTokenizerIds(const tokenizer::TokenizerIds& tk,
-//                        std::ostream& os = std::cout) {
-//   for (size_t seq_idx = 0; seq_idx < tk.ids_.size(); ++seq_idx) {
-//     os << "Seq " << seq_idx << ": ";
-//     for (int id : tk.ids_[seq_idx]) {
+// void printTokenizerIds(const std::vector<std::vector<int32_t>> token_ids,
+//                        std::string title, std::ostream& os = std::cout) {
+//   for (size_t seq_idx = 0; seq_idx < token_ids.size(); ++seq_idx) {
+//     os << title << " " << "Seq " << seq_idx << ": ";
+//     for (int id : token_ids[seq_idx]) {
 //       os << id << ' ';
 //     }
 //     os << '\n';
@@ -226,6 +226,8 @@ base::Status PromptNode::run() {
   tokenizer::TokenizerText* prompt = new tokenizer::TokenizerText();
   prompt->texts_.emplace_back(template_prompt);
   outputs_[0]->set(prompt, false);
+  outputs_[0]->notifyWritten(prompt);
+  index_++;
   return base::kStatusCodeOk;
 }
 
@@ -414,6 +416,7 @@ base::Status PrefillSampleNode::run() {
   out_token->ids_.push_back({out_token_id});
 
   outputs_[0]->set(out_token, false);
+  outputs_[0]->notifyWritten(out_token);
 
   return status;
 }
@@ -500,6 +503,7 @@ base::Status QwenPrefill::run() {
   tokenizer::TokenizerText* prompt =
       (tokenizer::TokenizerText*)inputs_[0]->getParam(this);
   prefill_token_node_->getInput(0)->set(prompt, true);
+  prefill_token_node_->updateInput();
 
   prefill_token_node_->run();
   prefill_embedding_node_->run();
@@ -509,20 +513,27 @@ base::Status QwenPrefill::run() {
   tokenizer::TokenizerIds* out_token =
       (tokenizer::TokenizerIds*)prefill_sample_node_->getOutput(0)->getParam(
           prefill_sample_node_);
-  outputs_[0]->set(out_token, true);
-  outputs_[0]->notifyWritten(out_token);
+  tokenizer::TokenizerIds* out_token_out = new tokenizer::TokenizerIds();
+  *out_token_out = *out_token;
+  outputs_[0]->set(out_token_out, false);
+  outputs_[0]->notifyWritten(out_token_out);
 
   device::Tensor* presents =
       (device::Tensor*)prefill_infer_node_->getOutput(1)->getTensor(
           prefill_infer_node_);
-  outputs_[1]->set(presents, true);
-  outputs_[1]->notifyWritten(presents);
+  device::Device* device = device::getDefaultHostDevice();
+  device::TensorDesc presents_desc = presents->getDesc();
+  device::Tensor* presents_out = outputs_[1]->create(device, presents_desc);
+  presents->copyTo(presents_out);
+  outputs_[1]->notifyWritten(presents_out);
 
   tokenizer::TokenizerIds* history_token =
       (tokenizer::TokenizerIds*)prefill_token_node_->getOutput(0)->getParam(
           prefill_token_node_);
-  outputs_[2]->set(history_token, true);
-  outputs_[2]->notifyWritten(history_token);
+  tokenizer::TokenizerIds* history_token_out = new tokenizer::TokenizerIds();
+  *history_token_out = *history_token;
+  outputs_[2]->set(history_token_out, false);
+  outputs_[2]->notifyWritten(history_token_out);
 
   setRunningFlag(false);
   return status;
@@ -669,14 +680,19 @@ base::Status DecodeEmbeddingNode::run() {
   base::Status status = base::kStatusCodeOk;
 
   DecodeEmbeddingParam* embedding_param = (DecodeEmbeddingParam*)(param_.get());
-  std::vector<std::vector<int32_t>> token_ids;
-  token_ids = embedding_param->token_ids_;
-  embedding_param->history_ids_.ids_ = token_ids;
+  tokenizer::TokenizerIds* decode_token_ids =
+      (tokenizer::TokenizerIds*)(inputs_[0]->getParam(this));
+  std::vector<std::vector<int32_t>> token_ids = decode_token_ids->ids_;
+  if (decode_token_ids->ids_[0].size() == 2) {
+    token_ids[0] = {decode_token_ids->ids_[0][1]};
+  } else {
+    token_ids = decode_token_ids->ids_;
+  }
   std::string embedding_file = embedding_param->embedding_file_;
   int hidden_size = embedding_param->hidden_size_;
   int seq_len = token_ids[0].size();
   int all_seq_len = embedding_param->all_seq_len_;
-  past_kv_ = embedding_param->past_kv_;
+  past_kv_ = inputs_[1]->getTensor(this);
   past_kv_->setName("past_key_values");
 
   auto inputs_embeds = genEmbedding(
@@ -902,9 +918,11 @@ base::Status QwenDecode::run() {
 
   setRunningFlag(true);
 
-  tokenizer::TokenizerIds* prefill_token_ids = new tokenizer::TokenizerIds();
-  prefill_token_ids->ids_ =
-      ((tokenizer::TokenizerIds*)(inputs_[0]->getParam(this)))->ids_;
+  // tokenizer::TokenizerIds* prefill_token_ids = new tokenizer::TokenizerIds();
+  // prefill_token_ids->ids_ =
+  //     ((tokenizer::TokenizerIds*)(inputs_[0]->getParam(this)))->ids_;
+  tokenizer::TokenizerIds* prefill_token_ids =
+      ((tokenizer::TokenizerIds*)(inputs_[0]->getParam(this)));
   device::Tensor* present_kv = (device::Tensor*)(inputs_[1]->getTensor(this));
   tokenizer::TokenizerIds* history_ids =
       (tokenizer::TokenizerIds*)(inputs_[2]->getParam(this));
@@ -912,9 +930,16 @@ base::Status QwenDecode::run() {
   history_ids->ids_[0].push_back(prefill_token_ids->ids_[0][0]);
   history_ids_ = *history_ids;
 
-  decode_embedding_node_->getInput(0)->set(prefill_token_ids, false);
+  decode_embedding_node_->getInput(0)->set(prefill_token_ids, true);
   decode_embedding_node_->getInput(1)->set(present_kv, true);
-  decode_embedding_node_->getInput(2)->set(history_ids, true);
+  // decode_embedding_node_->updateInput();
+
+  DecodeEmbeddingParam* embedding_param =
+      dynamic_cast<DecodeEmbeddingParam*>(decode_embedding_node_->getParam());
+  DecodeSampleParam* sample_param =
+      dynamic_cast<DecodeSampleParam*>(decode_sample_node_->getParam());
+  embedding_param->all_seq_len_ = history_ids_.ids_[0].size();
+  sample_param->history_ids_ = history_ids_;
 
   int iters = loops();
   for (int i = 0; i < iters; ++i) {
@@ -926,28 +951,6 @@ base::Status QwenDecode::run() {
       break;
     }
 
-    DecodeEmbeddingParam* embedding_param =
-        dynamic_cast<DecodeEmbeddingParam*>(decode_embedding_node_->getParam());
-    embedding_param->history_ids_ = history_ids_;
-
-    DecodeSampleParam* sample_param =
-        dynamic_cast<DecodeSampleParam*>(decode_sample_node_->getParam());
-
-    if (!is_first_) {
-      embedding_param->all_seq_len_++;
-    } else {
-      tokenizer::TokenizerIds* prefill_out_token_id =
-          (tokenizer::TokenizerIds*)(decode_embedding_node_->getInput(0)
-                                         ->getParam(decode_embedding_node_));
-      embedding_param->past_kv_ =
-          decode_embedding_node_->getInput(1)->getTensor(
-              decode_embedding_node_);
-      embedding_param->token_ids_ = prefill_out_token_id->ids_;
-      embedding_param->all_seq_len_ =
-          embedding_param->history_ids_.ids_[0].size();
-      sample_param->history_ids_ = history_ids_;
-      is_first_ = false;
-    }
     embedding_param->gen_seq_len_++;
 
     decode_embedding_node_->run();
@@ -955,17 +958,15 @@ base::Status QwenDecode::run() {
     decode_sample_node_->run();
     decode_node_->run();
 
+    embedding_param->all_seq_len_++;
+
     tokenizer::TokenizerIds* token_id =
         (tokenizer::TokenizerIds*)(decode_sample_node_->getOutput(0)->getParam(
             decode_sample_node_));
-    *(embedding_param->past_kv_) =
-        *(decode_infer_node_->getOutput(1)->getTensor(decode_infer_node_));
-
-    if (token_id->ids_[0].size() == 2) {
-      embedding_param->token_ids_[0] = {token_id->ids_[0][1]};
-    } else {
-      embedding_param->token_ids_ = token_id->ids_;
-    }
+    decode_embedding_node_->getInput(0)->set(token_id, true);
+    device::Tensor* past_kv =
+        decode_infer_node_->getOutput(1)->getTensor(decode_infer_node_);
+    decode_embedding_node_->getInput(1)->set(past_kv, true);
 
     history_ids_.ids_ = sample_param->history_ids_.ids_;
     tokenizer::TokenizerText* word =
@@ -984,6 +985,7 @@ base::Status QwenDecode::run() {
       (tokenizer::TokenizerText*)(decode_node_->getOutput(0)->getParam(
           decode_node_));
   outputs_[0]->set(word);
+  outputs_[0]->notifyWritten(word);
 
   setRunningFlag(false);
 
@@ -997,9 +999,7 @@ base::Status QwenDecode::setInferenceType(base::InferenceType inference_type) {
 
 base::Status QwenDecode::defaultParam() {
   dag::NodeDesc embedding_desc(
-      "embedding_node",
-      {"decode_prefill_token_ids", "decode_prefill_presents",
-       "decode_prefill_history_ids"},
+      "embedding_node", {"decode_prefill_token_ids", "decode_prefill_presents"},
       {"decode_input_ids", "decode_attention_mask", "decode_position_ids",
        "decode_past_key_values"});
   this->setNodeDesc(decode_embedding_node_, embedding_desc);
