@@ -121,8 +121,8 @@ void ParallelPipelineExecutor::commitThreadPool() {
       while (true) {
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
-          NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
-                        iter->node_->getName().c_str());
+          // NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
+          //               iter->node_->getName().c_str());
           iter->node_->setRunningFlag(true);
           status = iter->node_->run();
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,

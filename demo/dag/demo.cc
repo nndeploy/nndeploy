@@ -636,23 +636,23 @@ int main(int argc, char *argv[]) {
       NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
       return ret;
     }
-    // parallel pipepline graph / sugraph sequential
-    ret =
-        serialGraph(base::kParallelTypeSequential,
-                    base::kParallelTypeSequential,
-                    base::kParallelTypePipeline);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeSequential,
-                        base::kParallelTypeSequential,
-                        base::kParallelTypePipeline);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    // parallel pipepline graph / sugraph task
+    // parallel pipeline graph / subgraph sequential - will be forced into sequential mode
+    // ret =
+    //     serialGraph(base::kParallelTypeSequential,
+    //                 base::kParallelTypeSequential,
+    //                 base::kParallelTypePipeline);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = parallelGraph(base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential,
+    //                     base::kParallelTypePipeline);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // parallel pipeline graph / subgraph task - will be forced into sequential mode
     // ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
     //                   base::kParallelTypePipeline);
     // if (ret != 0) {
