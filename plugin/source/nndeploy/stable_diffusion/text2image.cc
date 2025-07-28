@@ -59,6 +59,13 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
   }
   int getSize() { return size_; }
 
+  void setLoopCount(int loop_count) {
+    if (loop_count > 0) {
+      loop_count_ = loop_count;
+      size_ = loop_count;
+    }
+  }
+
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);

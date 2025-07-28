@@ -639,8 +639,7 @@ int main(int argc, char *argv[]) {
     // parallel pipepline graph / sugraph sequential
     ret =
         serialGraph(base::kParallelTypeSequential,
-                    base::kParallelTypeSequential,
-                    base::kParallelTypePipeline);
+                    base::kParallelTypeSequential, base::kParallelTypePipeline);
     if (ret != 0) {
       NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
       return ret;
