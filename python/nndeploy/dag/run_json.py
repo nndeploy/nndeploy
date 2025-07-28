@@ -25,7 +25,7 @@ def main():
     with open(args.json_file, "r") as f:
         graph_json_str = f.read()
     gr = GraphRunner()
-    time_profiler_map, results = gr.run(graph_json_str, args.name, "test_graph_runner")
+    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, "test_graph_runner")
     del gr
     
     try:

@@ -152,81 +152,28 @@ class YoloPyDemo(nndeploy.dag.Graph):
 
 if __name__ == "__main__":
     # Main execution for YOLO demo
-    # yolo_py_demo = YoloPyDemo("yolo_py_demo")
-
-    # # Configure YOLO parameters
-    # yolo = yolo_py_demo.get_yolo()
-    # yolo.default_param()
-    # yolo.set_inference_type(nndeploy.base.InferenceType.OnnxRuntime)
-    # yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
-
-    # # Set input/output paths
-    # yolo_py_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
-    # yolo_py_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_python_demo.jpg")
-
-    # # Run end-to-end demo
-    # output = yolo_py_demo()
-    # # Save results to file
-    # yolo_py_demo.save_file("/home/always/github/public/nndeploy/build/yolo_python_demo.json")
-    
-    # # onnxruntime YOLO model through json file
-    # json_model = YoloPyDemo("json_model")
-    # json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo.json")
-    # status = json_model.init()
-    # if status != nndeploy.base.StatusCode.Ok:
-    #     raise RuntimeError(f"init failed: {status}")
-    # json_model_sum_time = 0
-    # # warmup
-    # # output = json_model()
-    # for i in range(count):
-    #     start_time = time.time()
-    #     status = json_model.run()
-    #     end_time = time.time()
-    #     elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
-    #     json_model_sum_time += elapsed_ms
-    # print(f"[YOLOv11s Python Benchmark OnnxRuntime] Average inference time: {json_model_sum_time / count:.2f} ms")
-    
-    # json_model = YoloPyDemo("json_model")
-    # json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo.json")
-    # json_model.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
-    # status = json_model.init()
-    # if status != nndeploy.base.StatusCode.Ok:
-    #     raise RuntimeError(f"init failed: {status}")
-    # json_model_sum_time = 0
-    # json_model.set_size(count)
-    # start_time = time.time()
-    # for i in range(count):
-    #     status = json_model.run()
-    # json_model.synchronize()
-    # end_time = time.time()
-    # elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
-    # json_model_sum_time += elapsed_ms
-    # print(f"[YOLOv11s Python Benchmark OnnxRuntime Pipeline] Average inference time: {json_model_sum_time / count:.2f} ms")
-    
     yolo_py_demo = YoloPyDemo("yolo_py_demo")
 
     # Configure YOLO parameters
     yolo = yolo_py_demo.get_yolo()
     yolo.default_param()
-    yolo.set_inference_type(nndeploy.base.InferenceType.TensorRt)
-    yolo.set_infer_param(nndeploy.base.DeviceType("cuda"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
-    print("yolo_py_demo")
+    yolo.set_inference_type(nndeploy.base.InferenceType.OnnxRuntime)
+    yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
 
     # Set input/output paths
     yolo_py_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
     yolo_py_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_python_demo.jpg")
-    print("yolo_py_demo")
 
     # Run end-to-end demo
     output = yolo_py_demo()
     # Save results to file
-    yolo_py_demo.save_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
-    print("yolo_py_demo")
+    yolo_py_demo.save_file("/home/always/github/public/nndeploy/build/yolo_python_demo.json")
     
-    
-    # openvino YOLO model through json file
-    json_model = YoloPyDemo("json_model")
-    json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
+    # onnxruntime YOLO model through json file
+    # json_model = YoloPyDemo("json_model")
+    json_model = nndeploy.dag.Graph("json_model")
+    json_model.load_file("/home/always/github/public/nndeploy/resources/workflow/yolo.json")
+    json_model.set_time_profile_flag(True)
     status = json_model.init()
     if status != nndeploy.base.StatusCode.Ok:
         raise RuntimeError(f"init failed: {status}")
@@ -239,10 +186,11 @@ if __name__ == "__main__":
         end_time = time.time()
         elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
         json_model_sum_time += elapsed_ms
-    print(f"[YOLOv11s Python Benchmark OpenVino] Average inference time: {json_model_sum_time / count:.2f} ms")
+    print(f"[YOLOv11s Python Benchmark OnnxRuntime] Average inference time: {json_model_sum_time / count:.2f} ms")
+    nndeploy.base.time_profiler_print("json_model")
     
     json_model = YoloPyDemo("json_model")
-    json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
+    json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo.json")
     json_model.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
     status = json_model.init()
     if status != nndeploy.base.StatusCode.Ok:
@@ -256,7 +204,62 @@ if __name__ == "__main__":
     end_time = time.time()
     elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
     json_model_sum_time += elapsed_ms
-    print(f"[YOLOv11s Python Benchmark OpenVino Pipeline] Average inference time: {json_model_sum_time / count:.2f} ms")
+    print(f"[YOLOv11s Python Benchmark OnnxRuntime Pipeline] Average inference time: {json_model_sum_time / count:.2f} ms")
+    
+    # yolo_py_demo = YoloPyDemo("yolo_py_demo")
+
+    # # Configure YOLO parameters
+    # yolo = yolo_py_demo.get_yolo()
+    # yolo.default_param()
+    # yolo.set_inference_type(nndeploy.base.InferenceType.TensorRt)
+    # yolo.set_infer_param(nndeploy.base.DeviceType("cuda"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
+    # print("yolo_py_demo")
+
+    # # Set input/output paths
+    # yolo_py_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
+    # yolo_py_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_python_demo.jpg")
+    # print("yolo_py_demo")
+
+    # # Run end-to-end demo
+    # output = yolo_py_demo()
+    # # Save results to file
+    # yolo_py_demo.save_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
+    # print("yolo_py_demo")
+    
+    
+    # # openvino YOLO model through json file
+    # json_model = YoloPyDemo("json_model")
+    # json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
+    # status = json_model.init()
+    # if status != nndeploy.base.StatusCode.Ok:
+    #     raise RuntimeError(f"init failed: {status}")
+    # json_model_sum_time = 0
+    # # warmup
+    # # output = json_model()
+    # for i in range(count):
+    #     start_time = time.time()
+    #     status = json_model.run()
+    #     end_time = time.time()
+    #     elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
+    #     json_model_sum_time += elapsed_ms
+    # print(f"[YOLOv11s Python Benchmark OpenVino] Average inference time: {json_model_sum_time / count:.2f} ms")
+    
+    # json_model = YoloPyDemo("json_model")
+    # json_model.load_file("/home/always/github/public/nndeploy/build/yolo_python_demo_openvino.json")
+    # json_model.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+    # status = json_model.init()
+    # if status != nndeploy.base.StatusCode.Ok:
+    #     raise RuntimeError(f"init failed: {status}")
+    # json_model_sum_time = 0
+    # json_model.set_size(count)
+    # start_time = time.time()
+    # for i in range(count):
+    #     status = json_model.run()
+    # json_model.synchronize()
+    # end_time = time.time()
+    # elapsed_ms = (end_time - start_time) * 1000  # Convert seconds to milliseconds
+    # json_model_sum_time += elapsed_ms
+    # print(f"[YOLOv11s Python Benchmark OpenVino Pipeline] Average inference time: {json_model_sum_time / count:.2f} ms")
     
     
     

@@ -114,7 +114,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
       base::kEncryptTypeNone;     // 模型文件的加解密类型
   std::string license_;           // 模型文件的加解密密钥
   base::DeviceType device_type_;  // 模型推理的设备类型
-  int num_thread_ = 1;            // CPU推理的线程数
+  int num_thread_ = 4;            // CPU推理的线程数
   int gpu_tune_kernel_ = 1;       // GPU微调的模式
   base::ShareMemoryType share_memory_mode_ =
       base::kShareMemoryTypeNoShare;  //  推理时的共享内存模式
