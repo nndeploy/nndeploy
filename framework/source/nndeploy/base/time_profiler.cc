@@ -100,7 +100,6 @@ float TimeProfiler::getCostTime(const std::string &key) const {
     index = (record->call_times_ - 1) % max_size_;
   }
   if (index < 0) {
-    NNDEPLOY_LOGE("index < 0\n");
     return -1000.0f;
   }
   return record->cost_time_[index];

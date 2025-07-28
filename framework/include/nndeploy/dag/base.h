@@ -276,17 +276,16 @@ struct NNDEPLOY_CC_API RunStatus {
   }
 
   std::string getStatus() {
-    NNDEPLOY_LOGE("run_size: %d, completed_size: %d, graph_run_size: %d, cost_time: %f\n", run_size, completed_size, graph_run_size, cost_time);
     if (is_running) {
       return "RUNNING";
     } else if (run_size > 0 && completed_size > 0 &&
                graph_run_size == completed_size) {
       return "DONE";
     } else if (run_size == 0 && completed_size == 0 &&
-               std::abs(cost_time + 1.0f) < 1e-6) {
+               std::abs(init_time + 1.0f) < 1e-6) {
       return "INITING";
     } else if (run_size == 0 && completed_size == 0 &&
-               std::abs(cost_time) >= 0.0f) {
+               std::abs(init_time) >= 0.0f) {
       return "INITED";
     } else {
       return "IDLE";
