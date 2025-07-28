@@ -86,24 +86,29 @@ void TimeProfiler::end(const std::string &key) {
 
 float TimeProfiler::getCostTime(const std::string &key) const {
   if (records_.find(key) == records_.end()) {
-    return -1.0f;
+    return -1000.0f;
   }
   std::shared_ptr<Record> record = records_.find(key)->second;
   int index = -1;
   if (record->type_ == kStart) {
-    index = (record->call_times_ - 2) % max_size_;
+    if (record->call_times_ - 2 < 0) {
+      index = -1;
+    } else {
+      index = (record->call_times_ - 2) % max_size_;
+    }
   } else {
     index = (record->call_times_ - 1) % max_size_;
   }
   if (index < 0) {
-    return -1.0f;
+    NNDEPLOY_LOGE("index < 0\n");
+    return -1000.0f;
   }
   return record->cost_time_[index];
 }
 
 float TimeProfiler::getAverageTime(const std::string &key) const {
   if (records_.find(key) == records_.end()) {
-    return -1.0f;
+    return -1000.0f;
   }
   std::shared_ptr<Record> record = records_.find(key)->second;
   return record->cost_time_sum_ / record->call_times_;
