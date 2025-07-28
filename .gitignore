@@ -279,3 +279,7 @@ resources/**
 
 # # keep readme file
 # !resources/README*
+
+logs/
+frontend/
+gfpgan/
