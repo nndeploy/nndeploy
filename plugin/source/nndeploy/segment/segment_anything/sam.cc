@@ -441,7 +441,7 @@ base::Status SAMGraph::initGraphNodes() {
 }
 
 REGISTER_NODE("nndeploy::segment::SelectPointNode", SelectPointNode);
-REGISTER_NODE("nndeploy::segment::SAMGraph", SAMGraph);
+// REGISTER_NODE("nndeploy::segment::SAMGraph", SAMGraph);
 REGISTER_NODE("nndeploy::segment::SAMPointNode", SAMPointNode);
 REGISTER_NODE("nndeploy::segment::SAMPostProcess", SAMPostProcess);
 REGISTER_NODE("nndeploy::segment::SAMMaskNode", SAMMaskNode);
