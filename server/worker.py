@@ -10,6 +10,7 @@ from logging.handlers import QueueHandler
 from .executor import GraphExecutor
 from queue import Empty
 from .task_queue import ExecutionStatus
+import nndeploy
 
 import resource
 try:
@@ -190,12 +191,16 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
         def _exec():
             set_current_task_id(task_id)
             try:
-                tp_map, results = executor.execute(payload["graph_json"], task_id)
+                tp_map, results, status, msg = executor.execute(payload["graph_json"], task_id)
                 result_holder["tp_map"] = tp_map
                 result_holder["results"] = results
+                result_holder["status"] = status
+                result_holder["msg"] = msg
             except Exception as e:
                 result_holder["error"] = e
                 result_holder["trace"] = traceback.format_exc()
+                result_holder["status"] = status
+                result_holder["msg"] = str(e)
             finally:
                 done_evt.set()
         t = threading.Thread(name=f"Exec-{task_id}", target=_exec, daemon=True)
@@ -231,17 +236,23 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
         malloc_trim()
 
         if "error" in result_holder:
+            time_profiler_map = {}
             logger.error("Run failed: %s\n%s", result_holder["error"], result_holder.get("trace", ""))
             status = ExecutionStatus(False, str(result_holder["error"]))
         else:
-            time_profiler_map = result_holder["tp_map"]
-            sum = time_profiler_map["sum_" + payload["graph_json"]["name_"]]
-            status = ExecutionStatus(True, f"{sum:.2f}s")
-            logger.info("Task %s done in %.2fms", task_id, sum)
+            status = result_holder["status"]
+            if status != nndeploy.base.StatusCode.Ok:
+                time_profiler_map = {}
+                msg = result_holder["msg"]
+                status = ExecutionStatus(False, f"Run failed {msg}")
+            else:
+                time_profiler_map = result_holder["tp_map"]
+                sum = time_profiler_map["run_time"]
+                msg = result_holder["msg"]
+                status = ExecutionStatus(True, f"Run success {sum:.2f} ms, {msg}")
 
         result_holder.pop("results", None)
-        result_holder.pop("tp_map", None)
 
         gc.collect()
         set_current_task_id("0")
-        result_q.put((idx, status))
+        result_q.put((idx, status, time_profiler_map))

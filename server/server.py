@@ -20,6 +20,7 @@ from .utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
 from .task_queue import TaskQueue
+from .task_queue import ExecutionStatus
 from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
@@ -121,7 +122,7 @@ class NnDeployServer:
             save_dir = Path(self.args.resources) / "workflow"
             if not save_dir.exists():
                 save_dir.mkdir(parents=True, exist_ok=True)
-            file_path = save_dir / f"{file_name}.json"
+            file_path = save_dir / f"{file_name}"
 
             try:
                 with open(file_path, 'w') as f:
@@ -479,16 +480,32 @@ class NnDeployServer:
                 logging.warning("[notify_task_progress] Event loop not ready or not running")
 
     # task done notify
-    def notify_task_done(self, task_id: str):
+    def notify_task_done(self, task_id: str, status: ExecutionStatus, time_profile_map: Dict):
         task_info = self.queue.get_task_by_id(task_id)
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
         path, text = extract_encode_output_paths(graph_json)
 
-        flag = "success"
-        message = "notify task done"
+        # send result
+        flag = status.str
+        message = status.messages
         result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
+        payload = {"flag": flag, "message": message, "result": result}
+        ws_set = self.task_ws_map.get(task_id, set())
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self._broadcast(payload, ws),
+                    self.loop
+                )
+            else:
+                logging.warning("[notify_task_done] Event loop not ready or not running")
+
+        # send graph run info
+        flag = status.str
+        message = "graph run info"
+        result = {"task_id": task_id, "type": "task_run_info", "time_profile": time_profile_map}
         payload = {"flag": flag, "message": message, "result": result}
         ws_set = self.task_ws_map.get(task_id, set())
         for ws in ws_set.copy():
