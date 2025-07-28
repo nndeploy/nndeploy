@@ -10,7 +10,13 @@
     color: #999;
   }
 
-  &nodeStatusInit {
+  &nodeStatusInitting {
+    background-color: #d9f7be;
+    color: #d9f7be;
+  }
+
+  
+  &nodeStatusInitted {
     background-color: #d9f7be;
     color: #d9f7be;
   }
@@ -35,7 +41,11 @@
   color: #999;
 }
 
-.init {
+.initting {
+  color: #d9f7be;
+}
+
+.initted {
   color: #d9f7be;
 }
 

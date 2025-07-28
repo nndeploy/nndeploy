@@ -7,12 +7,13 @@ import { IconCopy, IconDeleteStroked, IconExpand, IconSave, IconShrink } from '@
 
 import { IconGroup } from '../group';
 import { FlowCommandId } from '../../shortcuts/constants';
-import { designDataToBusinessData } from '../../pages/components/flow/FlowSaveDrawer/functions';
+import { designDataToBusinessData, getEdgeMaps } from '../../pages/components/flow/FlowSaveDrawer/functions';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import FlowSaveDrawer from '../../pages/components/flow/FlowSaveDrawer';
 import { IWorkFlowEntity } from '../../pages/Layout/Design/WorkFlow/entity';
 import store from '../../pages/Layout/Design/store/store';
 import { initFreshFlowTree } from '../../pages/Layout/Design/store/actionType';
+import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
 
 const BUTTON_HEIGHT = 24;
 
@@ -24,6 +25,11 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
 }) => {
 
   const ctx = useClientContext()
+
+  let allNodes = ctx.document.toJSON().nodes
+
+   const flowEnviroment = useFlowEnviromentContext();
+  
 
   const { state, dispatch } = useContext(store)
 
@@ -89,16 +95,14 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
 
       let edges: WorkflowEdgeJSON[] = []
 
-      let nodeIds = selectedNodes.map(node => {
-        return node.id
-      })
+     
       selectedNodes.map(node => {
         let inputLines = node.getData(WorkflowNodeLinesData).inputLines
 
         inputLines.map(line => {
-          if (!nodeIds.includes(line.from.id)) {
-            return
-          }
+          // if (!nodeIds.includes(line.from.id)) {
+          //   return
+          // }
 
           let edge = {
             sourceNodeID: line.from.id,
@@ -121,9 +125,9 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
         // 输出线条
         let outputLines = node.getData(WorkflowNodeLinesData).outputLines
         outputLines.map(line => {
-          if (!nodeIds.includes(line.to!.id)) {
-            return
-          }
+          // if (!nodeIds.includes(line.to!.id)) {
+          //   return
+          // }
 
           let edge = {
             sourceNodeID: line.from.id,
@@ -179,12 +183,63 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
     // var i = 0;
 
     let designContent: FlowDocumentJSON = buildDesignData(selectedNodes)
-    // let businessContent = designDataToBusinessData(designData)
 
-    setEntity({ ...entity, designContent })
+    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode)
+
+    let edgeMaps = getEdgeMaps(allNodes, designContent.edges)
+
+     let selectedNodeIds = selectedNodes.map(node => {
+        return node.id
+      })
+
+    let subFlowInputEdges = designContent.edges.filter(edge=> !selectedNodeIds .includes(edge.sourceNodeID))
+    
+    let inputs_ = subFlowInputEdges.map(edge=>{
+
+        let soureNode = allNodes.find(item=>item.id == edge.sourceNodeID)!
+
+        let outputs = soureNode.data.outputs_ ?? []
+        let output = outputs.find(item=>item.id == edge.sourcePortID)
+
+        let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+        return {
+          ...output, 
+          name_
+        }
+
+    })
+
+
+    let subFlowOutputEdges = designContent.edges.filter(edge=> !selectedNodeIds .includes(edge.targetNodeID))
+    
+    let outputs_ = subFlowOutputEdges.map(edge=>{
+
+        let outputNode = allNodes.find(item=>item.id == edge.targetNodeID)!
+
+        let inputs = outputNode.data.inputs_ ?? []
+        let input = inputs.find(item=>item.id == edge.targetPortID)
+
+        let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+        return {
+          ...input, 
+          name_
+        }
+
+    })
+
+    businessContent.inputs_ = inputs_
+    businessContent.outputs_ = outputs_
+
+    let temp = businessContent
+    let i = 0;
+
+
+   //  let businessContent = designDataToBusinessData(designData)
+
+    //setEntity({ ...entity, designContent })
 
    
-    setSaveDrawerVisible(true)
+    //setSaveDrawerVisible(true)
   }
 
   return <>
