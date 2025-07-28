@@ -3,7 +3,7 @@ import { useFlowEnviromentContext } from "../../../context/flow-enviroment-conte
 import { NodeStatusHeader } from "./header";
 import styles from './index.module.scss';
 import { WorkflowNodeStatus } from "./type";
-import { IconSpin } from "@douyinfe/semi-icons";
+import { IconCheckCircleStroked, IconSpin } from "@douyinfe/semi-icons";
 import classnames from 'classnames';
 import { IconSuccessFill } from "../../../assets/icon-success";
 import { IconWarningFill } from "../../../assets/icon-warning";
@@ -98,7 +98,8 @@ export const NodeStatusBar: React.FC<any> = (props) => {
     }
 
     if (isNodeInitted) {
-      return <IconSpin spin className={classnames(styles.icon, styles.initted)} />;
+      //return <IconSpin spin className={classnames(styles.icon, styles.initted)} />;
+      return <IconCheckCircleStroked className={classnames(styles.icon, styles.initted)}/>
     }
 
     if (isNodeRunning) {
@@ -122,7 +123,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
         {renderIcon()}
         {renderStatus()}
         {
-          [WorkflowNodeStatus.IDLE, WorkflowNodeStatus.INITTING].includes(nodeInfo.status) ? <></>: 
+          [WorkflowNodeStatus.IDLE, WorkflowNodeStatus.INITTING, WorkflowNodeStatus.RUNNING].includes(nodeInfo.status) ? <></>: 
           renderCost()
         }
         

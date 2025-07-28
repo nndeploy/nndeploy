@@ -1,6 +1,6 @@
 export interface IFlowNodeItemRunningStatus {
   time: number;
-  status: "IDLE" | "INITTING" | "INITTED" | "RUNNING" | "DONE"
+  status: "IDLE" | "INITING" | "INITED" | "RUNNING" | "DONE"
 }
 
 export interface IFlowNodesRunningStatus {
