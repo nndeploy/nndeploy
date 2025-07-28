@@ -1,6 +1,8 @@
 export enum WorkflowNodeStatus {
-    IDLE = "IDLE",
-    RUNNING = "RUNNING",
-    INIT = "INIT",
-    DONE = "DONE",
+  IDLE = "IDLE",
+  INITTING = "INITING",
+  INITTED = "INITED",
+  RUNNING = "RUNNING",
+
+  DONE = "DONE",
 }

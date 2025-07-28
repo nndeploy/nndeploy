@@ -3,7 +3,7 @@ import { useFlowEnviromentContext } from "../../../context/flow-enviroment-conte
 import { NodeStatusHeader } from "./header";
 import styles from './index.module.scss';
 import { WorkflowNodeStatus } from "./type";
-import { IconSpin } from "@douyinfe/semi-icons";
+import { IconCheckCircleStroked, IconSpin } from "@douyinfe/semi-icons";
 import classnames from 'classnames';
 import { IconSuccessFill } from "../../../assets/icon-success";
 import { IconWarningFill } from "../../../assets/icon-warning";
@@ -30,7 +30,8 @@ export const NodeStatusBar: React.FC<any> = (props) => {
   }
 
   const isNodeIdle = nodeInfo.status === WorkflowNodeStatus.IDLE;
-  const isNodeInit = nodeInfo.status === WorkflowNodeStatus.INIT;
+  const isNodeInitting = nodeInfo.status === WorkflowNodeStatus.INITTING;
+   const isNodeInitted = nodeInfo.status === WorkflowNodeStatus.INITTED;
   const isNodeRunning = nodeInfo.status === WorkflowNodeStatus.RUNNING;
   const isNodeDone = nodeInfo.status === WorkflowNodeStatus.DONE;
 
@@ -41,8 +42,12 @@ export const NodeStatusBar: React.FC<any> = (props) => {
       return styles.nodeStatusIdle;
     }
 
-    if (isNodeInit) {
-      return styles.nodeStatusInit;
+    if (isNodeInitting) {
+      return styles.nodeStatusInitting;
+    }
+
+     if (isNodeInitted) {
+      return styles.nodeStatusInitted;
     }
 
     if (isNodeRunning) {
@@ -62,11 +67,18 @@ export const NodeStatusBar: React.FC<any> = (props) => {
         {nodeInfo.status}
       </span>
     }
-    if (isNodeInit) {
-      return <span className={classnames(styles.init)}>
+    if (isNodeInitting) {
+      return <span className={classnames(styles.initting)}>
         {nodeInfo.status}
       </span>
     }
+
+    if (isNodeInitted) {
+      return <span className={classnames(styles.isNodeInitted)}>
+        {nodeInfo.status}
+      </span>
+    }
+
     if (isNodeRunning) {
       return <span className={classnames(styles.running)}>
         {nodeInfo.status}
@@ -81,8 +93,13 @@ export const NodeStatusBar: React.FC<any> = (props) => {
   }
 
   const renderIcon = () => {
-    if (isNodeInit) {
-      return <IconSpin spin className={classnames(styles.icon, styles.pending)} />;
+    if (isNodeInitting) {
+      return <IconSpin spin className={classnames(styles.icon, styles.initting)} />;
+    }
+
+    if (isNodeInitted) {
+      //return <IconSpin spin className={classnames(styles.icon, styles.initted)} />;
+      return <IconCheckCircleStroked className={classnames(styles.icon, styles.initted)}/>
     }
 
     if (isNodeRunning) {
@@ -105,7 +122,11 @@ export const NodeStatusBar: React.FC<any> = (props) => {
       <>
         {renderIcon()}
         {renderStatus()}
-        {renderCost()}
+        {
+          [WorkflowNodeStatus.IDLE, WorkflowNodeStatus.INITTING, WorkflowNodeStatus.RUNNING].includes(nodeInfo.status) ? <></>: 
+          renderCost()
+        }
+        
       </>
     }
   >
