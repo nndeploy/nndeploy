@@ -1,9 +1,9 @@
 
 [English](README.md) | 简体中文
 
-<h1 align="center">
-nndeploy：一款基于工作流的多端AI部署工具
-</h1>
+<h3 align="center">
+基于工作流的多端AI部署工具
+</h3>
 
 <p align="center">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">

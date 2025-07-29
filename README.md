@@ -1,8 +1,8 @@
 [简体中文](README_CN.md) | English
 
-<h1 align="center">
-nndeploy: A Workflow-based Multi-platform AI Deployment Tool
-</h1>
+<h3 align="center">
+Workflow-based Multi-platform AI Deployment Tool
+</h3>
 
 <p align="center">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
