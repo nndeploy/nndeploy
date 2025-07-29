@@ -1,16 +1,14 @@
 # cpack.cmake
 
-if(EXISTS ${NNDEPLOY_INSTALL_PATH})
-    # Copy all contents directly from install directory
-    install(DIRECTORY ${NNDEPLOY_INSTALL_PATH}/
-            DESTINATION .
-            USE_SOURCE_PERMISSIONS
-            COMPONENT Complete)
-endif()
+# Copy all contents directly from install directory
+install(DIRECTORY ${NNDEPLOY_INSTALL_PATH}/
+        DESTINATION .
+        USE_SOURCE_PERMISSIONS
+        COMPONENT Complete)
 
 set(CPACK_PACKAGE_NAME "nndeploy")
 set(CPACK_PACKAGE_VERSION "${NNDEPLOY_VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Neural Network Deploy Framework")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Workflow-based Multi-platform AI Deployment Tool")
 set(CPACK_PACKAGE_VENDOR "nndeploy Team")
 set(CPACK_PACKAGE_CONTACT "595961667@qq.com")
 
