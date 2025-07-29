@@ -42,6 +42,7 @@ base::Status OnnxRuntimeInference::init() {
     buffer = onnxruntime_inference_param->model_value_[0];
   }
 
+#if ORT_API_VERSION >= 16
   std::string external_bin_buffer;
   if (onnxruntime_inference_param->is_path_) {
     if (onnxruntime_inference_param->external_model_data_.size() > 0) {
@@ -63,6 +64,7 @@ base::Status OnnxRuntimeInference::init() {
           file_names, file_buffers, lengths);
     }
   }
+#endif
 
   OnnxRuntimeConvert::convertFromInferenceParam(*onnxruntime_inference_param,
                                                 session_options_, stream_);
