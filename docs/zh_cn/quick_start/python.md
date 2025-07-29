@@ -5,7 +5,7 @@ nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度
 ## 环境要求
 
 - Python 3.10+
-- 支持的操作系统：Linux、macOS、Windows
+- 支持的操作系统：Linux、Windows、macOS(待进一步测试)
 
 ## 安装方式
 
@@ -40,7 +40,7 @@ python -c "import nndeploy; print(nndeploy.__version__)"
 
 ### 启动可视化界面
 
-nndeploy 提供了直观的 Web 界面用于模型管理和推理：
+nndeploy 提供了直观的 Web 界面用于模型部署：
 
 ```bash
 # 启动 Workflow 的 Web 服务
