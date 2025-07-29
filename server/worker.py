@@ -12,17 +12,17 @@ from queue import Empty
 from .task_queue import ExecutionStatus
 import nndeploy
 
-import resource
+# import resource
 try:
     import psutil
     _PROC = psutil.Process(os.getpid())
 except Exception:
     _PROC = None
 
-def get_rss_mb():
-    if _PROC:
-        return _PROC.memory_info().rss / 1024 / 1024
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+# def get_rss_mb():
+#     if _PROC:
+#         return _PROC.memory_info().rss / 1024 / 1024
+#     return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
 
 ############# meminfo ################
 # import threading
