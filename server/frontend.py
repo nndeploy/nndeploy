@@ -15,10 +15,9 @@ import requests
 from typing_extensions import NotRequired
 
 REQUEST_TIMEOUT = 60  # second
-FRONTEND_ROOT = Path.cwd() / "server/frontend"
-FRONTEND_ROOT.mkdir(parents=True, exist_ok=True)
+FRONTEND_ROOT = Path.cwd() / "frontend"
 
-DEFAULT_PROVIDER = ("csrdxka", "xRingBuf", "1.0.0")
+DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.0.0")
 DEFAULT_VERSION_STRING = "!"
 
 class Asset(TypedDict):
@@ -87,6 +86,7 @@ class FrontendManager:
 
     @classmethod
     def init_frontend(cls, version_string: str = DEFAULT_VERSION_STRING) -> str:
+        FRONTEND_ROOT.mkdir(parents=True, exist_ok=True)
         try:
             return cls._impl(version_string)
         except Exception as exc:
