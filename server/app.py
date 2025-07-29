@@ -27,6 +27,11 @@ def cli():
     ap.add_argument("--resources", default="./resources")
     ap.add_argument("--log", default="./logs/nndeploy_server.log")
     ap.add_argument("--front-end-version", default="!", help="GitHub frontend, as owner/repo@0.0.1 or @latest,default latest")
+    ap.add_argument("--debug", dest="debug", action="store_true",
+                    help="enable debug mode")
+    ap.add_argument("--no-debug", dest="debug", action="store_false",
+                    help="disable debug mode")
+    ap.set_defaults(debug=False)
     return ap.parse_args()
 
 def configure_root_logger(log_q: mp.Queue, log_file: str, server) -> QueueListener:

@@ -9,7 +9,7 @@ from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
 from .files import get_workdir
-# from .frontend import FrontendManager
+from .frontend import FrontendManager
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json
@@ -46,7 +46,7 @@ class NnDeployServer:
         self.args = args
         self.app = FastAPI(
             title="nndeploy backend",
-            version="0.1.0"
+            version="1.0.0"
         )
 
         self.app.add_middleware(
@@ -57,27 +57,17 @@ class NnDeployServer:
             allow_headers=["*"],
         )
 
-        web_root = FrontendManager.init_frontend(args.front_end_version)
-        dist_inside = Path(web_root) / "dist"
-        if dist_inside.is_dir():
-            web_root = str(dist_inside)
-
-        self.app.mount("/", StaticFiles(directory=web_root, html=True), name="frontend")
-        static_dir = Path(web_root) / "static"
-        if static_dir.is_dir():
-            self.app.mount("/static", StaticFiles(directory=static_dir), name="design_static")
-
         self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
         self.task_ws_map: dict[str, set[WebSocket]] = {}
-        self._register_routes()
+        self._register_routes(args)
 
     def _get_workdir(self) -> Path:
         return Path(self.args.resources)
 
-    def _register_routes(self):
+    def _register_routes(self, args):
         api = APIRouter(prefix="/api")
 
         # loop
@@ -350,9 +340,9 @@ class NnDeployServer:
             return self.queue.get_history(max_items)
 
         # index
-        @self.app.get("/", tags=["Root"])
-        async def root():
-            return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
+        # @self.app.get("/", tags=["Root"])
+        # async def root():
+        #     return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
         # preview
         @api.get("/preview", tags=["Files"],
@@ -455,6 +445,13 @@ class NnDeployServer:
         self.app.dependency_overrides[get_workdir] = self._get_workdir
 
         self.app.include_router(api,dependencies=[Depends(lambda: get_workdir(self))])
+
+        if not args.debug:
+            web_root = FrontendManager.init_frontend(args.front_end_version)
+            dist_inside = Path(web_root) / "dist"
+            if dist_inside.is_dir():
+                web_root = str(dist_inside)
+            self.app.mount("/", StaticFiles(directory=web_root, html=True), name="frontend")
 
     # task progress notify
     def notify_task_progress(self, task_id: str, status_dict: dict):
