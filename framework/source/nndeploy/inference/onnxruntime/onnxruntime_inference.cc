@@ -53,11 +53,16 @@ base::Status OnnxRuntimeInference::init() {
       size_t pos = external_model_path.find_last_of("/\\");
       std::string external_data_file_name =
           (pos == std::string::npos) ? external_model_path
-                                     : external_model_path.substr(pos + 1);
-
-      std::string external_file_name(external_data_file_name.begin(),
+                                     : external_model_path.substr(pos + 1); 
+#ifdef _WIN32
+      std::wstring external_file_name(external_data_file_name.begin(),
                                      external_data_file_name.end());
+      std::vector<std::wstring> file_names{external_file_name};
+#else
+      std::string external_file_name(external_data_file_name.begin(),
+          external_data_file_name.end());
       std::vector<std::string> file_names{external_file_name};
+#endif
       std::vector<char *> file_buffers{external_bin_buffer.data()};
       std::vector<size_t> lengths{external_bin_buffer.size()};
       session_options_.AddExternalInitializersFromFilesInMemory(
