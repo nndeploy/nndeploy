@@ -21,9 +21,7 @@ jobs:
       fail-fast: false  # 不因单个任务失败而终止其他任务
       matrix:
         platform: [ubuntu-latest]  # 运行平台
-        python-version: ["3.8",    # 支持的Python版本矩阵
-                         "3.9",
-                         "3.10",
+        python-version: ["3.10",
                          "3.11",
                          "3.12",
                          "3.13",]

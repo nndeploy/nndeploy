@@ -51,6 +51,8 @@ python app.py --port 8000
 nndeploy-app --port 8000
 ```
 
+> 注：Windows下命令行启动：nndeploy-app.exe --port 8000
+
 在浏览器中访问 `http://localhost:8000` 开始使用。
 
 <p align="center">
