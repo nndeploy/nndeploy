@@ -49,6 +49,28 @@
 
 ---
 
+## 快速开始
+
+### 启动可视化工作流
+```bash
+pip install nndeploy
+nndeploy-app --port 8000
+```
+
+在浏览器中访问 `http://localhost:8000` 开始使用
+
+### 文档
+
+- [如何编译](docs/zh_cn/quick_start/build.md)
+- [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [如何执行](docs/zh_cn/quick_start/example.md)
+- [Python Quick Start](docs/zh_cn/quick_start/python.md)
+- [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+
+---
+
 ## 已部署模型
 
 | 模型类别 | 支持模型 |
@@ -112,16 +134,6 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
   <img src="docs/image/workflow/qwen_sd.png">
 
   <img src="docs/image/workflow/sd_yolo.png">
-
-## 快速开始
-
-- [如何编译](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
-- [Python Quick Start](docs/zh_cn/quick_start/python.md)
-- [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 
 ## 下一步计划
 

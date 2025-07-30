@@ -48,6 +48,27 @@ Workflow-based Multi-platform AI Deployment Tool
 
 ---
 
+## Quick Start
+
+### Launch Visual Workflow
+```bash
+pip install nndeploy
+nndeploy-app --port 8000
+```
+
+Access `http://localhost:8000` in your browser to get started
+
+### Docs
+- [How to Build](docs/zh_cn/quick_start/build.md)
+- [How to Get Models](docs/zh_cn/quick_start/model.md)
+- [How to Execute](docs/zh_cn/quick_start/example.md)
+- [Python Quick Start](docs/zh_cn/quick_start/python.md)
+- [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+
+---
+
 ## Deploy Models
 
 | Model Category | Supported Models |
@@ -111,16 +132,6 @@ nndeploy is a workflow-based multi-platform AI deployment tool with the followin
   <img src="docs/image/workflow/qwen_sd.png">
 
   <img src="docs/image/workflow/sd_yolo.png">
-
-## Quick Start
-
-- [How to Build](docs/zh_cn/quick_start/build.md)
-- [How to Get Models](docs/zh_cn/quick_start/model.md)
-- [How to Execute](docs/zh_cn/quick_start/example.md)
-- [Python Quick Start](docs/zh_cn/quick_start/python.md)
-- [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 
 ## Roadmap
 
