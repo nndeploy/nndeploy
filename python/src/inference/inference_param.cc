@@ -1,5 +1,9 @@
 #include "nndeploy/inference/inference_param.h"
 
+#ifdef ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME
+#include "nndeploy/inference/onnxruntime/onnxruntime_inference_param.h"
+#endif
+
 #include <pybind11/stl.h>
 
 #include "nndeploy_api_registry.h"
@@ -86,9 +90,7 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
       .def_readwrite("is_path_", &InferenceParam::is_path_)
       .def_property(
           "model_value_",
-          [](const InferenceParam &self) {
-            return self.model_value_;
-          },
+          [](const InferenceParam &self) { return self.model_value_; },
           [](InferenceParam &self, const std::vector<std::string> &value) {
             // NNDEPLOY_LOGE("set_model_value: %p", &self);
             // for (auto &v : value) {
@@ -200,6 +202,21 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
         });
 
   m.def("create_inference_param", &createInferenceParam, py::arg("type"));
+
+#ifdef ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME
+  py::class_<OnnxRuntimeInferenceParam, InferenceParam,
+             std::shared_ptr<OnnxRuntimeInferenceParam>>(
+      m, "OnnxRuntimeInferenceParam", py::dynamic_attr())
+      .def(py::init<>())
+      .def(py::init<base::InferenceType>())
+      .def_readwrite("graph_optimization_level_",
+                     &OnnxRuntimeInferenceParam::graph_optimization_level_)
+      .def_readwrite("inter_op_num_threads_",
+                     &OnnxRuntimeInferenceParam::inter_op_num_threads_)
+      .def_readwrite("execution_mode_",
+                     &OnnxRuntimeInferenceParam::execution_mode_);
+#endif
+
 }
 
 }  // namespace inference

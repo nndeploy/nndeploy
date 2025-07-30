@@ -1,4 +1,4 @@
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
 
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
