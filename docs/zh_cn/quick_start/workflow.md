@@ -1,8 +1,6 @@
 # Visual Workflow Quick Start
 
-nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度学习模型。
-
-> [更多workflow](https://github.com/nndeploy/nndeploy-workflow)
+> [更多workflow模板](https://github.com/nndeploy/nndeploy-workflow)
 
 ## 环境要求
 
