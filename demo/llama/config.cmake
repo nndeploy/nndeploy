@@ -25,7 +25,7 @@ set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})
 if (APPLE)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 elseif (UNIX)
   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
 elseif(WIN32)

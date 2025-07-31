@@ -8,7 +8,7 @@ function(add_test TEST_NAME TEST_SOURCES)
     GTest::gtest_main
   )
   if (APPLE)
-    set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,-force_load")
+    set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
   elseif (UNIX)
     set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
   elseif(WIN32)

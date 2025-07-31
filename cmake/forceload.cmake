@@ -2,7 +2,7 @@
 function(smart_force_load_libraries target_name)
   if (APPLE)
     target_link_options(${target_name} PRIVATE 
-      "LINKER:-force_load"
+      "LINKER:-undefined,dynamic_lookup"
     )
   elseif (UNIX AND NOT WIN32)
     target_link_options(${target_name} PRIVATE 
