@@ -283,3 +283,6 @@ resources/**
 logs/
 frontend/
 gfpgan/
+
+tool/script/third_party/
+tool/script/download/

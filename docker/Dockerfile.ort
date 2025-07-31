@@ -1,0 +1,59 @@
+# FROM ubuntu:22.04
+# FROM registry.cn-hangzhou.aliyuncs.com/library/ubuntu:22.04
+# FROM hub.c.163.com/library/ubuntu:22.04
+FROM ccr.ccs.tencentyun.com/library/ubuntu:22.04
+
+# 设置非交互式安装
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 使用清华大学镜像源
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse" >> /etc/apt/sources.list
+
+# 创建工作目录
+WORKDIR /workspace
+
+# 更新包管理器并安装依赖
+RUN apt-get update
+RUN apt-get install -y build-essential
+RUN apt-get install -y python3
+RUN apt-get install -y python3-dev
+RUN apt-get install -y python3-pip
+RUN apt-get install -y cmake
+RUN apt-get install -y libopencv-dev
+RUN apt-get install -y git
+RUN apt-get install -y curl
+RUN apt-get install -y pkg-config
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+
+# 安装 Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# 克隆 nndeploy 项目
+RUN git clone https://github.com/nndeploy/nndeploy.git
+
+# 设置项目工作目录
+WORKDIR /workspace/nndeploy
+
+# 更新子模块
+RUN git submodule update --init --recursive
+
+# 创建构建目录并进入
+RUN mkdir build
+WORKDIR /workspace/nndeploy/build
+
+# 配置和编译项目
+RUN cmake .. && \
+    make -j$(nproc) && \
+    make install
+
+# 暴露可能需要的端口（根据项目需要调整）
+EXPOSE 8080
+
+# 设置入口点
+ENTRYPOINT ["./nndeploy_demo_dag"]

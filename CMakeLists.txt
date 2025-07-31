@@ -1021,7 +1021,7 @@ endif()
 # demo
 if(ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tool/script/ DESTINATION ${NNDEPLOY_INSTALL_PATH} FILES_MATCHING PATTERN "*")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tool/script/ DESTINATION ${NNDEPLOY_INSTALL_PATH} PATTERN "download" EXCLUDE PATTERN "third_party" EXCLUDE)
 endif()
 
 # python

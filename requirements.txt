@@ -3,7 +3,7 @@
 # base
 cython
 packaging
-setuptools
+setuptools<=68.0.0
 gitpython>=3.1.30
 aiofiles>=24.1.0
 PyYAML>=5.3.1

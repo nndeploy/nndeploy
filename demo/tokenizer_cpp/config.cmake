@@ -19,8 +19,6 @@ file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"
   "${ROOT_PATH}/demo/*.cc"
 )
-message(STATUS "tokenizer")
-message(STATUS "SOURCE: ${SOURCE}")
 set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 
 # OBJECT

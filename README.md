@@ -43,7 +43,7 @@ Workflow-based Multi-platform AI Deployment Tool
 
 ## Latest Updates
 - [2025/07/20] 🔥 **Visual Workflow**: Deploy AI algorithms through drag-and-drop interface
-- [2025/07/20] 🔥 **Python API**: Quick start and convenient development ([Documentation](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
+- [2025/07/20] 🔥 **Python API**: convenient development ([Documentation](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
 - [2025/05/29] 🔥 **Collaboration with Huawei Ascend Inference Framework Course**: Official certification with professional guidance ([Link](https://www.hiascend.com/developer/courses/detail/1923211251905150977))
 
 ---
@@ -56,7 +56,9 @@ pip install nndeploy
 nndeploy-app --port 8000
 ```
 
-Access `http://localhost:8000` in your browser to get started
+Access `http://localhost:8000` in your browser to get started. For more details, refer to the documentation.
+
+> Note: Windows requires Python 3.12, Mac requires Python 3.13, Linux requires developer mode
 
 ### Docs
 - [How to Build](docs/zh_cn/quick_start/build.md)

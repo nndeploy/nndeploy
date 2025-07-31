@@ -44,7 +44,7 @@
 
 ## 最新动态
 - [2025/07/20] 🔥 **可视化工作流**：通过拖拉拽部署AI算法
-- [2025/07/20] 🔥 **Python API**：快速入门，便捷开发 ([文档](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
+- [2025/07/20] 🔥 **Python API**：便捷开发 ([文档](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
 - [2025/05/29] 🔥 **与华为昇腾合作推理框架课程**：官方认证，专业指导 ([链接](https://www.hiascend.com/developer/courses/detail/1923211251905150977))
 
 ---
@@ -57,7 +57,9 @@ pip install nndeploy
 nndeploy-app --port 8000
 ```
 
-在浏览器中访问 `http://localhost:8000` 开始使用
+在浏览器中访问 `http://localhost:8000` 开始使用，更多细节参考文档。
+
+> 注: Window要求python环境为3.12, Mac要求python环境为3.13, Linux暂不支持，建议采用开发者模式
 
 ### 文档
 
