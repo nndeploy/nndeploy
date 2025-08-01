@@ -504,8 +504,8 @@ def sub_remove_node_keys(node_keys: list[str]):
 
 def get_all_node_json():
     # 导入所有必需的模块
-    add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-    add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+    # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
+    # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
     import_global_import_lib()
     
     global remove_node_keys
