@@ -104,7 +104,7 @@ class LocalThread {
     }
 
     for (auto &target : steal_targets_) {
-      if (((*pool_threads_)[target]) ||
+      if (((*pool_threads_)[target]) &&
           ((*pool_threads_)[target])->primary_queue_.trySteal(task)) {
         return true;
       }
