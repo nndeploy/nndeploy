@@ -69,6 +69,36 @@ base::Status OpSplit::inferShape() {
   }
   */
 
+  base::IntVector input_shape = inputs_[0]->getShape();
+  if (axis < 0 || axis >= (int)input_shape.size()) {
+    NNDEPLOY_LOGE("axis (%d) is out of bounds for input shape.\n", axis);
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  int axis_size = input_shape[axis];
+  int num_outputs = param->num_outputs_;
+  if (outputs_.size() != num_outputs) {
+    NNDEPLOY_LOGE("outputs_.size() (%d) != num_outputs_ (%d).\n",
+                  (int)outputs_.size(), num_outputs);
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  if (axis_size % num_outputs != 0) {
+    NNDEPLOY_LOGE(
+        "axis_size (%d) cannot be evenly divided by num_outputs (%d).\n",
+        axis_size, num_outputs);
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  int split_size = axis_size / num_outputs;
+  param->num_outputs_ = num_outputs;
+
+  for (int i = 0; i < num_outputs; ++i) {
+    base::IntVector output_shape = input_shape;
+    output_shape[axis] = split_size;
+    outputs_[i]->reshape(output_shape);
+  }
+
   return status;
 }
 
