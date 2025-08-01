@@ -30,6 +30,7 @@ target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_FRAMEWORK_BINARY})
 target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_preprocess)
 target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
+target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_tokenizer)
 
 # # NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
