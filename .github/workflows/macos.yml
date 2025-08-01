@@ -52,12 +52,20 @@ jobs:
           brew update  # 更新Homebrew包管理器
           # 安装必要的开发工具和库：CMake构建系统、Ninja构建工具、包配置工具、OpenCV计算机视觉库、Eigen3线性代数库、Protocol Buffers库
           brew install cmake ninja pkg-config opencv protobuf  
+
+      # rust环境
+      - name: 安装Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
             
       # 第三步：配置CMake构建环境
       - name: 配置构建
         run: |
           mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config_disable_python.cmake build/config.cmake   # 复制项目特定的CMake配置文件
+          # cp cmake/config_disable_python.cmake build/config.cmake   # 复制项目特定的CMake配置文件
+          cp cmake/config.cmake build/config.cmake   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
           # 使用Ninja生成器配置CMake项目
           cmake -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..             
