@@ -221,6 +221,7 @@ _deps
 # build
 build
 docs/build
+docs/zh_cn/dairy/always/
 
 # vscode
 .vscode/
@@ -258,7 +259,6 @@ ref_repo
 # cursor
 .cursor/
 
-
 # app/
 # translation
 *.mo
@@ -286,3 +286,4 @@ gfpgan/
 
 tool/script/third_party/
 tool/script/download/
+tool/script/nndeploy_build_env/
