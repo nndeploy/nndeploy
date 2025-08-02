@@ -45,13 +45,21 @@ jobs:
       - name: 更新Python依赖
         run: |
           python -m pip install --upgrade pip
-          pip install pybind11 setuptools wheel twine requests
+          pip install pybind11 setuptools wheel twine requests tarfile zipfile pathlib
+
+      # 安装rust
+      - name: 安装Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          rustup update
 
       # 安装opencv
-      - name: 安装OpenCV
+      - name: 安装OpenCV && ONNXRUNTIME
         run: |
           cd tool/script
           python install_opencv.py
+          python install_onnxruntime.py
 
       # 第五步：配置CMake构建环境
       - name: 配置构建
@@ -87,7 +95,7 @@ jobs:
       - name: 验证Token配置
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_NNDEPLOY_TOKEN }}
         run: |
           # 检查token是否为空
           if [ -z "$TWINE_PASSWORD" ]; then
@@ -104,8 +112,9 @@ jobs:
       - name: 上传到TestPyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_NNDEPLOY_TOKEN }}
         run: |
           cd python
+          ls -la dist/
           twine check dist/*
-          twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose --debug

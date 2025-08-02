@@ -44,6 +44,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSOR
 # set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/libopenvino.so.2023.1") # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")
 # set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "/home/always/modelscope/onnxruntime-linux-x64-1.18.0") # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
@@ -64,14 +65,15 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
+set(ENABLE_NNDEPLOY_OPENCV ON) # 通过路径的方式链接OpenCV
 set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0") # Whether to link the third-party OpenCV library, default is ON
 set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann) # 包含图像展示、相机标定、特征检测等完整功能模块，以及KalmanFilter跟踪功能
 
 ## Tokenizer-cpp
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # Whether to enable C++ tokenizer plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF
 
 ## Language Model
-set(ENABLE_NNDEPLOY_PLUGIN_LLM OFF) # Whether to enable language model plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_LLM ON) # Whether to enable language model plugin, default is OFF
 
 ## Stable Diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # Whether to enable text-to-image plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # Whether to enable text-to-image plugin, default is OFF

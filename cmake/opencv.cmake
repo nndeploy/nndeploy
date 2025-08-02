@@ -16,17 +16,17 @@ elseif (ENABLE_NNDEPLOY_OPENCV STREQUAL "ON")
   include_directories(${OpenCV_INCLUDE_DIRS})
   set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${OpenCV_LIBS})
 else()
-  message(STATUS "ENABLE_NNDEPLOY_OPENCV: ${ENABLE_NNDEPLOY_OPENCV}")
-  # 判断ENABLE_NNDEPLOY_OPENCV是否为绝对路径
+  # message(STATUS "ENABLE_NNDEPLOY_OPENCV: ${ENABLE_NNDEPLOY_OPENCV}")
+  # Check if ENABLE_NNDEPLOY_OPENCV is an absolute path
   if(IS_ABSOLUTE ${ENABLE_NNDEPLOY_OPENCV})
-    # 绝对路径，直接使用
+    # Absolute path, use directly
     set(OPENCV_ROOT_PATH ${ENABLE_NNDEPLOY_OPENCV})
-    message(STATUS "使用绝对路径的OpenCV: ${OPENCV_ROOT_PATH}")
+    message(STATUS "Using absolute path for OpenCV: ${OPENCV_ROOT_PATH}")
   else()
-    # 相对路径，相对于项目根目录
+    # Relative path, relative to project root directory
     set(OPENCV_ROOT_PATH ${CMAKE_SOURCE_DIR}/${ENABLE_NNDEPLOY_OPENCV})
-    message(STATUS "使用相对路径的OpenCV: ${OPENCV_ROOT_PATH}")
-    # 更新ENABLE_NNDEPLOY_OPENCV为绝对路径
+    message(STATUS "Using relative path for OpenCV: ${OPENCV_ROOT_PATH}")
+    # Update ENABLE_NNDEPLOY_OPENCV to absolute path
     set(ENABLE_NNDEPLOY_OPENCV ${OPENCV_ROOT_PATH})
   endif()
     
