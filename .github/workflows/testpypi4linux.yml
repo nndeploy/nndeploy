@@ -28,8 +28,8 @@ jobs:
     container: ${{ matrix.config.container }}  # 使用PyPI官方manylinux容器
 
     steps:
-      # 第一步：检出源代码
-      - uses: actions/checkout@v4  # 升级到v4版本
+      # 第一步：检出源代码 - 使用兼容manylinux2014的v3版本
+      - uses: actions/checkout@v3  # 降级到v3以兼容manylinux2014容器
         with:
           submodules: recursive    # 递归检出所有子模块
 

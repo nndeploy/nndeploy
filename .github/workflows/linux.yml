@@ -101,27 +101,34 @@ jobs:
           ls -la               # 列出所有生成的文件和目录
           echo "编译完成"       # 输出完成信息
 
-      # 第六步：打包和发布release包 (仅在推送tag时触发执行)
-      # 说明：这个步骤只有在Git仓库被推送了新的tag时才会执行
-      # startsWith(github.ref, 'refs/tags/') 检查当前的Git引用是否以'refs/tags/'开头
-      # 这确保只有在发布新版本标签时才会进行打包操作，避免每次普通提交都执行打包
-      - name: 安装文件并创建发布包
+          - name: 安装文件并创建发布包
+          if: startsWith(github.ref, 'refs/tags/')
+          run: |
+            cd build
+            ninja install
+            
+            # 使用 CPack 生成多种格式
+            echo "=== 使用 CPack 生成发布包 ==="
+            cpack -G TGZ -C Release
+            cpack -G DEB -C Release
+            
+            # 尝试生成 RPM（如果支持）
+            if command -v rpmbuild >/dev/null 2>&1; then
+              cpack -G RPM -C Release
+            fi
+            
+            echo "=== 生成的包文件 ==="
+            ls -la *.tar.gz *.deb *.rpm 2>/dev/null || ls -la *.tar.gz *.deb 2>/dev/null
+            echo "打包完成"
+        
+      # 添加 Release Assets 上传步骤
+      - name: 上传包到 Release Assets
         if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          cd build                    # 进入构建目录
-          ninja install              # 执行安装目标，将编译好的文件安装到指定位置
-          cpack -G TGZ              # 使用CPack工具生成TGZ格式的压缩包，包含所有需要发布的文件
-          ls -la                    # 列出当前目录的所有文件，用于验证打包结果
-          echo "打包完成"            # 输出完成信息
-          
-      # 第七步：将整个打包的压缩包上传到GitHub Actions工件存储
-      # 说明：GitHub Actions的artifact功能允许在workflow运行之间保存和共享文件
-      # 这里将完整的打包压缩包文件上传为artifact，可以在GitHub Actions页面下载
-      # 包含了所有编译产物和安装文件的完整发布包
-      - name: 上传完整的Linux x64发布压缩包到工件存储
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v4
+        uses: softprops/action-gh-release@v1
         with:
-          name: linux-x64-complete-release-package    # 工件的名称，标识这是完整的发布包
-          path: build/*.tar.gz                        # 上传整个打包好的压缩包文件
-          retention-days: 30                          # 工件在GitHub上的保留天数，30天后自动删除
+          files: |
+            build/*.tar.gz
+            build/*.deb
+            build/*.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
