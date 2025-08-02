@@ -62,7 +62,7 @@ jobs:
           mkdir build                    # 创建构建目录(out-of-source构建)
           cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
-          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ..  # 配置CMake项目并指定vcpkg工具链
+          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release ..  # 配置CMake项目并指定vcpkg工具链
           
       # 第五步：执行编译
       - name: 编译

@@ -57,7 +57,7 @@ jobs:
           mkdir build                    # 创建构建目录(out-of-source构建)
           cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
-          cmake -G Ninja ..
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
 
       # 第六步：执行编译
       - name: 编译C++库
@@ -71,7 +71,7 @@ jobs:
         run: |
           cd python
           pip install -e .
-          python setup.py bdist_wheel  # 构建wheel包
+          python setup.py bdist_wheel --plat-name manylinux2014_x86_64 # 构建wheel包
 
       # 第八步：验证编译结果
       - name: 编译结果检查
@@ -81,3 +81,15 @@ jobs:
           cd ../python/dist    # 进入Python包目录
           ls -la               # 列出生成的wheel文件
           echo "Python包编译完成"  # 输出完成信息
+
+
+      # 第九步：上传到testpypi
+      - name: Upload to pypi when release
+        if: github.event_name == 'release' && github.event.action == 'published'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          cd python
+          twine check dist/*
+          twine upload --repository-url https://test.pypi.org/legacy/ nndeploy-*.whl
