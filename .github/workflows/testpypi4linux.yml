@@ -1,181 +1,175 @@
-# GitHub Actions 工作流配置文件 - Python Linux平台编译并上传到TestPyPI
-# 该文件用于配置在Linux环境下自动编译Python扩展包并上传到TestPyPI的CI/CD流程
-# 使用PyPI官方容器实现跨平台兼容性
+name: 构建并上传到TestPyPI (Linux多架构)
 
-name: TestPyPI4Linux  # 工作流名称，会显示在GitHub Actions界面中
-
-# 触发条件配置
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
   push:
     branches:
-      - testpypi      # 推送到testpypi分支时触发
+      - testpypi
 
-# 工作任务定义
 jobs:
-  build:
-    strategy:
-      fail-fast: false  # 不因单个任务失败而终止其他任务
-      matrix:
-        # 使用官方manylinux容器支持多个Python版本
-        config:
-          - { container: "quay.io/pypa/manylinux2014_x86_64", python: "cp310-cp310" }
-          - { container: "quay.io/pypa/manylinux2014_x86_64", python: "cp311-cp311" }
-          - { container: "quay.io/pypa/manylinux2014_x86_64", python: "cp312-cp312" }
-          - { container: "quay.io/pypa/manylinux2014_x86_64", python: "cp313-cp313" }
-
-    runs-on: ubuntu-latest  # 在Ubuntu上运行容器
-    container: ${{ matrix.config.container }}  # 使用PyPI官方manylinux容器
+  build_wheels:
+    name: 构建 Linux wheels
+    runs-on: ubuntu-latest
 
     steps:
-      # 第一步：检出源代码 - 使用兼容manylinux2014的v3版本
-      - uses: actions/checkout@v3  # 降级到v3以兼容manylinux2014容器
+      # 使用最新的checkout版本（在宿主机上运行，无兼容性问题）
+      - uses: actions/checkout@v4
         with:
-          submodules: recursive    # 递归检出所有子模块
+          submodules: recursive
 
-      # 第二步：在manylinux容器中设置Python环境
-      - name: 设置Python环境
-        run: |
-          # manylinux容器中的Python路径
-          export PYTHON_ROOT=/opt/python/${{ matrix.config.python }}
-          export PATH=$PYTHON_ROOT/bin:$PATH
-          export PYTHON_BIN=$PYTHON_ROOT/bin/python
-          
-          # 验证Python版本
-          $PYTHON_BIN --version
-          $PYTHON_BIN -m pip --version
-          
-          # 设置环境变量供后续步骤使用
-          echo "PYTHON_ROOT=$PYTHON_ROOT" >> $GITHUB_ENV
-          echo "PATH=$PYTHON_ROOT/bin:$PATH" >> $GITHUB_ENV
-          echo "PYTHON_BIN=$PYTHON_ROOT/bin/python" >> $GITHUB_ENV
+      # 设置QEMU支持ARM架构
+      - name: 设置QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
 
-      # 第三步：安装系统依赖包（manylinux容器已预装大部分依赖）
+      # 安装系统依赖
       - name: 安装系统依赖
         run: |
-          # 更新yum包管理器
-          yum update -y
-          # 安装额外需要的依赖
-          yum install -y protobuf-devel protobuf-compiler pkg-config
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
-      # 第四步：更新Python依赖 - 使用官方推荐的构建工具
-      - name: 更新Python依赖
-        run: |
-          $PYTHON_BIN -m pip install --upgrade pip
-          $PYTHON_BIN -m pip install build twine requests pathlib setuptools wheel pybind11
-
-      # 安装rust
-      - name: 安装Rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
-          rustup update
-          echo "source $HOME/.cargo/env" >> $GITHUB_ENV
-
-      # 安装opencv和onnxruntime
-      - name: 安装OpenCV && ONNXRUNTIME
-        run: |
-          cd tool/script
-          $PYTHON_BIN install_opencv.py
-          $PYTHON_BIN install_onnxruntime.py
-
-      # 第五步：配置CMake构建环境
-      - name: 配置构建
-        run: |
-          source $HOME/.cargo/env
-          mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config_opencv.cmake build/config.cmake   # 复制项目特定的CMake配置文件
-          cd build                       # 进入构建目录
-          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=$PYTHON_BIN
-
-      # 第六步：执行编译
-      - name: 编译C++库
-        run: |
-          source $HOME/.cargo/env
-          cd build                    # 进入构建目录
-          ninja -j$(nproc)           # 使用所有CPU核心并行编译
-          ninja install
-
-      # 第七步：构建Python包 - 使用官方推荐的build工具
-      - name: 构建Python包
-        run: |
-          cd python
-          # 清理之前的构建产物
-          rm -rf dist/ build/ *.egg-info/
-          # 使用PyPI官方推荐的python -m build命令
-          $PYTHON_BIN -m build --wheel --outdir dist/
+      # 使用cibuildwheel构建wheels
+      - name: 构建wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          # 构建配置
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
           
-          # 使用auditwheel修复wheel文件以符合manylinux标准
-          $PYTHON_BIN -m pip install auditwheel
-          cd dist
-          for wheel in *.whl; do
-            echo "修复wheel文件: $wheel"
-            auditwheel repair "$wheel" --plat-tag manylinux2014_x86_64 -w ./
-            # 删除原始的非manylinux wheel文件
-            if [[ $wheel != *"manylinux"* ]]; then
-              rm "$wheel"
+          # 使用manylinux_2_28获得更好的兼容性
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
+          
+          CIBW_BUILD_VERBOSITY: 2
+          
+          # 在构建前安装系统依赖
+          CIBW_BEFORE_ALL_LINUX: |
+            # 更新包管理器
+            if command -v yum > /dev/null; then
+                yum update -y
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++
+                source /opt/rh/gcc-toolset-11/enable
+            elif command -v apt-get > /dev/null; then
+                apt-get update
+                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+            fi
+            
+            # 安装Rust
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            rustup update
+
+          CIBW_BEFORE_BUILD: |
+            # 激活工具链
+            if [ -f /opt/rh/gcc-toolset-11/enable ]; then
+                source /opt/rh/gcc-toolset-11/enable
+            fi
+            source $HOME/.cargo/env
+            
+            # 安装OpenCV和ONNX Runtime
+            cd {project}/tool/script
+            python install_opencv.py
+            python install_onnxruntime.py
+            
+            # 构建C++库
+            cd {project}
+            mkdir -p build
+            cp cmake/config_opencv.cmake build/config.cmake
+            cd build
+            
+            # 设置编译器
+            export CC=gcc
+            export CXX=g++
+            
+            cmake -G Ninja .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+              -DCMAKE_CXX_FLAGS="-fPIC" \
+              -DCMAKE_C_FLAGS="-fPIC" \
+              -DPython3_EXECUTABLE=$(which python)
+            
+            ninja -j$(nproc)
+            ninja install
+            
+            # 安装Python构建依赖
+            pip install --upgrade pip setuptools wheel pybind11 cython
+
+          # 测试构建的wheel
+          CIBW_TEST_COMMAND: |
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'✓ 成功导入 nndeploy {nndeploy.__version__}')
+                print(f'平台: {platform.platform()}')
+                print(f'架构: {platform.machine()}')
+            except ImportError as e:
+                print(f'✗ 导入失败: {e}')
+                exit(1)
+            "
+
+          # 环境变量
+          CIBW_ENVIRONMENT: |
+            PATH=$PATH:$HOME/.cargo/bin
+
+        with:
+          package-dir: ./python
+
+      # 验证生成的wheels
+      - name: 验证wheels
+        run: |
+          ls -la wheelhouse/
+          echo "=== 生成的wheel文件 ==="
+          for wheel in wheelhouse/*.whl; do
+            echo "✓ $(basename $wheel)"
+            # 检查架构标签
+            if [[ "$wheel" == *"x86_64"* ]]; then
+              echo "  架构: x86_64"
+            elif [[ "$wheel" == *"aarch64"* ]]; then
+              echo "  架构: ARM64"
             fi
           done
 
-      # 第八步：验证编译结果
-      - name: 编译结果检查
-        run: |
-          cd build              # 进入构建目录
-          ls -la               # 列出所有生成的文件和目录
-          cd ../python/dist    # 进入Python包目录
-          ls -la               # 列出生成的wheel文件
-          echo "Python包编译完成"  # 输出完成信息
+      # 上传artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-wheels
+          path: ./wheelhouse/*.whl
 
-      # 第九步：验证包的完整性
-      - name: 验证包完整性
+  upload_testpypi:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: wheels/
+          
+      - name: 合并wheels
         run: |
-          cd python
-          # 检查wheel包的完整性
-          $PYTHON_BIN -m twine check dist/*
-          # 显示包的详细信息
-          for wheel in dist/*.whl; do
-            echo "=== 检查包: $wheel ==="
-            $PYTHON_BIN -m zipfile -l "$wheel"
-            # 验证manylinux标签
-            auditwheel show "$wheel"
-          done
-
-      # 第十步：测试包安装
-      - name: 测试包安装
-        run: |
-          cd python
-          # 在虚拟环境中测试安装
-          $PYTHON_BIN -m venv test_env
-          source test_env/bin/activate
-          pip install dist/*manylinux*.whl
-          python -c "import nndeploy; print('nndeploy包安装成功')"
-          deactivate
+          mkdir -p dist/
+          find wheels/ -name "*.whl" -exec cp {} dist/ \;
+          ls -la dist/
 
       - name: 验证Token配置
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
         run: |
-          # 检查token是否为空
           if [ -z "$TWINE_PASSWORD" ]; then
             echo "ERROR: TEST_PYPI_NNDEPLOY_TOKEN is empty!"
             exit 1
           fi
-          # 检查token格式
-          if [[ ! "$TWINE_PASSWORD" =~ ^pypi-.* ]]; then
-            echo "WARNING: Token format might be incorrect"
-          fi
           echo "Token configuration looks OK"
 
-      # 第十一步：上传到TestPyPI - 使用官方推荐方式
       - name: 上传到TestPyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
         run: |
-          cd python
-          ls -la dist/
-          # 最终检查包的完整性
-          $PYTHON_BIN -m twine check dist/*
-          # 使用官方推荐的上传方式，只上传manylinux标准的wheel文件
-          $PYTHON_BIN -m twine upload --repository testpypi dist/*manylinux*.whl --verbose
+          pip install twine
+          twine check dist/*
+          twine upload --repository testpypi dist/* --verbose --skip-existing
