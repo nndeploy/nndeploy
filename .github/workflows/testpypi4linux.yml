@@ -28,6 +28,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
+      
+      # 新增：预构建步骤，生成setup.py
+      - name: 预构建C++库并生成Python配置
+        run: |
+          # # 安装基础Python依赖
+          # python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
+          
+          # # 安装Rust
+          # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          # source $HOME/.cargo/env
+          # rustup update
+          
+          # # 安装OpenCV和ONNX Runtime（使用系统Python）
+          # cd tool/script
+          # python3 install_opencv.py
+          # python3 install_onnxruntime.py
+          
+          # 构建C++库
+          cd ../..
+          mkdir -p build
+          cp cmake/config_opencv.cmake build/config.cmake
+          cd build
+          
+          cmake -G Ninja .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DPython3_EXECUTABLE=$(which python3)
+          
+          # ninja -j$(nproc)
+          # ninja install
+          
+          # # 验证setup.py是否已生成
+          # echo "=== 检查生成的Python配置文件 ==="
+          # ls -la ../python/
+          # if [ -f ../python/setup.py ]; then
+          #   echo "✓ setup.py 已生成"
+          #   head -20 ../python/setup.py
+          # else
+          #   echo "✗ setup.py 未生成"
+          #   exit 1
+          # fi
 
       # 使用cibuildwheel构建wheels
       - name: 构建wheels
