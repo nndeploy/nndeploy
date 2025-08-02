@@ -95,7 +95,7 @@ jobs:
       - name: 验证Token配置
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TESTPYPI_NNDEPLOY_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
         run: |
           # 检查token是否为空
           if [ -z "$TWINE_PASSWORD" ]; then
@@ -112,7 +112,7 @@ jobs:
       - name: 上传到TestPyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TESTPYPI_NNDEPLOY_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
         run: |
           cd python
           ls -la dist/
