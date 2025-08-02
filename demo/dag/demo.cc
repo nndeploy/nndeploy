@@ -237,8 +237,8 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
   // dump
   graph->dump();
-  model_0_graph->dump();
-  model_1_graph->dump();
+  // model_0_graph->dump();
+  // model_1_graph->dump();
 
   // run
   NNDEPLOY_TIME_POINT_START("graph->run");
@@ -307,9 +307,12 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   dag::Edge graph_out_1("graph_out_1");
   dag::Edge graph_out_2("graph_out_2");
   dag::Edge graph_out_3("graph_out_3");
-  dag::Graph *graph =
-      new dag::Graph("parallel_graph", {&graph_in},
-                     {&graph_out_0, &graph_out_1, &graph_out_2, &graph_out_3});
+  // dag::Graph *graph =
+  //     new dag::Graph("parallel_graph", {&graph_in},
+  //                    {&graph_out_0, &graph_out_1, &graph_out_2,
+  //                    &graph_out_3});
+  dag::Graph *graph = new dag::Graph("parallel_graph", {&graph_in},
+                                     {&graph_out_1, &graph_out_3});
 
   dag::Graph *model_0_graph =
       createGraph("model_0_graph", &graph_in, &graph_out_0, pt_0);
@@ -334,8 +337,8 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
   // dump
   status = graph->dump();
-  model_0_graph->dump();
-  model_1_graph->dump();
+  // model_0_graph->dump();
+  // model_1_graph->dump();
 
   // run
   NNDEPLOY_TIME_POINT_START("graph->run");
@@ -359,23 +362,23 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
     // get output (not base::kParallelTypePipeline)
     if (pt != base::kParallelTypePipeline) {
-      device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
-      if (result_0 == nullptr) {
-        NNDEPLOY_LOGE("result_1 is nullptr");
-        return -1;
-      }
-      NNDEPLOY_LOGE("i = %d, index = %ld\n", i,
-                    graph_out_0.getGraphOutputIndex());
+      // device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
+      // if (result_0 == nullptr) {
+      //   NNDEPLOY_LOGE("result_1 is nullptr");
+      //   return -1;
+      // }
+      // NNDEPLOY_LOGE("i = %d, index = %ld\n", i,
+      //               graph_out_0.getGraphOutputIndex());
       device::Tensor *result_1 = graph_out_1.getGraphOutputTensor();
       if (result_1 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
         return -1;
       }
-      device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
-      if (result_2 == nullptr) {
-        NNDEPLOY_LOGE("result_1 is nullptr");
-        return -1;
-      }
+      // device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
+      // if (result_2 == nullptr) {
+      //   NNDEPLOY_LOGE("result_1 is nullptr");
+      //   return -1;
+      // }
       device::Tensor *result_3 = graph_out_3.getGraphOutputTensor();
       if (result_3 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
@@ -385,23 +388,23 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
   if (pt == base::kParallelTypePipeline) {
     for (int i = 0; i < count; ++i) {
-      device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
-      if (result_0 == nullptr) {
-        NNDEPLOY_LOGE("result_1 is nullptr");
-        return -1;
-      }
-      NNDEPLOY_LOGE("i = %d, index = %ld\n", i,
-                    graph_out_0.getGraphOutputIndex());
+      // device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
+      // if (result_0 == nullptr) {
+      //   NNDEPLOY_LOGE("result_1 is nullptr");
+      //   return -1;
+      // }
+      // NNDEPLOY_LOGE("i = %d, index = %ld\n", i,
+      //               graph_out_0.getGraphOutputIndex());
       device::Tensor *result_1 = graph_out_1.getGraphOutputTensor();
       if (result_1 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
         return -1;
       }
-      device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
-      if (result_2 == nullptr) {
-        NNDEPLOY_LOGE("result_1 is nullptr");
-        return -1;
-      }
+      // device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
+      // if (result_2 == nullptr) {
+      //   NNDEPLOY_LOGE("result_1 is nullptr");
+      //   return -1;
+      // }
       device::Tensor *result_3 = graph_out_3.getGraphOutputTensor();
       if (result_3 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
@@ -578,7 +581,7 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
-  int count = 100;
+  int count = 1;
   for (int i = 0; i < count; i++) {
     ret = photosRepairGraph(base::kParallelTypeSequential,
                             base::kParallelTypeSequential,
@@ -624,27 +627,27 @@ int main(int argc, char *argv[]) {
     }
     NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
     // parallel pipepline graph
-    ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+    ret = serialGraph(base::kParallelTypePipeline, base::kParallelTypePipeline,
                       base::kParallelTypePipeline, 100);
     if (ret != 0) {
       NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
       return ret;
     }
-    ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-                        base::kParallelTypePipeline, 100);
+    ret =
+        parallelGraph(base::kParallelTypePipeline, base::kParallelTypePipeline,
+                      base::kParallelTypePipeline, 100);
     if (ret != 0) {
       NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
       return ret;
     }
-    // parallel pipeline graph / subgraph sequential - will be forced into sequential mode
-    // ret =
-    //     serialGraph(base::kParallelTypeSequential,
-    //                 base::kParallelTypeSequential,
-    //                 base::kParallelTypePipeline);
-    // if (ret != 0) {
-    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-    //   return ret;
-    // }
+    // parallel pipeline graph / subgraph sequential
+    ret =
+        serialGraph(base::kParallelTypeSequential,
+                    base::kParallelTypeSequential, base::kParallelTypePipeline);
+    if (ret != 0) {
+      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+      return ret;
+    }
     // ret = parallelGraph(base::kParallelTypeSequential,
     //                     base::kParallelTypeSequential,
     //                     base::kParallelTypePipeline);
@@ -652,12 +655,12 @@ int main(int argc, char *argv[]) {
     //   NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
     //   return ret;
     // }
-    // parallel pipeline graph / subgraph task - will be forced into sequential mode
-    // ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-    //                   base::kParallelTypePipeline);
-    // if (ret != 0) {
-    //   return ret;
-    // }
+    // parallel pipeline graph / subgraph task
+    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+                      base::kParallelTypeTask);
+    if (ret != 0) {
+      return ret;
+    }
     // ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
     //                     base::kParallelTypePipeline);
     // if (ret != 0) {
@@ -668,6 +671,7 @@ int main(int argc, char *argv[]) {
     // loop graph - 暂不支持流水线并行模式
     // condition graph
     // condition running graph
+    NNDEPLOY_LOGE("i = %d end!\n", i);
   }
 
   NNDEPLOY_LOGE("end!\n");
