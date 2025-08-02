@@ -46,7 +46,7 @@ jobs:
           # python3 install_onnxruntime.py
           
           # 构建C++库
-          cd ../..
+          # cd ../..
           mkdir -p build
           cp cmake/config_opencv.cmake build/config.cmake
           cd build
@@ -116,6 +116,7 @@ jobs:
             
             # 构建C++库
             cd {project}
+            rm -rf build/
             mkdir -p build
             cp cmake/config_opencv.cmake build/config.cmake
             cd build
