@@ -10,6 +10,12 @@ import requests
 import platform
 from pathlib import Path
 
+# 设置标准输出编码为UTF-8，解决Windows下中文输出问题
+if platform.system() == "Windows":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 # ONNX Runtime version
 ONNXRUNTIME_VER = "1.18.0"
 
@@ -37,7 +43,7 @@ def get_download_info():
             filename = f"onnxruntime-win-x64-{ONNXRUNTIME_VER}.zip"
             url = f"https://github.com/microsoft/onnxruntime/releases/download/v{ONNXRUNTIME_VER}/{filename}"
         else:
-            raise ValueError(f"不支持的Windows架构: {machine}")
+            raise ValueError(f"Unsupported Windows architecture: {machine}")
     elif system == "Linux":
         if machine == "x86_64":
             filename = f"onnxruntime-linux-x64-{ONNXRUNTIME_VER}.tgz"
@@ -46,7 +52,7 @@ def get_download_info():
             filename = f"onnxruntime-linux-aarch64-{ONNXRUNTIME_VER}.tgz"
             url = f"https://github.com/microsoft/onnxruntime/releases/download/v{ONNXRUNTIME_VER}/{filename}"
         else:
-            raise ValueError(f"不支持的Linux架构: {machine}")
+            raise ValueError(f"Unsupported Linux architecture: {machine}")
     elif system == "Darwin":  # macOS
         if machine == "x86_64":
             filename = f"onnxruntime-osx-x86_64-{ONNXRUNTIME_VER}.tgz"
@@ -55,9 +61,9 @@ def get_download_info():
             filename = f"onnxruntime-osx-arm64-{ONNXRUNTIME_VER}.tgz"
             url = f"https://github.com/microsoft/onnxruntime/releases/download/v{ONNXRUNTIME_VER}/{filename}"
         else:
-            raise ValueError(f"不支持的macOS架构: {machine}")
+            raise ValueError(f"Unsupported macOS architecture: {machine}")
     else:
-        raise ValueError(f"不支持的操作系统: {system}")
+        raise ValueError(f"Unsupported operating system: {system}")
     
     return url, filename
 
@@ -65,18 +71,18 @@ def get_download_info():
 url, filename = get_download_info()
 
 # 下载ONNX Runtime预编译版本
-print(f"正在下载ONNX Runtime {ONNXRUNTIME_VER}...")
-print(f"下载URL: {url}")
+print(f"Downloading ONNX Runtime {ONNXRUNTIME_VER}...")
+print(f"Download URL: {url}")
 response = requests.get(url, stream=True)
 if response.status_code != 200:
-    raise Exception(f"下载失败，状态码: {response.status_code}")
+    raise Exception(f"Download failed, status code: {response.status_code}")
 
 with open(filename, 'wb') as f:
     for chunk in response.iter_content(chunk_size=8192):
         f.write(chunk)
 
 # 解压文件
-print("正在解压文件...")
+print("Extracting files...")
 if filename.endswith('.zip'):
     with zipfile.ZipFile(filename, 'r') as zip_ref:
         zip_ref.extractall(".")
@@ -84,15 +90,15 @@ elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
     with tarfile.open(filename, 'r:gz') as tar_ref:
         tar_ref.extractall(".")
 else:
-    raise ValueError(f"不支持的文件格式: {filename}")
+    raise ValueError(f"Unsupported file format: {filename}")
 
 # 查找解压后的目录
 extracted_dirs = [d for d in os.listdir('.') if os.path.isdir(d) and 'onnxruntime' in d and d != 'onnxruntime']
 if not extracted_dirs:
-    raise Exception("未找到解压后的ONNX Runtime目录")
+    raise Exception("Extracted ONNX Runtime directory not found")
 
 extracted_dir = extracted_dirs[0]
-print(f"找到解压目录: {extracted_dir}")
+print(f"Found extracted directory: {extracted_dir}")
 
 # 重命名目录
 if os.path.exists("onnxruntime"):
@@ -104,7 +110,7 @@ except PermissionError:
     shutil.move(extracted_dir, "onnxruntime")
 
 # 安装到目标目录
-print(f"正在安装到目标目录: {ONNXRUNTIME_INSTALL_DIR}")
+print(f"Installing to target directory: {ONNXRUNTIME_INSTALL_DIR}")
 if ONNXRUNTIME_INSTALL_DIR.exists():
     shutil.rmtree(ONNXRUNTIME_INSTALL_DIR)
 
@@ -124,19 +130,19 @@ if platform.system() == "Windows":
                 lib_dir.mkdir(exist_ok=True)
                 break
 
-print("验证安装结果:")
-print(f"头文件目录: {include_dir} - {'存在' if include_dir.exists() else '不存在'}")
-print(f"库文件目录: {lib_dir} - {'存在' if lib_dir.exists() else '不存在'}")
+print("Verifying installation:")
+print(f"Include directory: {include_dir} - {'exists' if include_dir.exists() else 'not found'}")
+print(f"Library directory: {lib_dir} - {'exists' if lib_dir.exists() else 'not found'}")
 
 if include_dir.exists():
-    print("头文件列表:")
+    print("Header files:")
     for header in include_dir.glob("**/*.h"):
         print(f"  {header.relative_to(include_dir)}")
 
 if lib_dir.exists():
-    print("库文件列表:")
+    print("Library files:")
     for lib_file in lib_dir.iterdir():
         if lib_file.is_file():
             print(f"  {lib_file.name}")
 
-print(f"ONNX Runtime {ONNXRUNTIME_VER} 安装完成!")
+print(f"ONNX Runtime {ONNXRUNTIME_VER} installation completed!")
