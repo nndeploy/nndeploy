@@ -55,14 +55,38 @@ jobs:
           # 导致apt-get命令接收到带有反斜杠的包名，从而无法找到对应的软件包
           # 现在将所有包名放在同一行，避免了这个问题
           sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
+
+      - name: 安装Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      - name: 更新Python依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine requests pathlib
             
+      # 安装rust
+      - name: 安装Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          rustup update
+
+      # 安装opencv
+      - name: 安装OpenCV && ONNXRUNTIME
+        run: |
+          cd tool/script
+          python install_opencv.py
+          python install_onnxruntime.py
+
       # 第三步：配置CMake构建环境
       - name: 配置构建
         run: |
           mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
-          cmake -G Ninja ..             # 使用Ninja生成器配置CMake项目
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..              # 使用Ninja生成器配置CMake项目
           
       # 第四步：执行编译
       - name: 编译
@@ -76,3 +100,28 @@ jobs:
           cd build              # 进入构建目录
           ls -la               # 列出所有生成的文件和目录
           echo "编译完成"       # 输出完成信息
+
+      # 第六步：打包和发布release包 (仅在推送tag时触发执行)
+      # 说明：这个步骤只有在Git仓库被推送了新的tag时才会执行
+      # startsWith(github.ref, 'refs/tags/') 检查当前的Git引用是否以'refs/tags/'开头
+      # 这确保只有在发布新版本标签时才会进行打包操作，避免每次普通提交都执行打包
+      - name: 安装文件并创建发布包
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd build                    # 进入构建目录
+          ninja install              # 执行安装目标，将编译好的文件安装到指定位置
+          cpack -G TGZ              # 使用CPack工具生成TGZ格式的压缩包，包含所有需要发布的文件
+          ls -la                    # 列出当前目录的所有文件，用于验证打包结果
+          echo "打包完成"            # 输出完成信息
+          
+      # 第七步：将整个打包的压缩包上传到GitHub Actions工件存储
+      # 说明：GitHub Actions的artifact功能允许在workflow运行之间保存和共享文件
+      # 这里将完整的打包压缩包文件上传为artifact，可以在GitHub Actions页面下载
+      # 包含了所有编译产物和安装文件的完整发布包
+      - name: 上传完整的Linux x64发布压缩包到工件存储
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64-complete-release-package    # 工件的名称，标识这是完整的发布包
+          path: build/*.tar.gz                        # 上传整个打包好的压缩包文件
+          retention-days: 30                          # 工件在GitHub上的保留天数，30天后自动删除

@@ -117,4 +117,4 @@ jobs:
           cd python
           ls -la dist/
           twine check dist/*
-          twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose --debug
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose

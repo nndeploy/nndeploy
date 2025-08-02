@@ -50,17 +50,34 @@ jobs:
       - name: 设置Visual Studio构建环境
         uses: microsoft/setup-msbuild@v1.1  # 设置MSBuild构建工具
         
-      # 第三步：安装依赖包
-      - name: 安装依赖
+      - name: 安装Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+        
+      - name: 更新Python依赖
         run: |
-          # 使用vcpkg安装OpenCV和Protocol Buffers
-          vcpkg install opencv4:x64-windows protobuf:x64-windows
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine requests pathlib
+
+      - name: 安装Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      # 安装opencv
+      - name: 安装OpenCV && ONNXRUNTIME
+        run: |
+          cd tool/script
+          python install_opencv.py
+          python install_onnxruntime.py
             
       # 第四步：配置CMake构建环境
       - name: 配置构建
         run: |
           mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config.cmake build   # 复制项目特定的CMake配置文件
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # 复制项目特定的CMake配置文件
           cd build                       # 进入构建目录
           cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release ..  # 配置CMake项目并指定vcpkg工具链
           
