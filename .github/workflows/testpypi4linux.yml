@@ -1,0 +1,95 @@
+# GitHub Actions 工作流配置文件 - Python Linux平台编译并上传到TestPyPI
+# 该文件用于配置在Linux环境下自动编译Python扩展包并上传到TestPyPI的CI/CD流程
+
+name: TestPyPI4Linux  # 工作流名称，会显示在GitHub Actions界面中
+
+# 触发条件配置
+on:
+  workflow_dispatch:  # 手动触发
+  push:
+    branches:
+      - testpypi      # 推送到testpypi分支时触发
+
+# 工作任务定义
+jobs:
+  build:
+    strategy:
+      fail-fast: false  # 不因单个任务失败而终止其他任务
+      matrix:
+        platform: [ubuntu-latest]  # 运行平台
+        python-version: ["3.10",
+                         "3.11",
+                         "3.12",
+                         "3.13",]
+
+    runs-on: ${{ matrix.platform }}  # 指定运行环境
+
+    steps:
+      # 第一步：检出源代码
+      - uses: actions/checkout@v4  # 升级到v4版本
+        with:
+          submodules: recursive    # 递归检出所有子模块
+
+      # 第二步：设置Python环境
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 第三步：安装系统依赖包
+      - name: 安装系统依赖
+        run: |
+          sudo apt-get update  # 更新包管理器索引
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+
+      # 安装opencv
+      - name: 安装OpenCV
+        run: |
+          cd tool/script
+          python install_opencv.py
+
+      # 第四步：更新Python依赖
+      - name: 更新Python依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine
+
+      # 第五步：配置CMake构建环境
+      - name: 配置构建
+        run: |
+          mkdir build                    # 创建构建目录(out-of-source构建)
+          cp cmake/config_opencv.cmake build/config.cmake   # 复制项目特定的CMake配置文件
+          cd build                       # 进入构建目录
+          cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
+
+      # 第六步：执行编译
+      - name: 编译C++库
+        run: |
+          cd build                    # 进入构建目录
+          ninja -j$(nproc)           # 使用所有CPU核心并行编译
+          ninja install
+
+      # 第七步：构建和安装Python包
+      - name: 构建Python包
+        run: |
+          cd python
+          pip install -e .
+          python setup.py bdist_wheel --plat-name manylinux2014_x86_64 # 构建wheel包
+
+      # 第八步：验证编译结果
+      - name: 编译结果检查
+        run: |
+          cd build              # 进入构建目录
+          ls -la               # 列出所有生成的文件和目录
+          cd ../python/dist    # 进入Python包目录
+          ls -la               # 列出生成的wheel文件
+          echo "Python包编译完成"  # 输出完成信息
+
+      # 第九步：上传到TestPyPI
+      - name: 上传到TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_NNDEPLOY_TOKEN }}
+        run: |
+          cd python
+          twine check dist/*
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*
