@@ -1,0 +1,423 @@
+name: 构建并上传到TestPyPI (多平台)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - testpypi
+
+jobs:
+  build_wheels:
+    name: 构建 ${{ matrix.os }} wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ============= 设置QEMU模拟器用于ARM构建 =============
+      - name: 设置QEMU (Linux ARM构建)
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # ============= Linux 系统依赖 =============
+      - name: 安装Linux系统依赖
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+
+      # ============= Windows 系统依赖 =============
+      - name: 安装Windows系统依赖
+        if: runner.os == 'Windows'
+        run: |
+          # 安装 vcpkg 和必要的包
+          choco install cmake ninja
+          
+          # 设置 MSVC 环境
+          echo "CMAKE_GENERATOR=Ninja" >> $ENV:GITHUB_ENV
+          echo "CMAKE_C_COMPILER=cl" >> $ENV:GITHUB_ENV
+          echo "CMAKE_CXX_COMPILER=cl" >> $ENV:GITHUB_ENV
+
+      # ============= macOS 系统依赖 =============
+      - name: 安装macOS系统依赖
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake ninja pkg-config protobuf
+
+      # ============= 构建 wheels =============
+      - name: 构建wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          # ============= 通用构建配置 =============
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
+          CIBW_BUILD_VERBOSITY: 2
+
+          # ============= Linux 配置 (支持x86_64和ARM64) =============
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
+          
+          CIBW_BEFORE_ALL_LINUX: |
+            # 检测架构
+            ARCH=$(uname -m)
+            echo "Building for architecture: $ARCH"
+            
+            # 基础软件包安装
+            yum update -y
+            yum install -y cmake3 ninja-build pkgconfig protobuf-compiler protobuf-devel wget curl
+            
+            # 根据架构选择合适的工具链
+            if [[ "$ARCH" == "x86_64" ]]; then
+              yum install -y gcc-toolset-10-gcc gcc-toolset-10-gcc-c++
+              ln -sf /usr/bin/cmake3 /usr/bin/cmake
+            elif [[ "$ARCH" == "aarch64" ]]; then
+              yum install -y gcc-toolset-10-gcc gcc-toolset-10-gcc-c++
+              ln -sf /usr/bin/cmake3 /usr/bin/cmake
+            fi
+            
+            # 安装Rust (支持当前架构)
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            rustup update
+            
+            # 为交叉编译添加目标
+            if [[ "$ARCH" == "x86_64" ]]; then
+              rustup target add x86_64-unknown-linux-gnu
+            elif [[ "$ARCH" == "aarch64" ]]; then
+              rustup target add aarch64-unknown-linux-gnu
+            fi
+
+          CIBW_BEFORE_BUILD_LINUX: |
+            # 启用工具链
+            source /opt/rh/gcc-toolset-10/enable
+            source $HOME/.cargo/env
+            
+            # 检测架构并设置相应的编译参数
+            ARCH=$(uname -m)
+            echo "Configuring build for: $ARCH"
+            
+            # 安装OpenCV和ONNX Runtime
+            cd {project}/tool/script
+            python install_opencv.py
+            python install_onnxruntime.py
+            
+            # 构建C++库
+            cd {project}
+            mkdir -p build
+            cp cmake/config_opencv.cmake build/config.cmake
+            cd build
+            
+            # 根据架构设置编译参数
+            if [[ "$ARCH" == "x86_64" ]]; then
+              CMAKE_ARGS="-DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++ -fPIC -march=x86-64' -DCMAKE_C_FLAGS='-static-libgcc -fPIC -march=x86-64'"
+            elif [[ "$ARCH" == "aarch64" ]]; then
+              CMAKE_ARGS="-DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++ -fPIC -march=armv8-a' -DCMAKE_C_FLAGS='-static-libgcc -fPIC -march=armv8-a'"
+            fi
+            
+            cmake -G Ninja .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+              -DCMAKE_C_COMPILER=gcc \
+              -DCMAKE_CXX_COMPILER=g++ \
+              $CMAKE_ARGS
+            
+            ninja -j$(nproc)
+            ninja install
+            
+            # 安装Python构建依赖
+            pip install --upgrade pip setuptools wheel pybind11 cython
+
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            ARCH=$(uname -m)
+            if [[ "$ARCH" == "x86_64" ]]; then
+              auditwheel repair -w {dest_dir} {wheel} --plat manylinux2014_x86_64
+            elif [[ "$ARCH" == "aarch64" ]]; then
+              auditwheel repair -w {dest_dir} {wheel} --plat manylinux2014_aarch64
+            fi
+
+          # ============= Windows 配置 =============
+          CIBW_ARCHS_WINDOWS: "AMD64"
+          CIBW_BEFORE_ALL_WINDOWS: |
+            # 安装 vcpkg
+            git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+            C:\vcpkg\bootstrap-vcpkg.bat
+            C:\vcpkg\vcpkg.exe install protobuf:x64-windows
+            
+            # 安装 Rust
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.exe
+            ./rustup-init.exe -y
+            echo "C:\Users\runneradmin\.cargo\bin" >> $GITHUB_PATH
+
+          CIBW_BEFORE_BUILD_WINDOWS: |
+            # 设置环境变量
+            $env:VCPKG_ROOT = "C:\vcpkg"
+            $env:PATH += ";C:\Users\runneradmin\.cargo\bin"
+            
+            # 安装OpenCV和ONNX Runtime
+            cd {project}\tool\script
+            python install_opencv.py
+            python install_onnxruntime.py
+            
+            # 构建C++库
+            cd {project}
+            mkdir build -Force
+            Copy-Item cmake\config_opencv.cmake build\config.cmake
+            cd build
+            cmake -G "Visual Studio 17 2022" -A x64 .. `
+              -DCMAKE_BUILD_TYPE=Release `
+              -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
+              -DVCPKG_TARGET_TRIPLET=x64-windows `
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+            cmake --build . --config Release --parallel
+            cmake --install . --config Release
+            
+            # 安装Python构建依赖
+            pip install --upgrade pip setuptools wheel pybind11 cython
+
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: |
+            delvewheel repair -w {dest_dir} {wheel}
+
+          # ============= macOS 配置 =============
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          CIBW_BEFORE_ALL_MACOS: |
+            # 安装 Rust
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            rustup update
+            
+            # 为交叉编译安装目标
+            rustup target add aarch64-apple-darwin
+            rustup target add x86_64-apple-darwin
+
+          CIBW_BEFORE_BUILD_MACOS: |
+            source $HOME/.cargo/env
+            
+            # 设置架构相关的环境变量
+            if [[ "$CIBW_ARCHS" == "arm64" ]]; then
+              export CMAKE_OSX_ARCHITECTURES=arm64
+              export ARCHFLAGS="-arch arm64"
+              export RUST_TARGET=aarch64-apple-darwin
+            else
+              export CMAKE_OSX_ARCHITECTURES=x86_64
+              export ARCHFLAGS="-arch x86_64"
+              export RUST_TARGET=x86_64-apple-darwin
+            fi
+            
+            # 安装OpenCV和ONNX Runtime
+            cd {project}/tool/script
+            python install_opencv.py
+            python install_onnxruntime.py
+            
+            # 构建C++库
+            cd {project}
+            mkdir -p build
+            cp cmake/config_opencv.cmake build/config.cmake
+            cd build
+            cmake -G Ninja .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            ninja -j$(sysctl -n hw.logicalcpu)
+            ninja install
+            
+            # 安装Python构建依赖
+            pip install --upgrade pip setuptools wheel pybind11 cython
+
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
+
+          # ============= 通用测试配置 =============
+          CIBW_TEST_COMMAND: |
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'Successfully imported nndeploy version: {nndeploy.__version__}')
+                print(f'Platform: {platform.platform()}')
+                print(f'Architecture: {platform.machine()}')
+            except ImportError as e:
+                print(f'Import failed: {e}')
+                exit(1)
+            "
+
+          # ============= 跳过ARM上的某些测试 =============
+          CIBW_TEST_SKIP: "*-musllinux* *-manylinux*i686"
+
+          # ============= 环境变量传递 =============
+          CIBW_ENVIRONMENT_LINUX: |
+            PATH=$PATH:$HOME/.cargo/bin
+          CIBW_ENVIRONMENT_WINDOWS: |
+            PATH="$PATH;C:\Users\runneradmin\.cargo\bin"
+          CIBW_ENVIRONMENT_MACOS: |
+            PATH=$PATH:$HOME/.cargo/bin
+
+        with:
+          package-dir: ./python
+
+      # ============= 平台特定的验证 =============
+      - name: 验证wheels (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          ls -la wheelhouse/
+          echo "=== Wheel文件列表 ==="
+          for wheel in wheelhouse/*.whl; do
+            echo "检查: $wheel"
+            # 显示wheel的平台标签
+            echo "平台标签: $(echo $wheel | grep -o 'linux_[^.]*\|macosx_[^.]*' || echo 'unknown')"
+            python -m zipfile -l "$wheel" | head -20
+            echo "---"
+          done
+
+      - name: 验证wheels (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Get-ChildItem wheelhouse\
+          Write-Host "=== Wheel文件列表 ==="
+          Get-ChildItem wheelhouse\*.whl | ForEach-Object {
+            Write-Host "检查: $($_.Name)"
+            python -m zipfile -l $_.FullName | Select-Object -First 20
+            Write-Host "---"
+          }
+
+      # 上传artifacts用于调试
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  # ============= 上传到 TestPyPI =============
+  upload_testpypi:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      # 下载所有平台的wheels
+      - uses: actions/download-artifact@v4
+        with:
+          path: wheels/
+          
+      # 合并所有wheels到一个目录
+      - name: 合并wheels
+        run: |
+          mkdir -p dist/
+          find wheels/ -name "*.whl" -exec cp {} dist/ \;
+          ls -la dist/
+          echo "=== 最终打包的wheel列表 ==="
+          for wheel in dist/*.whl; do
+            wheel_name=$(basename $wheel)
+            echo "- $wheel_name"
+            # 显示支持的平台
+            if [[ "$wheel_name" == *"linux_x86_64"* ]]; then
+              echo "  支持: Linux x86_64"
+            elif [[ "$wheel_name" == *"linux_aarch64"* ]]; then
+              echo "  支持: Linux ARM64"
+            elif [[ "$wheel_name" == *"win_amd64"* ]]; then
+              echo "  支持: Windows x64"
+            elif [[ "$wheel_name" == *"macosx"* ]]; then
+              if [[ "$wheel_name" == *"arm64"* ]]; then
+                echo "  支持: macOS Apple Silicon"
+              else
+                echo "  支持: macOS Intel"
+              fi
+            fi
+          done
+
+      # 验证Token配置
+      - name: 验证Token配置
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          if [ -z "$TWINE_PASSWORD" ]; then
+            echo "ERROR: TEST_PYPI_NNDEPLOY_TOKEN is empty!"
+            exit 1
+          fi
+          if [[ ! "$TWINE_PASSWORD" =~ ^pypi-.* ]]; then
+            echo "WARNING: Token format might be incorrect"
+          fi
+          echo "Token configuration looks OK"
+
+      # 安装twine并上传
+      - name: 上传到TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          pip install twine
+          twine check dist/*
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose --skip-existing
+
+  # ============= 测试安装 =============
+  test_install:
+    needs: upload_testpypi
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            python-version: "3.10"
+            arch: "x86_64"
+          - os: ubuntu-latest
+            python-version: "3.11" 
+            arch: "x86_64"
+          # Linux ARM64 (使用 QEMU 模拟)
+          - os: ubuntu-latest
+            python-version: "3.10"
+            arch: "aarch64"
+          # Windows
+          - os: windows-latest
+            python-version: "3.10"
+            arch: "amd64"
+          # macOS Intel
+          - os: macos-13
+            python-version: "3.10"
+            arch: "x86_64"
+          # macOS Apple Silicon
+          - os: macos-latest
+            python-version: "3.10"
+            arch: "arm64"
+    
+    steps:
+      # ARM64 需要QEMU模拟
+      - name: 设置QEMU (ARM64)
+        if: matrix.arch == 'aarch64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: 设置Python
+        if: matrix.arch != 'aarch64'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # ARM64 Linux使用Docker测试
+      - name: 测试安装 (ARM64 Linux)
+        if: matrix.arch == 'aarch64'
+        run: |
+          docker run --rm --platform linux/arm64 python:${{ matrix.python-version }}-slim bash -c "
+            sleep 60
+            pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ nndeploy
+            python -c \"import nndeploy; import platform; print(f'成功安装 nndeploy {nndeploy.__version__} on {platform.platform()} ({platform.machine()})')\"
+          "
+
+      # 其他平台的正常测试
+      - name: 测试安装 (其他平台)
+        if: matrix.arch != 'aarch64'
+        run: |
+          # 等待包在TestPyPI上可用
+          sleep 30
+          pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ nndeploy
+          python -c "import nndeploy; import platform; print(f'成功安装 nndeploy {nndeploy.__version__} on {platform.platform()} ({platform.machine()})')"

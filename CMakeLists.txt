@@ -6,7 +6,7 @@ ENABLE_LANGUAGE(ASM C CXX)
 
 set(NNDEPLOY_MAJOR_VERSION 0)
 set(NNDEPLOY_MINOR_VERSION 2)
-set(NNDEPLOY_PATCH_VERSION 6)
+set(NNDEPLOY_PATCH_VERSION 7)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
 add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
@@ -493,6 +493,33 @@ endif()
 if(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
+
+# for pypi
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64")
+    message(STATUS "Building for x86_64 architecture")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a")
+    message(STATUS "Building for ARM64 architecture")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a")
+    message(STATUS "Building for ARMv7 architecture")
+endif()
+
+# 平台特定配置
+if(WIN32)
+    # Windows特定配置
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+elseif(APPLE)
+    # macOS特定配置  
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+    set(CMAKE_MACOSX_RPATH ON)
+elseif(UNIX)
+    # Linux特定配置
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+# for pypi
 
 if(ENABLE_NNDEPLOY_OPENMP)
   FIND_PACKAGE(OpenMP REQUIRED)
