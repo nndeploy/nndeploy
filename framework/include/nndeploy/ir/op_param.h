@@ -1597,6 +1597,52 @@ class NNDEPLOY_CC_API ShapeParam : public OpParam {
       -1;  // 负值表示从后向前计数维度。如果省略，将包含直到（包括）最后一个轴的所有轴的大小。
 };
 
+class NNDEPLOY_CC_API ConstantOfShapeParam : public OpParam {
+ public:
+  ConstantOfShapeParam() : OpParam() {}
+  virtual ~ConstantOfShapeParam() {}
+
+  PARAM_COPY(ConstantOfShapeParam)
+  PARAM_COPY_TO(ConstantOfShapeParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("value_", value_, allocator);
+    json.AddMember("datatype_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
+    json["datatype_"].PushBack(static_cast<int32_t>(datatype_.code_),
+                               allocator);
+    json["datatype_"].PushBack(static_cast<int32_t>(datatype_.bits_),
+                               allocator);
+    json["datatype_"].PushBack(static_cast<int32_t>(datatype_.lanes_),
+                               allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("value_")) {
+      value_ = json["value_"].GetFloat();
+    } else {
+      value_ = 0.0f;  // 默认值
+    }
+
+    if (json.HasMember("datatype_")) {
+      datatype_.code_ = json["datatype_"][0].GetInt();
+      datatype_.bits_ = json["datatype_"][1].GetInt();
+      datatype_.lanes_ = json["datatype_"][2].GetInt();
+    } else {
+      datatype_ = base::dataTypeOf<float>();  // 默认为 float 类型
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  float value_ = 0.0f;  // 默认值为 0.0
+  base::DataType datatype_ =
+      base::dataTypeOf<float>();  // 数据类型，默认为 float 类型
+};
+
 }  // namespace ir
 }  // namespace nndeploy
 

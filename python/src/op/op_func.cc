@@ -33,8 +33,8 @@ device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
   return output;
 }
 
-device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
-                         std::shared_ptr<ir::ConcatParam> param) {
+device::Tensor* concatFunc(std::vector<device::Tensor*> inputs,
+                           std::shared_ptr<ir::ConcatParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("concat.output");
@@ -120,7 +120,7 @@ device::Tensor* flattenFunc(device::Tensor* input,
   return result;
 }
 
-device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index, 
+device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index,
                            std::shared_ptr<ir::GatherParam> param) {
   std::stringstream ss;
 
@@ -187,16 +187,16 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
   return result;
 }
 
-device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2, 
+device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2,
                            std::shared_ptr<ir::MatMulParam> param,
                            device::Tensor* bias = nullptr) {
   std::stringstream ss;
   device::Tensor* result = new device::Tensor("mat_mul.output");
   base::Status status;
   if (bias != nullptr) {
-      status = op::matmul(input1, input2, param, result, bias); 
+    status = op::matmul(input1, input2, param, result, bias);
   } else {
-      status = op::matmul(input1, input2, param, result); 
+    status = op::matmul(input1, input2, param, result);
   }
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::matmul failed: error code "
@@ -218,16 +218,13 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
   return result;
 }
 
-device::Tensor* sliceFunc(device::Tensor* input, 
-                          device::Tensor* starts,
-                          device::Tensor* ends, 
-                          device::Tensor* axes,
+device::Tensor* sliceFunc(device::Tensor* input, device::Tensor* starts,
+                          device::Tensor* ends, device::Tensor* axes,
                           device::Tensor* steps) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("slice.output");
-  base::Status status =
-      op::slice(input, starts, ends, axes, steps, output);
+  base::Status status = op::slice(input, starts, ends, axes, steps, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::slice failed: error code "
        << base::statusCodeToString(status.getStatusCode());
@@ -250,6 +247,54 @@ device::Tensor* softmaxFunc(device::Tensor* input1,
   return result;
 }
 
+std::vector<device::Tensor*> splitFunc(device::Tensor* input,
+                                       device::Tensor* section,
+                                       std::shared_ptr<ir::SplitParam> param) {
+  std::stringstream ss;
+
+  /* ========= 1. 根据输入和参数推断输出张量数量 ========= */
+  const auto& in_shape = input->getShape();
+  int axis = param->axis_;
+  int rank = static_cast<int>(in_shape.size());
+  if (axis < 0) axis += rank;
+  const int axis_dim = in_shape[axis];
+
+  int output_count = 0;
+  if (section != nullptr && section->getShape().size() == 1) {
+    /* 使用 split 张量：输出数量等于 split 的长度 */
+    output_count = static_cast<int>(section->getShape()[0]);
+  } else {
+    /* 使用 num_outputs：输出数量 = ceil(axis_dim / num_outputs) */
+    int num_outputs = param->num_outputs_;
+    if (num_outputs <= 0) {
+      ss << "Invalid num_outputs: " << num_outputs;
+      pybind11::pybind11_fail(ss.str());
+    }
+    output_count = num_outputs;
+  }
+
+  if (output_count <= 0) {
+    ss << "Invalid split output count: " << output_count;
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  /* ========= 2. 构造输出张量列表 ========= */
+  std::vector<device::Tensor*> outputs;
+  for (int i = 0; i < output_count; ++i) {
+    outputs.push_back(new device::Tensor("split.output." + std::to_string(i)));
+  }
+
+  /* ========= 3. 调用 op::split ========= */
+  base::Status status = op::split(input, section, param, outputs);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::split failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return outputs;
+}
+
 device::Tensor* sigmoidFunc(device::Tensor* input1) {
   std::stringstream ss;
   device::Tensor* result = new device::Tensor("sigmoid.output");
@@ -261,7 +306,6 @@ device::Tensor* sigmoidFunc(device::Tensor* input1) {
   }
   return result;
 }
-
 
 device::Tensor* quantizeLinearFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
@@ -309,7 +353,7 @@ device::Tensor* qlinearConvFunc(device::Tensor* x, device::Tensor* x_scale,
   device::Tensor* output = new device::Tensor("qlinear_conv.output");
   base::Status status =
       op::qLinearConv(x, x_scale, x_zero_point, w, w_scale, w_zero_point,
-                       y_scale, y_zero_point, B, param, output);
+                      y_scale, y_zero_point, B, param, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::qLinearConv failed: error code "
        << base::statusCodeToString(status.getStatusCode());
@@ -319,7 +363,8 @@ device::Tensor* qlinearConvFunc(device::Tensor* x, device::Tensor* x_scale,
   return output;
 }
 
-device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2, device::Tensor* condition) {
+device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2,
+                          device::Tensor* condition) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("where.output");
@@ -332,7 +377,8 @@ device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2, device
   return output;
 }
 
-device::Tensor* transposeFunc(device::Tensor* input, std::shared_ptr<ir::TransposeParam> param) {
+device::Tensor* transposeFunc(device::Tensor* input,
+                              std::shared_ptr<ir::TransposeParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("transpose.output");

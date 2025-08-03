@@ -117,4 +117,3 @@ endif()
 if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${ROOT_PATH}/demo/matting/config.cmake)
 endif()
-

@@ -4,6 +4,8 @@
 
 import nndeploy._nndeploy_internal as _C
 from nndeploy.device.tensor import Tensor
+import numpy as np
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 
 
 def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
@@ -99,7 +101,7 @@ def rms_norm(input, weight, epsilon=1e-5):
 
 def reshape(input, shape, allowzero=0):
     param = _C.ir.ReshapeParam()
-    param.allowzero_  = allowzero
+    param.allowzero_ = allowzero
     return Tensor(_C.op.reshape(input, shape, param))
 
 
@@ -175,3 +177,37 @@ def transpose(input, perm_axis):
     param = _C.ir.TransposeParam()
     param.perm_ = perm_axis
     return Tensor(_C.op.transpose(input, param))
+
+
+def split(input, section=None, num_outputs=None, axis=0):
+    """
+    Python 封装的 Split 接口
+    支持两种互斥模式：
+      1) num_outputs：等分或最后一块变小
+      2) section：list/tuple/int 指定每段长度（自动转为 1-D int64 Tensor） ;具有更高优先级
+
+    返回值：tuple[Tensor, ...]
+    """
+    param = _C.ir.SplitParam()
+    param.axis_ = axis
+
+    # 根据输入决定使用哪种模式
+    if section is not None:
+        # 统一转成 1-D int64 Tensor
+        if isinstance(section, (list, tuple)):
+            np_sec = np.array(section, dtype=np.int64)
+        else:
+            np_sec = np.array(section, dtype=np.int64)
+        sec_tensor = Tensor(create_tensor_from_numpy(np_sec))
+        param.num_outputs_ = 0  # 标记为使用 section
+    else:
+        if num_outputs is None:
+            raise ValueError("Either num_outputs or section must be provided")
+        sec_tensor = None
+        param.num_outputs_ = num_outputs
+
+    # 调 C++ splitFunc，返回 std::vector<device::Tensor*>
+    cpp_vec = _C.op.split(input, sec_tensor, param)
+
+    # 逐个包装成 Python Tensor 并转为 tuple
+    return tuple(Tensor(t) for t in cpp_vec)
