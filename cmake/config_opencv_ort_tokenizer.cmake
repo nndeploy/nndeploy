@@ -66,7 +66,8 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
 set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0") # Whether to link the third-party OpenCV library, default is ON
 # Includes complete functional modules such as image display, camera calibration, feature detection, and KalmanFilter tracking functionality
-set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann) 
+set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann)
+set(NNDEPLOY_OPENCV_VERSION 480)
 
 ## Tokenizer-cpp
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF

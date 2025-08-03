@@ -514,9 +514,12 @@ elseif(APPLE)
     # macOS特定配置  
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
     set(CMAKE_MACOSX_RPATH ON)
-elseif(UNIX)
-    # Linux特定配置
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+elseif(UNIX AND NOT ANDROID AND NOT IOS)
+    # Linux特定配置（排除Android和iOS）
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # 只在使用GCC编译器时添加这些选项
+        # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    endif()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 # for pypi
@@ -1024,7 +1027,9 @@ if(ENABLE_NNDEPLOY_GFLAGS)
       include_directories(${gflags_INCLUDE_DIRS})
       set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${gflags_LIBRARIES})
     else()
-      message(FATAL_ERROR "gflags not found in system. brew install gflags or source build gflafs")
+      add_subdirectory(third_party/gflags)
+      get_target_property(GFLAGS_INCLUDE_DIRS gflags INTERFACE_INCLUDE_DIRECTORIES)
+      include_directories(BEFORE "${GFLAGS_INCLUDE_DIRS}")
     endif()
   else()
     add_subdirectory(third_party/gflags)
