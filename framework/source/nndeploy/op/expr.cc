@@ -3,7 +3,32 @@
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr(){};
+std::string exprTypeToString(ExprType type) {
+  switch (type) {
+    case kExprTypeValueDesc:
+      return "ExprTypeValueDesc";
+    case kExprTypeOpDesc:
+      return "ExprTypeOpDesc";
+    case kExprTypeModelDesc:
+      return "ExprTypeModelDesc";
+    default:
+      return "Unknown";
+  }
+}
+
+ExprType stringToExprType(const std::string &src) {
+  if (src == "ExprTypeValueDesc") {
+    return kExprTypeValueDesc;
+  } else if (src == "ExprTypeOpDesc") {
+    return kExprTypeOpDesc;
+  } else if (src == "ExprTypeModelDesc") {
+    return kExprTypeModelDesc;
+  } else {
+    return kExprTypeValueDesc;  // 默认返回第一个类型
+  }
+}
+
+Expr::~Expr() {};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);
@@ -102,7 +127,7 @@ std::shared_ptr<Expr> makeConv(ir::ModelDesc *model_desc,
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "conv" + std::to_string(index);
     } else {
       name = "conv";
@@ -140,7 +165,7 @@ std::shared_ptr<Expr> makeSoftmax(ir::ModelDesc *model_desc,
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "softmax" + std::to_string(index);
     } else {
       name = "softmax";
@@ -171,7 +196,7 @@ std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "add" + std::to_string(index);
     } else {
       name = "add";
@@ -203,7 +228,7 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "relu" + std::to_string(index);
     } else {
       name = "relu";
@@ -235,7 +260,7 @@ std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "sigmoid" + std::to_string(index);
     } else {
       name = "sigmoid";
@@ -268,7 +293,7 @@ std::shared_ptr<Expr> makeBatchNorm(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "batchnorm" + std::to_string(index);
     } else {
       name = "batchnorm";
@@ -311,7 +336,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "embedding" + std::to_string(index);
     } else {
       name = "embedding";
@@ -342,7 +367,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "gemm" + std::to_string(index);
     } else {
       name = "gemm";
@@ -378,7 +403,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeFlatten(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "flatten" + std::to_string(index);
     } else {
       name = "flatten";
@@ -408,7 +433,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeMaxPool(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "maxpool" + std::to_string(index);
     } else {
       name = "maxpool";
@@ -437,7 +462,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeGlobalAveragePool(
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
-      int index = model_desc->op_descs_.size();
+      int index = static_cast<int>(model_desc->op_descs_.size());
       name = "globalaveragepool" + std::to_string(index);
     } else {
       name = "globalaveragepool";

@@ -24,8 +24,8 @@ namespace nndeploy {
 namespace dag {
 
 Loop::Loop(const std::string &name) : Graph(name) {}
-Loop::Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
-           std::vector<dag::Edge *> &outputs)
+Loop::Loop(const std::string &name, std::vector<dag::Edge *> inputs,
+           std::vector<dag::Edge *> outputs)
     : Graph(name, inputs, outputs) {}
 Loop::~Loop() {}
 
@@ -35,7 +35,7 @@ base::Status Loop::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  // setInitializedFlag(false);
+  setInitializedFlag(false);
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,

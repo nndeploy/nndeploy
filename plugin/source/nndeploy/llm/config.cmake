@@ -30,6 +30,7 @@ target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_FRAMEWORK_BINARY})
 target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_preprocess)
 target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
+target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_tokenizer)
 
 # # NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
@@ -37,8 +38,10 @@ target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 # # install
 if(SYSTEM.Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/llm DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 else()
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/llm DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 endif()
 
 # appedn list

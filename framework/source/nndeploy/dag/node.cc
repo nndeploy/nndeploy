@@ -7,8 +7,7 @@ namespace dag {
 
 // to json
 base::Status NodeDesc::serialize(
-    rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
   // 写入节点名称
   json.AddMember("key_", rapidjson::Value(node_key_.c_str(), allocator),
                  allocator);
@@ -17,19 +16,26 @@ base::Status NodeDesc::serialize(
   // 写入输入
   rapidjson::Value inputs(rapidjson::kArrayType);
   for (const auto &input : inputs_) {
-    inputs.PushBack(rapidjson::Value(input.c_str(), allocator), allocator);
+    rapidjson::Value input_obj(rapidjson::kObjectType);
+    input_obj.AddMember("name_", rapidjson::Value(input.c_str(), allocator),
+                        allocator);
+    inputs.PushBack(input_obj, allocator);
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
   rapidjson::Value outputs(rapidjson::kArrayType);
   for (const auto &output : outputs_) {
-    outputs.PushBack(rapidjson::Value(output.c_str(), allocator), allocator);
+    rapidjson::Value output_obj(rapidjson::kObjectType);
+    output_obj.AddMember("name_", rapidjson::Value(output.c_str(), allocator),
+                         allocator);
+    outputs.PushBack(output_obj, allocator);
   }
   json.AddMember("outputs_", outputs, allocator);
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::serialize(std::ostream &stream) const {
+std::string NodeDesc::serialize() {
+  std::string json_str;
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -37,45 +43,43 @@ base::Status NodeDesc::serialize(std::ostream &stream) const {
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
-    return status;
+    return json_str;
   }
 
   // 检查文档是否为空
   if (json.ObjectEmpty()) {
     NNDEPLOY_LOGE("Serialized JSON object is empty\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 序列化为字符串
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 输出到流
-  stream << buffer.GetString();
-  if (stream.fail()) {
+  json_str = buffer.GetString();
+  if (json_str.empty()) {
     NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
-    return base::kStatusCodeErrorInvalidParam;
   }
 
-  return base::kStatusCodeOk;
+  return json_str;
 }
-base::Status NodeDesc::serialize(const std::string &path) const {
+base::Status NodeDesc::saveFile(const std::string &path) {
   std::ofstream ofs(path);
   if (!ofs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->serialize(ofs);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
-  }
+  std::string json_str = this->serialize();
+  // json_str美化
+  std::string beautify_json_str = base::prettyJsonStr(json_str);
+  ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
-  return status;
+  return base::kStatusCodeOk;
 }
 // from json
 base::Status NodeDesc::deserialize(rapidjson::Value &json) {
@@ -89,24 +93,38 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
-    for (rapidjson::SizeType i = 0; i < json["inputs_"].Size(); i++) {
-      inputs_.push_back(json["inputs_"][i].GetString());
+    const rapidjson::Value &inputs = json["inputs_"];
+    for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+      if (inputs[i].IsObject() && inputs[i].HasMember("name_") &&
+          inputs[i]["name_"].IsString()) {
+        std::string input_name = inputs[i]["name_"].GetString();
+        // NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
+        inputs_.push_back(input_name);
+      } else {
+        NNDEPLOY_LOGI("Invalid input format at index %d\n", i);
+        // return base::kStatusCodeErrorInvalidValue;
+      }
     }
   }
 
   if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
-    for (rapidjson::SizeType i = 0; i < json["outputs_"].Size(); i++) {
-      outputs_.push_back(json["outputs_"][i].GetString());
+    const rapidjson::Value &outputs = json["outputs_"];
+    for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+      if (outputs[i].IsObject() && outputs[i].HasMember("name_") &&
+          outputs[i]["name_"].IsString()) {
+        std::string output_name = outputs[i]["name_"].GetString();
+        // NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
+        outputs_.push_back(output_name);
+      } else {
+        NNDEPLOY_LOGI("node[%s] Invalid output format at index %d\n",
+                      node_name_.c_str(), i);
+        // return base::kStatusCodeErrorInvalidValue;
+      }
     }
   }
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::deserialize(std::istream &stream) {
-  std::string json_str;
-  std::string line;
-  while (std::getline(stream, line)) {
-    json_str += line;
-  }
+base::Status NodeDesc::deserialize(const std::string &json_str) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
@@ -115,13 +133,18 @@ base::Status NodeDesc::deserialize(std::istream &stream) {
   rapidjson::Value &json = document;
   return this->deserialize(json);
 }
-base::Status NodeDesc::deserialize(const std::string &path) {
+base::Status NodeDesc::loadFile(const std::string &path) {
   std::ifstream ifs(path);
   if (!ifs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->deserialize(ifs);
+  std::string json_str;
+  std::string line;
+  while (std::getline(ifs, line)) {
+    json_str += line;
+  }
+  base::Status status = this->deserialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
     return status;
@@ -136,6 +159,7 @@ Node::Node(const std::string &name) {
   } else {
     name_ = name;
   }
+  constructed_ = true;
 }
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
            std::vector<Edge *> outputs) {
@@ -161,6 +185,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
+    // NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
     this->deinit();
   }
   external_param_.clear();
@@ -180,8 +205,21 @@ Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
 }
 
+void Node::setDynamicInput(bool is_dynamic_input) {
+  is_dynamic_input_ = is_dynamic_input;
+}
+void Node::setDynamicOutput(bool is_dynamic_output) {
+  is_dynamic_output_ = is_dynamic_output;
+}
+bool Node::isDynamicInput() { return is_dynamic_input_; }
+bool Node::isDynamicOutput() { return is_dynamic_output_; }
+
+void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
+void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
+void Node::setDesc(const std::string &desc) { desc_ = desc; }
+std::string Node::getDesc() { return desc_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -286,8 +324,10 @@ base::Status Node::setParam(base::Param *param) {
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
     return param->copyTo(param_.get());
+  } else {
+    param_ = param;
+    return base::kStatusCodeOk;
   }
-  return base::kStatusCodeOk;
 }
 base::Param *Node::getParam() { return param_.get(); }
 std::shared_ptr<base::Param> Node::getParamSharedPtr() { return param_; }
@@ -334,10 +374,10 @@ base::Status Node::setOutput(Edge *output, int index) {
 }
 
 base::Status Node::setInputs(std::vector<Edge *> inputs) {
-  if (inputs.empty()) {
-    NNDEPLOY_LOGE("inputs is empty.\n");
-    return base::kStatusCodeErrorNullParam;
-  }
+  // if (inputs.empty()) {
+  //   NNDEPLOY_LOGE("inputs is empty.\n");
+  //   return base::kStatusCodeErrorNullParam;
+  // }
   // if (!inputs_.empty()) {
   //   NNDEPLOY_LOGE("inputs_ must be empty.\n");
   //   return base::kStatusCodeErrorInvalidParam;
@@ -346,10 +386,10 @@ base::Status Node::setInputs(std::vector<Edge *> inputs) {
   return base::kStatusCodeOk;
 }
 base::Status Node::setOutputs(std::vector<Edge *> outputs) {
-  if (outputs.empty()) {
-    NNDEPLOY_LOGE("outputs is empty.\n");
-    return base::kStatusCodeErrorNullParam;
-  }
+  // if (outputs.empty()) {
+  //   NNDEPLOY_LOGE("outputs is empty.\n");
+  //   return base::kStatusCodeErrorNullParam;
+  // }
   // if (!outputs_.empty()) {
   //   NNDEPLOY_LOGE("outputs_ must be empty.\n");
   //   return base::kStatusCodeErrorInvalidParam;
@@ -448,8 +488,15 @@ Edge *Node::createInternalOutputEdge(const std::string &name) {
 bool Node::getConstructed() { return constructed_; }
 
 base::Status Node::setParallelType(const base::ParallelType &paralle_type) {
-  if (parallel_type_ == base::kParallelTypeNone) {
+  if (paralle_type == base::kParallelTypeNone) {
     parallel_type_ = paralle_type;
+    return base::kStatusCodeOk;
+  }
+  if (parallel_type_set_ == false) {
+    parallel_type_ = paralle_type;
+    parallel_type_set_ = true;
+  } else {
+    NNDEPLOY_LOGE("parallel_type_ is already set.\n");
   }
   return base::kStatusCodeOk;
 }
@@ -458,14 +505,30 @@ base::ParallelType Node::getParallelType() { return parallel_type_; }
 void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
 
 void Node::setInitializedFlag(bool flag) {
-  initialized_ = flag;
+  // initialized_ = flag;
   if (is_debug_) {
-    if (initialized_) {
+    if (initialized_ == false && flag == true) {
       NNDEPLOY_LOGE("%s init finish.\n", name_.c_str());
-    } else {
-      NNDEPLOY_LOGE("%s not init or deinit.\n", name_.c_str());
+    } else if (initialized_ == true && flag == false) {
+      NNDEPLOY_LOGE("%s deinit.\n", name_.c_str());
+    } else if (initialized_ == false && flag == false) {
+      NNDEPLOY_LOGE("%s init start.\n", name_.c_str());
+    } else {  // initialized_ = true && flag == true
+      NNDEPLOY_LOGE("%s double call setInitializedFlag.\n", name_.c_str());
     }
   }
+  if (is_time_profile_) {
+    if (initialized_ == false && flag == true) {
+      NNDEPLOY_TIME_POINT_END(name_ + " init()");
+    } else if (initialized_ == true && flag == false) {
+      ;
+    } else if (initialized_ == false && flag == false) {
+      NNDEPLOY_TIME_POINT_START(name_ + " init()");
+    } else {  // initialized_ = true && flag == true
+      ;
+    }
+  }
+  initialized_ = flag;
 }
 bool Node::getInitialized() { return initialized_; }
 
@@ -484,7 +547,24 @@ bool Node::getGraphFlag() { return is_graph_; }
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
 
+void Node::setLoopCount(int loop_count) {
+  if (loop_count > 0) {
+    loop_count_ = loop_count;
+  }
+}
+int Node::getLoopCount() {
+  if (loop_count_ <= 0) {
+    return 1;
+  }
+  return loop_count_;
+}
+
 void Node::setRunningFlag(bool flag) {
+  if (flag) {
+    run_size_++;
+  } else if (flag == false && is_running_) {
+    completed_size_++;
+  }
   is_running_ = flag;
   if (is_time_profile_) {
     if (is_running_) {
@@ -502,6 +582,27 @@ void Node::setRunningFlag(bool flag) {
   }
 }
 bool Node::isRunning() { return is_running_; }
+size_t Node::getRunSize() { return run_size_; }
+size_t Node::getCompletedSize() { return completed_size_; }
+std::shared_ptr<RunStatus> Node::getRunStatus() {
+  float cost_time = -1.0f;
+  float average_time = -1.0f;
+  float init_time = -1.0f;
+  if (is_time_profile_) {
+    cost_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " run()");
+    average_time = NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(name_ + " run()");
+    init_time = NNDEPLOY_TIME_PROFILER_GET_COST_TIME(name_ + " init()");
+  }
+  if (graph_ != nullptr) {
+    return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
+                                       run_size_, completed_size_, cost_time,
+                                       average_time, init_time);
+  } else {
+    return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
+                                       completed_size_, cost_time, average_time,
+                                       init_time);
+  }
+}
 
 void Node::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
@@ -530,6 +631,8 @@ std::vector<std::shared_ptr<EdgeTypeInfo>> Node::getOutputTypeInfo() {
   return output_type_info_;
 }
 
+base::Status Node::defaultParam() { return base::kStatusCodeOk; }
+
 base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
@@ -556,16 +659,21 @@ base::EdgeUpdateFlag Node::updateInput() {
   for (auto input : inputs_) {
     flag = input->update(this);
     if (flag != base::kEdgeUpdateFlagComplete) {
+      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
+      //               base::edgeUpdateFlagToString(flag).c_str());
       break;
     }
   }
   return flag;
 }
 
+bool Node::synchronize() { return true; }
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
   if (initialized_ == false && is_trace_ == false) {
-    NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
+    // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
+    this->setInitializedFlag(false);
     this->init();
     this->setInitializedFlag(true);
   }
@@ -622,6 +730,17 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
 
 std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs) {
   return this->forward(inputs);
+}
+
+std::vector<Edge *> Node::forward() {
+  return this->forward(std::vector<Edge *>());
+}
+std::vector<Edge *> Node::operator()() { return this->forward(); }
+std::vector<Edge *> Node::forward(Edge *input) {
+  return this->forward(std::vector<Edge *>({input}));
+}
+std::vector<Edge *> Node::operator()(Edge *input) {
+  return this->forward(input);
 }
 
 bool Node::checkInputs(std::vector<Edge *> &inputs) {
@@ -752,12 +871,28 @@ std::vector<std::string> Node::getRealOutputsName() {
  *   "worker_num_": 4
  * }
  */
-base::Status Node::serialize(
-    rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+base::Status Node::serialize(rapidjson::Value &json,
+                             rapidjson::Document::AllocatorType &allocator) {
   // 写入节点名称
   json.AddMember("key_", rapidjson::Value(key_.c_str(), allocator), allocator);
-  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
+  std::string name = name_;
+  // if (name.empty()) {
+  //   NNDEPLOY_LOGI("name is empty, use key_ to generate name.\n");
+  //   std::string tmp_key = key_;
+  //   size_t pos = tmp_key.rfind("::");
+  //   while (pos != std::string::npos) {
+  //     tmp_key = tmp_key.substr(pos + 2);
+  //     pos = tmp_key.rfind("::");
+  //   }
+  //   pos = tmp_key.rfind(".");
+  //   while (pos != std::string::npos) {
+  //     tmp_key = tmp_key.substr(pos + 1);
+  //     pos = tmp_key.rfind(".");
+  //   }
+  //   name = tmp_key;
+  // }
+  json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
+  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
                  allocator);
   // 写入设备类型
   std::string device_type_str = base::deviceTypeToString(device_type_);
@@ -765,35 +900,132 @@ base::Status Node::serialize(
                  rapidjson::Value(device_type_str.c_str(), allocator),
                  allocator);
 
-  json.AddMember("is_external_stream_", is_external_stream_, allocator);
+  // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
   // 写入输入
+  json.AddMember("is_dynamic_input_", is_dynamic_input_, allocator);
   rapidjson::Value inputs(rapidjson::kArrayType);
-  for (const auto &input : inputs_) {
-    inputs.PushBack(rapidjson::Value(input->getName().c_str(), allocator),
-                    allocator);
+  if (inputs_.empty()) {
+    for (size_t i = 0; i < input_type_info_.size(); i++) {
+      rapidjson::Value input_obj(rapidjson::kObjectType);
+      // input_obj.AddMember("name_",
+      // rapidjson::Value(input_type_info_[i]->getEdgeName().c_str(),
+      // allocator), allocator);
+      input_obj.AddMember(
+          "type_",
+          rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+      std::string desc = input_type_info_[i]->getEdgeName();
+      if (desc.empty()) {
+        desc = std::string("input_") + std::to_string(i);
+      }
+      input_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                          allocator);
+      inputs.PushBack(input_obj, allocator);
+    }
+  } else {
+    for (size_t i = 0; i < inputs_.size(); i++) {
+      rapidjson::Value input_obj(rapidjson::kObjectType);
+      input_obj.AddMember(
+          "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
+          allocator);
+      std::string desc = "";
+      if (input_type_info_.size() > i) {
+        input_obj.AddMember(
+            "type_",
+            rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
+                             allocator),
+            allocator);
+        desc = input_type_info_[i]->getEdgeName();
+      } else if (inputs_[i]->getTypeInfo() != nullptr) {
+        // NNDEPLOY_LOGI("inputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+        //              inputs_[i]->getTypeInfo()->getTypeName().c_str());
+        input_obj.AddMember(
+            "type_",
+            rapidjson::Value(inputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                             allocator),
+            allocator);
+        desc = inputs_[i]->getTypeInfo()->getEdgeName();
+      } else {
+        input_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
+                            allocator);
+      }
+      if (desc.empty()) {
+        desc = std::string("input_") + std::to_string(i);
+      }
+      input_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                          allocator);
+      inputs.PushBack(input_obj, allocator);
+    }
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
+  json.AddMember("is_dynamic_output_", is_dynamic_output_, allocator);
   rapidjson::Value outputs(rapidjson::kArrayType);
-  for (const auto &output : outputs_) {
-    outputs.PushBack(rapidjson::Value(output->getName().c_str(), allocator),
-                     allocator);
+  if (outputs_.empty()) {
+    for (size_t i = 0; i < output_type_info_.size(); i++) {
+      rapidjson::Value output_obj(rapidjson::kObjectType);
+      output_obj.AddMember(
+          "type_",
+          rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+      std::string desc = output_type_info_[i]->getEdgeName();
+      if (desc.empty()) {
+        desc = std::string("output_") + std::to_string(i);
+      }
+      output_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                           allocator);
+      outputs.PushBack(output_obj, allocator);
+    }
+  } else {
+    for (size_t i = 0; i < outputs_.size(); i++) {
+      rapidjson::Value output_obj(rapidjson::kObjectType);
+      output_obj.AddMember(
+          "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
+          allocator);
+      std::string desc = "";
+      if (output_type_info_.size() > i) {
+        output_obj.AddMember(
+            "type_",
+            rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
+                             allocator),
+            allocator);
+        desc = output_type_info_[i]->getEdgeName();
+      } else if (outputs_[i]->getTypeInfo() != nullptr) {
+        // NNDEPLOY_LOGI("outputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+        //              outputs_[i]->getTypeInfo()->getTypeName().c_str());
+        output_obj.AddMember(
+            "type_",
+            rapidjson::Value(outputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                             allocator),
+            allocator);
+        desc = outputs_[i]->getTypeInfo()->getEdgeName();
+      } else {
+        output_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
+                             allocator);
+      }
+      if (desc.empty()) {
+        desc = std::string("output_") + std::to_string(i);
+      }
+      output_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                           allocator);
+      outputs.PushBack(output_obj, allocator);
+    }
   }
   json.AddMember("outputs_", outputs, allocator);
 
   // 序列化并行类型
-  std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
-  json.AddMember("parallel_type_",
-                 rapidjson::Value(parallel_type_str.c_str(), allocator),
-                 allocator);
-
-  // 序列化其他布尔标志
-  json.AddMember("is_inner_", is_inner_, allocator);
-  json.AddMember("is_time_profile_", is_time_profile_, allocator);
-  json.AddMember("is_debug_", is_debug_, allocator);
-  json.AddMember("is_graph_", is_graph_, allocator);
+  if (is_graph_) {
+    std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    json.AddMember("is_graph_", is_graph_, allocator);
+    json.AddMember("parallel_type_",
+                   rapidjson::Value(parallel_type_str.c_str(), allocator),
+                   allocator);
+    json.AddMember("is_inner_", is_inner_, allocator);
+  }
 
   // 写入节点类型
   std::string node_type_str = nodeTypeToString(node_type_);
@@ -809,7 +1041,8 @@ base::Status Node::serialize(
 
   return base::kStatusCodeOk;
 }
-base::Status Node::serialize(std::ostream &stream) const {
+std::string Node::serialize() {
+  std::string json_str;
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -817,45 +1050,43 @@ base::Status Node::serialize(std::ostream &stream) const {
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
-    return status;
+    return json_str;
   }
 
   // 检查文档是否为空
   if (json.ObjectEmpty()) {
     NNDEPLOY_LOGE("Serialized JSON object is empty\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 序列化为字符串
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 输出到流
-  stream << buffer.GetString();
-  if (stream.fail()) {
+  json_str = buffer.GetString();
+  if (json_str.empty()) {
     NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
-    return base::kStatusCodeErrorInvalidParam;
+    return json_str;
   }
-
-  return base::kStatusCodeOk;
+  return json_str;
 }
-base::Status Node::serialize(const std::string &path) const {
+base::Status Node::saveFile(const std::string &path) {
   std::ofstream ofs(path);
   if (!ofs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->serialize(ofs);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
-  }
+  std::string json_str = this->serialize();
+  // json_str美化
+  std::string beautify_json_str = base::prettyJsonStr(json_str);
+  ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
-  return status;
+  return base::kStatusCodeOk;
 }
 // from json
 base::Status Node::deserialize(rapidjson::Value &json) {
@@ -868,6 +1099,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     name_ = json["name_"].GetString();
   }
 
+  if (json.HasMember("desc_") && json["desc_"].IsString()) {
+    desc_ = json["desc_"].GetString();
+  }
+
   // 读取设备类型
   if (json.HasMember("device_type_") && json["device_type_"].IsString()) {
     device_type_ = base::stringToDeviceType(json["device_type_"].GetString());
@@ -876,6 +1111,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   if (json.HasMember("is_external_stream_") &&
       json["is_external_stream_"].IsBool()) {
     is_external_stream_ = json["is_external_stream_"].GetBool();
+  }
+
+  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
+    is_graph_ = json["is_graph_"].GetBool();
   }
 
   // 读取并行类型
@@ -897,13 +1136,70 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     is_debug_ = json["is_debug_"].GetBool();
   }
 
-  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
-    is_graph_ = json["is_graph_"].GetBool();
-  }
-
   // 读取节点类型
   if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
     node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
+  // 读取动态输入和输出
+  if (json.HasMember("is_dynamic_input_") &&
+      json["is_dynamic_input_"].IsBool()) {
+    is_dynamic_input_ = json["is_dynamic_input_"].GetBool();
+  }
+  // 反序列化std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_
+  if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+    auto &inputs = json["inputs_"];
+    for (int i = 0; i < inputs.Size(); i++) {
+      auto &input = inputs[i];
+      if (input.HasMember("desc_") && input["desc_"].IsString()) {
+        std::string desc = input["desc_"].GetString();
+        if (i < input_type_info_.size()) {
+          input_type_info_[i]->setEdgeName(desc);
+        } else if (is_dynamic_input_) {
+          auto edge_type_info = std::make_shared<EdgeTypeInfo>();
+          std::string type_name = "NotSet";
+          if (input.HasMember("type_") && input["type_"].IsString()) {
+            type_name = input["type_"].GetString();
+          }
+          edge_type_info->setTypeName(type_name);
+          edge_type_info->setEdgeName(desc);
+          input_type_info_.emplace_back(edge_type_info);
+        } else {
+          NNDEPLOY_LOGE("input_type_info_ size: %d, is_dynamic_input_: %d\n",
+                        static_cast<int>(input_type_info_.size()),
+                        is_dynamic_input_);
+        }
+      }
+    }
+  }
+  if (json.HasMember("is_dynamic_output_") &&
+      json["is_dynamic_output_"].IsBool()) {
+    is_dynamic_output_ = json["is_dynamic_output_"].GetBool();
+  }
+  // 反序列化std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_
+  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+    auto &outputs = json["outputs_"];
+    for (int i = 0; i < outputs.Size(); i++) {
+      auto &output = outputs[i];
+      if (output.HasMember("desc_") && output["desc_"].IsString()) {
+        std::string desc = output["desc_"].GetString();
+        if (i < output_type_info_.size()) {
+          output_type_info_[i]->setEdgeName(desc);
+        } else if (is_dynamic_input_) {
+          auto edge_type_info = std::make_shared<EdgeTypeInfo>();
+          std::string type_name = "NotSet";
+          if (output.HasMember("type_") && output["type_"].IsString()) {
+            type_name = output["type_"].GetString();
+          }
+          edge_type_info->setTypeName(type_name);
+          edge_type_info->setEdgeName(desc);
+          output_type_info_.emplace_back(edge_type_info);
+        } else {
+          NNDEPLOY_LOGE("output_type_info_ size: %d, is_dynamic_output_: %d\n",
+                        static_cast<int>(output_type_info_.size()),
+                        is_dynamic_output_);
+        }
+      }
+    }
   }
 
   // 读取参数
@@ -914,12 +1210,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
 
   return base::kStatusCodeOk;
 }
-base::Status Node::deserialize(std::istream &stream) {
-  std::string json_str;
-  std::string line;
-  while (std::getline(stream, line)) {
-    json_str += line;
-  }
+base::Status Node::deserialize(const std::string &json_str) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
@@ -928,13 +1219,19 @@ base::Status Node::deserialize(std::istream &stream) {
   rapidjson::Value &json = document;
   return this->deserialize(json);
 }
-base::Status Node::deserialize(const std::string &path) {
+base::Status Node::loadFile(const std::string &path) {
   std::ifstream ifs(path);
   if (!ifs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->deserialize(ifs);
+  // 创建一个字符串变量用于存储文件内容
+  std::string json_str;
+  std::string line;
+  while (std::getline(ifs, line)) {
+    json_str += line;
+  }
+  base::Status status = this->deserialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
     return status;
@@ -943,6 +1240,8 @@ base::Status Node::deserialize(const std::string &path) {
   return status;
 }
 
+NodeFactory *getGlobalNodeFactory() { return NodeFactory::getInstance(); }
+
 std::set<std::string> getNodeKeys() {
   return NodeFactory::getInstance()->getNodeKeys();
 }
@@ -950,12 +1249,16 @@ std::set<std::string> getNodeKeys() {
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
-  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  NNDEPLOY_LOGE("Failed to createNode %s, node_key: %s\n", node_name.c_str(),
+                node_key.c_str());
   return nullptr;
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
@@ -963,6 +1266,9 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -981,6 +1287,9 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
@@ -992,6 +1301,9 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -1006,6 +1318,9 @@ std::shared_ptr<Node> createNodeSharedPtr(
     std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -1027,6 +1342,9 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key == "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   if (creator != nullptr) {
     return creator->createNodeSharedPtr(node_name, inputs, outputs);
   }

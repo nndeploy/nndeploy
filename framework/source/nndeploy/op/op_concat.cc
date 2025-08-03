@@ -27,7 +27,7 @@ base::Status OpConcat::inferShape() {
   auto param = dynamic_cast<ir::ConcatParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
+  int rank = static_cast<int>(inputs_[0]->getShape().size());
   // NNDEPLOY_LOGE("rank = %d\n", rank);
   // inputs_[0]->getDesc().print();
   if (axis < -rank || axis >= rank) {
@@ -51,7 +51,7 @@ base::Status OpConcat::inferShape() {
       }
       if (inputs_[i]->getShape()[j] != inputs_[0]->getShape()[j]) {
         NNDEPLOY_LOGE("op name = %s.\n", op_desc_.name_.c_str());
-        NNDEPLOY_LOGE("input shape[dim = %d] is not equal.[%d] != [%d]\n", i,
+        NNDEPLOY_LOGE("input shape[dim = %zu] is not equal.[%d] != [%d]\n", i,
                       inputs_[i]->getShape()[j], inputs_[0]->getShape()[j]);
         return base::kStatusCodeErrorInvalidParam;
       }
@@ -135,7 +135,7 @@ base::Status concat(std::vector<device::Tensor *> input,
   }
   status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
-  for (size_t i = 0; i < input.size(); i++) {
+  for (int i = 0; i < (int)input.size(); i++) {
     status = op->setInput(input[i], i);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   }

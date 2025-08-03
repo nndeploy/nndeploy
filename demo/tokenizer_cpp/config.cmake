@@ -19,18 +19,22 @@ file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"
   "${ROOT_PATH}/demo/*.cc"
 )
-message(STATUS "tokenizer")
-message(STATUS "SOURCE: ${SOURCE}")
 set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 
 # OBJECT
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})
 if (APPLE)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "")
-else ()
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+elseif (UNIX)
   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
-endif ()
+elseif(WIN32)
+  if(MSVC)
+    # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
+  elseif(MINGW)
+    set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+  endif()
+endif()
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
@@ -55,9 +59,9 @@ target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
 
 # install
 if(SYSTEM.Windows)
-  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_DEMO_PATH})
 else()
-  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_DEMO_PATH})
 endif()
 
 # unset

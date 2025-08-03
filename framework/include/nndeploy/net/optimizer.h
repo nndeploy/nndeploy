@@ -32,6 +32,7 @@ enum OptPassType : int {
   kOptPassTypeFuseQdq,
 };
 
+
 class Net;
 
 class OptPass {
@@ -224,6 +225,10 @@ class NNDEPLOY_CC_API Optimizer {
       opt_passes_;  // 第一个key是优先级，数字越小， 优先级越高，
                     // 在图优化时首先执行这个pass
 };
+
+extern NNDEPLOY_CC_API std::string optPassTypeToString(OptPassType type);
+extern NNDEPLOY_CC_API OptPassType stringToOptPassType(const std::string &src);
+
 
 }  // namespace net
 }  // namespace nndeploy

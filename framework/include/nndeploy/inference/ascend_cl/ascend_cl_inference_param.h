@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace inference {
 
-class AscendCLInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API AscendCLInferenceParam : public InferenceParam {
  public:
   AscendCLInferenceParam();
   AscendCLInferenceParam(base::InferenceType type);

@@ -9,47 +9,14 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
+#include "nndeploy/classification/drawlabel.h"
 
 using namespace nndeploy;
 
-class DrawLableNode : public dag::Node {
- public:
-  // DrawLableNode(const std::string &name,
-  //               std::initializer_list<dag::Edge *> inputs,
-  //               std::initializer_list<dag::Edge *> outputs)
-  //     : Node(name, inputs, outputs) {}
-  DrawLableNode(const std::string &name, std::vector<dag::Edge *> inputs,
-                std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    this->setInputTypeInfo<cv::Mat>();
-    this->setInputTypeInfo<classification::ClassificationResult>();
-    this->setOutputTypeInfo<cv::Mat>();
-  }
-  virtual ~DrawLableNode() {}
+DEFINE_bool(is_softmax, true, "is_softmax");
 
-  virtual base::Status run() {
-    cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    classification::ClassificationResult *result =
-        (classification::ClassificationResult *)inputs_[1]->getParam(this);
-    // 遍历每个分类结果
-    cv::Mat *output_mat = new cv::Mat();
-    input_mat->copyTo(*output_mat);
-    for (int i = 0; i < result->labels_.size(); i++) {
-      auto label = result->labels_[i];
+bool isSoftmax() { return FLAGS_is_softmax; }
 
-      // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) +
-                         " score: " + std::to_string(label.scores_);
-
-      // 在图像左上角绘制文本
-      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
-    }
-    // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(output_mat, false);
-    return base::kStatusCodeOk;
-  }
-};
 
 class classificationDemo : public dag::Graph {
  public:
@@ -60,17 +27,17 @@ class classificationDemo : public dag::Graph {
                     base::CodecFlag codec_flag) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
-    decode_node_ = (codec::OpenCvImageDecodeNode *)this
-                       ->createNode<codec::OpenCvImageDecodeNode>(
+    decode_node_ = (codec::OpenCvImageDecode *)this
+                       ->createNode<codec::OpenCvImageDecode>(
                            "decode_node_", codec_flag);
     graph_ =
-        (classification::ClassificationResnetGraph *)this
-            ->createNode<classification::ClassificationResnetGraph>("resnet");
-    graph_->make(inference_type);
-    draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>(
+        (classification::ResnetGraph *)this
+            ->createNode<classification::ResnetGraph>("resnet");
+    graph_->setInferenceType(inference_type);
+    draw_node_ = (classification::DrawLable *)this->createNode<classification::DrawLable>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
-    encode_node_ = (codec::OpenCvImageEncodeNode *)this
-                       ->createNode<codec::OpenCvImageEncodeNode>(
+    encode_node_ = (codec::OpenCvImageEncode *)this
+                       ->createNode<codec::OpenCvImageEncode>(
                            "encode_node_", codec_flag);
     return status;
   }
@@ -97,6 +64,11 @@ class classificationDemo : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
+  base::Status setSoftmax(bool is_softmax) {
+    graph_->setSoftmax(is_softmax);
+    return base::kStatusCodeOk;
+  }
+
   virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
     std::vector<dag::Edge *> decode_node_outputs = (*decode_node_)(inputs);
 
@@ -112,10 +84,10 @@ class classificationDemo : public dag::Graph {
   }
 
  public:
-  codec::OpenCvImageDecodeNode *decode_node_;
-  codec::OpenCvImageEncodeNode *encode_node_;
-  DrawLableNode *draw_node_;
-  classification::ClassificationResnetGraph *graph_;
+  codec::OpenCvImageDecode *decode_node_;
+  codec::OpenCvImageEncode *encode_node_;
+  classification::DrawLable *draw_node_;
+  classification::ResnetGraph *graph_;
 };
 
 int main(int argc, char *argv[]) {
@@ -125,7 +97,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationResnetGraph
+  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ResnetGraph
   std::string name = demo::getName();
   // 推理后端类型，例如:
   // kInferenceTypeOpenVino / kInferenceTypeTensorRt /
@@ -147,12 +119,18 @@ int main(int argc, char *argv[]) {
   std::string ouput_path = demo::getOutputPath();
   // base::kParallelTypePipeline / base::kParallelTypeSequential
   base::ParallelType pt = demo::getParallelType();
+  // 后处理是否执行softmax
+  bool is_softmax = isSoftmax();
 
-  classificationDemo graph_demo("resnet_demo");
+  classificationDemo graph_demo("classification_demo");
+  
   graph_demo.setTimeProfileFlag(true);
   graph_demo.make(inference_type, codec_flag);
+  graph_demo.defaultParam();
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
+
+  graph_demo.setSoftmax(is_softmax);
 
   // 设置pipeline并行
   base::Status status = graph_demo.setParallelType(pt);
@@ -169,10 +147,12 @@ int main(int argc, char *argv[]) {
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
-  graph_demo.decode_node_->setSize(100);
+  
+  int size = 18;
+  graph_demo.decode_node_->setSize(size);
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
-  int size = 100;
+  
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {
@@ -183,6 +163,7 @@ int main(int argc, char *argv[]) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
   }
   if (pt == base::kParallelTypePipeline) {
@@ -190,19 +171,20 @@ int main(int argc, char *argv[]) {
       classification::ClassificationResult *result =
           (classification::ClassificationResult *)outputs[0]
               ->getGraphOutputParam();
-      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
+    // graph_demo.synchronize();
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 
   graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
-  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
+  // NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   return 0;
 }

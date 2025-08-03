@@ -101,7 +101,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/build/
+# docs/build/
 
 # PyBuilder
 .pybuilder/
@@ -212,7 +212,7 @@ CTestTestfile.cmake
 _deps
 
 # build
-build
+# build
 docs/build
 
 # vscode
@@ -223,7 +223,7 @@ docs/build
 third_party/
 
 # docs
-docs/
+# docs/
 
 cmake-build-debug/
 

@@ -6,7 +6,7 @@
 namespace nndeploy {
 namespace dag {
 
-class ConstNode : public Node {
+class NNDEPLOY_CC_API ConstNode : public Node {
  public:
   ConstNode(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::dag::ConstNode";
@@ -17,16 +17,7 @@ class ConstNode : public Node {
       : dag::Node(name) {
     key_ = "nndeploy::dag::ConstNode";
     node_type_ = dag::NodeType::kNodeTypeInput;
-    if (inputs.size() > 0) {
-      NNDEPLOY_LOGE("ConstNode not support inputs");
-      constructed_ = false;
-      return;
-    }
-    if (outputs.size() != 1) {
-      NNDEPLOY_LOGE("ConstNode only support one output");
-      constructed_ = false;
-      return;
-    }
+    inputs_ = inputs;
     outputs_ = outputs;
   }
   virtual ~ConstNode() {}
@@ -36,11 +27,12 @@ class ConstNode : public Node {
    *
    * @return
    */
-  virtual base::EdgeUpdateFlag updateInput() {
-    return base::kEdgeUpdateFlagComplete;
-  }
+  virtual base::EdgeUpdateFlag updateInput() = 0;
 
-  virtual base::Status run() { return base::kStatusCodeOk; }
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status run() = 0;
 };
 
 }  // namespace dag

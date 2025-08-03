@@ -113,7 +113,7 @@ class NNDEPLOY_CC_API Tensor {
   base::Status copyTo(Tensor *dst);
 
   // 序列化模型权重为二进制文件
-  base::Status serialize(std::ostream &stream);
+  base::Status serialize(std::string &bin_str);
 
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeToSafetensors(safetensors::safetensors_t &st,
@@ -121,7 +121,7 @@ class NNDEPLOY_CC_API Tensor {
 #endif
 
   // 从二进制文件反序列化模型权重
-  base::Status deserialize(std::istream &stream);
+  base::Status deserialize(const std::string &bin_str);
 
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeFromSafetensors(const safetensors::safetensors_t &st);

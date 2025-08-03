@@ -11,13 +11,13 @@
 namespace nndeploy {
 namespace detect {
 
-// DrawBoxNode::DrawBoxNode(const std::string &name,
+// DrawBox::DrawBox(const std::string &name,
 //                          std::initializer_list<dag::Edge *> inputs,
 //                          std::initializer_list<dag::Edge *> outputs)
 //     : Node(name, inputs, outputs) {}
-// DrawBoxNode::~DrawBoxNode() {}
+// DrawBox::~DrawBox() {}
 
-// base::Status DrawBoxNode::run() {
+// base::Status DrawBox::run() {
 //   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
 //   DetectResult *result = (DetectResult *)inputs_[1]->getParam(this);
 //   float w_ratio = float(input_mat->cols);
@@ -55,13 +55,13 @@ namespace detect {
 //   return base::kStatusCodeOk;
 // }
 
-// YoloMultiConvDrawBoxNode::YoloMultiConvDrawBoxNode(
+// YoloMultiConvDrawBox::YoloMultiConvDrawBox(
 //     const std::string &name, std::initializer_list<dag::Edge *> inputs,
 //     std::initializer_list<dag::Edge *> outputs)
 //     : Node(name, inputs, outputs) {}
-// YoloMultiConvDrawBoxNode::~YoloMultiConvDrawBoxNode() {}
+// YoloMultiConvDrawBox::~YoloMultiConvDrawBox() {}
 
-// base::Status YoloMultiConvDrawBoxNode::run() {
+// base::Status YoloMultiConvDrawBox::run() {
 //   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
 //   DetectResult *result = (DetectResult *)inputs_[1]->getParam(this);
 //   float w_ratio = float(input_mat->cols);
@@ -98,29 +98,29 @@ namespace detect {
 // }  // namespace detect
 // }  // namespace nndeploy
 
-// class DrawBoxNode : public dag::Node {
+// class DrawBox : public dag::Node {
 //  public:
-//   DrawBoxNode(const std::string &name,
+//   DrawBox(const std::string &name,
 //               std::initializer_list<dag::Edge *> inputs,
 //               std::initializer_list<dag::Edge *> outputs);
-//   virtual ~DrawBoxNode();
+//   virtual ~DrawBox();
 
 //   virtual base::Status run();
 // };
 
-// class YoloMultiConvDrawBoxNode : public dag::Node {
+// class YoloMultiConvDrawBox : public dag::Node {
 //  public:
-//   YoloMultiConvDrawBoxNode(const std::string &name,
+//   YoloMultiConvDrawBox(const std::string &name,
 //                            std::initializer_list<dag::Edge *> inputs,
 //                            std::initializer_list<dag::Edge *> outputs);
-//   virtual ~YoloMultiConvDrawBoxNode();
+//   virtual ~YoloMultiConvDrawBox();
 
 //   virtual base::Status run();
 // };
 
-REGISTER_NODE("nndeploy::detect::DrawBoxNode", DrawBoxNode);
-REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBoxNode",
-              YoloMultiConvDrawBoxNode);
+REGISTER_NODE("nndeploy::detect::DrawBox", DrawBox);
+REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBox",
+              YoloMultiConvDrawBox);
 
 }  // namespace detect
 }  // namespace nndeploy

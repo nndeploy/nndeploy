@@ -72,14 +72,14 @@ class NNDEPLOY_CC_API Buffer {
     }
 
     return base::kStatusCodeOk;
-  };
+  }
 
   // clone and copy
   Buffer *clone();
   base::Status copyTo(Buffer *dst);
 
   // 序列化buffer为二进制文件
-  base::Status serialize(std::ostream &stream);
+  base::Status serialize(std::string &bin_str);
 
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeToSafetensors(safetensors::safetensors_t &st,
@@ -87,7 +87,7 @@ class NNDEPLOY_CC_API Buffer {
 #endif
 
   // 从二进制文件反序列化回buffer
-  base::Status deserialize(std::istream &stream);
+  base::Status deserialize(const std::string &bin_str);
 
   // base::Status serializeFromSafetensors(const char *storage,
   //                                           const size_t &data_size);

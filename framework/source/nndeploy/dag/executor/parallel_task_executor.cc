@@ -15,7 +15,7 @@ base::Status ParallelTaskExecutor::init(
   thread_pool_->init();
   start_nodes_ = findStartNodes(node_repository);
   base::Status status = topoSortBFS(node_repository, topo_sort_node_);
-  all_task_count_ = topo_sort_node_.size();
+  all_task_count_ = static_cast<int>(topo_sort_node_.size());
   if (start_nodes_.empty()) {
     NNDEPLOY_LOGE("No start node found in graph");
     return base::kStatusCodeErrorInvalidValue;
@@ -26,6 +26,7 @@ base::Status ParallelTaskExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
     iter->node_->setInitializedFlag(true);
@@ -154,6 +155,15 @@ void ParallelTaskExecutor::afterGraphRun() {
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
   }
+}
+
+bool ParallelTaskExecutor::synchronize() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dag

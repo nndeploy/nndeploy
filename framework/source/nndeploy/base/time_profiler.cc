@@ -86,11 +86,31 @@ void TimeProfiler::end(const std::string &key) {
 
 float TimeProfiler::getCostTime(const std::string &key) const {
   if (records_.find(key) == records_.end()) {
-    return -1.0f;
+    return -1000.0f;
   }
   std::shared_ptr<Record> record = records_.find(key)->second;
-  int index = (record->call_times_ - 1) % max_size_;
+  int index = -1;
+  if (record->type_ == kStart) {
+    if (record->call_times_ - 2 < 0) {
+      index = -1;
+    } else {
+      index = (record->call_times_ - 2) % max_size_;
+    }
+  } else {
+    index = (record->call_times_ - 1) % max_size_;
+  }
+  if (index < 0) {
+    return -1000.0f;
+  }
   return record->cost_time_[index];
+}
+
+float TimeProfiler::getAverageTime(const std::string &key) const {
+  if (records_.find(key) == records_.end()) {
+    return -1000.0f;
+  }
+  std::shared_ptr<Record> record = records_.find(key)->second;
+  return record->cost_time_sum_ / record->call_times_;
 }
 
 void TimeProfiler::print(const std::string &title) {
@@ -181,7 +201,7 @@ void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
       [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
         return a->order_ < b->order_;
       });
-  printf("TimeProfiler: %s [index: %ld]\n", title.c_str(), index);
+  printf("TimeProfiler: %s [index: %zu]\n", title.c_str(), index);
   std::string name = "name";
   int name_size = static_cast<int>(name.size());
   std::string call_times = "call_times";
@@ -261,7 +281,7 @@ void TimeProfiler::printRemoveWarmup(const std::string &title,
       [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
         return a->order_ < b->order_;
       });
-  printf("TimeProfiler: %s, remove warmup %ld\n", title.c_str(), warmup_times);
+  printf("TimeProfiler: %s, remove warmup %zu\n", title.c_str(), warmup_times);
   std::string name = "name";
   int name_size = static_cast<int>(name.size());
   std::string call_times = "call_times";
@@ -365,7 +385,11 @@ void timePointStart(const std::string &key) { g_time_profiler.start(key); }
 void timePointEnd(const std::string &key) { g_time_profiler.end(key); }
 
 float timeProfilerGetCostTime(const std::string &key) {
-  return g_time_profiler.getCostTime(key);
+  return g_time_profiler.getCostTime(key) / 1000.0f;
+}
+
+float timeProfilerGetAverageTime(const std::string &key) {
+  return g_time_profiler.getAverageTime(key) / 1000.0f;
 }
 
 void timeProfilerPrint(const std::string &title) {

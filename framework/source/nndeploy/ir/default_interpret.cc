@@ -8,7 +8,8 @@ TypeInterpretRegister<TypeInterpretCreator<DefaultInterpret>>
 
 // DefaultInterpret::DefaultInterpret() : Interpret() {}
 
-DefaultInterpret::DefaultInterpret(ModelDesc* model_desc, bool is_external) : Interpret(model_desc, is_external) {}
+DefaultInterpret::DefaultInterpret(ModelDesc* model_desc, bool is_external)
+    : Interpret(model_desc, is_external) {}
 
 DefaultInterpret::~DefaultInterpret() {}
 
@@ -25,10 +26,17 @@ base::Status DefaultInterpret::interpret(
       NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    status = model_desc_->deserializeStructureFromJson(structure_stream, input);
+    std::string structure_str;
+    std::string line;
+    while (std::getline(structure_stream, line)) {
+      structure_str += line;
+    }
+
+    status = model_desc_->deserializeStructureFromJsonStr(structure_str, input);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(
         status, base::kStatusCodeOk, status,
         "model_desc_->deserializeStructureFromJson failed!");
+    structure_stream.close();
   }
 
   // 读模型权重文件

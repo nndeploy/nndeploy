@@ -16,7 +16,7 @@ base::Status ConditionExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
-    // iter->node_->setInitializedFlag(false);
+    iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());
@@ -87,6 +87,15 @@ base::Status ConditionExecutor::process() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");
   cur_node->setRunningFlag(false);
   return status;
+}
+
+bool ConditionExecutor::synchronize() {
+  for (auto iter : node_repository_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dag

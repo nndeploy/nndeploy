@@ -20,7 +20,7 @@ class OpReshape : public Op {
   virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status reshape(device::Tensor *input,
+NNDEPLOY_CC_API base::Status reshape(device::Tensor *input, device::Tensor *shape,
                                      std::shared_ptr<ir::ReshapeParam> param,
                                      device::Tensor *output);
 

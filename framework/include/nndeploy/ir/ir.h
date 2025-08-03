@@ -52,7 +52,7 @@ class NNDEPLOY_CC_API OpDesc {
 
   // 序列化
   base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) const;
+                         rapidjson::Document::AllocatorType &allocator);
   // 反序列化
   base::Status deserialize(rapidjson::Value &json);
 
@@ -86,7 +86,7 @@ class NNDEPLOY_CC_API ValueDesc {
 
   // 序列化
   base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) const;
+                         rapidjson::Document::AllocatorType &allocator);
   // 反序列化
   base::Status deserialize(rapidjson::Value &json);
 
@@ -112,25 +112,24 @@ class NNDEPLOY_CC_API ModelDesc {
 
   // 序列化模型结构为文本
   base::Status serializeStructureToJson(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const;
-  base::Status serializeStructureToJson(std::ostream &stream) const;
-  base::Status serializeStructureToJson(const std::string &path) const;
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator);
+  base::Status serializeStructureToJsonStr(std::string &json_str);
+  base::Status serializeStructureToJson(const std::string &path);
   // 反序列化文本为模型结构
   base::Status deserializeStructureFromJson(
       rapidjson::Value &json, const std::vector<ValueDesc> &input);
-  base::Status deserializeStructureFromJson(
-      std::istream &stream, const std::vector<ValueDesc> &input);
+  base::Status deserializeStructureFromJsonStr(
+      const std::string &json_str, const std::vector<ValueDesc> &input);
   base::Status deserializeStructureFromJson(
       const std::string &path, const std::vector<ValueDesc> &input);
 
   // 序列化模型权重为safetensors
-  base::Status serializeWeightsToSafetensorsImpl(
-      safetensors::safetensors_t &st, bool serialize_buffer = false) const;
+  base::Status serializeWeightsToSafetensorsImpl(safetensors::safetensors_t &st,
+                                                 bool serialize_buffer = false);
   base::Status serializeWeightsToSafetensors(
-      std::shared_ptr<safetensors::safetensors_t> &serialize_st_ptr) const;
+      std::shared_ptr<safetensors::safetensors_t> &serialize_st_ptr);
   base::Status serializeWeightsToSafetensors(
-      const std::string &weight_file_path) const;
+      const std::string &weight_file_path);
   // 从safetensors中导入成模型文件
   base::Status deserializeWeightsFromSafetensors(
       std::shared_ptr<safetensors::safetensors_t> &st_ptr);

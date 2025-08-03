@@ -16,6 +16,9 @@ enum ExprType : int {
   kExprTypeModelDesc,
 };
 
+extern NNDEPLOY_CC_API std::string exprTypeToString(ExprType type);
+extern NNDEPLOY_CC_API ExprType stringToExprType(const std::string &src);
+
 class NNDEPLOY_CC_API Expr {
  public:
   Expr(const std::string &name);

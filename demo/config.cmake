@@ -19,10 +19,6 @@ if(ENABLE_NNDEPLOY_DEVICE)
   if(ENABLE_NNDEPLOY_OP_ASCEND_C)
     include(${ROOT_PATH}/demo/ascendc/config.cmake)
   endif()
-
-  if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
-    include(${ROOT_PATH}/demo/opencl_dev/config.cmake)
-  endif()
 endif()
 
 if(ENABLE_NNDEPLOY_IR)
@@ -54,7 +50,10 @@ endif()
 
 if(ENABLE_NNDEPLOY_DAG)
   include(${ROOT_PATH}/demo/dag/config.cmake)
+  include(${ROOT_PATH}/demo/run_json/config.cmake)
 endif()
+
+################################################################################
 
 # plugin
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
@@ -81,6 +80,10 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING)
+  include(${ROOT_PATH}/demo/segment_anything/config.cmake)
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
 endif()
@@ -89,9 +92,9 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${ROOT_PATH}/demo/stable_diffusion/config.cmake)
 endif()
 
-nndeploy_option(ENABLE_NNDEPLOY_DEMO_LLAMA "ENABLE_NNDEPLOY_DEMO_LLAMA" OFF)
-if(ENABLE_NNDEPLOY_DEMO_LLAMA)
+if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${ROOT_PATH}/demo/llama/config.cmake)
+  include(${ROOT_PATH}/demo/qwen/config.cmake)
 endif()
 
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
@@ -99,3 +102,18 @@ if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
+  include(${ROOT_PATH}/demo/super_resolution/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_OCR)
+  include(${ROOT_PATH}/demo/ocr/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
+  include(${ROOT_PATH}/demo/track/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
+  include(${ROOT_PATH}/demo/matting/config.cmake)
+endif()

@@ -1,31 +1,133 @@
-name: linux
-on:
-  push:
-    branches:
-     - main
-     - 'feature/**'
-    paths:
-      - 'src/**'
-      - '.github/workflows/linux.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - '.github/workflows/linux.yml'
+# GitHub Actions workflow configuration file - Linux platform compilation
+# This file is used to configure the CI/CD process for automatic project compilation in Linux environment
 
+name: Linux  # Workflow name
+
+# Trigger condition configuration
+on:
+  # Triggered when code is pushed to specified branches
+  push:
+    branches: [main, develop, 'feature/**']
+    paths:  # Only trigger build when files in the following paths change
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory (pybind11 related)
+      - 'test/**'          # Unit test and integration test code directory
+      - 'demo/**'          # Example and demo code directory
+      - 'cmake/**'         # CMake build configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build configuration file
+      - '.github/workflows/linux.yml'  # Current workflow file itself
+  # Triggered when creating Pull Request to specified branches
+  pull_request:
+    branches: [main]  # Only trigger when PR target branch is main
+    paths:  # Same path filtering conditions as push
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory
+      - 'test/**'          # Test code directory
+      - 'demo/**'          # Example code directory
+      - 'cmake/**'         # CMake configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build file
+      - '.github/workflows/linux.yml'  # Current workflow file
+
+# Job definition
 jobs:
-  build:
-    name: linux-build
-    runs-on: ubuntu-latest
+  build:  # Job ID
+    name: Linux Build  # Job display name
+    runs-on: ubuntu-latest  # Specify runtime environment as latest Ubuntu Linux
   
-    steps:
-      - uses: actions/checkout@v3
-      # build
-      - name: build
+    steps:  # Build step sequence
+      # Step 1: Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4  # Use GitHub official code checkout Action (v4 version)
+        with:
+          submodules: recursive  # Recursively checkout all submodules (git submodule)
+          
+      # Step 2: Setup Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      
+      # Step 3: Install system dependencies
+      - name: Install dependencies
         run: |
-            mkdir build
-            cp cmake/config.cmake build
-            cd build
-            cmake ..
-            make -j4
+          sudo apt-get update  # Update package manager index
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
+
+      # Step 4: Update Python dependencies
+      - name: Update Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine requests pathlib cython
             
+      # Step 5: Install Rust toolchain
+      - name: Setup Rust toolchain
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          rustup update
+
+      # Step 6: Install OpenCV and ONNXRUNTIME
+      - name: Install OpenCV and ONNXRUNTIME
+        run: |
+          cd tool/script
+          python install_opencv.py
+          python install_onnxruntime.py
+
+      # Step 7: Configure CMake build environment
+      - name: Configure build
+        run: |
+          mkdir build                    # Create build directory (out-of-source build)
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cd build                       # Enter build directory
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..              # Configure CMake project using Ninja generator
+          
+      # Step 8: Compile, install, package and verify
+      - name: Compile, install, package and verify
+        run: |
+          cd build                    # Enter build directory
+          ninja -j$(nproc)           # Compile in parallel using all CPU cores
+          ninja install              # Install compiled files
+          cpack                      # Use CPack to generate various installation packages
+          ls -la                     # List all generated files and directories
+          echo "Compilation, installation and packaging completed"       # Output completion information
+      
+      # Step 9: Python developer mode installation and verification
+      - name: Python developer mode installation and verification
+        run: |
+          cd python                   # Enter Python package directory
+          pip install -e .            # Install Python package in developer mode
+          cd ..                       # Return to root directory
+          # Verify if Python package is correctly installed
+          python -c "
+          import platform
+          try:
+              import nndeploy
+              print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+              print(f'Platform: {platform.platform()}')
+              print(f'Architecture: {platform.machine()}')
+              print(f'Python version: {platform.python_version()}')
+          except ImportError as e:
+              print(f'✗ Import failed: {e}')
+              exit(1)
+          "
+          echo "Python package developer mode installation and verification completed"
+      
+      # Step 10: Upload build artifacts
+      - name: Upload packaged library
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-package
+          path: build/*.tar.gz
+          retention-days: 7
+
+      # Step 11: Upload to Release Assets (only when pushing tags)
+      - name: Upload package to Release Assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

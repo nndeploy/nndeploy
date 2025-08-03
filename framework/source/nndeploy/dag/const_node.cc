@@ -4,7 +4,13 @@
 namespace nndeploy {
 namespace dag {
 
-REGISTER_NODE("nndeploy::dag::ConstNode", ConstNode);
+base::Status ConstNode::init() {
+  return base::kStatusCodeOk;
+}
+
+base::Status ConstNode::deinit() {
+  return base::kStatusCodeOk;
+}
 
 }  // namespace dag
 }  // namespace nndeploy

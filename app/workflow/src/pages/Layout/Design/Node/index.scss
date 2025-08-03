@@ -1,0 +1,13 @@
+.drag-image {
+  //visibility: hidden; /* 使用 visibility: hidden 代替 display: none */
+  position: fixed;
+  /* 确保元素不影响页面布局 */
+  top: -1110px;
+  left: -1110px;
+}
+
+.tree-node-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

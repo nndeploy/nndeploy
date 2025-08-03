@@ -20,7 +20,7 @@
 namespace nndeploy {
 namespace inference {
 
-class MnnInference : public Inference {
+class NNDEPLOY_CC_API MnnInference : public Inference {
  public:
   MnnInference(base::InferenceType type);
   virtual ~MnnInference();

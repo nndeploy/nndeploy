@@ -1,0 +1,143 @@
+# GitHub Actions workflow configuration file - Android platform compilation
+# This file is used to configure the CI/CD process for automatic project compilation in Android environment
+
+name: Android  # Workflow name
+
+# Trigger condition configuration
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/android.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/android.yml'
+
+# Environment variables definition
+env:
+  ANDROID_API_LEVEL: 21
+  ANDROID_NDK_VERSION: r25c
+  OPENCV_VERSION: 4.8.0
+
+# Job definition
+jobs:
+  build:
+    name: Android Build
+    runs-on: ubuntu-latest
+  
+    steps:
+      # Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      # Setup JDK environment
+      - name: Setup JDK environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      # Setup Rust toolchain
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+          
+      # Add Android target platforms
+      - name: Add Android target platforms
+        run: |
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
+          
+      # Install Android development tools
+      - name: Install Android development tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+            
+      # Setup Android NDK
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+          
+      # Download and setup Android OpenCV
+      - name: Download and setup Android OpenCV
+        run: |
+          cd $HOME
+          wget -O opencv-android.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-android-sdk.zip
+          unzip opencv-android.zip
+          mv OpenCV-android-sdk opencv-android
+          echo "OpenCV for Android downloaded and extracted to: $HOME/opencv-android"
+          ls -la $HOME/opencv-android/
+          
+      # Configure CMake build environment
+      - name: Configure build
+        run: |
+          mkdir build
+          cp cmake/config_minimal.cmake build/config.cmake
+          cd build
+          cmake -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-21 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOpenCV_DIR=$HOME/opencv-android/sdk/native/jni \
+            ..
+      
+      # Compile, verify and upload build artifacts
+      - name: Compile, verify and upload build artifacts
+        run: |
+          cd build
+          ninja -j$(nproc)
+          ninja install
+          # 跳过 cpack，因为 Android 交叉编译的二进制文件与主机架构不兼容
+          # cpack 在打包时会运行 RPM 的 brp-strip 脚本，该脚本使用主机的 strip 工具
+          # 但主机的 strip (x86_64) 无法处理 Android arm64 架构的二进制文件
+          # 错误：Unable to recognise the format of the input file
+          # 解决方案：手动创建 tar.gz 包替代 cpack
+          # cpack
+          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-android-arm64-v8a.tar.gz {} +
+          ls -la
+          echo "Android arm64-v8a architecture API21 compilation completed (with OpenCV support)"
+          
+      - name: Upload packaged library
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-arm64-v8a-api21-release-package
+          path: build/*.tar.gz
+          retention-days: 7
+
+      # Add Release Assets upload step
+      - name: Upload package to Release Assets
+        # Condition check: only execute this step when pushing Git tags
+        # github.ref contains the reference (branch or tag) that triggered this workflow
+        # startsWith() function checks if the string starts with the specified prefix
+        # 'refs/tags/' is the reference format prefix for Git tags
+        # Therefore this condition ensures Release Assets upload only occurs when pushing tags (like v1.0.0)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

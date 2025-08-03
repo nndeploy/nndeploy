@@ -1,0 +1,83 @@
+# GitHub Actions workflow for CodeQL security scanning
+# Automated code security analysis and quality checks
+# CodeQL is GitHub's static application security testing (SAST) tool
+
+name: "CodeQL"
+
+# Trigger conditions
+on:
+  # Trigger on push to specified branches
+  push:
+    branches: 
+      - main
+      - develop
+      - 'feature/**'
+      
+  # Trigger on Pull Request to specified branches
+  pull_request:
+    branches: [main]
+      
+  # Weekly security scan: every Tuesday at 5 PM
+  schedule:
+    - cron: '0 17 * * 2'
+
+# Job definitions
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    # Permission configuration for code scanning and result upload
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    # Multi-language parallel scanning strategy
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'python' ]
+        # Supported languages: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby'
+
+    steps:
+      # Step 1: Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # Step 2: Initialize CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      # Step 3: Install build dependencies (C++ only)
+      - name: Install dependencies
+        if: matrix.language == 'cpp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
+
+      # Step 4: Manual build for C++ projects
+      - name: Manual build
+        if: matrix.language == 'cpp'
+        run: |
+          mkdir build
+          cp cmake/config.cmake build
+          cd build
+          cmake -G Ninja ..
+          ninja -j$(nproc)
+
+      # Step 5: Auto build for Python
+      - name: Auto build Python
+        if: matrix.language == 'python'
+        uses: github/codeql-action/autobuild@v3
+
+      # Step 6: Execute CodeQL analysis
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"

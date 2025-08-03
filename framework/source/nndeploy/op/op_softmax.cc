@@ -28,7 +28,7 @@ base::Status OpSoftmax::inferShape() {
   auto param = dynamic_cast<ir::SoftmaxParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
+  int rank = static_cast<int>(inputs_[0]->getShape().size());
   if (axis < -rank || axis >= rank) {
     NNDEPLOY_LOGE("axis is invalid.\n");
     return base::kStatusCodeErrorInvalidParam;

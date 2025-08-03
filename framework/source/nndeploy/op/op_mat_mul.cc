@@ -31,7 +31,7 @@ base::Status OpMatMul::inferShape() {
 
   auto first_input_shape = inputs_[0]->getShape();
   auto second_input_shape = inputs_[1]->getShape();
-  int shape_size = second_input_shape.size();
+  int shape_size = static_cast<int>(second_input_shape.size());
 
   base::IntVector output_shape = first_input_shape;
   output_shape[shape_size - 1] = second_input_shape[shape_size - 1];
@@ -47,17 +47,56 @@ base::Status OpMatMul::run() {
 }
 
 base::Status matmul(device::Tensor *inputs_a, device::Tensor *inputs_b,
-                    device::Tensor *output) {
+                    std::shared_ptr<ir::MatMulParam> param, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
+  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMatMul);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(inputs_a, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(inputs_b, 0);
+  status = op->setInput(inputs_b, 1);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setOutput(output, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->checkOrAllocOutput();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+  return status;
+}
+
+base::Status matmul(device::Tensor *inputs_a, device::Tensor *inputs_b,
+                    std::shared_ptr<ir::MatMulParam> param, device::Tensor *output, 
+                    device::Tensor *inputs_bias) {
+  base::Status status = base::kStatusCodeOk;
+
+  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMatMul);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("createOp failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
+  status = op->setInput(inputs_a, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(inputs_b, 1);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(inputs_bias, 2);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");

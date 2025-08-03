@@ -19,7 +19,7 @@
 namespace nndeploy {
 namespace inference {
 
-class PaddleLiteInference : public Inference {
+class NNDEPLOY_CC_API PaddleLiteInference : public Inference {
  public:
   PaddleLiteInference(base::InferenceType type);
   virtual ~PaddleLiteInference();

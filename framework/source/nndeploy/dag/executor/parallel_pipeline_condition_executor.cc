@@ -14,7 +14,7 @@ base::Status ParallelPipelineConditionExecutor::init(
   base::Status status =
       ConditionExecutor::init(edge_repository, node_repository);
 
-  all_task_count_ = node_repository.size();
+  all_task_count_ = static_cast<int>(node_repository.size());
   thread_pool_ = new thread_pool::ThreadPool(all_task_count_);
   status = thread_pool_->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -50,6 +50,15 @@ base::Status ParallelPipelineConditionExecutor::run() {
   auto func = [this]() -> base::Status { return this->process(); };
   thread_pool_->commit(std::bind(func));
   return status;
+}
+
+bool ParallelPipelineConditionExecutor::synchronize() {
+  for (auto iter : node_repository_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dag

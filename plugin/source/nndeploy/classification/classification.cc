@@ -19,10 +19,32 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_softmax.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace classification {
+
+base::Status ClassificationPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  json.SetObject();
+  json.AddMember("topk", topk_, allocator);
+  json.AddMember("is_softmax", is_softmax_, allocator);
+  json.AddMember("version", version_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status ClassificationPostParam::deserialize(rapidjson::Value &json) {
+  if (json.HasMember("topk")) {
+    topk_ = json["topk"].GetInt();
+  }
+  if (json.HasMember("is_softmax")) {
+    is_softmax_ = json["is_softmax"].GetBool();
+  }
+  if (json.HasMember("version")) {
+    version_ = json["version"].GetInt();
+  }
+  return base::kStatusCodeOk;
+}
 
 base::Status ClassificationPostProcess::run() {
   ClassificationPostParam *param = (ClassificationPostParam *)param_.get();
@@ -36,12 +58,19 @@ base::Status ClassificationPostProcess::run() {
       std::make_shared<ir::SoftmaxParam>();
   op_param->axis_ = 1;
   device::Tensor softmax_tensor(tensor->getDevice(), tensor->getDesc());
-  base::Status status = op::softmax(tensor, op_param, &softmax_tensor);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("op::softmax failed!\n");
-    return status;
+
+  float *data = nullptr;
+  if (param->is_softmax_) {
+    base::Status status = op::softmax(tensor, op_param, &softmax_tensor);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("op::softmax failed!\n");
+      return status;
+    }
+    data = (float *)softmax_tensor.getData();
+  } else {
+    data = (float *)tensor->getData();
   }
-  float *data = (float *)softmax_tensor.getData();
+
   int batch = softmax_tensor.getShapeIndex(0);
   int num_classes = softmax_tensor.getShapeIndex(1);
 
@@ -68,8 +97,9 @@ base::Status ClassificationPostProcess::run() {
 
 REGISTER_NODE("nndeploy::classification::ClassificationPostProcess",
               ClassificationPostProcess);
-REGISTER_NODE("nndeploy::classification::ClassificationResnetGraph",
-              ClassificationResnetGraph);
+REGISTER_NODE("nndeploy::classification::ClassificationGraph",
+              ClassificationGraph);
+REGISTER_NODE("nndeploy::classification::ResnetGraph", ResnetGraph);
 
 }  // namespace classification
 }  // namespace nndeploy

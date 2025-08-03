@@ -10,10 +10,9 @@ from .buffer import Buffer
 
 # 从numpy array返回一个Tensor
 def create_tensor_from_numpy(np_data, device="cpu"):
-    # tensor = _C.device.Tensor(np_data, nndeploy.base.name_to_device_type_code["cpu"])
-    # tensor = tensor.to(nndeploy.base.name_to_device_type_code[device])
     device_type = nndeploy.base.DeviceType(device)
-    tensor = _C.device.Tensor.from_numpy(np_data, device_type)
+    c_tensor = _C.device.Tensor.from_numpy(np_data, device_type)
+    tensor = Tensor(c_tensor)
     return tensor
 
 # 从Tensor返回一个numpy array
@@ -171,7 +170,7 @@ class Tensor(_C.device.Tensor):
         """
         return super().copy_to(dst)
 
-    def serialize(self, stream):
+    def serialize(self, bin_str: str):
         """
         序列化Tensor到流。
 
@@ -181,9 +180,9 @@ class Tensor(_C.device.Tensor):
         Returns:
             None
         """
-        return super().serialize(stream)
+        return super().serialize(bin_str)
 
-    def deserialize(self, stream):
+    def deserialize(self, bin_str: str):
         """
         从流反序列化Tensor。
 
@@ -193,7 +192,7 @@ class Tensor(_C.device.Tensor):
         Returns:
             None
         """
-        return super().deserialize(stream)
+        return super().deserialize(bin_str)
 
     def print(self, stream=None):
         """
@@ -599,5 +598,6 @@ class Tensor(_C.device.Tensor):
         Returns:
             Tensor: 创建的Tensor。
         """
-        return _C.device.Tensor.from_numpy(array, device_type)
+        c_tensor = _C.device.Tensor.from_numpy(array, device_type)
+        return Tensor(c_tensor)
     

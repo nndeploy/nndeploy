@@ -46,7 +46,7 @@ base::Status PipelineRuntime::init(
   }
 
   // 平均切分op_repository
-  int ops_per_stage = op_repository.size() / worker_num_;
+  int ops_per_stage = static_cast<int>(op_repository.size() / worker_num_);
   if (ops_per_stage == 0) {
     ops_per_stage = 1;
   }
@@ -56,7 +56,7 @@ base::Status PipelineRuntime::init(
     // 计算当前阶段的op范围
     int start_idx = i * ops_per_stage;
     int end_idx =
-        (i == worker_num_ - 1) ? op_repository.size() : (i + 1) * ops_per_stage;
+        (i == worker_num_ - 1) ? static_cast<int>(op_repository.size()) : (i + 1) * ops_per_stage;
 
     if (start_idx >= op_repository.size()) {
       break;  // 如果没有足够的op，提前结束
@@ -512,7 +512,7 @@ device::Tensor *PipelineRuntime::getOutputTensorAfterRun(
     return nullptr;
   }
   PipelineTensor *pipeline_internal_output_tensor = iter->second;
-  NNDEPLOY_LOGI("pipeline_internal_output_tensor->tensors_.size() %d\n",
+  NNDEPLOY_LOGI("pipeline_internal_output_tensor->tensors_.size() %zu\n",
                 pipeline_internal_output_tensor->tensors_.size());
   device::Tensor *pipeline_output_tensor =
       pipeline_internal_output_tensor->pop(nullptr);

@@ -20,7 +20,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 #include "nndeploy/segment/result.h"
 
 namespace nndeploy {
@@ -30,14 +30,22 @@ namespace segment {
 
 class NNDEPLOY_CC_API RMBGPostParam : public base::Param {
  public:
-  int version_ = -1;
+  int version_ = 14;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
  public:
   RMBGPostProcess(const std::string &name) : Node(name) {
     key_ = "nndeploy::segment::RMBGPostProcess";
+    desc_ = "Segment RMBG postprocess[device::Tensor->SegmentResult]";
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
   }
@@ -46,7 +54,9 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
                   std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::RMBGPostProcess";
+    desc_ = "Segment RMBG postprocess[device::Tensor->SegmentResult]";
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
   }
@@ -59,32 +69,73 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
  public:
   SegmentRMBGGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::segment::SegmentRMBGGraph";
+    desc_ =
+        "Segment RMBG "
+        "graph[cv::Mat->preprocess->infer->postprocess->SegmentResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<SegmentResult>();
+    // Create preprocessing node for image preprocessing
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+      return;
+    }
+    // Create inference node for ResNet model execution
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+      return;
+    }
+    // Create postprocessing node for classification results
+    post_ = this->createNode<RMBGPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+      return;
+    }
   }
 
   SegmentRMBGGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                    std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::segment::SegmentRMBGGraph";
+    desc_ =
+        "Segment RMBG "
+        "graph[cv::Mat->preprocess->infer->postprocess->SegmentResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<SegmentResult>();
+    // Create preprocessing node for image preprocessing
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+      return;
+    }
+    // Create inference node for ResNet model execution
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+      return;
+    }
+    // Create postprocessing node for classification results
+    post_ = this->createNode<RMBGPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+      return;
+    }
   }
 
   virtual ~SegmentRMBGGraph() {}
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
-    // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+  base::Status defaultParam() {
+    preprocess::CvtResizeNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -95,25 +146,26 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
     pre_param->mean_[2] = 0.5f;
     pre_param->mean_[3] = 0.5f;
 
-    // Create inference node for ResNet model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for classification results
-    post_ = this->createNode<RMBGPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
     RMBGPostParam *post_param =
         dynamic_cast<RMBGPostParam *>(post_->getParam());
     post_param->version_ = 14;
 
+    return base::kStatusCodeOk;
+  }
+
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -135,8 +187,8 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtclorResizeParam *param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

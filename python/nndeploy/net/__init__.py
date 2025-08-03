@@ -1,6 +1,6 @@
-from .model import Model
+from .module import Module
 
-from .model import build_model
+from .module import build_model
 
 from .optimizer import (
     FuseConvBias,
@@ -10,5 +10,5 @@ from .optimizer import (
     EliminateCommonSubexpression,
     EliminateDeadOp,
     FoldConstant,
-    FuseQdq
+    FuseQdq,
 )

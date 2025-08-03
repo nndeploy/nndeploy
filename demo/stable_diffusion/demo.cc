@@ -1,4 +1,4 @@
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
 
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -86,13 +86,9 @@ int main(int argc, char* argv[]) {
   ddim_param->set_alpha_to_one_ = false;
   param.push_back(ddim_param);
 
-  dag::Edge* prompt = new dag::Edge("prompt");
-  dag::Edge* negative_prompt = new dag::Edge("negative_prompt");
-
   int iter = 1;
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
-      name, prompt, negative_prompt, inference_type, inference_type,
-      inference_type, scheduler_type, param, iter);
+      name, text, "", inference_type, scheduler_type, param, iter);
 
   base::Status status = graph->setParallelType(pt);
 
@@ -107,13 +103,6 @@ int main(int argc, char* argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
-  tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
-  prompt_text->texts_ = {text};
-
-  tokenizer::TokenizerText* negative_prompt_text =
-      new tokenizer::TokenizerText();
-  negative_prompt_text->texts_ = {""};
-
   NNDEPLOY_TIME_POINT_START("graph->dump()");
   status = graph->dump();
   if (status != base::kStatusCodeOk) {
@@ -125,8 +114,6 @@ int main(int argc, char* argv[]) {
   NNDEPLOY_MEM_TRACKER_START();
   NNDEPLOY_TIME_POINT_START("graph->run()");
   for (int i = 0; i < iter; i++) {
-    prompt->set(prompt_text, true);
-    negative_prompt->set(negative_prompt_text, true);
     status = graph->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph deinit failed");
@@ -149,11 +136,7 @@ int main(int argc, char* argv[]) {
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
 
   delete text2image_param;
-  delete prompt_text;
-  delete negative_prompt_text;
   delete ddim_param;
-  delete prompt;
-  delete negative_prompt;
   delete graph;
 
   ret = nndeployFrameworkDeinit();

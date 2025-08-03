@@ -8,18 +8,16 @@ function(add_test TEST_NAME TEST_SOURCES)
     GTest::gtest_main
   )
   if (APPLE)
-    set_target_properties(${TEST_NAME}
-      PROPERTIES
-      LINK_FLAGS "-Wl"
-      RUNTIME_OUTPUT_DIRECTORY ${TEST_BUILD_DIR}
-    )
-  else ()
-    set_target_properties(${TEST_NAME}
-      PROPERTIES
-      LINK_FLAGS "-Wl,--no-as-needed"
-      RUNTIME_OUTPUT_DIRECTORY ${TEST_BUILD_DIR}
-    )
-  endif ()
+    set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  elseif (UNIX)
+    set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+  elseif(WIN32)
+    if(MSVC)
+      # target_link_options(${TEST_NAME} PRIVATE /WHOLEARCHIVE)
+    elseif(MINGW)
+      set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+    endif()
+  endif()
   # DEPEND_LIBRARY
   target_link_libraries(${TEST_NAME} ${DEPEND_LIBRARY}) 
   # SYSTEM_LIBRARY
@@ -28,9 +26,9 @@ function(add_test TEST_NAME TEST_SOURCES)
   target_link_libraries(${TEST_NAME} ${THIRD_PARTY_LIBRARY}) 
   # install
   if(SYSTEM.Windows)
-    install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+    install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_TEST_PATH})
   else() 
-    install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+    install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_TEST_PATH})
   endif()
 endfunction()
 

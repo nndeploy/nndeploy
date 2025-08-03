@@ -11,11 +11,16 @@ base::Status SequentialExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,
     std::vector<NodeWrapper *> &node_repository) {
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("topoSortDFS failed!\n");
+    return status;
+  }
   for (auto iter : topo_sort_node_) {
     if (iter->node_->getInitialized()) {
       continue;
     }
-    // iter->node_->setInitializedFlag(false);
+    iter->node_->setInitializedFlag(false);
+    // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());
@@ -36,6 +41,10 @@ base::Status SequentialExecutor::deinit() {
     }
   }
   for (auto iter : topo_sort_node_) {
+    if (!iter->node_->getInitialized()) {
+      continue;
+    }
+    // NNDEPLOY_LOGE("deinit node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "failed iter->node_->deinit()");
@@ -66,6 +75,15 @@ base::Status SequentialExecutor::run() {
     }
   }
   return status;
+}
+
+bool SequentialExecutor::synchronize() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dag

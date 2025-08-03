@@ -192,7 +192,19 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 void *CudaDevice::getContext() { return nullptr; }
 
 base::Status CudaDevice::init() { return base::kStatusCodeOk; }
-base::Status CudaDevice::deinit() { return base::kStatusCodeOk; }
+base::Status CudaDevice::deinit() { 
+  // 设置当前设备
+  cudaSetDevice(device_type_.device_id_);
+
+  // 同步所有 CUDA 操作
+  cudaDeviceSynchronize();
+  
+  // 重置设备状态，清理所有资源
+  cudaDeviceReset();
+
+  // NNDEPLOY_LOGI("CudaDevice::deinit success\n");
+  return base::kStatusCodeOk; 
+}
 
 Stream *CudaDevice::createStream() { return new CudaStream(this); }
 
@@ -224,8 +236,10 @@ base::Status CudaDevice::createEvents(Event **events, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     Event *event = this->createEvent();
     if (event == nullptr) {
+      NNDEPLOY_LOGE("create event failed\n");
       return base::kStatusCodeErrorDeviceCuda;
     }
+    events[i] = event;
   }
   return base::kStatusCodeOk;
 }

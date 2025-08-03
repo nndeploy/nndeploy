@@ -14,8 +14,13 @@ pip install -r requirements-docs.txt
 ```
 cd docs
 # 中文文档
+
 cd zh_cn
 make html
+
+# 本地查看文档
+cd build/html
+python -m http.server 8000
 
 # 英文文档
 sphinx-build -b gettext ./ build/gettext

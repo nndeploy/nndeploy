@@ -19,6 +19,7 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   void start(const std::string &key);
   void end(const std::string &key);
   float getCostTime(const std::string &key) const;
+  float getAverageTime(const std::string &key) const;
   void print(const std::string &title = "");
   void printIndex(const std::string &title, uint64_t index);
   void printRemoveWarmup(const std::string &title, uint64_t warmup_times);
@@ -74,6 +75,8 @@ extern NNDEPLOY_CC_API void timePointEnd(const std::string &key);
 
 extern NNDEPLOY_CC_API float timeProfilerGetCostTime(const std::string &key);
 
+extern NNDEPLOY_CC_API float timeProfilerGetAverageTime(const std::string &key);
+
 extern NNDEPLOY_CC_API void timeProfilerPrint(const std::string &title = "");
 
 extern NNDEPLOY_CC_API void timeProfilerPrintIndex(const std::string &title,
@@ -91,6 +94,8 @@ extern NNDEPLOY_CC_API void timeProfilerPrintRemoveWarmup(
 #define NNDEPLOY_TIME_POINT_END(key) nndeploy::base::timePointEnd(key)
 #define NNDEPLOY_TIME_PROFILER_GET_COST_TIME(key) \
   nndeploy::base::timeProfilerGetCostTime(key)
+#define NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(key) \
+  nndeploy::base::timeProfilerGetAverageTime(key)
 #define NNDEPLOY_TIME_PROFILER_PRINT(title) \
   nndeploy::base::timeProfilerPrint(title)
 #define NNDEPLOY_TIME_PROFILER_PRINT_INDEX(title, index) \
@@ -101,7 +106,8 @@ extern NNDEPLOY_CC_API void timeProfilerPrintRemoveWarmup(
 #define NNDEPLOY_TIME_PROFILER_RESET()
 #define NNDEPLOY_TIME_POINT_START(key)
 #define NNDEPLOY_TIME_POINT_END(key)
-#define NNDEPLOY_TIME_PROFILER_GET_COST_TIME(key)
+#define NNDEPLOY_TIME_PROFILER_GET_COST_TIME(key) -1.0f
+#define NNDEPLOY_TIME_PROFILER_GET_AVERAGE_TIME(key) -1.0f
 #define NNDEPLOY_TIME_PROFILER_PRINT(title)
 #define NNDEPLOY_TIME_PROFILER_PRINT_INDEX(title, index)
 #define NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP(title, warmup_times)

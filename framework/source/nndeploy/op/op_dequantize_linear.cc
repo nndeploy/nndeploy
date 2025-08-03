@@ -94,7 +94,7 @@ base::Status OpDequantizeLinear::dequantizeImpl(device::Tensor* input, device::T
     // Per-tensor实现
     const float scale_val = scale_ptr[0];
     const T zp_val = zp_ptr ? zp_ptr[0] : static_cast<T>(0);
-    const int total_elements = input->getSize();
+    const int total_elements = static_cast<int>(input->getSize());
 
     for (int i = 0; i < total_elements; ++i) {
       float value = (input_ptr[i] - zp_val) * scale_val;

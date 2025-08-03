@@ -34,7 +34,7 @@ base::Status Condition::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  // setInitializedFlag(false);
+  setInitializedFlag(false);
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -138,6 +138,26 @@ base::Status Condition::executor() {
       dynamic_cast<ConditionExecutor *>(executor_.get());
   condition_executor->setCondition(this);
 
+  return status;
+}
+
+base::Status Condition::serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) {
+  base::Status status = Graph::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize node failed\n");
+    return status;
+  }
+  return status;
+}
+
+base::Status Condition::deserialize(rapidjson::Value &json) {
+  base::Status status = Graph::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize node failed\n");
+    return status;
+  }
   return status;
 }
 

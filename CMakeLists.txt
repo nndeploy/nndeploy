@@ -4,11 +4,11 @@ project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
 
-set(NNDEPLOY_MAJOR_VERSION 3)
-set(NNDEPLOY_MINOR_VERSION 0)
-set(NNDEPLOY_PATCH_VERSION 0)
-set(NNDEPLOY_BUILD_VERSION 0)
-set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}.${NNDEPLOY_BUILD_VERSION}")
+set(NNDEPLOY_MAJOR_VERSION 0)
+set(NNDEPLOY_MINOR_VERSION 2)
+set(NNDEPLOY_PATCH_VERSION 8)
+set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
+add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
@@ -19,6 +19,9 @@ include(cmake/summary.cmake)
 if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
 endif()
+
+# set
+set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 1. **Basic Build Options (Default Configuration Recommended)**: Such as whether to build as a shared library, C++ standard used, etc.
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "Build as shared library instead of static library" ON)
@@ -78,7 +81,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DAG "Enable Directed Acyclic Graph for model pip
 # # Plugin system for Algorithm
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "Enable plugin for model deployment" ON)
 # # Test cases
-nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" ON)
+nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 # # Demo applications
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
@@ -152,50 +155,68 @@ nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_LLM "ENABLE_NNDEPLOY_PLUGIN_LLM" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT "ENABLE_NNDEPLOY_PLUGIN_DETECT" ON)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR "ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO "ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO" ON)
+## track
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TRACK "ENABLE_NNDEPLOY_PLUGIN_TRACK" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TRACK_FAIRMOT "ENABLE_NNDEPLOY_PLUGIN_TRACK_FAIRMOT" ON)
+## matting
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_MATTING "ENABLE_NNDEPLOY_PLUGIN_MATTING" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_MATTING_PPMATTING "ENABLE_NNDEPLOY_PLUGIN_MATTING_PPMATTING" ON)
 ## segmentation
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT "ENABLE_NNDEPLOY_PLUGIN_SEGMENT" ON)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING" ON)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG" ON)
 ## text-to-image
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION" OFF)
+## super_resolution
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION "ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION" ON)
+## ocr
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_OCR "ENABLE_NNDEPLOY_PLUGIN_OCR" OFF)
 
 # Handle dependencies between build options
 ## plugin
-if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
-  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
-endif()
+if(ENABLE_NNDEPLOY_PLUGIN)
+  if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+    set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+  endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
-  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
-endif()
+  if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+    set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+  endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
-  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
-endif()
+  if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+    set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+  endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
-  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
-endif()
+  if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+    set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+  endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_LLM)
-  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
-  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+  if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+    set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
+    set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+  endif()
 endif()
 
 ## framework
 if(ENABLE_NNDEPLOY_PYTHON)
+  set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
+  # # Add pybind11 subdirectory
+  # add_subdirectory(${ROOT_PATH}/third_party/pybind11)
+  # # include
+  # include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+  # add_definitions(-DENABLE_NNDEPLOY_PYTHON)
 endif()
 
 if(ENABLE_NNDEPLOY_DEMO)
@@ -212,13 +233,27 @@ endif()
 
 if(ENABLE_NNDEPLOY_DAG)
   set(ENABLE_NNDEPLOY_INFERENCE ON)
-  set(ENABLE_NNDEPLOY_OP ON)
-  set(ENABLE_NNDEPLOY_IR ON)
+  # set(ENABLE_NNDEPLOY_OP ON)
+  # set(ENABLE_NNDEPLOY_IR ON)
   set(ENABLE_NNDEPLOY_DEVICE ON)
   set(ENABLE_NNDEPLOY_DEVICE_CPU ON)
   set(ENABLE_NNDEPLOY_THREAD_POOL ON)
   set(ENABLE_NNDEPLOY_BASE ON) 
 endif()
+
+if (ENABLE_NNDEPLOY_INFERENCE)
+  if (ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
+    if(ENABLE_NNDEPLOY_DEVICE_CUDNN STREQUAL "OFF")
+      set(ENABLE_NNDEPLOY_DEVICE_CUDNN ON)
+    endif()
+  endif()
+endif()
+
+if(ENABLE_NNDEPLOY_DEVICE_CUDNN)
+  if(ENABLE_NNDEPLOY_DEVICE_CUDA STREQUAL "OFF")
+    set(ENABLE_NNDEPLOY_DEVICE_CUDA ON)
+  endif()
+endif() 
 
 if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
   set(ENABLE_NNDEPLOY_NET ON)
@@ -250,17 +285,33 @@ set(ENABLE_NNDEPLOY_BASE ON)
 # print option
 print_summary()
 
+# general
+set(NNDEPLOY_LIB_PREFIX "lib")
+set(NNDEPLOY_LIB_SUFFIX ".so")
+
+if(CMAKE_SYSTEM_NAME MATCHES "^Android")
+  set(SYSTEM.Android 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
+  set(SYSTEM.Linux 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Darwin")
+  set(SYSTEM.Darwin 1)
+  set(NNDEPLOY_LIB_SUFFIX ".dylib")
+elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
+  set(SYSTEM.iOS 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
+  set(SYSTEM.Windows 1)
+  set(NNDEPLOY_LIB_PREFIX "")
+  set(NNDEPLOY_LIB_SUFFIX ".lib")
+endif()
+
 # compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# set
-set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 # folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # install path
-set(NNDEPLOY_INSTALL_PATH ${ROOT_PATH}/build/install)
+set(NNDEPLOY_INSTALL_PATH ${ROOT_PATH}/build/nndeploy_${NNDEPLOY_VERSION}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE}_${CMAKE_CXX_COMPILER_ID})
 
 if(ENABLE_NNDEPLOY_BUILD_SHARED)
   set(NNDEPLOY_INSTALL_TYPE LIBRARY)
@@ -268,9 +319,19 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
-set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
-set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
-set(NNDEPLOY_INSTALL_BIN_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
+if (SYSTEM.Windows)
+  set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
+  set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
+  set(NNDEPLOY_INSTALL_WIN_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
+else()
+  set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
+  # set(CMAKE_INSTALL_PREFIX ${ROOT_PATH}/build/nndeploy_${NNDEPLOY_VERSION}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE}_${CMAKE_CXX_COMPILER_ID}_complete)
+  set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
+endif()
+set(NNDEPLOY_INSTALL_INCLUDE_PATH ${NNDEPLOY_INSTALL_PATH}/include)
+set(NNDEPLOY_INSTALL_DEMO_PATH ${NNDEPLOY_INSTALL_PATH}/demo)
+set(NNDEPLOY_INSTALL_TEST_PATH ${NNDEPLOY_INSTALL_PATH}/test)
+set(NNDEPLOY_INSTALL_THIRD_PARTY_PATH ${NNDEPLOY_INSTALL_PATH}/third_party)
 
 set(EXECUTABLE_OUTPUT_PATH ${ROOT_PATH}/build)
 
@@ -311,25 +372,115 @@ else()
   add_definitions(-DENABLE_NNDEPLOY_OPENCV)
 endif()
 
-# general
-set(NNDEPLOY_LIB_PREFIX "lib")
-set(NNDEPLOY_LIB_SUFFIX ".so")
+set(INFERENCE_SUFFIX "")
+if(ENABLE_NNDEPLOY_INFERENCE)
+  if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_DEFAULT)
+  endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "^Android")
-  set(SYSTEM.Android 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
-  set(SYSTEM.Linux 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Darwin")
-  set(SYSTEM.Darwin 1)
-  set(NNDEPLOY_LIB_SUFFIX ".dylib")
-elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
-  set(SYSTEM.iOS 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
-  set(SYSTEM.Windows 1)
-  set(NNDEPLOY_LIB_PREFIX "")
-  set(NNDEPLOY_LIB_SUFFIX ".lib")
+  if(ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_TENSORRT)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_trt")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TNN)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_TNN)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_tnn")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_MNN)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_MNN)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_mnn")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_OPENVINO)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_OPENVINO)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_openvino")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_COREML)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_COREML)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_coreml")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_onnxruntime")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TFLITE)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_TFLITE)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_tflite")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_NCNN)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_NCNN)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_ncnn")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_PADDLELITE)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_paddlelite")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_RKNN)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_RKNN)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_rknn")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_ASCEND_CL)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_ascend_cl")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_SNPE)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_SNPE)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_snpe")
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TVM)
+    add_definitions(-DENABLE_NNDEPLOY_INFERENCE_TVM)
+    set(INFERENCE_SUFFIX "${INFERENCE_SUFFIX}_tvm")
+  endif()
+endif()
+message(STATUS "INFERENCE_SUFFIX: ${INFERENCE_SUFFIX}")
+
+
+# ignore warning
+if(MSVC)
+    # Disable the following MSVC compiler warnings:
+    # /wd4003: macro expansion operator lacks operands
+    # /wd4819: file contains characters that cannot be represented in the current code page
+    # /wd4244: conversion from 'type1' to 'type2', possible loss of data
+    # /wd4018: signed/unsigned mismatch
+    # /utf-8: set both source and execution character sets to UTF-8
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+    # Disable the following MSVC compiler warnings:
+    # /wd4251: needs to have dll-interface to be used by clients warning
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
 endif()
 
+# ignore loop-vectorize warning
+if(SYSTEM.Windows)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pass-failed")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pass-failed")
+endif()
+
+# ignore deprecated warning
+if(SYSTEM.Windows)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations -Wno-ignored-attributes")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-ignored-attributes")
+endif()
+
+# BUILD_SHARED
 if(SYSTEM.Windows AND ENABLE_NNDEPLOY_BUILD_SHARED)
   add_definitions(-DENABLE_NNDEPLOY_BUILDING_DLL)
 endif()
@@ -342,6 +493,36 @@ endif()
 if(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
+
+# for pypi
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64")
+    message(STATUS "Building for x86_64 architecture")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a")
+    message(STATUS "Building for ARM64 architecture")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a")
+    message(STATUS "Building for ARMv7 architecture")
+endif()
+
+# Platform-specific configuration
+if(WIN32)
+    # Windows-specific configuration
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+elseif(APPLE)
+    # macOS-specific configuration
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+    set(CMAKE_MACOSX_RPATH ON)
+elseif(UNIX AND NOT ANDROID AND NOT IOS)
+    # Linux-specific configuration (excluding Android and iOS)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # Only add these options when using GCC compiler
+        # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    endif()
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+# for pypi
 
 if(ENABLE_NNDEPLOY_OPENMP)
   FIND_PACKAGE(OpenMP REQUIRED)
@@ -443,6 +624,8 @@ if(ENABLE_NNDEPLOY_IR)
   set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
   add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
   if(ENABLE_NNDEPLOY_IR_ONNX)
+    # add_definitions(-DNOMINMAX)
+    # add_definitions(-DWIN32_LEAN_AND_MEAN)
     set(ENABLE_NNDEPLOY_PROTOBUF ON)
     set(ENABLE_NNDEPLOY_ONNX ON)
   endif()
@@ -470,6 +653,12 @@ set(NNDEPLOY_TEST_THIRD_PARTY_LIBRARY)
 set(NNDEPLOY_DEMO_DEPEND_LIBRARY)
 set(NNDEPLOY_DEMO_SYSTEM_LIBRARY)
 set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY)
+
+# nndeploy system library
+if(SYSTEM.iOS)
+  find_library(ACCELERATE_FRAMEWORK Accelerate)
+  set(NNDEPLOY_SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY} ${ACCELERATE_FRAMEWORK})
+endif()
 
 # nndeploy third party lib
 include(${ROOT_PATH}/cmake/nndeploy.cmake)
@@ -804,8 +993,10 @@ message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
 # # install
 if(SYSTEM.Windows)
   install(TARGETS ${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+  install(DIRECTORY ${FRAMEWORK_ROOT_PATH}/include/nndeploy DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH})
 else()
   install(TARGETS ${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+  install(DIRECTORY ${FRAMEWORK_ROOT_PATH}/include/nndeploy DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH})
 endif()
 
 # plugin
@@ -836,7 +1027,9 @@ if(ENABLE_NNDEPLOY_GFLAGS)
       include_directories(${gflags_INCLUDE_DIRS})
       set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${gflags_LIBRARIES})
     else()
-      message(FATAL_ERROR "gflags not found in system. brew install gflags or source build gflafs")
+      add_subdirectory(third_party/gflags)
+      get_target_property(GFLAGS_INCLUDE_DIRS gflags INTERFACE_INCLUDE_DIRECTORIES)
+      include_directories(BEFORE "${GFLAGS_INCLUDE_DIRS}")
     endif()
   else()
     add_subdirectory(third_party/gflags)
@@ -847,18 +1040,28 @@ endif()
 
 # test
 if(ENABLE_NNDEPLOY_TEST)
-  add_subdirectory(third_party/googletest)
+  if(MSVC)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  endif()
+  # Disable googletest from installing its components to install directory
+  # set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  # set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
+  add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 
   include(${ROOT_PATH}/test/config.cmake)
 endif()
 
 # demo
 if(ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tool/script/ DESTINATION ${NNDEPLOY_INSTALL_PATH} PATTERN "download" EXCLUDE PATTERN "third_party" EXCLUDE)
 endif()
 
 # python
 if(ENABLE_NNDEPLOY_PYTHON)
   include(${ROOT_PATH}/python/config.cmake)
 endif()
+
+# cpack
+include(${ROOT_PATH}/cmake/cpack.cmake)
 
 message(STATUS "CMAKE END. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")

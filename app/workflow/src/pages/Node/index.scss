@@ -1,0 +1,72 @@
+.page-node {
+  //padding: 20px;
+  height: calc(100vh - 17px );
+  display: flex ; 
+  gap: 15px;
+
+  .tree-pane {
+    width: 300px;
+    height: 100%;
+    border: 1px solid #eeeeee;
+
+    .tree-pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 5px;
+      background-color: #f5f5f5;
+
+      .operate {
+        display: flex;
+        gap: 5px;
+      }
+    }
+
+    .tree-node {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+
+      .label {
+        flex: 1;
+      }
+
+      .semi-tree-option-label {
+        .operate {
+
+          display: flex;
+          visibility: hidden;
+          gap: 5px;
+        }
+
+        &:hover {
+          .operate {
+            visibility: visible;
+
+          }
+        }
+      }
+    }
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+
+    .form {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+
+      .semi-form-field {
+        margin-right: 20px;
+      }
+    }
+
+    .addButton {
+      margin-bottom: 20px;
+    }
+  }
+
+
+}

@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 from nndeploy.net import build_model
 from nndeploy.net import FuseConvRelu, FuseConvBatchNorm
 import nndeploy._nndeploy_internal as _C
@@ -55,7 +55,7 @@ torch_result = torch.nn.functional.batch_norm(
 )
 
 
-class TestNet(nndeploy.net.Model):
+class TestNet(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 
@@ -74,11 +74,7 @@ class TestNet(nndeploy.net.Model):
             "norm4_scale", "norm4_bias", "norm4_mean", "norm4_var"
         )
 
-    @build_model
-    def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
-        data_type = _C.base.DataType()
-        data_type.code_ = _C.base.DataTypeCode.Fp
-        data = _C.op.makeInput(self.model_desc, "input", data_type, [1, 3, 32, 32])
+    def forward(self, data):
         data = self.conv1(data)
         data = self.relu2(data)
         data = self.conv3(data)
@@ -88,8 +84,8 @@ class TestNet(nndeploy.net.Model):
 
 def compare(model, file_path):
 
-    model.net.dump(file_path)
-    model.net.setInputs(nndeploy_input_map)
+    model.dump(file_path)
+    model.setInputs(nndeploy_input_map)
     nndeploy_result = model.run()[0]
 
     assert np.allclose(
@@ -101,30 +97,34 @@ def compare(model, file_path):
     model.net.deinit()
 
 
-# 开启图优化
-test_net0 = TestNet()
-test_net0.construct()
-compare(test_net0, "graph_opt.dot")
-
-# 禁止图优化
-test_net1 = TestNet()
-test_net1.construct(enable_net_opt=False)
+# 关闭图优化
+test_net1 = build_model(enable_static=True, enable_net_opt=False)(TestNet)()
+data_type = _C.base.DataType()
+data_type.code_ = _C.base.DataTypeCode.Fp
+data = _C.op.makeInput(test_net1.model_desc, "input", data_type, input_shape)
+test_net1.forward(data)
 compare(test_net1, "no_opt.dot")
 
+# 开启图优化（默认启用所有pass）
+test_net0 = build_model(enable_static=True)(TestNet)()
+data = _C.op.makeInput(test_net0.model_desc, "input", data_type, input_shape)
+test_net0.forward(data)
+compare(test_net0, "graph_opt.dot")
 
 # 仅开启FuseConvRelu
-test_net2 = TestNet()
-test_net2.construct(enable_pass=[FuseConvRelu])
+test_net2 = build_model(enable_static=True, enable_pass={FuseConvRelu})(TestNet)()
+data = _C.op.makeInput(test_net2.model_desc, "input", data_type, input_shape)
+test_net2.forward(data)
 compare(test_net2, "fuse_conv_relu.dot")
 
-
 # 仅开启FuseConvBatchNorm
-test_net3 = TestNet()
-test_net3.construct(enable_pass=[FuseConvBatchNorm])
+test_net3 = build_model(enable_static=True, enable_pass={FuseConvBatchNorm})(TestNet)()
+data = _C.op.makeInput(test_net3.model_desc, "input", data_type, input_shape)
+test_net3.forward(data)
 compare(test_net3, "fuse_conv_batchnorm.dot")
 
-
-# # 禁用FuseConvRelu
-test_net4 = TestNet()
-test_net4.construct(disable_pass=[FuseConvRelu])
+# 禁用FuseConvRelu（开启其他所有优化）
+test_net4 = build_model(enable_static=True, disable_pass={FuseConvRelu})(TestNet)()
+data = _C.op.makeInput(test_net4.model_desc, "input", data_type, input_shape)
+test_net4.forward(data)
 compare(test_net4, "no_fuse_conv_relu.dot")

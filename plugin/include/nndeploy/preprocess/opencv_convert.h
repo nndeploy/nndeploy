@@ -21,7 +21,7 @@
 namespace nndeploy {
 namespace preprocess {
 
-class OpenCvConvert {
+class NNDEPLOY_CC_API OpenCvConvert {
  public:
   static int convertFromCvtColorType(base::CvtColorType src);
 

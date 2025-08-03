@@ -1,4 +1,22 @@
 #include "nndeploy/dag/edge/data_packet.h"
+#ifdef ENABLE_NNDEPLOY_PYTHON
+#include <pybind11/pybind11.h>
+#endif
+
+#ifdef ENABLE_NNDEPLOY_PYTHON
+// 当启用Python时使用pybind11的GIL管理类
+#define NNDEPLOY_PYBIND_GIL_SCOPED_RELEASE pybind11::gil_scoped_release
+#define NNDEPLOY_PYBIND_GIL_SCOPED_ACQUIRE pybind11::gil_scoped_acquire
+#else
+class NullGilScope {
+ public:
+  NullGilScope() {}
+  ~NullGilScope() {}
+};
+
+#define NNDEPLOY_PYBIND_GIL_SCOPED_RELEASE NullGilScope
+#define NNDEPLOY_PYBIND_GIL_SCOPED_ACQUIRE NullGilScope
+#endif
 
 namespace nndeploy {
 namespace dag {
@@ -223,6 +241,8 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   anything_ = packet->anything_;
   type_info_ = packet->type_info_;
   deleter_ = packet->deleter_;
+  wrapper_ = packet->wrapper_;
+  wrapper_deleter_ = packet->wrapper_deleter_;
 
   packet->is_external_ = true;
   packet->index_ = -1;
@@ -231,6 +251,8 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   packet->anything_ = nullptr;
   packet->type_info_ = nullptr;
   packet->deleter_ = nullptr;
+  packet->wrapper_ = nullptr;
+  packet->wrapper_deleter_ = nullptr;
   delete packet;
   packet = nullptr;
 
@@ -274,6 +296,14 @@ void DataPacket::destory() {
   anything_ = nullptr;
   type_info_ = nullptr;
   deleter_ = nullptr;
+
+  if (wrapper_ != nullptr) {
+    NNDEPLOY_PYBIND_GIL_SCOPED_ACQUIRE gil_acquire;
+    wrapper_deleter_(wrapper_);
+    wrapper_ = nullptr;
+    NNDEPLOY_PYBIND_GIL_SCOPED_RELEASE gil_release;
+  }
+  wrapper_deleter_ = nullptr;
 }
 
 PipelineDataPacket::PipelineDataPacket(int consumers_size)

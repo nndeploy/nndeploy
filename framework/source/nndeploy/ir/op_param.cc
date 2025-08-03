@@ -345,6 +345,9 @@ std::shared_ptr<base::Param> createOpParam(OpType type) {
 // Concat 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConcat, ConcatParam);
 
+// MatMul 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeMatMul, MatMulParam);
+
 // Conv 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConv, ConvParam);
 
@@ -366,9 +369,6 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSplit, SplitParam);
 // Tranpose 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 
-// TODO: @Leonisux:
-// 补充llama的算子的参数的注册
-// RMSNorm 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization,
@@ -386,7 +386,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeDequantizeLinear, DequantizeLinearParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AvaragePoolParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AveragePoolParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeUnsqueeze, UnsqueezeParam);
 

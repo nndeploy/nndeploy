@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 
 
 class TestConvOp(unittest.TestCase):

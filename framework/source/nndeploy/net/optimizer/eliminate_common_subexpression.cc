@@ -84,18 +84,8 @@ struct CSEOpEqual {
     // 判断参数一致
 
     if (rhs->op_->getParam() != nullptr && lhs->op_->getParam() != nullptr) {
-      std::ostringstream oss;
-      rhs->op_->getParam()->serialize(oss);
-      std::string param_r_str = oss.str();
-
-      oss.str("");
-      oss.clear();
-
-      lhs->op_->getParam()->serialize(oss);
-      std::string param_l_str = oss.str();
-
-      oss.str("");
-      oss.clear();
+      std::string param_r_str = rhs->op_->getParam()->serialize();
+      std::string param_l_str = lhs->op_->getParam()->serialize();
 
       if (param_l_str != param_r_str) {
         return false;

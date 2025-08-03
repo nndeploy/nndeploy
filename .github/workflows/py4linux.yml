@@ -1,0 +1,263 @@
+# GitHub Actions workflow configuration file - Python Linux platform compilation
+# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux environment
+# Using cibuildwheel to build compatible wheel packages with multi-architecture support
+
+name: Py4Linux  # Workflow name, displayed in GitHub Actions interface
+
+# Trigger conditions configuration
+on:
+  workflow_dispatch:  # Manual trigger
+  pull_request:       # Pull Request trigger
+  push:
+    branches:
+      - main          # Trigger when pushing to main branch
+      - testpypi      # Trigger test upload when pushing to testpypi branch
+  release:
+    types:
+      - published     # Trigger when publishing Release
+
+# Job definitions
+jobs:
+  build_wheels:
+    name: Build Linux wheels
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout source code
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Step 2: Setup QEMU for ARM architecture support
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # Step 3: Install system dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      # Step 4: Pre-build C++ libraries and generate Python configuration
+      - name: Pre-build C++ libraries and generate Python configuration
+        run: |
+          # Install basic Python dependencies
+          python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
+          
+          # Install Rust
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          rustup update
+          
+          # Install OpenCV and ONNX Runtime (using system Python)
+          cd tool/script
+          python3 install_opencv.py
+          python3 install_onnxruntime.py
+          
+          # Build C++ libraries
+          cd ../..
+          mkdir -p build
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
+          cd build
+          
+          cmake -G Ninja .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DPython3_EXECUTABLE=$(which python3)
+          
+          ninja -j$(nproc)
+          ninja install
+          
+          # Verify if setup.py is generated
+          echo "=== Checking generated Python configuration files ==="
+          ls -la ../python/
+          if [ -f ../python/setup.py ]; then
+            echo "✓ setup.py generated successfully"
+            head -20 ../python/setup.py
+          else
+            echo "✗ setup.py not generated"
+            exit 1
+          fi
+
+      # Step 5: Build wheels using cibuildwheel
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          # Build configuration
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          
+          # Use manylinux_2_28 for better compatibility
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
+          
+          CIBW_BUILD_VERBOSITY: 2
+          
+          # Install system dependencies before build
+          CIBW_BEFORE_ALL_LINUX: |
+            # Update package manager
+            if command -v yum > /dev/null; then
+                yum update -y
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++
+                source /opt/rh/gcc-toolset-11/enable
+            elif command -v apt-get > /dev/null; then
+                apt-get update
+                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+            fi
+            
+            # Install Rust
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source $HOME/.cargo/env
+            rustup update
+
+          CIBW_BEFORE_BUILD: |
+            # Activate toolchain
+            if [ -f /opt/rh/gcc-toolset-11/enable ]; then
+                source /opt/rh/gcc-toolset-11/enable
+            fi
+            source $HOME/.cargo/env
+            
+            # Install OpenCV and ONNX Runtime
+            cd {project}/tool/script
+            python install_opencv.py
+            python install_onnxruntime.py
+            
+            # Build C++ libraries
+            cd {project}
+            mkdir -p build
+            cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
+            cd build
+            
+            # Set compilers
+            export CC=gcc
+            export CXX=g++
+            
+            cmake -G Ninja .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+              -DCMAKE_CXX_FLAGS="-fPIC" \
+              -DCMAKE_C_FLAGS="-fPIC" \
+              -DPython3_EXECUTABLE=$(which python)
+            
+            ninja -j$(nproc)
+            ninja install
+            
+            # Install Python build dependencies
+            pip install --upgrade pip setuptools wheel pybind11 cython
+
+          # Test built wheels
+          CIBW_TEST_COMMAND: |
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+                print(f'Platform: {platform.platform()}')
+                print(f'Architecture: {platform.machine()}')
+            except ImportError as e:
+                print(f'✗ Import failed: {e}')
+                exit(1)
+            "
+
+          # Environment variables
+          CIBW_ENVIRONMENT: |
+            PATH=$PATH:$HOME/.cargo/bin
+
+        with:
+          package-dir: ./python
+
+      # Step 6: Verify generated wheels
+      - name: Verify wheels
+        run: |
+          ls -la wheelhouse/
+          echo "=== Generated wheel files ==="
+          for wheel in wheelhouse/*.whl; do
+            echo "✓ $(basename $wheel)"
+            # Check architecture tags
+            if [[ "$wheel" == *"x86_64"* ]]; then
+              echo "  Architecture: x86_64"
+            elif [[ "$wheel" == *"aarch64"* ]]; then
+              echo "  Architecture: ARM64"
+            fi
+          done
+
+      # Step 7: Upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-wheels
+          path: ./wheelhouse/*.whl
+
+  upload_testpypi:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/testpypi' || (github.event_name == 'push' && github.ref == 'refs/heads/testpypi') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: wheels/
+          
+      - name: Merge wheels
+        run: |
+          mkdir -p dist/
+          find wheels/ -name "*.whl" -exec cp {} dist/ \;
+          ls -la dist/
+
+      - name: Verify Token configuration
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          if [ -z "$TWINE_PASSWORD" ]; then
+            echo "ERROR: TEST_PYPI_NNDEPLOY_TOKEN is empty!"
+            exit 1
+          fi
+          echo "Token configuration looks OK"
+
+      - name: Upload to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          pip install twine
+          twine check dist/*
+          twine upload --repository testpypi dist/* --verbose --skip-existing
+
+  upload_pypi:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: wheels/
+          
+      - name: Merge wheels
+        run: |
+          mkdir -p dist/
+          find wheels/ -name "*.whl" -exec cp {} dist/ \;
+          ls -la dist/
+
+      - name: Verify Token configuration
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          if [ -z "$TWINE_PASSWORD" ]; then
+            echo "ERROR: PYPI_NNDEPLOY_TOKEN is empty!"
+            exit 1
+          fi
+          echo "Token configuration looks OK"
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          pip install twine
+          twine check dist/*
+          twine upload dist/* --verbose

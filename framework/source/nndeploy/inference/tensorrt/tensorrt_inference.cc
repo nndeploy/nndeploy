@@ -110,21 +110,23 @@ base::Status TensorRtInference::init() {
       current_shape.insert({name, shape});
     }
   }
-  for (auto iter : tensorrt_inference_param->max_shape_) {
-    auto tmp = current_shape.find(iter.first);
-    if (tmp != current_shape.end()) {
-      auto &shape = current_shape[iter.first];
-      if (base::shapeEqual(iter.second, shape)) {
-        continue;
+  if (tensorrt_inference_param->is_dynamic_shape_) {
+    for (auto iter : tensorrt_inference_param->max_shape_) {
+      auto tmp = current_shape.find(iter.first);
+      if (tmp != current_shape.end()) {
+        auto &shape = current_shape[iter.first];
+        if (base::shapeEqual(iter.second, shape)) {
+          continue;
+        } else {
+          int idx = io_name_index_[iter.first];
+          nvinfer1::Dims dims = TensorRtConvert::convertFromShape(iter.second);
+          setBindingDimensions(idx, dims);
+        }
       } else {
-        int idx = io_name_index_[iter.first];
-        nvinfer1::Dims dims = TensorRtConvert::convertFromShape(iter.second);
-        setBindingDimensions(idx, dims);
+        NNDEPLOY_LOGE("reshape failed, not found input tensor(%s)!\n",
+                      iter.first.c_str());
+        return base::kStatusCodeErrorInferenceTensorRt;
       }
-    } else {
-      NNDEPLOY_LOGE("reshape failed, not found input tensor(%s)!\n",
-                    iter.first.c_str());
-      return base::kStatusCodeErrorInferenceTensorRt;
     }
   }
 
@@ -461,6 +463,9 @@ base::Status TensorRtInference::initWithOnnxModel(
     NNDEPLOY_LOGE("buildSerializedNetwork failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
+  if (tensorrt_inference_param->is_path_ && tensorrt_inference_param->model_save_path_.empty()) {
+    tensorrt_inference_param->model_save_path_ = tensorrt_inference_param->model_value_[0] + ".plan";
+  }
   if (!tensorrt_inference_param->model_save_path_.empty()) {
     std::ofstream model_file(tensorrt_inference_param->model_save_path_.c_str(),
                              std::ios::binary | std::ios::out);
@@ -469,7 +474,7 @@ base::Status TensorRtInference::initWithOnnxModel(
     }
     model_file.write(static_cast<char *>(plan->data()), plan->size());
     model_file.close();
-    return base::kStatusCodeOk;
+    NNDEPLOY_LOGI("save model to %s success\n", tensorrt_inference_param->model_save_path_.c_str());
   }
 
   runtime_ = base::UniquePtr<nvinfer1::IRuntime>(

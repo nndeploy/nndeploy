@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace inference {
 
-class MnnInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API MnnInferenceParam : public InferenceParam {
  public:
   MnnInferenceParam();
   MnnInferenceParam(base::InferenceType type);

@@ -18,6 +18,15 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"
 
+// 跨平台的编译器警告控制
+#ifdef _MSC_VER
+  // MSVC: 禁用特定警告
+  #pragma warning(push)
+  #pragma warning(disable: 26439)  // 禁用 C26439 警告
+  #pragma warning(push)
+  #pragma warning(disable: 4068)   // 禁用 C4068 警告
+#endif
+
 namespace nndeploy {
 namespace base {
 
@@ -459,5 +468,11 @@ class Any::TypeInfo
 
 }  // namespace base
 }  // namespace nndeploy
+
+// 恢复警告状态（仅对MSVC生效）
+#ifdef _MSC_VER
+  #pragma warning(pop)  // 恢复之前的警告状态
+  #pragma warning(pop)  // 恢复之前的警告状态
+#endif
 
 #endif

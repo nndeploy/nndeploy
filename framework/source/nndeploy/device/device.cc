@@ -72,18 +72,43 @@ void Device::deallocatePinned(void *ptr) { return; }
 void *Device::getContext() { return nullptr; }
 base::Status Device::bindThread() { return base::kStatusCodeOk; }
 
-Stream *Device::createStream() { return nullptr; }
-Stream *Device::createStream(void *stream) { return nullptr; }
+Stream *Device::createStream() { return new Stream(this); }
+Stream *Device::createStream(void *stream) { return new Stream(this, stream); }
 base::Status Device::destroyStream(Stream *stream) {
+  if (stream == nullptr) {
+    NNDEPLOY_LOGE("stream is nullptr\n");
+    return base::kStatusCodeOk;
+  }
+  delete stream;
+  stream = nullptr;
   return base::kStatusCodeOk;
 }
 
-Event *Device::createEvent() { return nullptr; }
-base::Status Device::destroyEvent(Event *event) { return base::kStatusCodeOk; }
+Event *Device::createEvent() { return new Event(this); }
+base::Status Device::destroyEvent(Event *event) {
+  if (event == nullptr) {
+    NNDEPLOY_LOGE("event is nullptr\n");
+    return base::kStatusCodeOk;
+  }
+  delete event;
+  event = nullptr;
+  return base::kStatusCodeOk;
+}
 base::Status Device::createEvents(Event **events, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    Event *event = this->createEvent();
+    if (event == nullptr) { 
+      NNDEPLOY_LOGE("create event failed\n");
+      return base::kStatusCodeErrorDeviceCuda;
+    }
+    events[i] = event;
+  }
   return base::kStatusCodeOk;
 }
 base::Status Device::destroyEvents(Event **events, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    this->destroyEvent(events[i]);
+  }
   return base::kStatusCodeOk;
 }
 
@@ -159,14 +184,16 @@ std::shared_ptr<Architecture> getArchitectureSharedPtr(
 
 base::DeviceType getDefaultHostDeviceType() {
   base::DeviceType dst(base::kDeviceTypeCodeCpu);
-#if NNDEPLOY_ARCHITECTURE_X86
-  dst.code_ = base::kDeviceTypeCodeX86;
-#elif NNDEPLOY_ARCHITECTURE_ARM
-  dst.code_ = base::kDeviceTypeCodeArm;
-#else
-  dst.code_ = base::kDeviceTypeCodeCpu;
-#endif
 
+  // #if NNDEPLOY_ARCHITECTURE_X86
+  //   dst.code_ = base::kDeviceTypeCodeX86;
+  // #elif NNDEPLOY_ARCHITECTURE_ARM
+  //   dst.code_ = base::kDeviceTypeCodeArm;
+  // #else
+  //   dst.code_ = base::kDeviceTypeCodeCpu;
+  // #endif
+
+  dst.code_ = base::kDeviceTypeCodeCpu;
   dst.device_id_ = 0;
 
   return dst;

@@ -19,9 +19,9 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
-#include "nndeploy/preprocess/warpaffine_preprocess.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
+#include "nndeploy/preprocess/warp_affine_cvt_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -133,6 +133,101 @@ static void generateProposals(const int *anchors, const int *strides,
   }
 }
 
+base::Status YoloMultiConvOutputPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  json.AddMember("version_", version_, allocator);
+  json.AddMember("score_threshold_", score_threshold_, allocator);
+  json.AddMember("nms_threshold_", nms_threshold_, allocator);
+  json.AddMember("obj_threshold_", obj_threshold_, allocator);
+  json.AddMember("num_classes_", num_classes_, allocator);
+  json.AddMember("model_h_", model_h_, allocator);
+  json.AddMember("model_w_", model_w_, allocator);
+
+  rapidjson::Value anchors_array(rapidjson::kArrayType);
+  for (int i = 0; i < 3; i++) {
+    rapidjson::Value anchor_group(rapidjson::kArrayType);
+    for (int j = 0; j < 6; j++) {
+      anchor_group.PushBack(anchors_[i][j], allocator);
+    }
+    anchors_array.PushBack(anchor_group, allocator);
+  }
+  json.AddMember("anchors", anchors_array, allocator);
+
+  rapidjson::Value strides_array(rapidjson::kArrayType);
+  for (int i = 0; i < 3; i++) {
+    strides_array.PushBack(strides_[i], allocator);
+  }
+  json.AddMember("strides", strides_array, allocator);
+
+  return base::kStatusCodeOk;
+}
+
+base::Status YoloMultiConvOutputPostParam::deserialize(rapidjson::Value &json) {
+  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  version_ = json["version_"].GetInt();
+
+  if (!json.HasMember("score_threshold_") || !json["score_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  score_threshold_ = json["score_threshold_"].GetFloat();
+
+  if (!json.HasMember("nms_threshold_") || !json["nms_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  nms_threshold_ = json["nms_threshold_"].GetFloat();
+
+  if (!json.HasMember("obj_threshold_") || !json["obj_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  obj_threshold_ = json["obj_threshold_"].GetFloat();
+
+  if (!json.HasMember("num_classes_") || !json["num_classes_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  num_classes_ = json["num_classes_"].GetInt();
+
+  if (!json.HasMember("model_h_") || !json["model_h_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_h_ = json["model_h_"].GetInt();
+
+  if (!json.HasMember("model_w_") || !json["model_w_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_w_ = json["model_w_"].GetInt();
+
+  if (!json.HasMember("anchors") || !json["anchors"].IsArray() || 
+      json["anchors"].Size() != 3) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  for (int i = 0; i < 3; i++) {
+    if (!json["anchors"][i].IsArray() || json["anchors"][i].Size() != 6) {
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    for (int j = 0; j < 6; j++) {
+      if (!json["anchors"][i][j].IsInt()) {
+        return base::kStatusCodeErrorInvalidValue;
+      }
+      const_cast<int(&)[3][6]>(anchors_)[i][j] = json["anchors"][i][j].GetInt();
+    }
+  }
+
+  if (!json.HasMember("strides") || !json["strides"].IsArray() || 
+      json["strides"].Size() != 3) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  for (int i = 0; i < 3; i++) {
+    if (!json["strides"][i].IsInt()) {
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    const_cast<int(&)[3]>(strides_)[i] = json["strides"][i].GetInt();
+  }
+
+  return base::kStatusCodeOk;
+}
+
 base::Status YoloMultiConvOutputPostProcess::run() {
   YoloMultiConvOutputPostParam *param =
       (YoloMultiConvOutputPostParam *)param_.get();
@@ -192,6 +287,8 @@ base::Status YoloMultiConvOutputPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
+
+
 // dag::Graph *createYoloV5MultiConvOutputGraph(
 //     const std::string &name, base::InferenceType inference_type,
 //     base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
@@ -204,7 +301,7 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //   40, 255] dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1,
 //   20, 20, 255]
 
-//   dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
+//   dag::Node *pre = graph->createNode<preprocess::WarpAffineCvtNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   infer::Infer *infer =
@@ -217,8 +314,8 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //       "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32},
 //       {output});
 
-//   preprocess::WarpAffineParam *pre_param =
-//       dynamic_cast<preprocess::WarpAffineParam *>(pre->getParam());
+//   preprocess::WarpAffineCvtNormTransParam *pre_param =
+//       dynamic_cast<preprocess::WarpAffineCvtNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;

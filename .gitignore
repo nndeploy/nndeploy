@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+*.recipe
 
 # Precompiled Headers
 *.gch
@@ -13,8 +14,11 @@
 
 # Compiled Dynamic libraries
 *.so
+*.so.*
 *.dylib
+*.dylib.*
 *.dll
+*.dll.*
 
 # Fortran module files
 *.mod
@@ -102,6 +106,9 @@ instance/
 
 # Sphinx documentation
 docs/build/
+docs/zh_cn/build_doxygen/
+docs/zh_cn/python_api/generated/
+docs/zh_cn/build/
 
 # PyBuilder
 .pybuilder/
@@ -214,13 +221,14 @@ _deps
 # build
 build
 docs/build
+docs/zh_cn/dairy/always/
 
 # vscode
 .vscode/
 .vs/
 
 # third_party
-# third_party
+third_party
 
 cmake-build-debug/
 
@@ -229,6 +237,7 @@ compile_commands.json
 
 # model
 *.onnx
+*.onnx.data
 *.json
 *.safetensors
 *.pth
@@ -250,7 +259,31 @@ ref_repo
 # cursor
 .cursor/
 
-
-app/
+# app/
 # translation
 *.mo
+/app/workflow/package-lock.json
+
+# server/resources rule
+server/resources/**
+
+# keep readme file
+!server/resources/README*
+
+.tmp/
+
+weights/
+
+# server/resources rule
+resources/**
+
+# # keep readme file
+# !resources/README*
+
+logs/
+frontend/
+gfpgan/
+
+tool/script/third_party/
+tool/script/download/
+tool/script/nndeploy_build_env/

@@ -348,8 +348,9 @@ base::Status Op::allocateWorkspace() {
   device::Device *device = device::getDevice(device_type_);
   if (workspace_ != nullptr) {
     device->deallocate(workspace_);
-    workspace_ == nullptr;
-    NNDEPLOY_LOGI("Workspace has beed allocated, now reallocate.\n");
+    workspace_ = nullptr;
+    // workspace_ == nullptr;
+    // NNDEPLOY_LOGI("Workspace has beed allocated, now reallocate.\n");
   }
   if (workspace_ == nullptr && workspace_size_ > 0) {
     workspace_ = device->allocate(workspace_size_);
@@ -372,7 +373,12 @@ base::Status Op::inferDataType() {
   }
   return base::kStatusCodeOk;
 };
-base::Status Op::inferShape() { return base::kStatusCodeOk; };
+
+base::Status Op::inferShape() { 
+  NNDEPLOY_LOGE("InferShape is not set.\n");
+  return base::kStatusCodeOk; 
+  };
+
 base::Status Op::inferDataFormat() {
   auto input_data_format = inputs_[0]->getDataFormat();
   for (int i = 0; i < outputs_.size(); ++i) {
@@ -430,7 +436,7 @@ base::Status Op::checkOrAllocOutput() {
         output->allocate(device);
       }
     }
-    is_changed_ = false;
+    // is_changed_ = false;
   }
   return base::kStatusCodeOk;
 }

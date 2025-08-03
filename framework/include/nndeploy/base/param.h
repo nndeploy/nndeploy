@@ -46,19 +46,23 @@ class NNDEPLOY_CC_API Param {
 
   virtual base::Status get(const std::string &key, base::Any &any);
 
-  // 序列化：数据结构->[rapidjson::Value\stream\path\string]
+  // 序列化：数据结构->[rapidjson::Value\string\path]
   // 衍生类只需实现serialize(rapidjson::Value &json,
   // rapidjson::Document::AllocatorType& allocator)
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
-  virtual base::Status serialize(std::ostream &stream);
-  virtual base::Status serialize(std::string &content, bool is_file);
-  // 反序列化：[rapidjson::Value\stream\path\string]->数据结构
+  virtual std::string serialize();
+  virtual base::Status saveFile(const std::string &path);
+  // 反序列化：[rapidjson::Value\string\path]->数据结构
   // 衍生类只需实现deserialize(rapidjson::Value &json)
   virtual base::Status deserialize(rapidjson::Value &json);
-  virtual base::Status deserialize(std::istream &stream);
-  virtual base::Status deserialize(const std::string &content, bool is_file);
+  virtual base::Status deserialize(const std::string &json_str);
+  virtual base::Status loadFile(const std::string &path);
 };
+
+extern NNDEPLOY_CC_API std::string removeJsonBrackets(const std::string &json_str);
+
+extern NNDEPLOY_CC_API std::string prettyJsonStr(const std::string &json_str);
 
 }  // namespace base
 }  // namespace nndeploy

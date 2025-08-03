@@ -1,0 +1,58 @@
+.connection-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-items: flex-start;
+
+  .input-area {
+    flex: 1;
+
+    &>div> :first-child {
+      width: 80px !important;
+    }
+  }
+
+  .output-area {
+    flex: 1;
+
+    &>div> :first-child {
+      width: 80px !important;
+    }
+  }
+
+  //padding: 5px 5px;
+  .connection-point {
+    position: absolute;
+
+    &.connection-point-left {
+      left: -12px;
+    }
+
+    top: 50%;
+
+    &.connection-point-right {
+      right: -12px;
+    }
+  }
+}
+
+.drawer-render-form {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  .form-content {
+    flex: 1;
+    min-height: 0;
+    //overflow: auto;
+  }
+}
+
+.resource-preview {
+  img {
+    //width :100%;
+    max-width: 100%;
+  }
+}

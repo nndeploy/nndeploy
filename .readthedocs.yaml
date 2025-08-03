@@ -12,8 +12,31 @@ build:
     python: "3.11"
     # You can also specify other tool versions:
     # nodejs: "19"
-    # rust: "1.64"
+    rust: "1.78"
     # golang: "1.19"
+  apt_packages:
+    - doxygen
+    - graphviz
+    - build-essential
+    - cmake
+    - ninja-build
+    - pkg-config
+    - libopencv-dev
+    - protobuf-compiler
+    - libprotobuf-dev
+  jobs:
+    post_checkout:
+      # 确保所有子模块被正确初始化和更新
+      - git submodule update --init --recursive
+    post_install:
+      # 在安装依赖包后立即验证cmake是否可用
+      - which cmake
+      - cmake --version
+    pre_build:
+      # 创建build目录
+      - mkdir -p build
+      # 进入构建目录进行配置和编译
+      - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

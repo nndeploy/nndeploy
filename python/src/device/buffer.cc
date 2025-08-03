@@ -84,6 +84,9 @@ base::DataType getDataTypeFromNumpy(char kind, int itemsize) {
     case 'd':
       data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
       break;
+    case 'l':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
     default:
       std::stringstream ss;
       ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
@@ -191,10 +194,10 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            "Clone the buffer")
       .def("copy_to", &Buffer::copyTo, py::arg("dst"),
            "Copy the buffer to the destination buffer")
-      // .def("serialize", &Buffer::serialize, py::arg("stream"),
-      //      "Serialize the buffer to a binary stream")
-      // .def("deserialize", &Buffer::deserialize, py::arg("stream"),
-      //      "Deserialize the buffer from a binary stream")
+      .def("serialize", py::overload_cast<std::string&>(&Buffer::serialize), py::arg("bin_str"),
+           "Serialize the buffer to a binary string")
+      .def("deserialize", py::overload_cast<const std::string&>(&Buffer::deserialize), py::arg("bin_str"),
+           "Deserialize the buffer from a binary string")
       .def("print",
            [](const Buffer &self) {
              std::ostringstream os;

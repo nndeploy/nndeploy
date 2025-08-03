@@ -24,8 +24,8 @@ namespace dag {
 class NNDEPLOY_CC_API Loop : public Graph {
  public:
   Loop(const std::string &name);
-  Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
-       std::vector<dag::Edge *> &outputs);
+  Loop(const std::string &name, std::vector<dag::Edge *> inputs,
+       std::vector<dag::Edge *> outputs);
   virtual ~Loop();
 
   virtual base::Status init();

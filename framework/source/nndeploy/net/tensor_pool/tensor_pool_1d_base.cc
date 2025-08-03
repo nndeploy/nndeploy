@@ -29,7 +29,7 @@ base::Status TensorPool1D::initTensorUsageRecord() {
     device::BufferDesc buffer_desc =
         device_->toBufferDesc(tensor_desc, config_);
     tensor_usage_record->size_ = buffer_desc.getSize();
-    int min = op_repository_.size() - 1;
+    int min = static_cast<int>(op_repository_.size() - 1);
     int max = 0;
     std::vector<int> order_index =
         getOpOrderIndex(tensor_repository_[i]->producers_,
@@ -47,7 +47,7 @@ base::Status TensorPool1D::initTensorUsageRecord() {
       // NNDEPLOY_LOGE("Tensor name: %s\n",
       //               tensor_repository_[i]->tensor_->getName().c_str());
       min = 0;
-      max = op_repository_.size() - 1;
+      max = static_cast<int>(op_repository_.size() - 1);
     }
     tensor_usage_record->interval_[0] = min;
     tensor_usage_record->interval_[1] = max;

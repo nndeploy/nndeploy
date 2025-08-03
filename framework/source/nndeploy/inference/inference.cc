@@ -13,7 +13,7 @@ Inference::Inference(base::InferenceType type) {
 
 Inference::~Inference() {
   // delete inference_param_;
-  inference_param_ = nullptr;
+  // 智能指针会自动释放,不需要手动设置nullptr
   if (!is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
     stream_ = nullptr;
@@ -137,8 +137,10 @@ bool Inference::canOpOutput() {
   return can_op_output;
 }
 
-int Inference::getNumOfInputTensor() { return input_tensors_.size(); }
-int Inference::getNumOfOutputTensor() { return output_tensors_.size(); }
+int Inference::getNumOfInputTensor() { return static_cast<int>(input_tensors_.size());
+}
+int Inference::getNumOfOutputTensor() { return static_cast<int>(output_tensors_.size());
+}
 
 std::string Inference::getInputName(int i) {
   std::vector<std::string> names = getAllInputTensorName();
@@ -355,8 +357,8 @@ base::Status Inference::setInputTensor(const std::string &name,
 //   return status;
 // }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

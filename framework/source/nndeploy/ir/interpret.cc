@@ -25,13 +25,20 @@ Interpret::~Interpret() {
 }
 
 base::Status Interpret::dump(std::ostream &oss) {
-  return model_desc_->serializeStructureToJson(oss);
+  std::string structure_str;
+  base::Status status = model_desc_->serializeStructureToJsonStr(structure_str);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("model_desc_->serializeStructureToJsonStr failed!\n");
+    return status;
+  }
+  oss.write(structure_str.c_str(), structure_str.size());
+  return base::kStatusCodeOk;
 }
 
 base::Status Interpret::saveModel(
-    std::ostream &structure_stream,
+    std::string &structure_str,
     std::shared_ptr<safetensors::safetensors_t> st_ptr) {
-  base::Status status = model_desc_->serializeStructureToJson(structure_stream);
+  base::Status status = model_desc_->serializeStructureToJsonStr(structure_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("model_desc_->serializeStructureToJson failed!\n");
     return status;
@@ -56,12 +63,15 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
                     structure_file_path.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
+    std::string structure_str;
     base::Status status =
-        model_desc_->serializeStructureToJson(structure_stream);
+        model_desc_->serializeStructureToJsonStr(structure_str);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("model_desc_->serializeStructureToJson failed!\n");
       return status;
     }
+    structure_stream.write(structure_str.c_str(), structure_str.size());
+    structure_stream.close();
   }
 
   // 检查weight_file_path，确保使用'.safetensors'作为权重文件的后缀

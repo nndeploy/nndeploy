@@ -35,6 +35,9 @@ set(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU OFF) # Whether to enable device Sophon NPU
 
 # Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)
 set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN OFF) # Whether to enable operator X86_ONEDNN, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK OFF) # Whether to enable operator ARM_XNNPACK, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNNPACK, default is OFF
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF

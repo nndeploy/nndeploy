@@ -1,0 +1,120 @@
+# GitHub Actions workflow configuration file - iOS platform compilation
+# This file is used to configure the CI/CD process for automatic project compilation in iOS environment
+
+name: iOS  # Workflow name
+
+# Trigger condition configuration
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'framework/**'
+      - 'plugin/**'
+      - 'python/src/**'
+      - 'test/**'
+      - 'demo/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/ios.yml'
+
+# Environment variables definition
+env:
+  IOS_DEPLOYMENT_TARGET: 11.0
+  OPENCV_VERSION: 4.8.0
+
+# Job definition
+jobs:
+  build:
+    name: iOS Build
+    runs-on: macos-latest
+  
+    steps:
+      # Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      # Setup Xcode environment
+      - name: Setup Xcode environment
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+          
+      # Setup Rust toolchain
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+          
+      # Install iOS development tools
+      - name: Install iOS development tools
+        run: |
+          brew update
+          brew install cmake ninja
+            
+      # Download and setup iOS OpenCV
+      - name: Download and setup iOS OpenCV
+        run: |
+          cd $HOME
+          wget -O opencv-ios.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-ios-framework.zip
+          unzip opencv-ios.zip
+          mv opencv2.framework opencv-ios-framework
+          echo "OpenCV for iOS downloaded and extracted to: $HOME/opencv-ios-framework"
+          ls -la $HOME/opencv-ios-framework/
+          
+      # Configure CMake build environment
+      - name: Configure build
+        run: |
+          mkdir build
+          cp cmake/config_minimal.cmake build/config.cmake
+          cd build
+          cmake -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ env.IOS_DEPLOYMENT_TARGET }} \
+            -DCMAKE_IOS_INSTALL_COMBINED=YES \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOpenCV_DIR=$HOME/opencv-ios-framework \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            ..
+      
+      # Compile, verify and upload build artifacts
+      - name: Compile, verify and upload build artifacts
+        run: |
+          cd build
+          ninja -j$(sysctl -n hw.ncpu)
+          ninja install
+          # cpack
+          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-ios-arm64.tar.gz {} +
+          ls -la
+          echo "iOS arm64 architecture compilation completed (with OpenCV support)"
+          
+      - name: Upload packaged library
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-arm64-release-package
+          path: build/*.tar.gz
+          retention-days: 7
+
+      # Add Release Assets upload step
+      - name: Upload package to Release Assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

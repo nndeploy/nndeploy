@@ -50,9 +50,6 @@ enum CvtColorType : int {
   kCvtColorTypeNotSupport,
 };
 
-extern NNDEPLOY_CC_API CvtColorType calCvtColorType(PixelType src,
-                                                    PixelType dst);
-
 enum InterpType : int {
   /** nearest neighbor interpolation */
   kInterpTypeNearst = 0x00,
@@ -78,6 +75,19 @@ enum BorderType : int {
   // not sopport
   kBorderTypeNotSupport,
 };
+
+
+extern NNDEPLOY_CC_API CvtColorType calCvtColorType(PixelType src,
+                                                    PixelType dst);
+
+extern NNDEPLOY_CC_API std::string pixelTypeToString(PixelType pixel_type);
+extern NNDEPLOY_CC_API PixelType stringToPixelType(const std::string &pixel_type_str);
+extern NNDEPLOY_CC_API std::string cvtColorTypeToString(CvtColorType cvt_color_type);
+extern NNDEPLOY_CC_API CvtColorType stringToCvtColorType(const std::string &cvt_color_type_str);
+extern NNDEPLOY_CC_API std::string interpTypeToString(InterpType interp_type);
+extern NNDEPLOY_CC_API InterpType stringToInterpType(const std::string &interp_type_str);
+extern NNDEPLOY_CC_API std::string borderTypeToString(BorderType border_type);
+extern NNDEPLOY_CC_API BorderType stringToBorderType(const std::string &border_type_str);
 
 template <typename T>
 class Point3;

@@ -40,6 +40,7 @@ base::Status OpReshape::inferShape() {
   bool outputProductValid = true;
   for (int i = 0; i < static_cast<int>(target_shape_size); ++i) {
     const auto dim_value = target_shape_data[i];
+    NNDEPLOY_LOGI("dim_value[%d] = %ld\n", i, dim_value);
 
     if (dim_value == -1) {
       negativeOneDim = i;
@@ -50,17 +51,18 @@ base::Status OpReshape::inferShape() {
       // inferred, set the corresponding  unresolvedZeros flag to true.
       // If allowzero is set however, do not propagate values, since output
       // dimension is explicitly zero.
-      NNDEPLOY_LOGE("Invalid dimension value: %ld.\n", dim_value);
+      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
     } else if (dim_value > 0) {
       // Set the dimension value to dim_value
       output_shape[i] = dim_value;
       outputProduct *= dim_value;
     } else {
       // Check if value is less than -1; fail if so
-      NNDEPLOY_LOGE("Invalid dimension value: %ld.\n", dim_value);
+      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
     }
   }
-
+  std::string shape_str1 = base::vectorToString(output_shape);   
+  std::cout << "output_shape: " << shape_str1 << std::endl; 
   // If negativeOneDim has been set, we attempt to infer its value. This
   // can be done if all dimension values for the data input tensor shape
   // are known other than the ones corresponding to unresolvedZeros
@@ -87,7 +89,6 @@ base::Status OpReshape::inferShape() {
       output_shape[negativeOneDim] = (inputProduct / outputProduct);
     }
   }
-
   outputs_[0]->reshape(output_shape);
 
   return status;
@@ -123,7 +124,7 @@ base::Status OpReshape::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status reshape(device::Tensor *input,
+base::Status reshape(device::Tensor *input, device::Tensor *shape, 
                      std::shared_ptr<ir::ReshapeParam> param,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
@@ -136,6 +137,8 @@ base::Status reshape(device::Tensor *input,
   status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(shape, 1);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");

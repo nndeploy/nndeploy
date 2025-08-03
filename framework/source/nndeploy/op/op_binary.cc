@@ -32,8 +32,8 @@ base::Status OpBinary::inferShape() {
   base::IntVector output_shape;
 
   // 获取两个输入形状的维度大小
-  int input0_size = input0_shape.size(); // 输入0的维度数量
-  int input1_size = input1_shape.size(); // 输入1的维度数量
+  int input0_size = static_cast<int>(input0_shape.size()); // 输入0的维度数量
+  int input1_size = static_cast<int>(input1_shape.size()); // 输入1的维度数量
 
   if (input0_size == input1_size) {
     // 如果两个输入的维度数量相同
@@ -64,7 +64,7 @@ base::Status OpBinary::inferShape() {
     output_shape.resize(max_size); // 输出形状调整为较大维度的数量
 
     // 从右向左填充较小的形状
-    int diff = max_size - smaller_shape.size(); // 维度差值
+    int diff = max_size - static_cast<int>(smaller_shape.size()); // 维度差值
     for (int i = max_size - 1; i >= 0; i--) {
       if (i >= diff) { // 对于较小形状有对应维度的部分
         int smaller_idx = i - diff; // 计算较小形状的索引

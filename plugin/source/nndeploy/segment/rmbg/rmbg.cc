@@ -18,10 +18,24 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace segment {
+
+base::Status RMBGPostParam::serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator){
+  json.AddMember("version", version_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status RMBGPostParam::deserialize(rapidjson::Value &json) {
+  if (json.HasMember("version") && json["version"].IsInt()) {
+    version_ = json["version"].GetInt();
+  }
+  return base::kStatusCodeOk;
+}
+
 
 base::Status RMBGPostProcess::run() {
   // 从输入边缘获取输入图像矩阵
@@ -93,7 +107,7 @@ base::Status RMBGPostProcess::run() {
 //   dag::Edge *infer_input = graph->createEdge("input");
 //   dag::Edge *infer_output = graph->createEdge("output");
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   infer::Infer *infer = dynamic_cast<infer::Infer *>(
@@ -108,8 +122,8 @@ base::Status RMBGPostProcess::run() {
 //   dag::Node *post = graph->createNode<RMBGPostProcess>(
 //       "postprocess", {input, infer_output}, {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;

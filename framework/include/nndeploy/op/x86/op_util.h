@@ -1,0 +1,23 @@
+#ifndef _NNDEPLOY_OP_X86_OP_UTIL_H_
+#define _NNDEPLOY_OP_X86_OP_UTIL_H_
+
+#include "nndeploy/op/x86/op_include.h"
+
+namespace nndeploy {
+
+namespace op {
+
+// 获取dnnl engine和stream
+dnnl::engine& getDnnlEngine();
+dnnl::stream& getDnnlStream();
+
+// Read from dnnl memory, write to handle
+void read_from_dnnl_memory(void* handle, dnnl::memory& mem);
+
+void print_memory_desc(const dnnl::memory::desc &md);
+
+long long normalize_index(long long index, long long dim_size);
+}  // namespace op
+}  // namespace nndeploy
+
+#endif

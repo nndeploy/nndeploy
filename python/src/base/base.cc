@@ -1,60 +1,163 @@
 
 #include "base/base.h"
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/type.h"
 #include "nndeploy_api_registry.h"
+#include "nndeploy/base/dlopen.h"
 
 namespace nndeploy {
 namespace base {
 
-// class PyParam : public Param {
-//  public:
-//   using Param::Param;
+// 辅助函数:将Python dict转换为rapidjson::Value
+rapidjson::Value pyDict2Json(const py::dict& dict,
+                             rapidjson::Document::AllocatorType& allocator) {
+  rapidjson::Value json(rapidjson::kObjectType);
 
-//   std::shared_ptr<nndeploy::base::Param> copy() override {
-//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<nndeploy::base::Param>, Param, "copy", copy);
-//   }
+  for (const auto& item : dict) {
+    std::string key = py::str(item.first);
+    py::handle value = item.second;
 
-//   base::Status copyTo(nndeploy::base::Param *param) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "copy_to", copyTo, param);
-//   }
+    if (py::isinstance<py::str>(value)) {
+      std::string str_val = value.cast<std::string>();
+      json.AddMember(rapidjson::StringRef(key.c_str()),
+                     rapidjson::StringRef(str_val.c_str()), allocator);
+    } else if (py::isinstance<py::int_>(value)) {
+      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<int>(),
+                     allocator);
+    } else if (py::isinstance<py::float_>(value)) {
+      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<float>(),
+                     allocator);
+    } else if (py::isinstance<py::bool_>(value)) {
+      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<bool>(),
+                     allocator);
+    } else if (py::isinstance<py::dict>(value)) {
+      json.AddMember(rapidjson::StringRef(key.c_str()),
+                     pyDict2Json(value.cast<py::dict>(), allocator), allocator);
+    } else if (py::isinstance<py::list>(value) ||
+               py::isinstance<py::tuple>(value)) {
+      rapidjson::Value array(rapidjson::kArrayType);
+      py::sequence seq = value.cast<py::sequence>();
+      for (size_t i = 0; i < seq.size(); i++) {
+        py::handle item = seq[i];
+        if (py::isinstance<py::str>(item)) {
+          std::string str_val = item.cast<std::string>();
+          array.PushBack(rapidjson::StringRef(str_val.c_str()), allocator);
+        } else if (py::isinstance<py::int_>(item)) {
+          array.PushBack(item.cast<int>(), allocator);
+        } else if (py::isinstance<py::float_>(item)) {
+          array.PushBack(item.cast<float>(), allocator);
+        } else if (py::isinstance<py::bool_>(item)) {
+          array.PushBack(item.cast<bool>(), allocator);
+        } else if (py::isinstance<py::dict>(item)) {
+          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
+                         allocator);
+        } else if (py::isinstance<py::list>(item) ||
+                   py::isinstance<py::tuple>(item)) {
+          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
+                         allocator);
+        } else if (item.is_none()) {
+          array.PushBack(rapidjson::Value(), allocator);
+        }
+      }
+      json.AddMember(rapidjson::StringRef(key.c_str()), array, allocator);
+    } else if (value.is_none()) {
+      json.AddMember(rapidjson::StringRef(key.c_str()), rapidjson::Value(),
+                     allocator);
+    }
+  }
+  return json;
+}
 
-//   base::Status set(const std::string &key, base::Any &any) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "set", set, key, any);
-//   }
+// 辅助函数:将rapidjson::Value转换为Python dict
+py::dict json2PyDict(const rapidjson::Value& json) {
+  py::dict dict;
 
-//   base::Status get(const std::string &key, base::Any &any) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "get", get, key, any);
-//   }
+  for (auto it = json.MemberBegin(); it != json.MemberEnd(); ++it) {
+    std::string key = it->name.GetString();
+    const auto& value = it->value;
 
-//   base::Status serialize(rapidjson::Value &json,
-//                         rapidjson::Document::AllocatorType &allocator) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, json, allocator);
-//   }
-
-//   base::Status serialize(std::ostream &stream) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, stream);
-//   }
-
-//   base::Status serialize(std::string &content, bool is_file) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, content, is_file);
-//   }
-
-//   base::Status deserialize(rapidjson::Value &json) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, json);
-//   }
-
-//   base::Status deserialize(std::istream &stream) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, stream);
-//   }
-
-//   base::Status deserialize(const std::string &content, bool is_file) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, content, is_file);
-//   }
-// };
+    if (value.IsString()) {
+      dict[key.c_str()] = value.GetString();
+    } else if (value.IsInt()) {
+      dict[key.c_str()] = value.GetInt();
+    } else if (value.IsInt64()) {
+      dict[key.c_str()] = value.GetInt64();
+    } else if (value.IsUint()) {
+      dict[key.c_str()] = value.GetUint();
+    } else if (value.IsUint64()) {
+      dict[key.c_str()] = value.GetUint64();
+    } else if (value.IsFloat()) {
+      dict[key.c_str()] = value.GetFloat();
+    } else if (value.IsDouble()) {
+      dict[key.c_str()] = value.GetDouble();
+    } else if (value.IsBool()) {
+      dict[key.c_str()] = value.GetBool();
+    } else if (value.IsObject()) {
+      dict[key.c_str()] = json2PyDict(value);
+    } else if (value.IsArray()) {
+      py::list list;
+      for (rapidjson::SizeType i = 0; i < value.Size(); i++) {
+        const auto& item = value[i];
+        if (item.IsString()) {
+          list.append(item.GetString());
+        } else if (item.IsInt()) {
+          list.append(item.GetInt());
+        } else if (item.IsInt64()) {
+          list.append(item.GetInt64());
+        } else if (item.IsUint()) {
+          list.append(item.GetUint());
+        } else if (item.IsUint64()) {
+          list.append(item.GetUint64());
+        } else if (item.IsFloat()) {
+          list.append(item.GetFloat());
+        } else if (item.IsDouble()) {
+          list.append(item.GetDouble());
+        } else if (item.IsBool()) {
+          list.append(item.GetBool());
+        } else if (item.IsObject()) {
+          list.append(json2PyDict(item));
+        } else if (item.IsArray()) {
+          py::list sublist;
+          for (rapidjson::SizeType j = 0; j < item.Size(); j++) {
+            const auto& subitem = item[j];
+            if (subitem.IsObject()) {
+              sublist.append(json2PyDict(subitem));
+            } else if (subitem.IsString()) {
+              sublist.append(subitem.GetString());
+            } else if (subitem.IsInt()) {
+              sublist.append(subitem.GetInt());
+            } else if (subitem.IsInt64()) {
+              sublist.append(subitem.GetInt64());
+            } else if (subitem.IsUint()) {
+              sublist.append(subitem.GetUint());
+            } else if (subitem.IsUint64()) {
+              sublist.append(subitem.GetUint64());
+            } else if (subitem.IsFloat()) {
+              sublist.append(subitem.GetFloat());
+            } else if (subitem.IsDouble()) {
+              sublist.append(subitem.GetDouble());
+            } else if (subitem.IsBool()) {
+              sublist.append(subitem.GetBool());
+            } else if (subitem.IsNull()) {
+              sublist.append(py::none());
+            }
+          }
+          list.append(sublist);
+        } else if (item.IsNull()) {
+          list.append(py::none());
+        }
+      }
+      dict[key.c_str()] = list;
+    } else if (value.IsNull()) {
+      dict[key.c_str()] = py::none();
+    }
+  }
+  return dict;
+}
 
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode export as base.DataTypeCode
@@ -162,6 +265,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("NC8HW", DataFormat::kDataFormatNC8HW)
       .value("NCDHW", DataFormat::kDataFormatNCDHW)
       .value("NDHWC", DataFormat::kDataFormatNDHWC)
+      .value("NDCHW", DataFormat::kDataFormatNDCHW)
       .value("Auto", DataFormat::kDataFormatAuto)
       .value("NotSupport", DataFormat::kDataFormatNotSupport)
       .export_values();
@@ -255,6 +359,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("Hdf5", ModelType::kModelTypeHdf5)
       .value("Safetensors", ModelType::kModelTypeSafetensors)
       .value("NeuroPilot", ModelType::kModelTypeNeuroPilot)
+      .value("GGUF", ModelType::kModelTypeGGUF)
       .value("NotSupport", ModelType::kModelTypeNotSupport)
       .export_values();
 
@@ -283,6 +388,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("Vllm", InferenceType::kInferenceTypeVllm)
       .value("SGLang", InferenceType::kInferenceTypeSGLang)
       .value("Lmdeploy", InferenceType::kInferenceTypeLmdeploy)
+      .value("LlamaCpp", InferenceType::kInferenceTypeLlamaCpp)
       .value("LLM", InferenceType::kInferenceTypeLLM)
       .value("XDit", InferenceType::kInferenceTypeXDit)
       .value("OneDiff", InferenceType::kInferenceTypeOneDiff)
@@ -414,6 +520,21 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
              StatusCode::kStatusCodeErrorInferenceTensorFlow)
       .value("ErrorInferenceNeuroPilot",
              StatusCode::kStatusCodeErrorInferenceNeuroPilot)
+      .value("ErrorInferenceVllm", StatusCode::kStatusCodeErrorInferenceVllm)
+      .value("ErrorInferenceSGLang",
+             StatusCode::kStatusCodeErrorInferenceSGLang)
+      .value("ErrorInferenceLmdeploy",
+             StatusCode::kStatusCodeErrorInferenceLmdeploy)
+      .value("ErrorInferenceLlamaCpp",
+             StatusCode::kStatusCodeErrorInferenceLlamaCpp)
+      .value("ErrorInferenceLLM", StatusCode::kStatusCodeErrorInferenceLLM)
+      .value("ErrorInferenceXDit", StatusCode::kStatusCodeErrorInferenceXDit)
+      .value("ErrorInferenceOneDiff",
+             StatusCode::kStatusCodeErrorInferenceOneDiff)
+      .value("ErrorInferenceDiffusers",
+             StatusCode::kStatusCodeErrorInferenceDiffusers)
+      .value("ErrorInferenceDiff", StatusCode::kStatusCodeErrorInferenceDiff)
+      .value("ErrorInferenceOther", StatusCode::kStatusCodeErrorInferenceOther)
       .value("ErrorDag", StatusCode::kStatusCodeErrorDag)
       .export_values();
 
@@ -490,9 +611,229 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("NotSupport", CvtColorType::kCvtColorTypeNotSupport)
       .export_values();
 
+  // export as base.data_type_code_to_string
+  m.def("data_type_code_to_string", &dataTypeCodeToString,
+        "data_type_code_to_string", py::arg("src"));
+
+  // export as base.string_to_data_type_code
+  m.def("string_to_data_type_code", &stringToDataTypeCode,
+        "string_to_data_type_code", py::arg("src"));
+
+  // export as base.data_type_to_string
+  m.def("data_type_to_string", &dataTypeToString, "data_type_to_string",
+        py::arg("data_type"));
+
+  // export as base.string_to_data_type
+  m.def("string_to_data_type", &stringToDataType, "string_to_data_type",
+        py::arg("str"));
+
+  // export as base.data_format_to_string
+  m.def("data_format_to_string", &dataFormatToString, "data_format_to_string",
+        py::arg("data_format"));
+
+  // export as base.string_to_data_format
+  m.def("string_to_data_format", &stringToDataFormat, "string_to_data_format",
+        py::arg("str"));
+
+  // export as base.string_to_device_type_code
+  m.def("string_to_device_type_code", &stringToDeviceTypeCode,
+        "string_to_device_type_code", py::arg("src"));
+
+  // export as base.device_type_code_to_string
+  m.def("device_type_code_to_string", &deviceTypeCodeToString,
+        "device_type_code_to_string", py::arg("src"));
+
+  // export as base.string_to_device_type
+  m.def("string_to_device_type", &stringToDeviceType, "string_to_device_type",
+        py::arg("src"));
+
+  // export as base.device_type_to_string
+  m.def("device_type_to_string", &deviceTypeToString, "device_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_model_type
+  m.def("string_to_model_type", &stringToModelType, "string_to_model_type",
+        py::arg("src"));
+
+  // export as base.model_type_to_string
+  m.def("model_type_to_string", &modelTypeToString, "model_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_inference_type
+  m.def("string_to_inference_type", &stringToInferenceType,
+        "string_to_inference_type", py::arg("src"));
+
+  // export as base.inference_type_to_string
+  m.def("inference_type_to_string", &inferenceTypeToString,
+        "inference_type_to_string", py::arg("src"));
+
+  // export as base.string_to_encrypt_type
+  m.def("string_to_encrypt_type", &stringToEncryptType,
+        "string_to_encrypt_type", py::arg("src"));
+
+  // export as base.encrypt_type_to_string
+  m.def("encrypt_type_to_string", &encryptTypeToString,
+        "encrypt_type_to_string", py::arg("src"));
+
+  // export as base.string_to_share_memory_type
+  m.def("string_to_share_memory_type", &stringToShareMemoryType,
+        "string_to_share_memory_type", py::arg("src"));
+
+  // export as base.share_memory_type_to_string
+  m.def("share_memory_type_to_string", &shareMemoryTypeToString,
+        "share_memory_type_to_string", py::arg("src"));
+
+  // export as base.string_to_memory_type
+  m.def("string_to_memory_type", &stringToMemoryType, "string_to_memory_type",
+        py::arg("src"));
+
+  // export as base.memory_type_to_string
+  m.def("memory_type_to_string", &memoryTypeToString, "memory_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_memory_pool_type
+  m.def("string_to_memory_pool_type", &stringToMemoryPoolType,
+        "string_to_memory_pool_type", py::arg("src"));
+
+  // export as base.memory_pool_type_to_string
+  m.def("memory_pool_type_to_string", &memoryPoolTypeToString,
+        "memory_pool_type_to_string", py::arg("src"));
+
+  // export as base.string_to_tensor_type
+  m.def("string_to_tensor_type", &stringToTensorType, "string_to_tensor_type",
+        py::arg("src"));
+
+  // export as base.tensor_type_to_string
+  m.def("tensor_type_to_string", &tensorTypeToString, "tensor_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_forward_op_type
+  m.def("string_to_forward_op_type", &stringToForwardOpType,
+        "string_to_forward_op_type", py::arg("src"));
+
+  // export as base.forward_op_type_to_string
+  m.def("forward_op_type_to_string", &forwardOpTypeToString,
+        "forward_op_type_to_string", py::arg("src"));
+
+  // export as base.string_to_inference_opt_level
+  m.def("string_to_inference_opt_level", &stringToInferenceOptLevel,
+        "string_to_inference_opt_level", py::arg("src"));
+
+  // export as base.inference_opt_level_to_string
+  m.def("inference_opt_level_to_string", &inferenceOptLevelToString,
+        "inference_opt_level_to_string", py::arg("src"));
+
+  // export as base.string_to_precision_type
+  m.def("string_to_precision_type", &stringToPrecisionType,
+        "string_to_precision_type", py::arg("src"));
+
+  // export as base.precision_type_to_string
+  m.def("precision_type_to_string", &precisionTypeToString,
+        "precision_type_to_string", py::arg("src"));
+
+  // export as base.string_to_power_type
+  m.def("string_to_power_type", &stringToPowerType, "string_to_power_type",
+        py::arg("src"));
+
+  // export as base.power_type_to_string
+  m.def("power_type_to_string", &powerTypeToString, "power_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_codec_type
+  m.def("string_to_codec_type", &stringToCodecType, "string_to_codec_type",
+        py::arg("src"));
+
+  // export as base.codec_type_to_string
+  m.def("codec_type_to_string", &codecTypeToString, "codec_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_codec_flag
+  m.def("string_to_codec_flag", &stringToCodecFlag, "string_to_codec_flag",
+        py::arg("src"));
+
+  // export as base.codec_flag_to_string
+  m.def("codec_flag_to_string", &codecFlagToString, "codec_flag_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_parallel_type
+  m.def("string_to_parallel_type", &stringToParallelType,
+        "string_to_parallel_type", py::arg("src"));
+
+  // export as base.parallel_type_to_string
+  m.def("parallel_type_to_string", &parallelTypeToString,
+        "parallel_type_to_string", py::arg("src"));
+
+  // export as base.string_to_edge_type
+  m.def("string_to_edge_type", &stringToEdgeType, "string_to_edge_type",
+        py::arg("src"));
+
+  // export as base.edge_type_to_string
+  m.def("edge_type_to_string", &edgeTypeToString, "edge_type_to_string",
+        py::arg("src"));
+
+  // export as base.string_to_edge_update_flag
+  m.def("string_to_edge_update_flag", &stringToEdgeUpdateFlag,
+        "string_to_edge_update_flag", py::arg("src"));
+
+  // export as base.edge_update_flag_to_string
+  m.def("edge_update_flag_to_string", &edgeUpdateFlagToString,
+        "edge_update_flag_to_string", py::arg("src"));
+
+  // export as base.string_to_node_color_type
+  m.def("string_to_node_color_type", &stringToNodeColorType,
+        "string_to_node_color_type", py::arg("src"));
+
+  // export as base.node_color_type_to_string
+  m.def("node_color_type_to_string", &nodeColorTypeToString,
+        "node_color_type_to_string", py::arg("src"));
+
+  // export as base.string_to_topo_sort_type
+  m.def("string_to_topo_sort_type", &stringToTopoSortType,
+        "string_to_topo_sort_type", py::arg("src"));
+
+  // export as base.topo_sort_type_to_string
+  m.def("topo_sort_type_to_string", &topoSortTypeToString,
+        "topo_sort_type_to_string", py::arg("src"));
+
+  // export as base.get_precision_type
+  m.def("get_precision_type", &getPrecisionType, "get_precision_type",
+        py::arg("data_type"));
+
   // export as base.cal_cvt_color_type
   m.def("cal_cvt_color_type", &calCvtColorType, "cal_cvt_color_type",
         py::arg("src"), py::arg("dst"));
+
+  // export as base.pixel_type_to_string
+  m.def("pixel_type_to_string", &pixelTypeToString, "pixel_type_to_string",
+        py::arg("pixel_type"));
+
+  // export as base.string_to_pixel_type
+  m.def("string_to_pixel_type", &stringToPixelType, "string_to_pixel_type",
+        py::arg("pixel_type_str"));
+
+  // export as base.cvt_color_type_to_string
+  m.def("cvt_color_type_to_string", &cvtColorTypeToString,
+        "cvt_color_type_to_string", py::arg("cvt_color_type"));
+
+  // export as base.string_to_cvt_color_type
+  m.def("string_to_cvt_color_type", &stringToCvtColorType,
+        "string_to_cvt_color_type", py::arg("cvt_color_type_str"));
+
+  // export as base.interp_type_to_string
+  m.def("interp_type_to_string", &interpTypeToString, "interp_type_to_string",
+        py::arg("interp_type"));
+
+  // export as base.string_to_interp_type
+  m.def("string_to_interp_type", &stringToInterpType, "string_to_interp_type",
+        py::arg("interp_type_str"));
+
+  // export as base.border_type_to_string
+  m.def("border_type_to_string", &borderTypeToString, "border_type_to_string",
+        py::arg("border_type"));
+
+  // export as base.string_to_border_type
+  m.def("string_to_border_type", &stringToBorderType, "string_to_border_type",
+        py::arg("border_type_str"));
 
   // export as base.InterpType
   py::enum_<InterpType>(m, "InterpType")
@@ -558,23 +899,52 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "title");
 
   // export as base.Param
-  py::class_<Param, PyParam<Param>, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
+  py::class_<Param, PyParam<Param>, std::shared_ptr<Param>>(m, "Param",
+                                                            py::dynamic_attr())
       .def(py::init<>())
       .def("copy", &Param::copy)
       .def("copy_to", &Param::copyTo)
       .def("set", &Param::set)
       .def("get", &Param::get)
+
       .def("serialize", py::overload_cast<rapidjson::Value&,
                                           rapidjson::Document::AllocatorType&>(
                             &Param::serialize))
-      .def("serialize", py::overload_cast<std::ostream&>(&Param::serialize))
-      .def("serialize",
-           py::overload_cast<std::string&, bool>(&Param::serialize))
+      .def("serialize", py::overload_cast<>(&Param::serialize))
+      .def("save_file", py::overload_cast<const std::string&>(&Param::saveFile))
+
       .def("deserialize",
            py::overload_cast<rapidjson::Value&>(&Param::deserialize))
-      .def("deserialize", py::overload_cast<std::istream&>(&Param::deserialize))
       .def("deserialize",
-           py::overload_cast<const std::string&, bool>(&Param::deserialize));
+           py::overload_cast<const std::string&>(&Param::deserialize))
+      .def("load_file",
+           py::overload_cast<const std::string&>(&Param::loadFile));
+
+  // export as base.remove_json_brackets
+  m.def("remove_json_brackets", &removeJsonBrackets, py::arg("json_str"),
+        "Remove brackets from a JSON string");
+
+  // export as base.pretty_json_str
+  m.def("pretty_json_str", &prettyJsonStr, py::arg("json_str"),
+        "Format JSON string to be more readable");
+
+  // export as base.Handle
+  py::class_<Handle>(m, "Handle")
+      .def(py::init<>());
+
+  // export as base.load_library_from_path
+  m.def("load_library_from_path", &loadLibraryFromPath, py::arg("path"),
+        py::arg("update"),
+        "Load a library from a path");
+
+  // export as base.free_library
+  m.def("free_library", &freeLibrary, py::arg("path"),
+        "Free a library from a path");
+
+  // export as base.get_library_handle
+  m.def("get_library_handle", &getLibraryHandle, py::arg("path"),
+        py::arg("update"),
+        "Get a library handle from a path");
 }
 
 }  // namespace base

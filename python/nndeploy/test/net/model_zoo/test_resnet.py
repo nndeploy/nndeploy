@@ -3,7 +3,7 @@ from nndeploy.base import DeviceType
 import argparse
 from PIL import Image
 import numpy as np
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 
 import onnxruntime as ort
 

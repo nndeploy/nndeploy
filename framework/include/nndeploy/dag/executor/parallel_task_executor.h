@@ -21,6 +21,7 @@ class ParallelTaskExecutor : public Executor {
   virtual base::Status deinit();
 
   virtual base::Status run();
+  virtual bool synchronize();
 
   /**
    * @brief 提交一个节点执行

@@ -4,6 +4,8 @@
 
 #include "nndeploy/base/macro.h"
 
+extern NNDEPLOY_CC_API std::string nndeployGetVersion();
+
 /**
  * @brief init framework
  *
@@ -11,7 +13,7 @@
  * @retval 0 success
  * @retval other failed
  */
-NNDEPLOY_C_API int nndeployFrameworkInit();
+extern NNDEPLOY_CC_API int nndeployFrameworkInit();
 
 /**
  * @brief deinit framework
@@ -20,6 +22,6 @@ NNDEPLOY_C_API int nndeployFrameworkInit();
  * @retval 0 success
  * @retval other failed
  */
-NNDEPLOY_C_API int nndeployFrameworkDeinit();
+extern NNDEPLOY_CC_API int nndeployFrameworkDeinit();
 
 #endif

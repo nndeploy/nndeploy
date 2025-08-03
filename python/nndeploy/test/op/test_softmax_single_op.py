@@ -5,7 +5,7 @@ import nndeploy
 from nndeploy.op import functional as F
 from nndeploy.net import build_model
 import nndeploy._nndeploy_internal as _C
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 
 
 input_shape = [64, 32]
@@ -20,7 +20,7 @@ torch_result = torch.softmax(torch.tensor(np_input), dim=-1)
 nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
-class SoftmaxSingleOpGraph(nndeploy.net.Model):
+class SoftmaxSingleOpGraph(nndeploy.net.Module):
     def __init__(self):
         super().__init__()
 

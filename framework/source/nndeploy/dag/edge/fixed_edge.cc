@@ -92,8 +92,8 @@ base::Status FixedEdge::takeDataPacket(DataPacket *data_packet) {
   data_packet_ = data_packet;
   return base::kStatusCodeOk;
 }
-bool FixedEdge::notifyAnyWritten(void *anything) {
-  return data_packet_->notifyAnyWritten(anything);
+bool FixedEdge::notifyWritten(void *anything) {
+  return data_packet_->notifyWritten(anything);
 }
 DataPacket *FixedEdge::getDataPacket(const Node *node) { return data_packet_; }
 DataPacket *FixedEdge::getGraphOutputDataPacket() { return data_packet_; }

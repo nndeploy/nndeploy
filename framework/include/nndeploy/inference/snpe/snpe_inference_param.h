@@ -7,7 +7,7 @@
 
 namespace nndeploy {
 namespace inference {
-class SnpeInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API SnpeInferenceParam : public InferenceParam {
  public:
   // new feature
   std::string runtime_;

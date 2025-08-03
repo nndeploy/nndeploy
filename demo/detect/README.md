@@ -1,17 +1,27 @@
 
 # detect
 
-## 基于YOLOv11的检测
+## 基于YOLO系列模型的检测
 
 ### 下载模型
 
+- [detect/yolov5s.onnx](./detect/yolov5s.onnx): YOLOv5s, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov5s.onnx)
+- [detect/yolov5n.onnx](./detect/yolov5n.onnx): YOLOv5n, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov5n.onnx)
+- [detect/yolov5m.onnx](./detect/yolov5m.onnx): YOLOv5m, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov5m.onnx)
+- [detect/yolov5l.onnx](./detect/yolov5l.onnx): YOLOv5l, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov5l.onnx)
+- [detect/yolov6s.onnx](./detect/yolov6s.onnx): YOLOv6s, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov6s.onnx)
+- [detect/yolov7.onnx](./detect/yolov7.onnx): YOLOv7, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov7.onnx)
+- [detect/yolov7x.onnx](./detect/yolov7x.onnx): YOLOv7x, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov7x.onnx)
+- [detect/yolov8n.onnx](./detect/yolov8n.onnx): YOLOv8n, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov8n.onnx)
+- [detect/yolox_s.onnx](./detect/yolox_s.onnx): YOLOX_s, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolox_s.onnx)
+- [detect/yolox_m.onnx](./detect/yolox_m.onnx): YOLOX_m, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolox_m.onnx)
+- [detect/yolox_l.onnx](./detect/yolox_l.onnx): YOLOX_l, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolox_l.onnx)
+- [detect/yolox_x.onnx](./detect/yolox_x.onnx): YOLOX_x, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolox_x.onnx)
 - [detect/yolov11s.onnx](./detect/yolov11s.onnx): YOLOv11s, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.onnx)
 - [detect/yolov11s.sim.onnx](./detect/yolov11s.sim.onnx): onnx sim model of YOLOv11s, Model Type: onnx, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.sim.onnx)
 - [detect/yolov11s.slim.onnx](./detect/yolov11s.slim.onnx): onnx slim model of YOLOv11s, Model Type: onnx, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.slim.onnx)
 - [detect/yolov11s.sim.onnx.json](./detect/yolov11s.sim.onnx.json)/[detect/yolov11s.sim.onnx.safetensor](./detect/yolov11s.sim.onnx.safetensor): YOLOv11s, Model Type: nndeploy, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.sim.onnx.json)
 - [detect/yolov11s.onnx.om](./detect/yolov11s.onnx.om): YOLOv11s, Model Type: AscendCL(Ascend910B4), input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.onnx.om)
-
-- [detect/yolov8n.onnx](./detect/yolov8n.onnx): YOLOv8n, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov8n.onnx)
 
 ### 获取测试图片
 
@@ -64,7 +74,7 @@ preprocess run()                   100         664.514            6.645         
 infer run()                        100         2002.761           20.028             0.000 
 net->run()                         100         348.500            3.485              0.000 
 postprocess run()                  100         358.004            3.580              0.000 
-DrawBoxNode run()                  100         32.170             0.322              0.000 
+DrawBox run()                  100         32.170             0.322              0.000 
 encode_node run()                  100         741.689            7.417              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -78,7 +88,7 @@ preprocess run()                   100         664.514            6.645         
 infer run()                        100         2002.761           20.028             16.146                            0.000 
 net->run()                         100         348.500            3.485              2.140                             0.000 
 postprocess run()                  100         358.004            3.580              3.593                             0.000 
-DrawBoxNode run()                  100         32.170             0.322              0.316                             0.000 
+DrawBox run()                  100         32.170             0.322              0.316                             0.000 
 encode_node run()                  100         741.689            7.417              7.307                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +112,7 @@ synchronize_187652012125920        100         109.290            1.093         
 synchronize_187652012130112        100         189.308            1.893              0.000 
 synchronize_187652012134896        100         165.225            1.652              0.000 
 postprocess run()                  100         412.545            4.125              0.000 
-DrawBoxNode run()                  100         123.348            1.233              0.000 
+DrawBox run()                  100         123.348            1.233              0.000 
 encode_node run()                  99          944.945            9.545              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -120,7 +130,7 @@ synchronize_187651960704736        100         129.396            1.294         
 synchronize_187651960708928        100         183.778            1.838              1.846                             0.000 
 synchronize_187651960713712        100         120.545            1.205              1.183                             0.000 
 postprocess run()                  100         400.320            4.003              3.972                             0.000 
-DrawBoxNode run()                  100         133.057            1.331              1.459                             0.000 
+DrawBox run()                  100         133.057            1.331              1.459                             0.000 
 encode_node run()                  99          997.917            10.080             10.468                            0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 ```
@@ -140,6 +150,10 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 
 ./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
 
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
+
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeTask --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
+
 # 耗时
 TimeProfiler: demo
 ---------------------------------------------------------------------------------------------
@@ -153,7 +167,7 @@ nndeploy::detect::YoloGraph run()  100         43100.074          431.001       
 preprocess run()                   100         1005.690           10.057             0.000 
 infer run()                        100         41863.672          418.637            0.000 
 postprocess run()                  100         228.693            2.287              0.000 
-DrawBoxNode run()                  100         19.661             0.197              0.000 
+DrawBox run()                  100         19.661             0.197              0.000 
 encode_node run()                  100         553.826            5.538              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -166,7 +180,7 @@ nndeploy::detect::YoloGraph run()  100         43100.074          431.001       
 preprocess run()                   100         1005.690           10.057             10.102                            0.000 
 infer run()                        100         41863.672          418.637            422.969                           0.000 
 postprocess run()                  100         228.693            2.287              2.322                             0.000 
-DrawBoxNode run()                  100         19.661             0.197              0.200                             0.000 
+DrawBox run()                  100         19.661             0.197              0.200                             0.000 
 encode_node run()                  100         553.826            5.538              5.528                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 
@@ -184,7 +198,7 @@ preprocess run()                   100         1511.670           15.117        
 nndeploy::detect::YoloGraph run()  100         0.444              0.004              0.000 
 infer run()                        100         42545.461          425.455            0.000 
 postprocess run()                  100         321.915            3.219              0.000 
-DrawBoxNode run()                  100         31.889             0.319              0.000 
+DrawBox run()                  100         31.889             0.319              0.000 
 encode_node run()                  99          592.071            5.981              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -197,7 +211,7 @@ preprocess run()                   100         1511.670           15.117        
 nndeploy::detect::YoloGraph run()  100         0.444              0.004              0.004                             0.000 
 infer run()                        100         42545.461          425.455            419.206                           0.000 
 postprocess run()                  100         321.915            3.219              3.199                             0.000 
-DrawBoxNode run()                  100         31.889             0.319              0.328                             0.000 
+DrawBox run()                  100         31.889             0.319              0.328                             0.000 
 encode_node run()                  99          592.071            5.981              5.789                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 ```
@@ -231,7 +245,7 @@ nndeploy::detect::YoloGraph run()  100         1652.015           16.520        
 preprocess run()                   100         1095.489           10.955             0.000 
 infer run()                        100         358.118            3.581              0.000 
 postprocess run()                  100         197.218            1.972              0.000 
-DrawBoxNode run()                  100         16.604             0.166              0.000 
+DrawBox run()                  100         16.604             0.166              0.000 
 encode_node run()                  100         554.503            5.545              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -244,7 +258,7 @@ nndeploy::detect::YoloGraph run()  100         1652.015           16.520        
 preprocess run()                   100         1095.489           10.955             11.102                            0.000 
 infer run()                        100         358.118            3.581              3.634                             0.000 
 postprocess run()                  100         197.218            1.972              2.017                             0.000 
-DrawBoxNode run()                  100         16.604             0.166              0.167                             0.000 
+DrawBox run()                  100         16.604             0.166              0.167                             0.000 
 encode_node run()                  100         554.503            5.545              5.557                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 
@@ -262,7 +276,7 @@ preprocess run()                   100         874.813            8.748         
 nndeploy::detect::YoloGraph run()  100         0.473              0.005              0.000 
 infer run()                        100         874.591            8.746              0.000 
 postprocess run()                  100         318.301            3.183              0.000 
-DrawBoxNode run()                  100         21.767             0.218              0.000 
+DrawBox run()                  100         21.767             0.218              0.000 
 encode_node run()                  97          843.250            8.693              0.000 
 ---------------------------------------------------------------------------------------------
 TimeProfiler: demo, remove warmup 10
@@ -275,7 +289,7 @@ preprocess run()                   100         874.813            8.748         
 nndeploy::detect::YoloGraph run()  100         0.473              0.005              0.005                             0.000 
 infer run()                        100         874.591            8.746              8.664                             0.000 
 postprocess run()                  100         318.301            3.183              3.171                             0.000 
-DrawBoxNode run()                  100         21.767             0.218              0.222                             0.000 
+DrawBox run()                  100         21.767             0.218              0.222                             0.000 
 encode_node run()                  97          843.250            8.693              8.736                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
 ```
