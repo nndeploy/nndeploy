@@ -9,7 +9,6 @@ namespace nndeploy
         TypeArchitectureRegister<OpenCLArchitecture> opencl_architecture_register(
             base::kDeviceTypeCodeOpenCL);
         
-        /* this needs some sanitization of device_type_code i think */
         OpenCLArchitecture::OpenCLArchitecture(base::DeviceTypeCode device_type_code) 
         : Architecture(device_type_code) {};
 
@@ -25,13 +24,9 @@ namespace nndeploy
                                                       std::string library_path)
         {
             base::DeviceType device_type(base::kDeviceTypeCodeOpenCL, device_id);
-
-            return base::kStatusCodeOk;
-
-        }
-
-        base::Status enableDevice(int device_id = 0, std::string library_path)
-        {
+            OpenCLDevice* device = new OpenCLDevice(device_type, library_path);
+            device->init();
+            devices_.insert({device_id, device});
             return base::kStatusCodeOk;
         }
 
@@ -57,20 +52,150 @@ namespace nndeploy
             return device;
         }
 
-        std::vector<DeviceInfo> getDeviceInfo(std::string library_path)
+        std::vector<DeviceInfo> OpenCLArchitecture::getDeviceInfo(std::string library_path) 
         {
-            
+            std::vector<DeviceInfo> device_info_list;
+            return device_info_list;
+        }
+
+        /* OpenCLDevice */
+
+        BufferDesc OpenCLDevice::toBufferDesc(const TensorDesc &desc,
+                                    const base::IntVector &config)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            size_t size = 0;
+            return BufferDesc(size, config);
+        }
+
+        void* OpenCLDevice::allocate(size_t size)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr;
+        }
+
+        void* OpenCLDevice::allocate(const BufferDesc &desc)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr;
+        }
+        
+        void OpenCLDevice::deallocate(void *ptr) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            if (ptr == nullptr)
+            {
+                return;
+            }
+            return;
+        }
+
+        base::Status OpenCLDevice::copy(void *src, void *dst, size_t size,
+                              Stream *stream) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::download(void *src, void *dst, size_t size,
+                                  Stream *stream)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::upload(void *src, void *dst, size_t size,
+                                Stream *stream) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::copy(Buffer *src, Buffer *dst, Stream *stream)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::download(Buffer *src, Buffer *dst, Stream *stream)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream)
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        void* OpenCLDevice::getContext() 
+        { 
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr; 
+        }
+        
+        Stream* OpenCLDevice::createStream() 
+        { 
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr;
+        }
+
+        Stream* OpenCLDevice::createStream(void *stream) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr;
+        }
+
+        base::Status OpenCLDevice::destroyStream(Stream *stream) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            if (stream == nullptr) 
+            {
+                NNDEPLOY_LOGE("stream is nullptr\n");
+                return base::kStatusCodeOk;
+            }
+            return base::kStatusCodeOk;
+        }
+
+        Event* OpenCLDevice::createEvent() 
+        { 
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return nullptr; 
+        }
+
+        base::Status OpenCLDevice::destroyEvent(Event *event) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            if (event == nullptr) {
+                NNDEPLOY_LOGE("event is nullptr\n");
+                return base::kStatusCodeErrorDeviceOpenCL;
+            }
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::createEvents(Event **events, size_t count) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
+        }
+
+        base::Status OpenCLDevice::destroyEvents(Event **events, size_t count) 
+        {
+            NNDEPLOY_LOGE("Not Implemented\n");
+            return base::kStatusCodeOk;
         }
 
         base::Status OpenCLDevice::init()
         {
-            if(OpenCLSymbols::GetInstance()->LoadLibraryFromPath("C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.9\\lib\\x64\\OpenCL.lib") == false)
+            if(OpenCLSymbols::GetInstance()->LoadOpenCLLibrary() == false)
             {
                 NNDEPLOY_LOGE("load opencl lib failed!\n");
                 return base::kStatusCodeErrorDeviceOpenCL;
             }
+            return base::kStatusCodeOk;
         }
 
-
+        base::Status OpenCLDevice::deinit() { return base::kStatusCodeOk; }
     } 
 }

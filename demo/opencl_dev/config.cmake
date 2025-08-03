@@ -11,12 +11,6 @@ set(THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH}/demo)
 include_directories(${ROOT_PATH}/framework/include/nndeploy/device/opencl)
 
-# SOURCE
-# file(GLOB_RECURSE SOURCE
-#   "${ROOT_PATH}/demo/device/opencl/*.h"
-#   "${ROOT_PATH}/demo/device/*.cc"
-# )
-
 set(SOURCE ${ROOT_PATH}/demo/opencl_dev/demo.cc)
 
 # OBJECT
@@ -40,17 +34,14 @@ target_link_libraries(${BINARY} ${DEPEND_LIBRARY})
 # SYSTEM_LIBRARY
 list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY})
 list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_DEMO_SYSTEM_LIBRARY})
-message(status "OpenCL Sys Lib: ${SYSTEM_LIBRARY}")
 target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
 
 # THIRD_PARTY_LIBRARY
-find_package(OpenCL REQUIRED)
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
-target_link_libraries(${BINARY} ${OpenCL_LIBRARIES})
 
 # install
 if(SYSTEM.Windows)

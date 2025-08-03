@@ -71,6 +71,39 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device
 {
     friend class OpenCLArchitecture;
     public:
+        virtual BufferDesc toBufferDesc(const TensorDesc &desc,
+                                  const base::IntVector &config);
+
+        virtual void *allocate(size_t size);
+        virtual void *allocate(const BufferDesc &desc);
+
+        virtual void deallocate(void *ptr);
+
+        virtual base::Status copy(void *src, void *dst, size_t size,
+                                    Stream *stream = nullptr) override;
+        virtual base::Status download(void *src, void *dst, size_t size,
+                                        Stream *stream = nullptr) override;
+        virtual base::Status upload(void *src, void *dst, size_t size,
+                                    Stream *stream = nullptr) override;
+
+        virtual base::Status copy(Buffer *src, Buffer *dst,
+                                    Stream *stream = nullptr) override;
+        virtual base::Status download(Buffer *src, Buffer *dst,
+                                        Stream *stream = nullptr) override;
+        virtual base::Status upload(Buffer *src, Buffer *dst,
+                                    Stream *stream = nullptr) override;
+        virtual void *getContext();
+
+        // stream
+        virtual Stream *createStream();
+        virtual Stream *createStream(void *stream);
+        virtual base::Status destroyStream(Stream *stream);
+
+        // event
+        virtual Event *createEvent();
+        virtual base::Status destroyEvent(Event *event);
+        virtual base::Status createEvents(Event **events, size_t count);
+        virtual base::Status destroyEvents(Event **events, size_t count);
         /**
          * @brief Construct a new OpenCL Device object
          *
@@ -81,7 +114,7 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device
             : Device(device_type){};
 
         /**
-         * @brief Destroy the Cuda OpenCL object
+         * @brief Destroy the OpenCL object
          *
          */
         virtual ~OpenCLDevice(){};
