@@ -81,17 +81,6 @@ jobs:
           mkdir build
           cp cmake/config_minimal.cmake build/config.cmake
           cd build
-          # Enable OpenCV in configuration file
-          echo 'set(ENABLE_NNDEPLOY_OPENCV ON)' >> config.cmake
-          echo 'set(OpenCV_DIR "$HOME/opencv-ios-framework")' >> config.cmake
-          # default inference on
-          echo 'set(ENABLE_NNDEPLOY_INFERENCE_DEFAULT ON)' >> config.cmake
-          # Enable plugins and demo
-          echo 'set(ENABLE_NNDEPLOY_PLUGIN ON)' >> config.cmake
-          # Enable additional compilation options
-          echo 'set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)' >> config.cmake
-          echo 'set(ENABLE_NNDEPLOY_PLUGIN_LLM ON)' >> config.cmake
-          echo 'set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON)' >> config.cmake
           cmake -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
