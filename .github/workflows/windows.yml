@@ -1,95 +1,151 @@
-# GitHub Actions 工作流配置文件 - Windows平台编译
-# 该文件用于配置在Windows环境下自动编译项目的CI/CD流程
+# GitHub Actions workflow configuration file - Windows platform compilation
+# This file is used to configure the CI/CD process for automatic project compilation in Windows environment
 
-name: Windows  # 工作流名称，会显示在GitHub Actions界面中
+name: Windows  # Workflow name, displayed in GitHub Actions interface
 
-# 触发条件配置
+# Trigger condition configuration
 on:
-  # 当代码推送到指定分支时触发
+  # Triggered when code is pushed to specified branches
   push:
-    branches:
-      - main  # 仅当推送到main分支时触发
-      - develop  # 仅当推送到develop分支时触发
-      - 'feature/**'
-    paths:  # 仅当以下路径的文件发生变化时才触发构建
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录(pybind11相关)
-      - 'test/**'          # 单元测试和集成测试代码目录
-      - 'demo/**'          # 示例和演示代码目录
-      - 'cmake/**'         # CMake构建配置文件目录
-      - 'CMakeLists.txt'   # 项目主要的CMake构建配置文件
-      - '.github/workflows/windows.yml'  # 当前工作流文件自身
-  # 当创建Pull Request到指定分支时触发
+    branches: [main, develop, 'feature/**']
+    paths:  # Only trigger build when files in the following paths change
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory (pybind11 related)
+      - 'test/**'          # Unit test and integration test code directory
+      - 'demo/**'          # Example and demo code directory
+      - 'cmake/**'         # CMake build configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build configuration file
+      - '.github/workflows/windows.yml'  # Current workflow file itself
+  # Triggered when creating Pull Request to specified branches
   pull_request:
-    branches: [main]  # 仅当PR目标分支为main时触发
-    paths:  # 与push相同的路径过滤条件
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录
-      - 'test/**'          # 测试代码目录
-      - 'demo/**'          # 示例代码目录
-      - 'cmake/**'         # CMake配置文件目录
-      - 'CMakeLists.txt'   # 主CMake构建文件
-      - '.github/workflows/windows.yml'  # 当前工作流文件
+    branches: [main]  # Only trigger when PR target branch is main
+    paths:  # Same path filtering conditions as push
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory
+      - 'test/**'          # Test code directory
+      - 'demo/**'          # Example code directory
+      - 'cmake/**'         # CMake configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build file
+      - '.github/workflows/windows.yml'  # Current workflow file
 
-# 工作任务定义
+# Job definition
 jobs:
-  build:  # 任务ID
-    name: Windows编译构建  # 任务显示名称
-    runs-on: windows-latest  # 指定运行环境为最新版Windows
+  build:  # Job ID
+    name: Windows Build  # Job display name
+    runs-on: windows-latest  # Specify runtime environment as latest Windows
   
-    steps:  # 构建步骤序列
-      # 第一步：检出源代码
-      - name: 检出代码
-        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+    steps:  # Build step sequence
+      # Step 1: Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4  # Use GitHub official code checkout Action (v4 version)
         with:
-          submodules: recursive  # 递归检出所有子模块(git submodule)
+          submodules: recursive  # Recursively checkout all submodules (git submodule)
           
-      # 第二步：设置Visual Studio环境
-      - name: 设置Visual Studio构建环境
-        uses: microsoft/setup-msbuild@v1.1  # 设置MSBuild构建工具
-        
-      - name: 安装Python
+      # Step 2: Setup Python environment
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
         
-      - name: 更新Python依赖
+      # Step 3: Setup Visual Studio environment
+      - name: Setup Visual Studio build environment
+        uses: microsoft/setup-msbuild@v1.1  # Setup MSBuild build tools
+
+      # Step 4: Update Python dependencies
+      - name: Update Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pybind11 setuptools wheel twine requests pathlib
+          pip install pybind11 setuptools wheel twine requests pathlib cython
 
-      - name: 安装Rust
+      # Step 5: Setup Rust toolchain
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           targets: x86_64-pc-windows-msvc
 
-      # 安装opencv
-      - name: 安装OpenCV && ONNXRUNTIME
+      # Step 6: Install OpenCV and ONNXRUNTIME
+      - name: Install OpenCV and ONNXRUNTIME
         run: |
           cd tool/script
           python install_opencv.py
           python install_onnxruntime.py
+          
+      # Verify third-party library installation status
+      - name: Verify third-party library installation
+        run: |
+          echo "Verifying OpenCV installation..."
+          if (Test-Path "tool/script/third_party/opencv4.8.0/lib") {
+            dir tool/script/third_party/opencv4.8.0/lib
+          } else {
+            echo "OpenCV library directory does not exist"
+            exit 1
+          }
+          
+          echo "Verifying ONNX Runtime installation..."
+          if (Test-Path "tool/script/third_party/onnxruntime1.18.0/lib") {
+            dir tool/script/third_party/onnxruntime1.18.0/lib
+          } else {
+            echo "ONNX Runtime library directory does not exist"
+            exit 1
+          }
+        shell: powershell
             
-      # 第四步：配置CMake构建环境
-      - name: 配置构建
+      # Step 7: Configure CMake build environment
+      - name: Configure build
         run: |
-          mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # 复制项目特定的CMake配置文件
-          cd build                       # 进入构建目录
-          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release ..  # 配置CMake项目并指定vcpkg工具链
+          mkdir build                    # Create build directory (out-of-source build)
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cd build                       # Enter build directory
+          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..  # Configure using Visual Studio 2022 generator
           
-      # 第五步：执行编译
-      - name: 编译
+      # Step 8: Compile, install, package and verify
+      - name: Compile, install, package and verify
         run: |
-          cd build                                      # 进入构建目录
-          cmake --build . --config Release -j 4        # 使用Release配置并行编译
+          cd build                                      # Enter build directory
+          cmake --build . --config Release -j 4        # Compile in parallel using Release configuration
+          cmake --install . --config Release           # Install compiled files
+          cpack -C Release                              # Use CPack to generate installation packages
+          dir                                           # List all generated files and directories
+          echo "Compilation, installation and packaging completed"                   # Output completion information
           
-      # 第六步：验证编译结果
-      - name: 编译结果检查
+      # Step 9: Python developer mode installation and verification
+      - name: Python developer mode installation and verification
         run: |
-          cd build              # 进入构建目录
-          dir                   # 列出所有生成的文件和目录
-          echo "编译完成"       # 输出完成信息
+          cd python                     # Enter Python package directory
+          pip install -e .              # Install Python package in developer mode
+          cd ..                         # Return to root directory
+          # Verify if Python package is correctly installed
+          python -c "
+          import platform
+          try:
+              import nndeploy
+              print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+              print(f'Platform: {platform.platform()}')
+              print(f'Architecture: {platform.machine()}')
+              print(f'Python version: {platform.python_version()}')
+          except ImportError as e:
+              print(f'✗ Import failed: {e}')
+              exit(1)
+          "
+          echo "Python package developer mode installation and verification completed"
+      
+      # Step 10: Upload build artifacts
+      - name: Upload packaged library
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-package
+          path: build/*.zip
+          retention-days: 7
+
+      # Step 11: Upload to Release Assets (only when pushing tags)
+      - name: Upload package to Release Assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

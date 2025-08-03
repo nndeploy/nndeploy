@@ -41,11 +41,10 @@ set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNN
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF
-# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/libopenvino.so.2023.1") # Whether to enable INFERENCE OPENVINO, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")
-# set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "/home/always/modelscope/onnxruntime-linux-x64-1.18.0") # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_MNN OFF) # Whether to enable INFERENCE MNN, default is OFF
@@ -63,11 +62,11 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
-# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
+# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # Link OpenCV by specifying the path
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV ON) # 通过路径的方式链接OpenCV
 set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0") # Whether to link the third-party OpenCV library, default is ON
-set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann) # 包含图像展示、相机标定、特征检测等完整功能模块，以及KalmanFilter跟踪功能
+# Includes complete functional modules such as image display, camera calibration, feature detection, and KalmanFilter tracking functionality
+set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann) 
 
 ## Tokenizer-cpp
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF

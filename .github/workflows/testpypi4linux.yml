@@ -48,7 +48,7 @@ jobs:
           # 构建C++库
           cd ../..
           mkdir -p build
-          cp cmake/config_opencv.cmake build/config.cmake
+          cp cmake/config_opencv_ort_tokenizer.cmake.cmake build/config.cmake
           cd build
           
           cmake -G Ninja .. \
@@ -118,7 +118,7 @@ jobs:
             cd {project}
             # rm -rf build/
             mkdir -p build
-            cp cmake/config_opencv.cmake build/config.cmake
+            cp cmake/config_opencv_ort_tokenizer.cmake.cmake build/config.cmake
             cd build
             
             # 设置编译器

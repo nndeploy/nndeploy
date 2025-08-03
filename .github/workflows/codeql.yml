@@ -1,89 +1,83 @@
-# GitHub Actions 工作流配置文件 - CodeQL代码安全扫描
-# 该文件用于配置自动化代码安全扫描和代码质量检查流程
-# CodeQL是GitHub提供的静态应用安全测试(SAST)工具
+# GitHub Actions workflow for CodeQL security scanning
+# Automated code security analysis and quality checks
+# CodeQL is GitHub's static application security testing (SAST) tool
 
-name: "CodeQL"  # 工作流名称，会显示在GitHub Actions界面中
+name: "CodeQL"
 
-# 触发条件配置
+# Trigger conditions
 on:
-  # 当代码推送到指定分支时触发
+  # Trigger on push to specified branches
   push:
     branches: 
-      - main      # 仅当推送到main分支时触发
-      - develop   # 仅当推送到develop分支时触发
-      - 'feature/**'  # 匹配所有以feature/开头的分支
+      - main
+      - develop
+      - 'feature/**'
       
-  # 当创建Pull Request到指定分支时触发
+  # Trigger on Pull Request to specified branches
   pull_request:
-    branches: [main]  # 仅当PR目标分支为main时触发
+    branches: [main]
       
-  # 定期扫描：每周二下午5点执行一次完整的安全扫描
+  # Weekly security scan: every Tuesday at 5 PM
   schedule:
     - cron: '0 17 * * 2'
 
-# 工作任务定义
+# Job definitions
 jobs:
-  analyze:  # 任务ID
-    name: CodeQL安全分析  # 任务显示名称
-    runs-on: ubuntu-latest  # 指定运行环境为最新版Ubuntu Linux
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
     
-    # 权限配置：确保工作流有足够的权限执行代码扫描和上传结果
+    # Permission configuration for code scanning and result upload
     permissions:
-      actions: read           # 读取Actions相关信息
-      contents: read          # 读取仓库内容
-      security-events: write  # 写入安全事件(上传扫描结果到GitHub Security tab)
+      actions: read
+      contents: read
+      security-events: write
 
-    # 策略配置：支持多语言并行扫描
+    # Multi-language parallel scanning strategy
     strategy:
-      fail-fast: false  # 当一个语言扫描失败时，不停止其他语言的扫描
+      fail-fast: false
       matrix:
-        language: [ 'cpp', 'python' ]  # 扫描C++和Python代码
-        # CodeQL支持的语言: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby'
-        # 了解更多CodeQL语言支持: https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/
+        language: [ 'cpp', 'python' ]
+        # Supported languages: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby'
 
-    steps:  # 构建步骤序列
-      # 第一步：检出源代码
-      - name: 检出代码
-        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+    steps:
+      # Step 1: Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          submodules: recursive  # 递归检出所有子模块
-          fetch-depth: 0         # 获取完整的git历史记录，有助于更准确的代码分析
+          submodules: recursive
+          fetch-depth: 0
 
-      # 第二步：初始化CodeQL工具
-      - name: 初始化CodeQL扫描工具
+      # Step 2: Initialize CodeQL
+      - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}  # 指定要扫描的编程语言
-          # 可以在此处或配置文件中指定自定义查询
-          # 默认情况下，此处列出的查询将覆盖配置文件中指定的任何查询
-          # 在列表前加上"+"可以同时使用这些查询和配置文件中的查询
-          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+          languages: ${{ matrix.language }}
 
-      # 第三步：安装构建依赖(仅对C++代码扫描需要)
-      - name: 安装构建依赖
+      # Step 3: Install build dependencies (C++ only)
+      - name: Install dependencies
         if: matrix.language == 'cpp'
         run: |
-          sudo apt-get update  # 更新包管理器索引
+          sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
 
-      # 第四步：手动构建项目(替代自动构建)
-      # 对于复杂的C++项目，手动构建通常比自动构建更可靠
-      - name: 手动构建项目
+      # Step 4: Manual build for C++ projects
+      - name: Manual build
         if: matrix.language == 'cpp'
         run: |
-          mkdir build                    # 创建构建目录
-          cp cmake/config.cmake build   # 复制项目配置文件
-          cd build                       # 进入构建目录
-          cmake -G Ninja ..             # 配置CMake项目
-          ninja -j$(nproc)              # 并行编译项目
+          mkdir build
+          cp cmake/config.cmake build
+          cd build
+          cmake -G Ninja ..
+          ninja -j$(nproc)
 
-      # 第五步：对于Python代码，使用自动构建
-      - name: Python自动构建
+      # Step 5: Auto build for Python
+      - name: Auto build Python
         if: matrix.language == 'python'
         uses: github/codeql-action/autobuild@v3
 
-      # 第六步：执行CodeQL分析
-      - name: 执行CodeQL安全分析
+      # Step 6: Execute CodeQL analysis
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{matrix.language}}"  # 为不同语言的分析结果分类
+          category: "/language:${{matrix.language}}"

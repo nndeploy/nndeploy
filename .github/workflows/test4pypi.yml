@@ -113,7 +113,7 @@ jobs:
             # 构建C++库
             cd {project}
             mkdir -p build
-            cp cmake/config_opencv.cmake build/config.cmake
+            cp cmake/config_opencv_ort_tokenizer.cmake.cmake build/config.cmake
             cd build
             
             # 根据架构设置编译参数
@@ -170,7 +170,7 @@ jobs:
             # 构建C++库
             cd {project}
             mkdir build -Force
-            Copy-Item cmake\config_opencv.cmake build\config.cmake
+            Copy-Item cmake\config_opencv_ort_tokenizer.cmake.cmake build\config.cmake
             cd build
             cmake -G "Visual Studio 17 2022" -A x64 .. `
               -DCMAKE_BUILD_TYPE=Release `
@@ -220,7 +220,7 @@ jobs:
             # 构建C++库
             cd {project}
             mkdir -p build
-            cp cmake/config_opencv.cmake build/config.cmake
+            cp cmake/config_opencv_ort_tokenizer.cmake.cmake build/config.cmake
             cd build
             cmake -G Ninja .. \
               -DCMAKE_BUILD_TYPE=Release \

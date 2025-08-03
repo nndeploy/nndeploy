@@ -1,134 +1,133 @@
-# GitHub Actions 工作流配置文件 - Linux平台编译
-# 该文件用于配置在Linux环境下自动编译项目的CI/CD流程
+# GitHub Actions workflow configuration file - Linux platform compilation
+# This file is used to configure the CI/CD process for automatic project compilation in Linux environment
 
-name: Linux  # 工作流名称，会显示在GitHub Actions界面中
+name: Linux  # Workflow name
 
-# 触发条件配置
+# Trigger condition configuration
 on:
-  # 当代码推送到指定分支时触发
+  # Triggered when code is pushed to specified branches
   push:
-    branches:
-      - main  # 仅当推送到main分支时触发
-      - develop  # 仅当推送到develop分支时触发
-      - 'feature/**'
-    paths:  # 仅当以下路径的文件发生变化时才触发构建
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录(pybind11相关)
-      - 'test/**'          # 单元测试和集成测试代码目录
-      - 'demo/**'          # 示例和演示代码目录
-      - 'cmake/**'         # CMake构建配置文件目录
-      - 'CMakeLists.txt'   # 项目主要的CMake构建配置文件
-      - '.github/workflows/linux.yml'  # 当前工作流文件自身
-  # 当创建Pull Request到指定分支时触发
+    branches: [main, develop, 'feature/**']
+    paths:  # Only trigger build when files in the following paths change
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory (pybind11 related)
+      - 'test/**'          # Unit test and integration test code directory
+      - 'demo/**'          # Example and demo code directory
+      - 'cmake/**'         # CMake build configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build configuration file
+      - '.github/workflows/linux.yml'  # Current workflow file itself
+  # Triggered when creating Pull Request to specified branches
   pull_request:
-    branches: [main]  # 仅当PR目标分支为main时触发
-    paths:  # 与push相同的路径过滤条件
-      - 'framework/**'     # 框架核心代码目录
-      - 'plugin/**'        # 插件扩展代码目录
-      - 'python/src/**'    # Python绑定代码目录
-      - 'test/**'          # 测试代码目录
-      - 'demo/**'          # 示例代码目录
-      - 'cmake/**'         # CMake配置文件目录
-      - 'CMakeLists.txt'   # 主CMake构建文件
-      - '.github/workflows/linux.yml'  # 当前工作流文件
+    branches: [main]  # Only trigger when PR target branch is main
+    paths:  # Same path filtering conditions as push
+      - 'framework/**'     # Framework core code directory
+      - 'plugin/**'        # Plugin extension code directory
+      - 'python/src/**'    # Python binding code directory
+      - 'test/**'          # Test code directory
+      - 'demo/**'          # Example code directory
+      - 'cmake/**'         # CMake configuration file directory
+      - 'CMakeLists.txt'   # Main CMake build file
+      - '.github/workflows/linux.yml'  # Current workflow file
 
-# 工作任务定义
+# Job definition
 jobs:
-  build:  # 任务ID
-    name: Linux编译构建  # 任务显示名称
-    runs-on: ubuntu-latest  # 指定运行环境为最新版Ubuntu Linux
+  build:  # Job ID
+    name: Linux Build  # Job display name
+    runs-on: ubuntu-latest  # Specify runtime environment as latest Ubuntu Linux
   
-    steps:  # 构建步骤序列
-      # 第一步：检出源代码
-      - name: 检出代码
-        uses: actions/checkout@v4  # 使用GitHub官方提供的代码检出Action(v4版本)
+    steps:  # Build step sequence
+      # Step 1: Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4  # Use GitHub official code checkout Action (v4 version)
         with:
-          submodules: recursive  # 递归检出所有子模块(git submodule)
+          submodules: recursive  # Recursively checkout all submodules (git submodule)
           
-      # 第二步：安装系统依赖包
-      # 修复了YAML语法错误：移除了多行命令中的反斜杠续行符，因为这会导致apt无法解析包名
-      - name: 安装依赖
-        run: |
-          sudo apt-get update  # 更新包管理器索引
-          # 说明：之前的YAML配置中使用了反斜杠(\)进行多行续行，但这在YAML的管道字符(|)模式下会被当作字面字符传递给shell
-          # 导致apt-get命令接收到带有反斜杠的包名，从而无法找到对应的软件包
-          # 现在将所有包名放在同一行，避免了这个问题
-          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
-
-      - name: 安装Python
+      # Step 2: Setup Python environment
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       
-      - name: 更新Python依赖
+      # Step 3: Install system dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update  # Update package manager index
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
+
+      # Step 4: Update Python dependencies
+      - name: Update Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pybind11 setuptools wheel twine requests pathlib
+          pip install pybind11 setuptools wheel twine requests pathlib cython
             
-      # 安装rust
-      - name: 安装Rust
+      # Step 5: Install Rust toolchain
+      - name: Setup Rust toolchain
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           rustup update
 
-      # 安装opencv
-      - name: 安装OpenCV && ONNXRUNTIME
+      # Step 6: Install OpenCV and ONNXRUNTIME
+      - name: Install OpenCV and ONNXRUNTIME
         run: |
           cd tool/script
           python install_opencv.py
           python install_onnxruntime.py
 
-      # 第三步：配置CMake构建环境
-      - name: 配置构建
+      # Step 7: Configure CMake build environment
+      - name: Configure build
         run: |
-          mkdir build                    # 创建构建目录(out-of-source构建)
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # 复制项目特定的CMake配置文件
-          cd build                       # 进入构建目录
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..              # 使用Ninja生成器配置CMake项目
+          mkdir build                    # Create build directory (out-of-source build)
+          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cd build                       # Enter build directory
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..              # Configure CMake project using Ninja generator
           
-      # 第四步：执行编译
-      - name: 编译
+      # Step 8: Compile, install, package and verify
+      - name: Compile, install, package and verify
         run: |
-          cd build                    # 进入构建目录
-          ninja -j$(nproc)           # 使用所有CPU核心并行编译
-          
-      # 第五步：验证编译结果
-      - name: 编译结果检查
+          cd build                    # Enter build directory
+          ninja -j$(nproc)           # Compile in parallel using all CPU cores
+          ninja install              # Install compiled files
+          cpack                      # Use CPack to generate various installation packages
+          ls -la                     # List all generated files and directories
+          echo "Compilation, installation and packaging completed"       # Output completion information
+      
+      # Step 9: Python developer mode installation and verification
+      - name: Python developer mode installation and verification
         run: |
-          cd build              # 进入构建目录
-          ls -la               # 列出所有生成的文件和目录
-          echo "编译完成"       # 输出完成信息
+          cd python                   # Enter Python package directory
+          pip install -e .            # Install Python package in developer mode
+          cd ..                       # Return to root directory
+          # Verify if Python package is correctly installed
+          python -c "
+          import platform
+          try:
+              import nndeploy
+              print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+              print(f'Platform: {platform.platform()}')
+              print(f'Architecture: {platform.machine()}')
+              print(f'Python version: {platform.python_version()}')
+          except ImportError as e:
+              print(f'✗ Import failed: {e}')
+              exit(1)
+          "
+          echo "Python package developer mode installation and verification completed"
+      
+      # Step 10: Upload build artifacts
+      - name: Upload packaged library
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-package
+          path: build/*.tar.gz
+          retention-days: 7
 
-          - name: 安装文件并创建发布包
-          if: startsWith(github.ref, 'refs/tags/')
-          run: |
-            cd build
-            ninja install
-            
-            # 使用 CPack 生成多种格式
-            echo "=== 使用 CPack 生成发布包 ==="
-            cpack -G TGZ -C Release
-            cpack -G DEB -C Release
-            
-            # 尝试生成 RPM（如果支持）
-            if command -v rpmbuild >/dev/null 2>&1; then
-              cpack -G RPM -C Release
-            fi
-            
-            echo "=== 生成的包文件 ==="
-            ls -la *.tar.gz *.deb *.rpm 2>/dev/null || ls -la *.tar.gz *.deb 2>/dev/null
-            echo "打包完成"
-        
-      # 添加 Release Assets 上传步骤
-      - name: 上传包到 Release Assets
+      # Step 11: Upload to Release Assets (only when pushing tags)
+      - name: Upload package to Release Assets
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
             build/*.tar.gz
-            build/*.deb
-            build/*.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
