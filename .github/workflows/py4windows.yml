@@ -88,7 +88,7 @@ jobs:
       - name: Configure build
         run: |
           mkdir build                    # Create build directory (out-of-source build)
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cp cmake/config_windows.cmake build/config.cmake   # Copy project-specific CMake configuration file
           cd build                       # Enter build directory
           cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..  # Configure using Visual Studio 2022 generator
 
