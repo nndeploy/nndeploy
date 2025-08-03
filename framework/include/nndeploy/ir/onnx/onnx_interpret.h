@@ -16,7 +16,7 @@ namespace nndeploy {
 namespace ir {
 
 /**
- * @brief 使用的是最新的onnx版本 - target_ir_version=21
+ * @brief 使用的是最新的onnx版本 - target_ir_version=20
  * @link https://github.com/onnx/onnx/blob/main/docs/Versioning.md
  * @note：最好是能够在线升级到最新的onnx版本
  */

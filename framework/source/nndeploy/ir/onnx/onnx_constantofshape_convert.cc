@@ -19,6 +19,13 @@ class OnnxConstantOfShapeConvert : public OnnxOpConvert {
     std::shared_ptr<OpDesc> op_desc =
         std::make_shared<OpDesc>(kOpTypeConstantOfShape);
     OnnxOpConvert::convert(onnx_node, op_desc);
+    ConstantOfShapeParam* param =
+        (ConstantOfShapeParam*)(op_desc->op_param_.get());
+    onnx::TensorProto onnx_value =
+        OnnxInterpret::getAttributeTensor(onnx_node, "value");
+    // value 在onnx文档中描述为可选的
+    device::Tensor* value = OnnxInterpret::convertToTensor(onnx_value);
+
     return op_desc;
   };
 };
