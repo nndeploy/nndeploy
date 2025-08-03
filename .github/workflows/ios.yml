@@ -84,6 +84,8 @@ jobs:
           # Enable OpenCV in configuration file
           echo 'set(ENABLE_NNDEPLOY_OPENCV ON)' >> config.cmake
           echo 'set(OpenCV_DIR "$HOME/opencv-ios-framework")' >> config.cmake
+          # default inference on
+          echo 'set(ENABLE_NNDEPLOY_INFERENCE_DEFAULT ON)' >> config.cmake
           # Enable plugins and demo
           echo 'set(ENABLE_NNDEPLOY_PLUGIN ON)' >> config.cmake
           echo 'set(ENABLE_NNDEPLOY_DEMO ON)' >> config.cmake
@@ -98,6 +100,7 @@ jobs:
             -DCMAKE_IOS_INSTALL_COMBINED=YES \
             -DCMAKE_BUILD_TYPE=Release \
             -DOpenCV_DIR=$HOME/opencv-ios-framework \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ..
       
       # Compile, verify and upload build artifacts
