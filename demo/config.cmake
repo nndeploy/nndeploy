@@ -96,7 +96,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${ROOT_PATH}/demo/llama/config.cmake)
   include(${ROOT_PATH}/demo/qwen/config.cmake)
 endif()
-# include(${ROOT_PATH}/demo/llama/config.cmake)
+
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
 if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
@@ -117,4 +117,3 @@ endif()
 if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${ROOT_PATH}/demo/matting/config.cmake)
 endif()
-
