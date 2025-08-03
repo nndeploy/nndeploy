@@ -61,6 +61,11 @@ if platform.system() == "Windows":
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DBUILD_PROTOBUF=ON \
+        -DWITH_PROTOBUF=ON \
+        -DPROTOBUF_UPDATE_FILES=ON \
+        -DOPENCV_FORCE_3RDPARTY_BUILD=ON \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 else:
@@ -68,6 +73,11 @@ else:
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DBUILD_PROTOBUF=ON \
+        -DWITH_PROTOBUF=ON \
+        -DPROTOBUF_UPDATE_FILES=ON \
+        -DOPENCV_FORCE_3RDPARTY_BUILD=ON \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 os.system(cmake_cmd)

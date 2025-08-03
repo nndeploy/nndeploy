@@ -212,7 +212,7 @@ endif()
 if(ENABLE_NNDEPLOY_PYTHON)
   set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
-  # # 添加 pybind11 子目录
+  # # Add pybind11 subdirectory
   # add_subdirectory(${ROOT_PATH}/third_party/pybind11)
   # # include
   # include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
@@ -448,16 +448,16 @@ message(STATUS "INFERENCE_SUFFIX: ${INFERENCE_SUFFIX}")
 
 # ignore warning
 if(MSVC)
-    # 禁用以下MSVC编译警告:
-    # /wd4003: 运算符缺少操作数 - 宏展开中的警告
-    # /wd4819: 文件包含不能在当前代码页中表示的字符 
-    # /wd4244: 从'type1'转换到'type2',可能丢失数据
-    # /wd4018: 有符号/无符号不匹配
-    # /utf-8: 将源代码和执行字符集都设为UTF-8
+    # Disable the following MSVC compiler warnings:
+    # /wd4003: macro expansion operator lacks operands
+    # /wd4819: file contains characters that cannot be represented in the current code page
+    # /wd4244: conversion from 'type1' to 'type2', possible loss of data
+    # /wd4018: signed/unsigned mismatch
+    # /utf-8: set both source and execution character sets to UTF-8
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
-    # 禁用以下MSVC编译警告:
-    # /wd4251: 需要有dll接口供客户端使用的警告
+    # Disable the following MSVC compiler warnings:
+    # /wd4251: needs to have dll-interface to be used by clients warning
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
 endif()
@@ -506,18 +506,18 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "armv7")
     message(STATUS "Building for ARMv7 architecture")
 endif()
 
-# 平台特定配置
+# Platform-specific configuration
 if(WIN32)
-    # Windows特定配置
+    # Windows-specific configuration
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 elseif(APPLE)
-    # macOS特定配置  
+    # macOS-specific configuration
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
     set(CMAKE_MACOSX_RPATH ON)
 elseif(UNIX AND NOT ANDROID AND NOT IOS)
-    # Linux特定配置（排除Android和iOS）
+    # Linux-specific configuration (excluding Android and iOS)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        # 只在使用GCC编译器时添加这些选项
+        # Only add these options when using GCC compiler
         # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
     endif()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -1043,7 +1043,7 @@ if(ENABLE_NNDEPLOY_TEST)
   if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   endif()
-  # 禁止googletest安装其组件到install目录
+  # Disable googletest from installing its components to install directory
   # set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
   # set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
   add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 

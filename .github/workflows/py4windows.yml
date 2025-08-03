@@ -120,12 +120,12 @@ jobs:
           import platform
           try:
               import nndeploy
-              print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+              print(f'[ok] Successfully imported nndeploy {nndeploy.__version__}')
               print(f'Platform: {platform.platform()}')
               print(f'Architecture: {platform.machine()}')
               print(f'Python version: {platform.python_version()}')
           except ImportError as e:
-              print(f'✗ Import failed: {e}')
+              print(f'[failed] Import failed: {e}')
               exit(1)
           "
 
