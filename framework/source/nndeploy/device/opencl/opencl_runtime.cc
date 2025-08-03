@@ -4,7 +4,7 @@ namespace nndeploy
 {
     namespace device
     {
-        //bool OpenCLRuntime::init_done_ = false;
+        // bool OpenCLRuntime::init_done_ = false;
         
         OpenCLRuntime::OpenCLRuntime()
         {

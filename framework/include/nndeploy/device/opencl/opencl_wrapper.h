@@ -84,6 +84,7 @@ class NNDEPLOY_CC_API OpenCLSymbols {
   OpenCLSymbols &operator=(const OpenCLSymbols &) = delete;
 
   bool LoadOpenCLLibrary();
+  bool LoadLibraryFromPath(const std::string &path);
   bool UnLoadOpenCLLibrary();
   // get platfrom id
   using clGetPlatformIDsFunc = cl_int(CL_API_CALL *)(cl_uint, cl_platform_id *,
@@ -344,7 +345,7 @@ class NNDEPLOY_CC_API OpenCLSymbols {
 
  private:
   OpenCLSymbols();
-  bool LoadLibraryFromPath(const std::string &path);
+  
 
  private:
   static std::shared_ptr<OpenCLSymbols> opencl_symbols_singleton_;
