@@ -97,7 +97,8 @@ jobs:
           cd build
           ninja -j$(sysctl -n hw.ncpu)
           ninja install
-          cpack
+          # cpack
+          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-ios-arm64.tar.gz {} +
           ls -la
           echo "iOS arm64 architecture compilation completed (with OpenCV support)"
           

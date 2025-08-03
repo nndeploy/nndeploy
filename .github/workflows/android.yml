@@ -110,7 +110,13 @@ jobs:
           cd build
           ninja -j$(nproc)
           ninja install
-          cpack
+          # 跳过 cpack，因为 Android 交叉编译的二进制文件与主机架构不兼容
+          # cpack 在打包时会运行 RPM 的 brp-strip 脚本，该脚本使用主机的 strip 工具
+          # 但主机的 strip (x86_64) 无法处理 Android arm64 架构的二进制文件
+          # 错误：Unable to recognise the format of the input file
+          # 解决方案：手动创建 tar.gz 包替代 cpack
+          # cpack
+          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-android-arm64-v8a.tar.gz {} +
           ls -la
           echo "Android arm64-v8a architecture API21 compilation completed (with OpenCV support)"
           
