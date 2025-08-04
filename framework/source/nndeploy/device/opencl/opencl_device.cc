@@ -193,9 +193,38 @@ namespace nndeploy
                 NNDEPLOY_LOGE("load opencl lib failed!\n");
                 return base::kStatusCodeErrorDeviceOpenCL;
             }
+            NNDEPLOY_LOGI("opencl loaded successfully!\n");
+            std::vector<cl::Platform> platforms;
+            std::vector<cl::Device> gpuDevices;
+            cl_int res = cl::Platform::get(&platforms);
+            for (uint8_t i = 0; i < platforms.size(); i++)
+            {
+                res = platforms[i].getDevices(CL_DEVICE_TYPE_GPU, &gpuDevices);
+                auto devicePtr = std::make_shared<cl::Device>(gpuDevices[i]);
+                if(devicePtr)
+                {
+                    printf("%s\n", devicePtr->getInfo<CL_DEVICE_NAME>().c_str());
+                    printf("%s\n", devicePtr->getInfo<CL_DEVICE_VENDOR>().c_str());
+                }
+            }
+            
             return base::kStatusCodeOk;
         }
 
-        base::Status OpenCLDevice::deinit() { return base::kStatusCodeOk; }
+        base::Status OpenCLDevice::deinit() 
+        {
+            if (OpenCLSymbols::GetInstance()->UnLoadOpenCLLibrary() == false)
+            {
+                NNDEPLOY_LOGE("unload opencl lib failed!\n");
+                return base::kStatusCodeErrorDeviceOpenCL;
+            }
+            NNDEPLOY_LOGI("opencl unloaded successfully!\n"); 
+            return base::kStatusCodeOk; 
+        }
+
+        OpenCLDevice::~OpenCLDevice()
+        {
+            OpenCLDevice::deinit();
+        }
     } 
 }

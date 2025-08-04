@@ -108,7 +108,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     }
     written_ = true;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
-    type_info_ = &typeid(T);
+    type_info_ = const_cast<std::type_info *>(&typeid(T));
     return status;
   }
   template <typename T, typename... Args>

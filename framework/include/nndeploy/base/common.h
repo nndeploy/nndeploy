@@ -152,6 +152,8 @@ enum DataFormat : int {
   // 5D
   kDataFormatNCDHW,
   kDataFormatNDHWC,
+  // TODO:NEW
+  kDataFormatNDCHW,
 
   // auto
   kDataFormatAuto,

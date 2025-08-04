@@ -117,7 +117,7 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device
          * @brief Destroy the OpenCL object
          *
          */
-        virtual ~OpenCLDevice(){};
+        virtual ~OpenCLDevice();
                 
         /**
          * @brief init
