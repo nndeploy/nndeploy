@@ -458,7 +458,7 @@ endif()
 # endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
 
 # 生成python pip package安装脚本
-configure_file(${ROOT_PATH}/python/setup.py.cfg ${PROJECT_SOURCE_DIR}/python/setup.py)
+# configure_file(${ROOT_PATH}/python/setup.py.cfg ${PROJECT_SOURCE_DIR}/python/setup.py)
 
 # install
 if(SYSTEM.Windows)

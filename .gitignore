@@ -250,7 +250,7 @@ compile_commands.json
 *.om
 
 # setup.py
-python/setup.py
+# python/setup.py
 
 #ui
 *.DS_Store
