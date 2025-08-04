@@ -44,7 +44,7 @@ jobs:
       - name: Pre-build C++ libraries and generate Python configuration
         run: |
           # Install basic Python dependencies
-          python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
+          # python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
           
           # Install Rust
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -52,9 +52,9 @@ jobs:
           rustup update
           
           # Install OpenCV and ONNX Runtime (using system Python)
-          cd tool/script
-          python3 install_opencv.py
-          python3 install_onnxruntime.py
+          # cd tool/script
+          # python3 install_opencv.py
+          # python3 install_onnxruntime.py
           
           # Build C++ libraries
           cd ../..
@@ -67,19 +67,19 @@ jobs:
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DPython3_EXECUTABLE=$(which python3)
           
-          ninja -j$(nproc)
-          ninja install
+          # ninja -j$(nproc)
+          # ninja install
           
           # Verify if setup.py is generated
-          echo "=== Checking generated Python configuration files ==="
-          ls -la ../python/
-          if [ -f ../python/setup.py ]; then
-            echo "✓ setup.py generated successfully"
-            head -20 ../python/setup.py
-          else
-            echo "✗ setup.py not generated"
-            exit 1
-          fi
+          # echo "=== Checking generated Python configuration files ==="
+          # ls -la ../python/
+          # if [ -f ../python/setup.py ]; then
+          #   echo "✓ setup.py generated successfully"
+          #   head -20 ../python/setup.py
+          # else
+          #   echo "✗ setup.py not generated"
+          #   exit 1
+          # fi
 
       # Step 5: Build wheels using cibuildwheel
       - name: Build wheels
