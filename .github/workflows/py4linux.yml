@@ -113,6 +113,9 @@ jobs:
             source $HOME/.cargo/env
             rustup update
 
+            # Install Python build dependencies
+            pip install pybind11 setuptools wheel twine requests pathlib cython
+
           CIBW_BEFORE_BUILD: |
             # Activate toolchain
             if [ -f /opt/rh/gcc-toolset-11/enable ]; then
@@ -146,7 +149,7 @@ jobs:
             ninja install
             
             # Install Python build dependencies
-            pip install --upgrade pip setuptools wheel pybind11 cython
+            # pip install pybind11 setuptools wheel twine requests pathlib cython
 
           # Test built wheels
           CIBW_TEST_COMMAND: |
