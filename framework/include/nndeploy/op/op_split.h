@@ -18,7 +18,7 @@ class OpSplit : public Op {
   virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status split(device::Tensor *input,
+NNDEPLOY_CC_API base::Status split(device::Tensor* input, device::Tensor* section,
                                    std::shared_ptr<ir::SplitParam> param,
                                    std::vector<device::Tensor *> outputs);
 
