@@ -57,7 +57,7 @@ jobs:
           # python3 install_onnxruntime.py
           
           # Build C++ libraries
-          cd ../..
+          # cd ../..
           mkdir -p build
           cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
           cd build
