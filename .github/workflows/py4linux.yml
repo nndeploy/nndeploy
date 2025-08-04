@@ -113,15 +113,15 @@ jobs:
             source $HOME/.cargo/env
             rustup update
 
-            # Install Python build dependencies
-            pip install pybind11 setuptools wheel twine requests pathlib cython
-
           CIBW_BEFORE_BUILD: |
             # Activate toolchain
             if [ -f /opt/rh/gcc-toolset-11/enable ]; then
                 source /opt/rh/gcc-toolset-11/enable
             fi
             source $HOME/.cargo/env
+
+            # Install Python build dependencies
+            pip install pybind11 setuptools wheel twine requests pathlib cython
             
             # Install OpenCV and ONNX Runtime
             cd {project}/tool/script
