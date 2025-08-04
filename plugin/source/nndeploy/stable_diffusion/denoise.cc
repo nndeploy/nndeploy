@@ -195,7 +195,8 @@ class NNDEPLOY_CC_API DDIMSchedule : public dag::Node {
           std::make_shared<ir::SplitParam>();
       split_param->axis_ = 0;
       split_param->num_outputs_ = 2;
-      op::split(unet_output_t, split_param, outputs);
+      // ZH: 适配算子修改
+      op::split(unet_output_t, nullptr, split_param, outputs);
       op::sub(noise_pred_, noise_pred_uncond_, noise_sub_);
       op::muls(scalar_, noise_sub_, noise_muls_);
       op::add(noise_pred_uncond_, noise_muls_, noise_pred_);

@@ -12,7 +12,7 @@ from pathlib import Path
 # OpenCV version
 OPENCV_VER = "4.8.0"
 
-# 获取当前执行目录
+# 
 WORKSPACE = Path(os.getcwd())
 OPENCV_BUILD_DIR = WORKSPACE / "download"
 OPENCV_DIR = "opencv" + OPENCV_VER
@@ -25,7 +25,7 @@ OPENCV_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 # Change to third party library directory
 os.chdir(OPENCV_BUILD_DIR)
 
-# Download OpenCV source code
+# # Download OpenCV source code
 url = f"https://github.com/opencv/opencv/archive/refs/tags/{OPENCV_VER}.zip"
 filename = url.split('/')[-1]
 
@@ -61,11 +61,26 @@ if platform.system() == "Windows":
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
-        -DCMAKE_CXX_STANDARD=17 \
-        -DBUILD_PROTOBUF=ON \
-        -DWITH_PROTOBUF=ON \
-        -DPROTOBUF_UPDATE_FILES=ON \
-        -DOPENCV_FORCE_3RDPARTY_BUILD=ON \
+        -DBUILD_opencv_world=OFF \
+        -DBUILD_opencv_core=ON \
+        -DBUILD_opencv_imgproc=ON \
+        -DBUILD_opencv_imgcodecs=ON \
+        -DBUILD_opencv_videoio=ON \
+        -DBUILD_opencv_highgui=ON \
+        -DBUILD_opencv_video=ON \
+        -DBUILD_opencv_dnn=ON \
+        -DBUILD_opencv_calib3d=ON \
+        -DBUILD_opencv_features2d=ON \
+        -DBUILD_opencv_flann=ON \
+        -DBUILD_opencv_apps=OFF \
+        -DBUILD_opencv_java=OFF \
+        -DBUILD_opencv_js=OFF \
+        -DBUILD_opencv_python2=OFF \
+        -DBUILD_opencv_python3=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_DOCS=OFF \
+        -DWITH_PROTOBUF=OFF \
+        -DBUILD_PROTOBUF=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 else:
@@ -73,11 +88,26 @@ else:
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
-        -DCMAKE_CXX_STANDARD=17 \
-        -DBUILD_PROTOBUF=ON \
-        -DWITH_PROTOBUF=ON \
-        -DPROTOBUF_UPDATE_FILES=ON \
-        -DOPENCV_FORCE_3RDPARTY_BUILD=ON \
+        -DBUILD_opencv_world=OFF \
+        -DBUILD_opencv_core=ON \
+        -DBUILD_opencv_imgproc=ON \
+        -DBUILD_opencv_imgcodecs=ON \
+        -DBUILD_opencv_videoio=ON \
+        -DBUILD_opencv_highgui=ON \
+        -DBUILD_opencv_video=ON \
+        -DBUILD_opencv_dnn=ON \
+        -DBUILD_opencv_calib3d=ON \
+        -DBUILD_opencv_features2d=ON \
+        -DBUILD_opencv_flann=ON \
+        -DBUILD_opencv_apps=OFF \
+        -DBUILD_opencv_java=OFF \
+        -DBUILD_opencv_js=OFF \
+        -DBUILD_opencv_python2=OFF \
+        -DBUILD_opencv_python3=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_DOCS=OFF \
+        -DWITH_PROTOBUF=OFF \
+        -DBUILD_PROTOBUF=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 os.system(cmake_cmd)
