@@ -170,6 +170,7 @@ jobs:
           # Environment variables
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
+            SETUPTOOLS_EXT_SUFFIX=.so  # 新增这一行
 
         with:
           package-dir: ./python
