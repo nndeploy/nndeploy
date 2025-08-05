@@ -251,6 +251,7 @@ compile_commands.json
 
 # setup.py
 # python/setup.py
+python/wheelhouse/
 
 #ui
 *.DS_Store

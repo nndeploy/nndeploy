@@ -35,6 +35,12 @@ manylinux_tags = [
 ]
 is_manylinux = environ.get("AUDITWHEEL_PLAT", None) in manylinux_tags
 
+class InstallCommand(InstallCommandBase):
+    def finalize_options(self):
+        ret = InstallCommandBase.finalize_options(self)
+        self.install_lib = self.install_platlib  # 将库安装到平台特定目录
+        return ret
+
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
@@ -243,7 +249,8 @@ def get_internal_so_path():
                 
                 # Set rpath
                 if platform.system() == "Darwin":
-                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path]) 
+                    # First add @loader_path to rpath
+                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path], check=False) 
                     try:
                         # Check current library dependencies
                         result = subprocess.run(["otool", "-L", lib_path], 
@@ -254,7 +261,7 @@ def get_internal_so_path():
                         for line in dependencies.split('\n'):
                             line = line.strip()
                             if '@rpath/' in line and '.dylib' in line:
-                                # Extract library name
+                                # Extract library path and name
                                 dylib_path = line.split()[0]
                                 dylib_name = os.path.basename(dylib_path)
 
@@ -266,11 +273,31 @@ def get_internal_so_path():
                                     dylib_path,
                                     f"@loader_path/{dylib_name}", 
                                     lib_path
-                                ], check=False)         
-                            else:
-                                subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
+                                ], check=False)
+                        
+                        # Compatibility handling for macOS versions below 14
+                        # Check system version and apply additional fixes
+                        import platform as plt
+                        macos_version = plt.mac_ver()[0]
+                        if macos_version and float('.'.join(macos_version.split('.')[:2])) < 14.0:
+                            print(f"Detected macOS {macos_version}, applying compatibility fixes")
+                            
+                            # Add additional rpath paths for older macOS versions
+                            subprocess.run(["install_name_tool", "-add_rpath", "@executable_path", lib_path], check=False)
+                            subprocess.run(["install_name_tool", "-add_rpath", ".", lib_path], check=False)
+                            
+                            # Check and fix library ID
+                            lib_name = os.path.basename(lib_path)
+                            subprocess.run([
+                                "install_name_tool", "-id", 
+                                f"@loader_path/{lib_name}", 
+                                lib_path
+                            ], check=False)
+                            
                     except Exception as e:
-                        print(f"Warning: Advanced rpath fixing failed for {lib_path}: {e}")
+                        print(f"Warning: macOS dynamic library path fixing failed for {lib_path}: {e}")
+                else:
+                    subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
             except Exception as e:
                 print(f"Warning: Error processing {lib_path}: {e}")
                 
@@ -440,6 +467,14 @@ def copy_server_directory():
     else:
         print(f"Source directory {source_dir} does not exist")
 
+
+cmd_classes = {}
+if bdist_wheel is not None:
+    cmd_classes["bdist_wheel"] = bdist_wheel
+cmd_classes["install"] = InstallCommand
+# cmd_classes["build_ext"] = build_ext
+
+
 # Execute copy operation
 copy_server_directory()
 setup(
@@ -481,6 +516,7 @@ setup(
     #     "all": parse_requirements('../requirements.txt')
     # },
     cmdclass={"bdist_wheel": bdist_wheel},
+    # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode
     has_ext_modules=lambda: True,  # Added: Declare that it contains extension modules
     keywords="deep-learning, neural-network, model-deployment, inference, ai",
