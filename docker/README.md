@@ -8,16 +8,16 @@ This Docker image builds and runs the [nndeploy](https://github.com/nndeploy/nnd
 docker build -f docker/Dockerfile -t nndeploy-linux .
 ````
 
-## Run the Container (Default Port 8000)
+## Run the Container (Default Port 8888)
 
 ```bash
-docker run -it -p 8000:8000 nndeploy-linux
+docker run -it -p 8888:8888 nndeploy-linux
 ```
 
 This will run:
 
 ```bash
-python3 app.py --port 8000
+python3 app.py --port 8888
 ```
 
 ## Run with Custom Port
