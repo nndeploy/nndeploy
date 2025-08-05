@@ -38,9 +38,9 @@ RUN rm -rf build && \
 
 # ---- Install Python Package ----
 RUN cd python && \
-    python3 setup.py bdist_wheel && \
-    pip install dist/nndeploy-0.2.10-cp310-cp310-linux_x86_64.whl && \
-    cd ..
+    pip install -e .
+
+RUN echo "/workspace/python/nndeploy" > /etc/ld.so.conf.d/nndeploy.conf && ldconfig
 
 # ---- Default Interface ----
 WORKDIR /workspace/
