@@ -1,7 +1,10 @@
 #ifndef _NNDEPLOY_DEVICE_OPENCL_OPENCL_UTIL_H_
 #define _NNDEPLOY_DEVICE_OPENCL_OPENCL_UTIL_H_
 
+#include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/log.h"
 #include "nndeploy/device/opencl/opencl_include.h"
+
 
 namespace nndeploy {
 namespace device {
@@ -15,14 +18,30 @@ namespace device {
     exit(EXIT_FAILURE);                                            \
   }
 
-#define NNDEPLOY_OPENCL_CHECK(status)                           \
-  {                                                             \
-    std::stringstream _error;                                   \
-    if (CL_SUCCESS != status) {                                 \
-      _error << "OpenCL failure " << status << ": " << (status) \
-             << " " NNDEPLOY_OPENCL_FETAL_ERROR(_error.str());  \
-    }                                                           \
+#define NNDEPLOY_OPENCL_CHECK(status)                            \
+  {                                                              \
+    std::stringstream _error;                                    \
+    if (CL_SUCCESS != status) {                                  \
+      _error << "OpenCL failure " << status << ": " << (status); \
+      NNDEPLOY_OPENCL_FETAL_ERROR(_error.str());                 \
+    }                                                            \
   }
+
+/**
+ * @brief queries the number of available GPU devices
+ * on the first platform
+ */
+inline int clGetNumDevices() {
+  int n = 0;
+  std::vector<cl::Platform> platforms;
+  std::vector<cl::Device> gpuDevices;
+  NNDEPLOY_OPENCL_CHECK(cl::Platform::get(&platforms));
+  printf("num plats: %d\n", platforms.size());
+  NNDEPLOY_OPENCL_CHECK(
+      platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &gpuDevices));
+  n = gpuDevices.size();
+  return n;
+}
 
 }  // namespace device
 }  // namespace nndeploy

@@ -1,7 +1,9 @@
 #include "nndeploy/device/opencl/opencl_device.h"
 
 #include "nndeploy/device/buffer.h"
+#include "nndeploy/device/opencl/opencl_util.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace device {
@@ -15,15 +17,26 @@ OpenCLArchitecture::~OpenCLArchitecture(){};
 
 base::Status OpenCLArchitecture::checkDevice(int device_id,
                                              std::string library_path) {
+  int device_count = clGetNumDevices();
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCLArchitecture::enableDevice(int device_id,
                                               std::string library_path) {
   base::DeviceType device_type(base::kDeviceTypeCodeOpenCL, device_id);
-  OpenCLDevice *device = new OpenCLDevice(device_type, library_path);
-  device->init();
-  devices_.insert({device_id, device});
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (devices_.find(device_id) == devices_.end()) {
+    OpenCLDevice *device = new OpenCLDevice(device_type, library_path);
+    if (device == nullptr) {
+      NNDEPLOY_LOGE("device is nullptr\n");
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+    if (device->init() = !base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("device init failed\n");
+      return base::kStatusCodeErrorDeviceOpenCL;
+    }
+    devices_.insert({device_id, device});
+  }
   return base::kStatusCodeOk;
 }
 
@@ -162,18 +175,6 @@ base::Status OpenCLDevice::init() {
     return base::kStatusCodeErrorDeviceOpenCL;
   }
   NNDEPLOY_LOGI("opencl loaded successfully!\n");
-  std::vector<cl::Platform> platforms;
-  std::vector<cl::Device> gpuDevices;
-  cl_int res = cl::Platform::get(&platforms);
-  for (uint8_t i = 0; i < platforms.size(); i++) {
-    res = platforms[i].getDevices(CL_DEVICE_TYPE_GPU, &gpuDevices);
-    auto devicePtr = std::make_shared<cl::Device>(gpuDevices[i]);
-    if (devicePtr) {
-      printf("%s\n", devicePtr->getInfo<CL_DEVICE_NAME>().c_str());
-      printf("%s\n", devicePtr->getInfo<CL_DEVICE_VENDOR>().c_str());
-    }
-  }
-
   return base::kStatusCodeOk;
 }
 
