@@ -25,7 +25,7 @@ OPENCV_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 # Change to third party library directory
 os.chdir(OPENCV_BUILD_DIR)
 
-# # Download OpenCV source code
+# Download OpenCV source code
 url = f"https://github.com/opencv/opencv/archive/refs/tags/{OPENCV_VER}.zip"
 filename = url.split('/')[-1]
 
@@ -118,26 +118,66 @@ os.system("cmake --build . --config Release -j6")
 os.system("cmake --install . --config Release")
 
 if platform.system() == "Windows":
-    # 创建目标目录结构
+    # Create target directory structure
     target_lib_dir = OPENCV_INSTALL_DIR / "lib"
     target_bin_dir = OPENCV_INSTALL_DIR / "bin"
     
-    # 确保目录存在
+    # Ensure directories exist
     target_lib_dir.mkdir(parents=True, exist_ok=True)
     target_bin_dir.mkdir(parents=True, exist_ok=True)
     
-    # 拷贝lib目录内容
+    # Copy lib directory contents
     opencv_lib_dir = OPENCV_INSTALL_DIR / "x64" / "vc16" / "lib"
     if opencv_lib_dir.exists():
         for lib_file in opencv_lib_dir.glob("*"):
             if lib_file.is_file():
                 shutil.copy2(lib_file, target_lib_dir)
     
-    # 拷贝bin目录内容
+    # Copy bin directory contents
     opencv_bin_dir = OPENCV_INSTALL_DIR / "x64" / "vc16" / "bin"
     if opencv_bin_dir.exists():
         for bin_file in opencv_bin_dir.glob("*"):
             if bin_file.is_file():
                 shutil.copy2(bin_file, target_bin_dir)
+                
+# Check and fix lib64 directory issue
+lib64_dir = OPENCV_INSTALL_DIR / "lib64"
+lib_dir = OPENCV_INSTALL_DIR / "lib"
+
+if lib64_dir.exists() and not lib_dir.exists():
+    print("Detected lib64 directory, renaming it to lib directory...")
+    shutil.move(str(lib64_dir), str(lib_dir))
+    print("Successfully renamed lib64 directory to lib directory")
+elif lib64_dir.exists() and lib_dir.exists():
+    print("Detected both lib64 and lib directories, merging lib64 contents into lib directory...")
+    for lib_file in lib64_dir.iterdir():
+        if lib_file.is_file():
+            shutil.copy2(lib_file, lib_dir)
+        elif lib_file.is_dir():
+            target_dir = lib_dir / lib_file.name
+            if target_dir.exists():
+                shutil.rmtree(target_dir)
+            shutil.copytree(lib_file, target_dir)
+    shutil.rmtree(lib64_dir)
+    print("Successfully merged lib64 directory contents into lib directory")
+
+# Verify installation
+print("Verifying installation results:")
+include_dir = OPENCV_INSTALL_DIR / "include"
+lib_dir = OPENCV_INSTALL_DIR / "lib"
+
+print(f"Header files directory: {include_dir} - {'exists' if include_dir.exists() else 'not found'}")
+print(f"Library files directory: {lib_dir} - {'exists' if lib_dir.exists() else 'not found'}")
+
+if include_dir.exists():
+    print("Header files:")
+    for header in include_dir.glob("**/*.h*"):
+        print(f"  {header.relative_to(include_dir)}")
+
+if lib_dir.exists():
+    print("Library files:")
+    for lib_file in lib_dir.iterdir():
+        if lib_file.is_file():
+            print(f"  {lib_file.name}")
 
 print(f"OpenCV {OPENCV_VER} installation completed!")

@@ -186,9 +186,34 @@ def get_internal_so_path():
                 
                 # Set rpath
                 if platform.system() == "Darwin":
-                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path])
-                else:
-                    subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
+                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path]) 
+                    try:
+                        # Check current library dependencies
+                        result = subprocess.run(["otool", "-L", lib_path], 
+                                              capture_output=True, text=True)
+                        dependencies = result.stdout
+
+                        # Fix all @rpath references to @loader_path
+                        for line in dependencies.split('\n'):
+                            line = line.strip()
+                            if '@rpath/' in line and '.dylib' in line:
+                                # Extract library name
+                                dylib_path = line.split()[0]
+                                dylib_name = os.path.basename(dylib_path)
+
+                                print(f"Fixing rpath for {dylib_name} in {os.path.basename(lib_path)}")
+
+                                # Change @rpath to @loader_path
+                                subprocess.run([
+                                    "install_name_tool", "-change", 
+                                    dylib_path,
+                                    f"@loader_path/{dylib_name}", 
+                                    lib_path
+                                ], check=False)         
+                            else:
+                                subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
+                    except Exception as e:
+                        print(f"Warning: Advanced rpath fixing failed for {lib_path}: {e}")
             except Exception as e:
                 print(f"Warning: Error processing {lib_path}: {e}")
                 
@@ -362,7 +387,7 @@ def copy_server_directory():
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="${PACKAGE_VERSION}",  # Fix version number format
+    version="0.2.11",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
     description="Workflow-based Multi-platform AI Deployment Tool",  # Add short description

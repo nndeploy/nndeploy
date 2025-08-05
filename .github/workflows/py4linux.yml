@@ -41,45 +41,45 @@ jobs:
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
       # Step 4: Pre-build C++ libraries and generate Python configuration
-      - name: Pre-build C++ libraries and generate Python configuration
-        run: |
-          # Install basic Python dependencies
-          python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
+      # - name: Pre-build C++ libraries and generate Python configuration
+      #   run: |
+      #     # Install basic Python dependencies
+      #     # python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
           
-          # Install Rust
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
-          rustup update
+      #     # Install Rust
+      #     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      #     source $HOME/.cargo/env
+      #     rustup update
           
-          # Install OpenCV and ONNX Runtime (using system Python)
-          cd tool/script
-          python3 install_opencv.py
-          python3 install_onnxruntime.py
+      #     # Install OpenCV and ONNX Runtime (using system Python)
+      #     # cd tool/script
+      #     # python3 install_opencv.py
+      #     # python3 install_onnxruntime.py
           
-          # Build C++ libraries
-          cd ../..
-          mkdir -p build
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
-          cd build
+      #     # Build C++ libraries
+      #     # cd ../..
+      #     mkdir -p build
+      #     cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
+      #     cd build
           
-          cmake -G Ninja .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -DPython3_EXECUTABLE=$(which python3)
+      #     cmake -G Ninja .. \
+      #       -DCMAKE_BUILD_TYPE=Release \
+      #       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+      #       -DPython3_EXECUTABLE=$(which python3)
           
-          ninja -j$(nproc)
-          ninja install
+      #     # ninja -j$(nproc)
+      #     # ninja install
           
-          # Verify if setup.py is generated
-          echo "=== Checking generated Python configuration files ==="
-          ls -la ../python/
-          if [ -f ../python/setup.py ]; then
-            echo "✓ setup.py generated successfully"
-            head -20 ../python/setup.py
-          else
-            echo "✗ setup.py not generated"
-            exit 1
-          fi
+      #     # Verify if setup.py is generated
+      #     # echo "=== Checking generated Python configuration files ==="
+      #     # ls -la ../python/
+      #     # if [ -f ../python/setup.py ]; then
+      #     #   echo "✓ setup.py generated successfully"
+      #     #   head -20 ../python/setup.py
+      #     # else
+      #     #   echo "✗ setup.py not generated"
+      #     #   exit 1
+      #     # fi
 
       # Step 5: Build wheels using cibuildwheel
       - name: Build wheels
@@ -119,6 +119,9 @@ jobs:
                 source /opt/rh/gcc-toolset-11/enable
             fi
             source $HOME/.cargo/env
+
+            # Install Python build dependencies
+            pip install pybind11 setuptools wheel twine requests pathlib cython
             
             # Install OpenCV and ONNX Runtime
             cd {project}/tool/script
@@ -127,6 +130,8 @@ jobs:
             
             # Build C++ libraries
             cd {project}
+            # Remove existing build directory if it exists
+            # rm -rf build
             mkdir -p build
             cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
             cd build
@@ -146,7 +151,7 @@ jobs:
             ninja install
             
             # Install Python build dependencies
-            pip install --upgrade pip setuptools wheel pybind11 cython
+            # pip install pybind11 setuptools wheel twine requests pathlib cython
 
           # Test built wheels
           CIBW_TEST_COMMAND: |
@@ -165,6 +170,7 @@ jobs:
           # Environment variables
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
+            SETUPTOOLS_EXT_SUFFIX=.so  # 新增这一行
 
         with:
           package-dir: ./python
