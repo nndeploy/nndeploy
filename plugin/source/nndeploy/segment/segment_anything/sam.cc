@@ -21,14 +21,16 @@ base::Status SAMPointsParam::serialize(
     rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
   json.SetObject();
   rapidjson::Value points_array(rapidjson::kArrayType);
-  for (const auto &point : points_) {
-    points_array.PushBack(point, allocator);
+  float *points_data = points_.data();
+  for (size_t i = 0; i < points_.size(); ++i) {
+    points_array.PushBack(points_data[i], allocator);
   }
   json.AddMember("points", points_array, allocator);
 
   rapidjson::Value labels_array(rapidjson::kArrayType);
-  for (const auto &label : labels_) {
-    labels_array.PushBack(label, allocator);
+  float *labels_data = labels_.data();
+  for (size_t i = 0; i < labels_.size(); ++i) {
+    labels_array.PushBack(labels_data[i], allocator);
   }
   json.AddMember("labels", labels_array, allocator);
 
@@ -40,14 +42,27 @@ base::Status SAMPointsParam::serialize(
 }
 
 base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
+  // rapidjson::StringBuffer buffer;
+  // rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  // json.Accept(writer);
+  // NNDEPLOY_LOGE("Deserialize JSON (Pretty):\n%s", buffer.GetString());
   // 反序列化 points_ 数组
   if (json.HasMember("points") && json["points"].IsArray()) {
     points_.clear();
     const rapidjson::Value &points_array = json["points"];
     for (rapidjson::SizeType i = 0; i < points_array.Size(); i++) {
+      float point = 0.0f;
       if (points_array[i].IsFloat()) {
-        points_.push_back(points_array[i].GetFloat());
+        point = points_array[i].GetFloat();
+      } else if (points_array[i].IsString()) {
+        point = std::stof(points_array[i].GetString());
+      } else if (points_array[i].IsInt()) {
+        point = static_cast<float>(points_array[i].GetInt());
+      } else {
+        NNDEPLOY_LOGE("Invalid point value type at index %zu", i);
+        return base::kStatusCodeErrorInvalidValue;
       }
+      points_.push_back(point);
     }
   }
 
@@ -56,9 +71,18 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
     labels_.clear();
     const rapidjson::Value &labels_array = json["labels"];
     for (rapidjson::SizeType i = 0; i < labels_array.Size(); i++) {
+      float label = 0.0f;
       if (labels_array[i].IsFloat()) {
-        labels_.push_back(labels_array[i].GetFloat());
+        label = labels_array[i].GetFloat();
+      } else if (labels_array[i].IsString()) {
+        label = std::stof(labels_array[i].GetString());
+      } else if (labels_array[i].IsInt()) {
+        label = static_cast<float>(labels_array[i].GetInt());
+      } else {
+        NNDEPLOY_LOGE("Invalid label value type at index %zu", i);
+        return base::kStatusCodeErrorInvalidValue;
       }
+      labels_.push_back(label);
     }
   }
 
@@ -74,6 +98,12 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
   if (json.HasMember("version") && json["version"].IsInt()) {
     version_ = json["version"].GetInt();
   }
+
+  NNDEPLOY_LOGE(
+      "SAMPointsParam deserialized: "
+      "points size: %zu, labels size: %zu, "
+      "ori_width: %d, ori_height: %d, version: %d",
+      points_.size() / 2, labels_.size(), ori_width, ori_height, version_);
 
   return base::kStatusCodeOk;
 }
@@ -103,6 +133,12 @@ class SAMPointNode : public dag::Node {
         (SAMPointsParam *)inputs_[0]->get<SAMPointsParam>(this);
     CHECK_IF_NULL_RETURN(param, "Failed to get SAMPointsParam from input");
 
+    NNDEPLOY_LOGE(
+        "SAMPointsParam: points size: %zu, labels size: %zu, "
+        "ori_width: %d, ori_height: %d, version: %d",
+        param->points_.size() / 2, param->labels_.size(), param->ori_width,
+        param->ori_height, param->version_);
+
     base::Status status = preparePointCoords(param);
     CHECK_IF_ERROR_RETURN(status, "Failed to prepare point coordinates");
 
@@ -130,7 +166,9 @@ class SAMPointNode : public dag::Node {
       return base::kStatusCodeErrorInvalidValue;
     }
     if (param->points_.empty() || param->labels_.empty()) {
-      NNDEPLOY_LOGE("Points or labels are empty.");
+      NNDEPLOY_LOGE(
+          "Points or labels are empty, points num: %d, labels num: %d.",
+          param->points_.size() / 2, param->labels_.size());
       return base::kStatusCodeErrorInvalidValue;
     }
 
@@ -351,7 +389,35 @@ base::Status SAMGraph::setInferParam(base::InferenceType inference_type,
   return status;
 }
 
-base::Status SAMGraph::initGraphNodes() {
+base::Status SAMGraph::defaultParam() {
+  base::Status status = base::kStatusCodeOk;
+
+  preprocess::CvtResizePadNormTransParam *preprocess_image_param =
+      (preprocess::CvtResizePadNormTransParam *)
+          preprocess_image_node_->getParam();
+  CHECK_IF_NULL_RETURN(preprocess_image_param,
+                       "Failed to get preprocess_image_param");
+  preprocess_image_param->src_pixel_type_ = base::kPixelTypeBGR;
+  preprocess_image_param->dst_pixel_type_ = base::kPixelTypeRGB;
+  preprocess_image_param->interp_type_ = base::kInterpTypeLinear;
+  preprocess_image_param->h_ = 1024;
+  preprocess_image_param->w_ = 1024;
+  preprocess_image_param->scale_[1] = 1.0f;
+  preprocess_image_param->scale_[2] = 1.0f;
+  preprocess_image_param->scale_[3] = 1.0f;
+  preprocess_image_param->mean_[1] = 123.675;
+  preprocess_image_param->mean_[2] = 116.28;
+  preprocess_image_param->mean_[3] = 103.53;
+  preprocess_image_param->std_[1] = 58.395;
+  preprocess_image_param->std_[2] = 57.12;
+  preprocess_image_param->std_[3] = 57.375;
+  preprocess_image_param->normalize_ = false;
+  preprocess_image_param->data_type_ = base::dataTypeOf<uint8_t>();
+
+  return status;
+}
+
+base::Status SAMGraph::initStaticGraphNodes() {
   base::Status status = base::kStatusCodeOk;
 
   dag::Edge *encoder_input = this->createEdge("encoder_input");
@@ -382,28 +448,6 @@ base::Status SAMGraph::initGraphNodes() {
       "preprocess_image", {inputs_[0]}, {encoder_input});
   CHECK_IF_NULL_RETURN(preprocess_image_node_,
                        "Failed to create preprocess_image node");
-
-  preprocess::CvtResizePadNormTransParam *preprocess_image_param =
-      (preprocess::CvtResizePadNormTransParam *)
-          preprocess_image_node_->getParam();
-  CHECK_IF_NULL_RETURN(preprocess_image_param,
-                       "Failed to get preprocess_image_param");
-  preprocess_image_param->src_pixel_type_ = base::kPixelTypeBGR;
-  preprocess_image_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  preprocess_image_param->interp_type_ = base::kInterpTypeLinear;
-  preprocess_image_param->h_ = 1024;
-  preprocess_image_param->w_ = 1024;
-  preprocess_image_param->scale_[1] = 1.0f;
-  preprocess_image_param->scale_[2] = 1.0f;
-  preprocess_image_param->scale_[3] = 1.0f;
-  preprocess_image_param->mean_[1] = 123.675;
-  preprocess_image_param->mean_[2] = 116.28;
-  preprocess_image_param->mean_[3] = 103.53;
-  preprocess_image_param->std_[1] = 58.395;
-  preprocess_image_param->std_[2] = 57.12;
-  preprocess_image_param->std_[3] = 57.375;
-  preprocess_image_param->normalize_ = false;
-  preprocess_image_param->data_type_ = base::dataTypeOf<uint8_t>();
 
   encoder_infer_node_ = (infer::Infer *)this->createNode<infer::Infer>(
       "encoder_infer", {encoder_input}, {decoder_input});
