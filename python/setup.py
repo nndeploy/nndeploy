@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import sys
 from glob import glob, iglob
+import os
 from os import environ, getcwd, path, popen, remove
 import shutil
 
