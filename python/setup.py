@@ -41,13 +41,13 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
-            if not is_manylinux:
+            if platform.system() == "Windows":
                 import sys
                 python_version = f"{sys.version_info.major}{sys.version_info.minor}"
                 self.python_tag = f"cp{python_version}"
                 self.abi_tag = f"cp{python_version}"
         
-        if is_manylinux:
+        if platform.system() != "Windows":
             def get_tag(self):
                 _, _, plat = _bdist_wheel.get_tag(self)
                 if platform.system() == "Linux":
@@ -59,6 +59,16 @@ try:
                         plat = "manylinux_2_17_x86_64.manylinux2014_x86_64"
                     else:  # For manylinux2014 and above, no alias is required
                         plat = f"manylinux_{glibc_major}_{glibc_minor}_x86_64"
+                elif platform.system() == "Darwin":
+                    import os
+                    target_arch = os.environ.get('CMAKE_OSX_ARCHITECTURES', platform.machine())
+        
+                    mac_version = platform.mac_ver()[0]
+                    if mac_version:
+                        major, minor = mac_version.split('.')[:2]
+                        plat = f"macosx_{major}_{minor}_{target_arch}"
+                    else:
+                        plat = f"macosx_10_9_{target_arch}"
                 tags = next(sys_tags())
                 return (tags.interpreter, tags.abi, plat)
 
@@ -470,6 +480,8 @@ setup(
     #     "all": parse_requirements('../requirements.txt')
     # },
     cmdclass={"bdist_wheel": bdist_wheel},
+    zip_safe=False,  # Added: Disable zip safe mode
+    has_ext_modules=lambda: True,  # Added: Declare that it contains extension modules
     keywords="deep-learning, neural-network, model-deployment, inference, ai",
     project_urls={
         "Bug Reports": "https://github.com/nndeploy/nndeploy/issues",
