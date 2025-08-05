@@ -54,28 +54,17 @@ try:
                 self.python_tag = f"cp{python_version}"
                 self.abi_tag = f"cp{python_version}"
         
-        if platform.system() != "Windows":
+        if platform.system() == "Linux":
             def get_tag(self):
                 _, _, plat = _bdist_wheel.get_tag(self)
-                if platform.system() == "Linux":
-                    # Get the right platform tag by querying the linker version
-                    glibc_major, glibc_minor = popen("ldd --version | head -1").read().split()[-1].split(".")
-                    """# See https://github.com/mayeut/pep600_compliance/blob/master/
-                    pep600_compliance/tools/manylinux-policy.json"""
-                    if glibc_major == "2" and glibc_minor == "17":
-                        plat = "manylinux_2_17_x86_64.manylinux2014_x86_64"
-                    else:  # For manylinux2014 and above, no alias is required
-                        plat = f"manylinux_{glibc_major}_{glibc_minor}_x86_64"
-                # elif platform.system() == "Darwin":
-                #     import os
-                #     target_arch = os.environ.get('CMAKE_OSX_ARCHITECTURES', platform.machine())
-        
-                #     mac_version = platform.mac_ver()[0]
-                #     if mac_version:
-                #         major, minor = mac_version.split('.')[:2]
-                #         plat = f"macosx_{major}_{minor}_{target_arch}"
-                #     else:
-                #         plat = f"macosx_10_9_{target_arch}"
+                # Get the right platform tag by querying the linker version
+                glibc_major, glibc_minor = popen("ldd --version | head -1").read().split()[-1].split(".")
+                """# See https://github.com/mayeut/pep600_compliance/blob/master/
+                pep600_compliance/tools/manylinux-policy.json"""
+                if glibc_major == "2" and glibc_minor == "17":
+                    plat = "manylinux_2_17_x86_64.manylinux2014_x86_64"
+                else:  # For manylinux2014 and above, no alias is required
+                    plat = f"manylinux_{glibc_major}_{glibc_minor}_x86_64"
                 tags = next(sys_tags())
                 return (tags.interpreter, tags.abi, plat)
 
