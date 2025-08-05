@@ -19,6 +19,11 @@ if(ENABLE_NNDEPLOY_DEVICE)
   if(ENABLE_NNDEPLOY_OP_ASCEND_C)
     include(${ROOT_PATH}/demo/ascendc/config.cmake)
   endif()
+
+  if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
+    include(${ROOT_PATH}/demo/opencl_dev/config.cmake)
+  endif()
+  
 endif()
 
 if(ENABLE_NNDEPLOY_IR)
