@@ -1,8 +1,38 @@
+
+import datetime
+import logging
+import platform
+import shlex
+import subprocess
 import sys
-from setuptools import setup, find_packages
-import os
+from glob import glob, iglob
+from os import environ, getcwd, path, popen, remove
 import shutil
 
+
+from setuptools import setup, find_packages, Extension 
+
+from packaging.tags import sys_tags
+from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.command.install import install as InstallCommandBase
+
+
+manylinux_tags = [
+    "manylinux1_x86_64",
+    "manylinux1_i686",
+    "manylinux2010_x86_64",
+    "manylinux2010_i686",
+    "manylinux2014_x86_64",
+    "manylinux2014_i686",
+    "manylinux2014_aarch64",
+    "manylinux2014_armv7l",
+    "manylinux2014_ppc64",
+    "manylinux2014_ppc64le",
+    "manylinux2014_s390x",
+    "manylinux_2_28_x86_64",
+    "manylinux_2_28_aarch64",
+]
+is_manylinux = environ.get("AUDITWHEEL_PLAT", None) in manylinux_tags
 
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -11,10 +41,26 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
-            import sys
-            python_version = f"{sys.version_info.major}{sys.version_info.minor}"
-            self.python_tag = f"cp{python_version}"
-            self.abi_tag = f"cp{python_version}"
+            if not is_manylinux:
+                import sys
+                python_version = f"{sys.version_info.major}{sys.version_info.minor}"
+                self.python_tag = f"cp{python_version}"
+                self.abi_tag = f"cp{python_version}"
+        
+        if is_manylinux:
+            def get_tag(self):
+                _, _, plat = _bdist_wheel.get_tag(self)
+                if platform.system() == "Linux":
+                    # Get the right platform tag by querying the linker version
+                    glibc_major, glibc_minor = popen("ldd --version | head -1").read().split()[-1].split(".")
+                    """# See https://github.com/mayeut/pep600_compliance/blob/master/
+                    pep600_compliance/tools/manylinux-policy.json"""
+                    if glibc_major == "2" and glibc_minor == "17":
+                        plat = "manylinux_2_17_x86_64.manylinux2014_x86_64"
+                    else:  # For manylinux2014 and above, no alias is required
+                        plat = f"manylinux_{glibc_major}_{glibc_minor}_x86_64"
+                tags = next(sys_tags())
+                return (tags.interpreter, tags.abi, plat)
 
 except ImportError:
     bdist_wheel = None
