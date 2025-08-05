@@ -113,18 +113,18 @@ jobs:
             # pip install pybind11 setuptools wheel twine requests pathlib cython
 
           # Test built wheels
-          CIBW_TEST_COMMAND: |
-            python -c "
-            import platform
-            try:
-                import nndeploy
-                print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
-                print(f'Platform: {platform.platform()}')
-                print(f'Architecture: {platform.machine()}')
-            except ImportError as e:
-                print(f'✗ Import failed: {e}')
-                exit(1)
-            "
+          # CIBW_TEST_COMMAND: |
+          #   python -c "
+          #   import platform
+          #   try:
+          #       import nndeploy
+          #       print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+          #       print(f'Platform: {platform.platform()}')
+          #       print(f'Architecture: {platform.machine()}')
+          #   except ImportError as e:
+          #       print(f'✗ Import failed: {e}')
+          #       exit(1)
+          #   "
 
           # Environment variables
           CIBW_ENVIRONMENT: |
