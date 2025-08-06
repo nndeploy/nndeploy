@@ -1425,9 +1425,9 @@ using createGraphFunc = std::function<Graph *(
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value)>;
 
-std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap();
+extern NNDEPLOY_CC_API std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap();
 
-class TypeGraphRegister {
+class NNDEPLOY_CC_API TypeGraphRegister {
  public:
   explicit TypeGraphRegister(const std::string &name, createGraphFunc func) {
     getGlobalGraphCreatorMap()[name] = func;

@@ -70,10 +70,10 @@ set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_vide
 set(NNDEPLOY_OPENCV_VERSION 480)
 
 ## Tokenizer-cpp
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # Whether to enable C++ tokenizer plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF
 
 ## Language Model
-set(ENABLE_NNDEPLOY_PLUGIN_LLM OFF) # Whether to enable language model plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_LLM ON) # Whether to enable language model plugin, default is OFF
 
 ## Stable Diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # Whether to enable text-to-image plugin, default is OFF
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # Whether to enable text-to-image plugin, default is OFF

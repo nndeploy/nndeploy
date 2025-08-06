@@ -3,7 +3,7 @@
 
 #include <limits.h>
 #include <sys/stat.h>
-#include <unistd.h>
+// #include <unistd.h>
 
 #include <ctime>
 #include <fstream>
@@ -18,6 +18,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/base/file.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
@@ -239,19 +240,26 @@ base::Status PrintNode::run() {
   }
   std::cout << "A: " << result->texts_[0].c_str() << std::endl;
 
-  char cwd[PATH_MAX];
-  if (!getcwd(cwd, sizeof(cwd))) {
-    NNDEPLOY_LOGE("PrintNode] Failed to get current working directory\n");
-    return base::kStatusCodeErrorIO;
-  }
+  // char cwd[PATH_MAX];
+  // if (!getcwd(cwd, sizeof(cwd))) {
+  //   NNDEPLOY_LOGE("PrintNode] Failed to get current working directory\n");
+  //   return base::kStatusCodeErrorIO;
+  // }
+  std::string cwd = base::getcwd();
 
   time_t t = time(NULL);
   std::ostringstream oss;
-  oss << cwd << "/.tmp";
+  oss << cwd.c_str() << "/.tmp";
   std::string tmp_dir = oss.str();
 
-  if (access(tmp_dir.c_str(), F_OK) != 0) {
-    if (mkdir(tmp_dir.c_str(), 0755) != 0) {
+  // if (access(tmp_dir.c_str(), F_OK) != 0) {
+  //   if (mkdir(tmp_dir.c_str(), 0755) != 0) {
+  //     NNDEPLOY_LOGE("[PrintNode] Failed to create directory\n");
+  //     return base::kStatusCodeErrorIO;
+  //   }
+  // }
+  if (!base::isDirectory(tmp_dir)) {
+    if (!base::createDirectory(tmp_dir)) {
       NNDEPLOY_LOGE("[PrintNode] Failed to create directory\n");
       return base::kStatusCodeErrorIO;
     }
