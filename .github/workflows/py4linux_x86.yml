@@ -45,7 +45,7 @@ jobs:
           
           # Use manylinux_2_28 for better compatibility
           # CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_35"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014_x86_64"
           
           CIBW_BUILD_VERBOSITY: 2
           

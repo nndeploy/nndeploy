@@ -50,7 +50,7 @@ jobs:
       - name: Update Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pybind11 setuptools wheel twine requests pathlib cython
+          pip install pybind11 setuptools wheel twine requests pathlib cython auditwheel
 
       # Step 5: Install Rust toolchain
       - name: Install Rust toolchain
