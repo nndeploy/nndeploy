@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false  # Don't terminate other jobs due to single job failure
       matrix:
-        platform: [ubuntu-latest]  # Running platform
+        platform: [ubuntu-20.04]  # Running platform
         python-version: ["3.10",
                          "3.11",
                          "3.12",

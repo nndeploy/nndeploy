@@ -80,6 +80,116 @@ Graph::~Graph() {
   // NNDEPLOY_LOGI("graph[%s] deinit success!\n", getName().c_str());
 }
 
+base::Status Graph::setImageUrl(const std::string &key, const std::string &url) {
+  image_url_[key] = url;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeImageUrl(const std::string &key) {
+  auto it = image_url_.find(key);
+  if (it != image_url_.end()) {
+    image_url_.erase(it);
+    return base::kStatusCodeOk;
+  }
+  return base::kStatusCodeErrorNullParam;
+}
+
+base::Status Graph::setVideoUrl(const std::string &key, const std::string &url) {
+  video_url_[key] = url;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeVideoUrl(const std::string &key) {
+  auto it = video_url_.find(key);
+  if (it != video_url_.end()) {
+    video_url_.erase(it);
+    return base::kStatusCodeOk;
+  }
+  return base::kStatusCodeErrorNullParam;
+}
+
+base::Status Graph::setAudioUrl(const std::string &key, const std::string &url) {
+  audio_url_[key] = url;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeAudioUrl(const std::string &key) {
+  auto it = audio_url_.find(key);
+  if (it != audio_url_.end()) {
+    audio_url_.erase(it);
+    return base::kStatusCodeOk;
+  }
+  return base::kStatusCodeErrorNullParam;
+}
+
+base::Status Graph::setModelUrl(const std::string &key, const std::string &url) {
+  model_url_[key] = url;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeModelUrl(const std::string &key) {
+  auto it = model_url_.find(key);
+  if (it != model_url_.end()) {
+    model_url_.erase(it);
+    return base::kStatusCodeOk;
+  }
+  return base::kStatusCodeErrorNullParam;
+}
+
+base::Status Graph::setOtherUrl(const std::string &key, const std::string &url) {
+  other_url_[key] = url;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeOtherUrl(const std::string &key) {
+  auto it = other_url_.find(key);
+  if (it != other_url_.end()) {
+    other_url_.erase(it);
+    return base::kStatusCodeOk;
+  }
+  return base::kStatusCodeErrorNullParam;
+}
+
+std::string Graph::getImageUrl(const std::string &key) {
+  auto it = image_url_.find(key);
+  if (it != image_url_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
+std::string Graph::getVideoUrl(const std::string &key) {
+  auto it = video_url_.find(key);
+  if (it != video_url_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
+std::string Graph::getAudioUrl(const std::string &key) {
+  auto it = audio_url_.find(key);
+  if (it != audio_url_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
+std::string Graph::getModelUrl(const std::string &key) {
+  auto it = model_url_.find(key);
+  if (it != model_url_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
+std::string Graph::getOtherUrl(const std::string &key) {
+  auto it = other_url_.find(key);
+  if (it != other_url_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
   return base::kStatusCodeOk;
@@ -1842,6 +1952,87 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("loop_count_", loop_count_, allocator);
   }
 
+  // 序列化URL映射
+  if (!image_url_.empty()) {
+    rapidjson::Value image_url_obj(rapidjson::kObjectType);
+    for (const auto& pair : image_url_) {
+      rapidjson::Value key(pair.first.c_str(), allocator);
+      rapidjson::Value value(pair.second.c_str(), allocator);
+      image_url_obj.AddMember(key, value, allocator);
+    }
+    json.AddMember("image_url_", image_url_obj, allocator);
+  } else {
+    rapidjson::Value image_url_obj(rapidjson::kObjectType);
+    rapidjson::Value key("image_key", allocator);
+    rapidjson::Value value("image_url", allocator);
+    image_url_obj.AddMember(key, value, allocator);
+    json.AddMember("image_url_", image_url_obj, allocator);
+  }
+
+  if (!video_url_.empty()) {
+    rapidjson::Value video_url_obj(rapidjson::kObjectType);
+    for (const auto& pair : video_url_) {
+      rapidjson::Value key(pair.first.c_str(), allocator);
+      rapidjson::Value value(pair.second.c_str(), allocator);
+      video_url_obj.AddMember(key, value, allocator);
+    }
+    json.AddMember("video_url_", video_url_obj, allocator);
+  } else {
+    rapidjson::Value video_url_obj(rapidjson::kObjectType);
+    rapidjson::Value key("video_key", allocator);
+    rapidjson::Value value("video_url", allocator);
+    video_url_obj.AddMember(key, value, allocator);
+    json.AddMember("video_url_", video_url_obj, allocator);
+  }
+
+  if (!audio_url_.empty()) {
+    rapidjson::Value audio_url_obj(rapidjson::kObjectType);
+    for (const auto& pair : audio_url_) {
+      rapidjson::Value key(pair.first.c_str(), allocator);
+      rapidjson::Value value(pair.second.c_str(), allocator);
+      audio_url_obj.AddMember(key, value, allocator);
+    }
+    json.AddMember("audio_url_", audio_url_obj, allocator);
+  } else {
+    rapidjson::Value audio_url_obj(rapidjson::kObjectType);
+    rapidjson::Value key("audio_key", allocator);
+    rapidjson::Value value("audio_url", allocator);
+    audio_url_obj.AddMember(key, value, allocator);
+    json.AddMember("audio_url_", audio_url_obj, allocator);
+  }
+
+  if (!model_url_.empty()) {
+    rapidjson::Value model_url_obj(rapidjson::kObjectType);
+    for (const auto& pair : model_url_) {
+      rapidjson::Value key(pair.first.c_str(), allocator);
+      rapidjson::Value value(pair.second.c_str(), allocator);
+      model_url_obj.AddMember(key, value, allocator);
+    }
+    json.AddMember("model_url_", model_url_obj, allocator);
+  } else {
+    rapidjson::Value model_url_obj(rapidjson::kObjectType);
+    rapidjson::Value key("model_key", allocator);
+    rapidjson::Value value("model_url", allocator);
+    model_url_obj.AddMember(key, value, allocator);
+    json.AddMember("model_url_", model_url_obj, allocator);
+  }
+
+  if (!other_url_.empty()) {
+    rapidjson::Value other_url_obj(rapidjson::kObjectType);
+    for (const auto& pair : other_url_) {
+      rapidjson::Value key(pair.first.c_str(), allocator);
+      rapidjson::Value value(pair.second.c_str(), allocator);
+      other_url_obj.AddMember(key, value, allocator);
+    }
+    json.AddMember("other_url_", other_url_obj, allocator);
+  } else {
+    rapidjson::Value other_url_obj(rapidjson::kObjectType);
+    rapidjson::Value key("other_key", allocator);
+    rapidjson::Value value("other_url", allocator);
+    other_url_obj.AddMember(key, value, allocator);
+    json.AddMember("other_url_", other_url_obj, allocator);
+  }
+
   // if (!node_repository_.empty()) {
   //   rapidjson::Value node_repository_array(rapidjson::kArrayType);
   //   for (auto node_wrapper : node_repository_) {
@@ -1889,6 +2080,52 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
+  }
+
+  // 反序列化URL映射参数
+  if (json.HasMember("image_url_") && json["image_url_"].IsObject()) {
+    const rapidjson::Value &image_url = json["image_url_"];
+    for (auto it = image_url.MemberBegin(); it != image_url.MemberEnd(); ++it) {
+      if (it->value.IsString()) {
+        image_url_[it->name.GetString()] = it->value.GetString();
+      }
+    }
+  }
+
+  if (json.HasMember("video_url_") && json["video_url_"].IsObject()) {
+    const rapidjson::Value &video_url = json["video_url_"];
+    for (auto it = video_url.MemberBegin(); it != video_url.MemberEnd(); ++it) {
+      if (it->value.IsString()) {
+        video_url_[it->name.GetString()] = it->value.GetString();
+      }
+    }
+  }
+
+  if (json.HasMember("audio_url_") && json["audio_url_"].IsObject()) {
+    const rapidjson::Value &audio_url = json["audio_url_"];
+    for (auto it = audio_url.MemberBegin(); it != audio_url.MemberEnd(); ++it) {
+      if (it->value.IsString()) {
+        audio_url_[it->name.GetString()] = it->value.GetString();
+      }
+    }
+  }
+
+  if (json.HasMember("model_url_") && json["model_url_"].IsObject()) {
+    const rapidjson::Value &model_url = json["model_url_"];
+    for (auto it = model_url.MemberBegin(); it != model_url.MemberEnd(); ++it) {
+      if (it->value.IsString()) {
+        model_url_[it->name.GetString()] = it->value.GetString();
+      }
+    }
+  }
+
+  if (json.HasMember("other_url_") && json["other_url_"].IsObject()) {
+    const rapidjson::Value &other_url = json["other_url_"];
+    for (auto it = other_url.MemberBegin(); it != other_url.MemberEnd(); ++it) {
+      if (it->value.IsString()) {
+        other_url_[it->name.GetString()] = it->value.GetString();
+      }
+    }
   }
 
   if (json.HasMember("is_external_stream_") &&
