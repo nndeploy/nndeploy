@@ -39,7 +39,7 @@ build:
       # 进入构建目录进行配置和编译
       - mkdir -p build 
       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
-      - cd python && pip install -e .
+      - cd python && pip install --use-pep517 -e .
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
