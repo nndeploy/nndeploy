@@ -40,6 +40,7 @@ build:
       # 创建build目录
       # - mkdir -p build && cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake 
       # 进入构建目录进行配置和编译
+      - mkdir -p build 
       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
       - cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
 
