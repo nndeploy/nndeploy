@@ -99,6 +99,7 @@ jobs:
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
+              -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
               -DPython3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
               -DPython3_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") \
               -DPython3_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))") \

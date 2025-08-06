@@ -53,6 +53,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_key", &Node::getKey)
       .def("set_name", &Node::setName)
       .def("get_name", &Node::getName)
+      .def("set_developer", &Node::setDeveloper, py::arg("developer"))
+      .def("get_developer", &Node::getDeveloper)
+      .def("set_github", &Node::setGithub, py::arg("github"))
+      .def("get_github", &Node::getGithub)
       .def("set_desc", &Node::setDesc, py::arg("desc"))
       .def("get_desc", &Node::getDesc)
       .def("set_dynamic_input", &Node::setDynamicInput,
@@ -337,6 +341,27 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
+
+      .def("set_image_url", &Graph::setImageUrl, py::arg("key"),
+           py::arg("url"))
+      .def("remove_image_url", &Graph::removeImageUrl, py::arg("key"))
+      .def("set_video_url", &Graph::setVideoUrl, py::arg("key"),
+           py::arg("url"))
+      .def("remove_video_url", &Graph::removeVideoUrl, py::arg("key"))
+      .def("set_audio_url", &Graph::setAudioUrl, py::arg("key"),
+           py::arg("url"))
+      .def("remove_audio_url", &Graph::removeAudioUrl, py::arg("key"))
+      .def("set_model_url", &Graph::setModelUrl, py::arg("key"),
+           py::arg("url"))
+      .def("remove_model_url", &Graph::removeModelUrl, py::arg("key"))
+      .def("set_other_url", &Graph::setOtherUrl, py::arg("key"),
+           py::arg("url"))
+      .def("remove_other_url", &Graph::removeOtherUrl, py::arg("key"))
+      .def("get_image_url", &Graph::getImageUrl, py::arg("key"))
+      .def("get_video_url", &Graph::getVideoUrl, py::arg("key"))
+      .def("get_audio_url", &Graph::getAudioUrl, py::arg("key"))
+      .def("get_model_url", &Graph::getModelUrl, py::arg("key"))
+      .def("get_other_url", &Graph::getOtherUrl, py::arg("key"))
       .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
