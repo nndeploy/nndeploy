@@ -55,79 +55,66 @@ jobs:
           CIBW_BUILD_VERBOSITY: 2
           
           # 构建前安装系统依赖
-          CIBW_BEFORE_ALL_LINUX: |
-            # 更新包管理器
+          CIBW_BEFORE_ALL_LINUX: >
+            set -ex &&
             if command -v yum > /dev/null; then
-                yum update -y
-                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++ libatomic-devel
+                yum update -y &&
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++ libatomic-devel &&
                 source /opt/rh/gcc-toolset-11/enable
             elif command -v apt-get > /dev/null; then
-                apt-get update
+                apt-get update &&
                 apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev libatomic1
-            fi
-            
-            # 安装Rust
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            source $HOME/.cargo/env
+            fi &&
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y &&
+            source $HOME/.cargo/env &&
             rustup update
 
-          CIBW_BEFORE_BUILD: |
-            # 激活工具链
+          CIBW_BEFORE_BUILD: >
+            set -ex &&
             if [ -f /opt/rh/gcc-toolset-11/enable ]; then
                 source /opt/rh/gcc-toolset-11/enable
-            fi
-            source $HOME/.cargo/env
-            
-            # 创建libatomic符号链接（如果需要）
+            fi &&
+            source $HOME/.cargo/env &&
             if [ -f /usr/lib64/libatomic.so.1 ] && [ ! -f /usr/lib64/libatomic.so ]; then
               ln -s /usr/lib64/libatomic.so.1 /usr/lib64/libatomic.so
-            fi
-
-            # 安装Python构建依赖
-            pip install pybind11 setuptools wheel twine requests pathlib cython
-            
-            # 安装OpenCV和ONNX Runtime
-            cd {project}/tool/script
-            python install_opencv.py
-            python install_onnxruntime.py
-            
-            # 构建C++库
-            cd {project}
-            # 如果存在则删除现有构建目录
-            # rm -rf build
-            mkdir -p build
-            cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
-            cd build
-            
-            # 设置编译器
-            export CC=gcc
-            export CXX=g++
-            
+            fi &&
+            pip install pybind11 setuptools wheel twine requests pathlib cython &&
+            cd {project}/tool/script &&
+            python install_opencv.py &&
+            python install_onnxruntime.py &&
+            cd {project} &&
+            mkdir -p build &&
+            cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake &&
+            cd build &&
+            export CC=gcc &&
+            export CXX=g++ &&
             cmake -G Ninja .. \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
-              -DPython3_EXECUTABLE=$(which python) \
+              -DPython3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
+              -DPython3_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") \
+              -DPython3_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))") \
+              -DPYTHON_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
               -DCMAKE_EXE_LINKER_FLAGS="-L/usr/lib64 -latomic" \
-              -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/lib64 -latomic"
-            
-            ninja -j$(nproc)
+              -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/lib64 -latomic" &&
+            ninja -j$(nproc) &&
             ninja install
 
           # 测试构建的wheels
-          # CIBW_TEST_COMMAND: |
-          #   python -c "
-          #   import platform
-          #   try:
-          #       import nndeploy
-          #       print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
-          #       print(f'Platform: {platform.platform()}')
-          #       print(f'Architecture: {platform.machine()}')
-          #   except ImportError as e:
-          #       print(f'✗ Import failed: {e}')
-          #       exit(1)
-          #   "
+          CIBW_TEST_COMMAND: >
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+                print(f'Platform: {platform.platform()}')
+                print(f'Architecture: {platform.machine()}')
+            except ImportError as e:
+                print(f'✗ Import failed: {e}')
+                exit(1)
+            "
 
           # 环境变量
           CIBW_ENVIRONMENT: |
@@ -136,6 +123,7 @@ jobs:
             LDFLAGS="-L/usr/lib64 -latomic"
             CFLAGS="-I/usr/include"
             CXXFLAGS="-I/usr/include"
+            PYTHONPATH=$(python -c "import sys; print(':'.join(sys.path))")
 
         with:
           package-dir: ./python

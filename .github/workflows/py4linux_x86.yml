@@ -97,7 +97,10 @@ jobs:
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
-              -DPython3_EXECUTABLE=$(which python)
+              -DPython3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
+              -DPython3_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") \
+              -DPython3_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))") \
+              -DPYTHON_EXECUTABLE=$(python -c "import sys; print(sys.executable)")
             
             ninja -j$(nproc)
             ninja install
@@ -106,23 +109,24 @@ jobs:
             # pip install pybind11 setuptools wheel twine requests pathlib cython
 
           # Test built wheels
-          # CIBW_TEST_COMMAND: |
-          #   python -c "
-          #   import platform
-          #   try:
-          #       import nndeploy
-          #       print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
-          #       print(f'Platform: {platform.platform()}')
-          #       print(f'Architecture: {platform.machine()}')
-          #   except ImportError as e:
-          #       print(f'✗ Import failed: {e}')
-          #       exit(1)
-          #   "
+          CIBW_TEST_COMMAND: |
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
+                print(f'Platform: {platform.platform()}')
+                print(f'Architecture: {platform.machine()}')
+            except ImportError as e:
+                print(f'✗ Import failed: {e}')
+                exit(1)
+            "
 
           # Environment variables
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
             SETUPTOOLS_EXT_SUFFIX=.so
+            PYTHONPATH=$(python -c "import sys; print(':'.join(sys.path))")
 
         with:
           package-dir: ./python
