@@ -8,17 +8,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
-from .files import get_workdir
-from .frontend import FrontendManager
-from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 import os
 import json
 import asyncio
 import uuid
 import logging
-from .utils import extract_encode_output_paths
+import sqlite3
+
 import nndeploy.dag
+from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from nndeploy import get_type_enum_json
+from .utils import extract_encode_output_paths
+from .frontend import FrontendManager
+from .template import WorkflowTemplateManager
 from .task_queue import TaskQueue
 from .task_queue import ExecutionStatus
 from .schemas import (
@@ -32,7 +34,8 @@ from .schemas import (
     WorkFlowListResponse,
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
-    ParamTypeResponse
+    ParamTypeResponse,
+    TemplateJsonListResponse
 )
 from .files import router as files_router
 from .files import get_workdir
@@ -57,6 +60,14 @@ class NnDeployServer:
             allow_headers=["*"],
         )
 
+        self.workflow_dir = Path(self.args.resources) / "workflow"
+        self.db_path = Path(self.args.resources) / "db" / "workflow.db"
+        self.workflow_dir.mkdir(parents=True, exist_ok=True)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self._init_db()
+
         self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
@@ -64,8 +75,37 @@ class NnDeployServer:
         self.task_ws_map: dict[str, set[WebSocket]] = {}
         self._register_routes(args)
 
+        template_parent = WorkflowTemplateManager.init_templates()
+        self.template_path = Path(template_parent) / "nndeploy-workflow-main"
+
+    def _init_db(self):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS workflows (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            filename TEXT,
+            content TEXT,
+            created_at TIMESTAMP,
+            updated_at TIMESTAMP,
+            description TEXT
+        )
+        """)
+        self.conn.commit()
+
     def _get_workdir(self) -> Path:
         return Path(self.args.resources)
+    
+    def read_json_recursive(self, root: Path) -> list[dict]:
+        result = []
+        for json_file in root.rglob("*.json"):
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    content = json.load(f)
+                    result.append(content)
+            except Exception as e:
+                logging.warning(f"Failed to read {json_file}: {e}")
+        return result
 
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
@@ -109,14 +149,23 @@ class NnDeployServer:
         async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
             # Use the 'name_' field from the incoming JSON or generate a UUID as fallback
             file_name = filename or req.root.get("name_", str(uuid.uuid4()))
-            save_dir = Path(self.args.resources) / "workflow"
-            if not save_dir.exists():
-                save_dir.mkdir(parents=True, exist_ok=True)
-            file_path = save_dir / f"{file_name}"
+            file_path = self.workflow_dir / f"{file_name}"
 
             try:
                 with open(file_path, 'w') as f:
                     json.dump(req.root, f, indent=4)
+
+                workflow_id = str(uuid.uuid4())
+                name = req.root.get("name_", "unnamed")
+                content_str = json.dumps(req.root)
+                now = datetime.utcnow().isoformat()
+                desc = req.root.get("desc_", "")
+                cursor = self.conn.cursor()
+                cursor.execute("""
+                    INSERT INTO workflows (id, name, filename, content, created_at, updated_at, description)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (workflow_id, name, filename, content_str, now, now, desc))
+                self.conn.commit()
 
                 flag = "success"
                 message = "success"
@@ -142,10 +191,7 @@ class NnDeployServer:
                     status_code=400,
                     detail=f"Only .json, .yml and .yaml files are allowed, got: {suffix}"
                 )
-            folder = Path(self.args.resources) / "workflow"
-            if not folder.exists():
-                folder.mkdir(parents=True, exist_ok=True)
-            dst = folder / file.filename
+            dst = self.workflow_dir / file.filename
             with dst.open("wb") as w:
                 w.write(file.file.read())
 
@@ -170,7 +216,7 @@ class NnDeployServer:
             """
             download existed workflow file
             """
-            f = Path(self.args.resources) / "workflow" / file_path
+            f = self.workflow_dir / file_path
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
             
@@ -196,7 +242,7 @@ class NnDeployServer:
             summary="load workflow lists",
         )
         async def get_workflow_json():
-            workflow_dir = Path(self.args.resources) / "workflow"
+            workflow_dir = self.workflow_dir
 
             if not workflow_dir.exists():
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
@@ -226,7 +272,7 @@ class NnDeployServer:
             summary="delete workflow json",
         )
         async def delete_workflow_json(file_name: str):
-            workflow_dir = Path(self.args.resources) / "workflow"
+            workflow_dir = self.workflow_dir
 
             file_path = workflow_dir / f"{file_name}"
 
@@ -249,7 +295,7 @@ class NnDeployServer:
             summary="get workflow json",
         )
         async def get_workflow_json(file_name: str):
-            workflow_dir = Path(self.args.resources) / "workflow"
+            workflow_dir = self.workflow_dir
 
             file_path = workflow_dir / f"{file_name}"
 
@@ -265,7 +311,29 @@ class NnDeployServer:
 
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"reading file error: {e}")
-        
+
+        @api.get(
+            "/template",
+            tags=["Template"],
+            response_model=TemplateJsonListResponse,
+            summary="Recursively return all JSON contents under template directory"
+        )
+        async def get_all_template_jsons():
+            if not self.template_path.exists():
+                return TemplateJsonListResponse(
+                    flag="error",
+                    message="template directory not found",
+                    result=[]
+                )
+            
+            all_json_data = self.read_json_recursive(self.template_path)
+
+            return TemplateJsonListResponse(
+                flag="success",
+                message=f"{len(all_json_data)} json files loaded",
+                result=all_json_data
+            )
+
         @api.get(
             "/dag/info",
             tags=["Node"],
@@ -348,7 +416,18 @@ class NnDeployServer:
         @api.get("/preview", tags=["Files"],
                 summary="preview images/videos")
         async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
-            f = Path(self.args.resources) / file_path
+            file_path = Path(file_path)
+            # unsafe process for relative path
+            if file_path.is_absolute():
+                f = file_path
+            else:
+                resource_root = Path(self.args.resources).resolve()
+                first_part = file_path.parts[0] if file_path.parts else ""
+                if first_part == resource_root.name:
+                    f = file_path
+                else:
+                    f = resource_root / file_path
+
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
