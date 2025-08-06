@@ -1,5 +1,5 @@
 # GitHub Actions workflow configuration file - Python macOS platform compilation
-# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in macOS environment
+# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in macOS environment with both x86_64 and ARM64 support
 
 name: Py4macOS  # Workflow name, displayed in GitHub Actions interface
 
@@ -21,11 +21,57 @@ jobs:
     strategy:
       fail-fast: false  # Don't terminate other jobs due to single job failure
       matrix:
-        os: [macos-12, macos-13, macos-14, macos-15]  # Multiple macOS versions support: macOS 12, 13, 14, 15
-        python-version: ["3.10",
-                         "3.11", 
-                         "3.12",
-                         "3.13",]
+        include:
+          # ARM64 runners (macOS 14 and later support ARM64 natively)
+          - os: macos-14
+            arch: arm64
+            python-version: "3.10"
+          - os: macos-14
+            arch: arm64
+            python-version: "3.11"
+          - os: macos-14
+            arch: arm64
+            python-version: "3.12"
+          - os: macos-14
+            arch: arm64
+            python-version: "3.13"
+          - os: macos-15
+            arch: arm64
+            python-version: "3.10"
+          - os: macos-15
+            arch: arm64
+            python-version: "3.11"
+          - os: macos-15
+            arch: arm64
+            python-version: "3.12"
+          - os: macos-15
+            arch: arm64
+            python-version: "3.13"
+          # x86_64 runners (older macOS versions for x86_64 compatibility)
+          # - os: macos-12
+          #   arch: x86_64
+          #   python-version: "3.10"
+          # - os: macos-12
+          #   arch: x86_64
+          #   python-version: "3.11"
+          # - os: macos-12
+          #   arch: x86_64
+          #   python-version: "3.12"
+          # - os: macos-12
+          #   arch: x86_64
+          #   python-version: "3.13"
+          # - os: macos-13
+          #   arch: x86_64
+          #   python-version: "3.10"
+          # - os: macos-13
+          #   arch: x86_64
+          #   python-version: "3.11"
+          # - os: macos-13
+          #   arch: x86_64
+          #   python-version: "3.12"
+          # - os: macos-13
+          #   arch: x86_64
+          #   python-version: "3.13"
 
     runs-on: ${{ matrix.os }}  # Specify runtime environment
 
@@ -40,62 +86,91 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Step 3: Install system dependencies
+      # Step 3: Check and validate architecture
+      - name: Check and validate architecture
+        run: |
+          echo "Expected architecture: ${{ matrix.arch }}"
+          echo "Current architecture: $(uname -m)"
+          echo "Current OS: ${{ matrix.os }}"
+          echo "Python version: ${{ matrix.python-version }}"
+          
+          # Verify architecture matches expectation
+          current_arch=$(uname -m)
+          expected_arch="${{ matrix.arch }}"
+          
+          if [ "$current_arch" != "$expected_arch" ]; then
+            echo "⚠️ Warning: Architecture mismatch detected"
+            echo "Expected: $expected_arch, Got: $current_arch"
+            # For compatibility, continue if x86_64 is detected on ARM64 runners (Rosetta)
+            if [ "$expected_arch" = "x86_64" ] && [ "$current_arch" = "arm64" ]; then
+              echo "Running x86_64 build on ARM64 via Rosetta compatibility"
+            elif [ "$expected_arch" = "arm64" ] && [ "$current_arch" = "x86_64" ]; then
+              echo "❌ Cannot run ARM64 build on x86_64 runner"
+              exit 1
+            fi
+          fi
+          echo "✓ Architecture validation completed: $current_arch"
+
+      # Step 4: Install system dependencies
       - name: Install system dependencies
         run: |
           brew update  # Update Homebrew package manager
           brew install cmake ninja pkg-config protobuf
 
-      # Step 4: Update Python dependencies
+      # Step 5: Update Python dependencies
       - name: Update Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pybind11 setuptools wheel twine requests pathlib cython
 
-      # Step 5: Install Rust toolchain
+      # Step 6: Install Rust toolchain
       - name: Install Rust toolchain
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           rustup update
+          # Set target for cross-compilation if needed
+          if [ "${{ matrix.arch }}" = "x86_64" ] && [ "$(uname -m)" = "arm64" ]; then
+            rustup target add x86_64-apple-darwin
+          fi
 
-      # Step 6: Install OpenCV and ONNXRUNTIME
+      # Step 7: Install OpenCV and ONNXRUNTIME
       - name: Install OpenCV and ONNXRUNTIME
         run: |
           cd tool/script
           python install_opencv.py
           python install_onnxruntime.py
 
-      # Step 7: Configure CMake build environment
+      # Step 8: Configure CMake build environment
       - name: Configure build
         run: |
           mkdir build                    # Create build directory (out-of-source build)
           cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
           cd build                       # Enter build directory
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} ..
 
-      # Step 8: Execute compilation
+      # Step 9: Execute compilation
       - name: Compile C++ library
         run: |
           cd build                    # Enter build directory
           ninja -j$(sysctl -n hw.ncpu)  # Parallel compilation using all CPU cores
           ninja install
 
-      # Step 9: Build and install Python package
+      # Step 10: Build and install Python package
       - name: Build Python package
         run: |
           cd python
           pip install -e .
           python setup.py bdist_wheel  # Build wheel package
 
-      # Step 10: Verify compilation results
+      # Step 11: Verify compilation results
       - name: Check compilation results
         run: |
           cd python/dist    # Enter Python package directory
           ls -la            # List generated wheel files
-          echo "Python package compilation completed on ${{ matrix.os }}"  # Output completion information with OS version
+          echo "Python package compilation completed on ${{ matrix.arch }} ${{ matrix.os }}"  # Output completion information with architecture and OS version
 
-      # Step 11: Verify Python package import
+      # Step 12: Verify Python package import
       - name: Verify Python package
         run: |
           python -c "
@@ -107,12 +182,14 @@ jobs:
               print(f'Architecture: {platform.machine()}')
               print(f'Python version: {platform.python_version()}')
               print(f'macOS runner: ${{ matrix.os }}')
+              print(f'Target architecture: ${{ matrix.arch }}')
+              print('✓ Package import verification completed')
           except ImportError as e:
               print(f'✗ Import failed: {e}')
               exit(1)
           "
 
-      # Step 12: Upload to TestPyPI (when pushing to testpypi branch)
+      # Step 13: Upload to TestPyPI (when pushing to testpypi branch)
       - name: Upload to TestPyPI
         if: github.ref == 'refs/heads/testpypi'
         env:
@@ -123,7 +200,7 @@ jobs:
           twine check dist/*
           twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl
 
-      # Step 13: Upload to official PyPI (when publishing Release)
+      # Step 14: Upload to official PyPI (when publishing Release)
       - name: Upload to PyPI
         if: github.event_name == 'release' && github.event.action == 'published'
         env:
@@ -134,10 +211,10 @@ jobs:
           twine check dist/*
           twine upload dist/*.whl
 
-      # Step 14: Upload build artifacts
+      # Step 15: Upload build artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-python${{ matrix.python-version }}-wheel
+          name: ${{ matrix.os }}-python${{ matrix.python-version }}-${{ matrix.arch }}-wheel
           path: python/dist/*.whl
           retention-days: 7

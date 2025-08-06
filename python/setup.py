@@ -1,8 +1,45 @@
+
+import datetime
+import logging
+import platform
+import shlex
+import subprocess
 import sys
-from setuptools import setup, find_packages
+from glob import glob, iglob
 import os
+from os import environ, getcwd, path, popen, remove
 import shutil
 
+
+from setuptools import setup, find_packages, Extension 
+
+from packaging.tags import sys_tags
+from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.command.install import install as InstallCommandBase
+
+
+manylinux_tags = [
+    "manylinux1_x86_64",
+    "manylinux1_i686",
+    "manylinux2010_x86_64",
+    "manylinux2010_i686",
+    "manylinux2014_x86_64",
+    "manylinux2014_i686",
+    "manylinux2014_aarch64",
+    "manylinux2014_armv7l",
+    "manylinux2014_ppc64",
+    "manylinux2014_ppc64le",
+    "manylinux2014_s390x",
+    "manylinux_2_28_x86_64",
+    "manylinux_2_28_aarch64",
+]
+is_manylinux = environ.get("AUDITWHEEL_PLAT", None) in manylinux_tags
+
+class InstallCommand(InstallCommandBase):
+    def finalize_options(self):
+        ret = InstallCommandBase.finalize_options(self)
+        self.install_lib = self.install_platlib  # 将库安装到平台特定目录
+        return ret
 
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -11,10 +48,25 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
-            import sys
-            python_version = f"{sys.version_info.major}{sys.version_info.minor}"
-            self.python_tag = f"cp{python_version}"
-            self.abi_tag = f"cp{python_version}"
+            if platform.system() != "Linux":
+                import sys
+                python_version = f"{sys.version_info.major}{sys.version_info.minor}"
+                self.python_tag = f"cp{python_version}"
+                self.abi_tag = f"cp{python_version}"
+        
+        if platform.system() == "Linux":
+            def get_tag(self):
+                _, _, plat = _bdist_wheel.get_tag(self)
+                # Get the right platform tag by querying the linker version
+                glibc_major, glibc_minor = popen("ldd --version | head -1").read().split()[-1].split(".")
+                """# See https://github.com/mayeut/pep600_compliance/blob/master/
+                pep600_compliance/tools/manylinux-policy.json"""
+                if glibc_major == "2" and glibc_minor == "17":
+                    plat = "manylinux_2_17_x86_64.manylinux2014_x86_64"
+                else:  # For manylinux2014 and above, no alias is required
+                    plat = f"manylinux_{glibc_major}_{glibc_minor}_x86_64"
+                tags = next(sys_tags())
+                return (tags.interpreter, tags.abi, plat)
 
 except ImportError:
     bdist_wheel = None
@@ -186,7 +238,53 @@ def get_internal_so_path():
                 
                 # Set rpath
                 if platform.system() == "Darwin":
-                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path])
+                    # First add @loader_path to rpath
+                    subprocess.run(["install_name_tool", "-add_rpath", "@loader_path", lib_path], check=False) 
+                    try:
+                        # Check current library dependencies
+                        result = subprocess.run(["otool", "-L", lib_path], 
+                                              capture_output=True, text=True)
+                        dependencies = result.stdout
+
+                        # Fix all @rpath references to @loader_path
+                        for line in dependencies.split('\n'):
+                            line = line.strip()
+                            if '@rpath/' in line and '.dylib' in line:
+                                # Extract library path and name
+                                dylib_path = line.split()[0]
+                                dylib_name = os.path.basename(dylib_path)
+
+                                print(f"Fixing rpath for {dylib_name} in {os.path.basename(lib_path)}")
+
+                                # Change @rpath to @loader_path
+                                subprocess.run([
+                                    "install_name_tool", "-change", 
+                                    dylib_path,
+                                    f"@loader_path/{dylib_name}", 
+                                    lib_path
+                                ], check=False)
+                        
+                        # Compatibility handling for macOS versions below 14
+                        # Check system version and apply additional fixes
+                        import platform as plt
+                        macos_version = plt.mac_ver()[0]
+                        if macos_version and float('.'.join(macos_version.split('.')[:2])) < 14.0:
+                            print(f"Detected macOS {macos_version}, applying compatibility fixes")
+                            
+                            # Add additional rpath paths for older macOS versions
+                            subprocess.run(["install_name_tool", "-add_rpath", "@executable_path", lib_path], check=False)
+                            subprocess.run(["install_name_tool", "-add_rpath", ".", lib_path], check=False)
+                            
+                            # Check and fix library ID
+                            lib_name = os.path.basename(lib_path)
+                            subprocess.run([
+                                "install_name_tool", "-id", 
+                                f"@loader_path/{lib_name}", 
+                                lib_path
+                            ], check=False)
+                            
+                    except Exception as e:
+                        print(f"Warning: macOS dynamic library path fixing failed for {lib_path}: {e}")
                 else:
                     subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
             except Exception as e:
@@ -358,11 +456,19 @@ def copy_server_directory():
     else:
         print(f"Source directory {source_dir} does not exist")
 
+
+cmd_classes = {}
+if bdist_wheel is not None:
+    cmd_classes["bdist_wheel"] = bdist_wheel
+cmd_classes["install"] = InstallCommand
+# cmd_classes["build_ext"] = build_ext
+
+
 # Execute copy operation
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="${PACKAGE_VERSION}",  # Fix version number format
+    version="0.2.11",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
     description="Workflow-based Multi-platform AI Deployment Tool",  # Add short description
@@ -399,6 +505,9 @@ setup(
     #     "all": parse_requirements('../requirements.txt')
     # },
     cmdclass={"bdist_wheel": bdist_wheel},
+    # cmdclass=cmd_classes,
+    zip_safe=False,  # Added: Disable zip safe mode
+    has_ext_modules=lambda: True,  # Added: Declare that it contains extension modules
     keywords="deep-learning, neural-network, model-deployment, inference, ai",
     project_urls={
         "Bug Reports": "https://github.com/nndeploy/nndeploy/issues",

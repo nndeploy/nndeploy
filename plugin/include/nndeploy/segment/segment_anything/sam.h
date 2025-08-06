@@ -46,6 +46,7 @@ class SelectPointNode : public dag::Node {
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<segment::SAMPointsParam>();
     param_ = std::make_shared<segment::SAMPointsParam>();
+    this->defaultParam();
   }
   SelectPointNode(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
@@ -55,6 +56,7 @@ class SelectPointNode : public dag::Node {
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<segment::SAMPointsParam>();
     param_ = std::make_shared<segment::SAMPointsParam>();
+    this->defaultParam();
   }
   virtual ~SelectPointNode() {}
 
@@ -85,6 +87,8 @@ class SelectPointNode : public dag::Node {
     }
     cv::Mat *input_image = inputs_[0]->getCvMat(this);
 
+    showPicture(*input_image);
+
     segment::SAMPointsParam *sam_points_param = new segment::SAMPointsParam();
     sam_points_param->ori_height = input_image->rows;
     sam_points_param->ori_width = input_image->cols;
@@ -104,7 +108,72 @@ class SelectPointNode : public dag::Node {
     return base::kStatusCodeOk;
   }
 
+  base::Status defaultParam() override {
+    segment::SAMPointsParam *param =
+        dynamic_cast<segment::SAMPointsParam *>(param_.get());
+
+    param->points_.clear();
+    param->labels_.clear();
+    param->points_.push_back(0.f);
+    param->points_.push_back(0.f);
+    param->labels_.push_back(0.f);
+    param->ori_width = 0;
+    param->ori_height = 0;
+    param->version_ = 1;
+
+    return base::kStatusCodeOk;
+  }
+
  private:
+  typedef struct cvWrapper {
+    SelectPointNode *node;
+    cv::Mat *img;
+  } cvWrapper;
+
+  static void onMouseCallback(int event, int x, int y, int flags,
+                              void *userdata) {
+    cvWrapper *cv_wrapper = static_cast<cvWrapper *>(userdata);
+    cv::Mat current_image = (cv_wrapper->img)->clone();
+    if (event == cv::EVENT_LBUTTONDOWN) {
+      cv_wrapper->node->points_.push_back(x);
+      cv_wrapper->node->points_.push_back(y);
+      cv_wrapper->node->point_labels_.push_back(1.f);  // 默认标签为1
+
+      // std::cout << "Point " << cv_wrapper->node->points_.size() << ": (" << x
+      //           << ", " << y << ")"
+      //           << std::endl;
+    } else if (event == cv::EVENT_RBUTTONDOWN) {
+      cv_wrapper->node->points_.push_back(x);
+      cv_wrapper->node->points_.push_back(y);
+      cv_wrapper->node->point_labels_.push_back(0.f);  // 默认标签为1
+    }
+
+    for (size_t i = 0; i < cv_wrapper->node->points_.size() / 2; ++i) {
+      int px = static_cast<int>(cv_wrapper->node->points_[i * 2]);
+      int py = static_cast<int>(cv_wrapper->node->points_[i * 2 + 1]);
+      int label = static_cast<int>(cv_wrapper->node->point_labels_[i]);
+      cv::Scalar color = (label == 1) ? cv::Scalar(0, 0, 255) : cv::Scalar(255, 0, 0);
+      cv::circle(current_image, cv::Point(px, py), 5, color, -1);
+    }
+    // cv::imshow("Select Points (Press any key to finish)", current_image);
+  }
+  void showPicture(const cv::Mat &image) {
+    cv::namedWindow("Select Points (Press any key to finish)",
+                    cv::WINDOW_AUTOSIZE);
+    cvWrapper cv_wrapper = {this, (cv::Mat *)&image};
+    cv::setMouseCallback("Select Points (Press any key to finish)",
+                         &onMouseCallback, &cv_wrapper);
+
+    cv::imshow("Select Points (Press any key to finish)", image);
+
+    std::cout
+        << "Left click to select points, press any key to finish selection"
+        << std::endl;
+    cv::waitKey(0);
+    cv::destroyWindow("Select Points (Press any key to finish)");
+  }
+
+ public:
   std::vector<float> points_;
   std::vector<float> point_labels_;
 };
@@ -120,7 +189,8 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<SAMPointsParam>();
     this->setOutputTypeInfo<cv::Mat>();
-    initGraphNodes();
+    initStaticGraphNodes();
+    defaultParam();
   }
 
   SAMGraph(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -131,7 +201,8 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<SAMPointsParam>();
     this->setOutputTypeInfo<cv::Mat>();
-    initGraphNodes();
+    initStaticGraphNodes();
+    defaultParam();
   }
 
   // base::Status init() override;
@@ -141,8 +212,10 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
                              base::ModelType model_type, bool is_path,
                              std::vector<std::string> &model_value);
 
+  base::Status defaultParam() override;
+
  private:
-  base::Status initGraphNodes();
+  base::Status initStaticGraphNodes();
 
  private:
   dag::Node *preprocess_image_node_ = nullptr;

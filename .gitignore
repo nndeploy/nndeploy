@@ -250,7 +250,8 @@ compile_commands.json
 *.om
 
 # setup.py
-python/setup.py
+# python/setup.py
+python/wheelhouse/
 
 #ui
 *.DS_Store

@@ -1,8 +1,8 @@
-# GitHub Actions workflow configuration file - Python Linux platform compilation
-# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux environment
-# Using cibuildwheel to build compatible wheel packages with multi-architecture support
+# GitHub Actions workflow configuration file - Python Linux x86_64 platform compilation
+# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux x86_64 environment
+# Using cibuildwheel to build compatible wheel packages for x86_64 architecture
 
-name: Py4Linux  # Workflow name, displayed in GitHub Actions interface
+name: Py4Linux_x86  # Workflow name, displayed in GitHub Actions interface
 
 # Trigger conditions configuration
 on:
@@ -19,7 +19,7 @@ on:
 # Job definitions
 jobs:
   build_wheels:
-    name: Build Linux wheels
+    name: Build Linux x86_64 wheels
     runs-on: ubuntu-latest
 
     steps:
@@ -28,71 +28,23 @@ jobs:
         with:
           submodules: recursive
 
-      # Step 2: Setup QEMU for ARM architecture support
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      # Step 3: Install system dependencies
+      # Step 2: Install system dependencies
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
-      # Step 4: Pre-build C++ libraries and generate Python configuration
-      - name: Pre-build C++ libraries and generate Python configuration
-        run: |
-          # Install basic Python dependencies
-          python3 -m pip install --upgrade pip setuptools wheel pybind11 cython
-          
-          # Install Rust
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
-          rustup update
-          
-          # Install OpenCV and ONNX Runtime (using system Python)
-          cd tool/script
-          python3 install_opencv.py
-          python3 install_onnxruntime.py
-          
-          # Build C++ libraries
-          cd ../..
-          mkdir -p build
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
-          cd build
-          
-          cmake -G Ninja .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -DPython3_EXECUTABLE=$(which python3)
-          
-          ninja -j$(nproc)
-          ninja install
-          
-          # Verify if setup.py is generated
-          echo "=== Checking generated Python configuration files ==="
-          ls -la ../python/
-          if [ -f ../python/setup.py ]; then
-            echo "✓ setup.py generated successfully"
-            head -20 ../python/setup.py
-          else
-            echo "✗ setup.py not generated"
-            exit 1
-          fi
-
-      # Step 5: Build wheels using cibuildwheel
+      # Step 3: Build wheels using cibuildwheel
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
           # Build configuration
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-musllinux*"
-          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_ARCHS_LINUX: "x86_64"
           
           # Use manylinux_2_28 for better compatibility
           CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
           
           CIBW_BUILD_VERBOSITY: 2
           
@@ -119,6 +71,9 @@ jobs:
                 source /opt/rh/gcc-toolset-11/enable
             fi
             source $HOME/.cargo/env
+
+            # Install Python build dependencies
+            pip install pybind11 setuptools wheel twine requests pathlib cython
             
             # Install OpenCV and ONNX Runtime
             cd {project}/tool/script
@@ -127,6 +82,8 @@ jobs:
             
             # Build C++ libraries
             cd {project}
+            # Remove existing build directory if it exists
+            # rm -rf build
             mkdir -p build
             cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
             cd build
@@ -140,13 +97,16 @@ jobs:
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
-              -DPython3_EXECUTABLE=$(which python)
+              -DPython3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
+              -DPython3_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") \
+              -DPython3_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))") \
+              -DPYTHON_EXECUTABLE=$(python -c "import sys; print(sys.executable)")
             
             ninja -j$(nproc)
             ninja install
             
             # Install Python build dependencies
-            pip install --upgrade pip setuptools wheel pybind11 cython
+            # pip install pybind11 setuptools wheel twine requests pathlib cython
 
           # Test built wheels
           CIBW_TEST_COMMAND: |
@@ -165,11 +125,13 @@ jobs:
           # Environment variables
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
+            SETUPTOOLS_EXT_SUFFIX=.so
+            PYTHONPATH=$(python -c "import sys; print(':'.join(sys.path))")
 
         with:
           package-dir: ./python
 
-      # Step 6: Verify generated wheels
+      # Step 4: Verify generated wheels
       - name: Verify wheels
         run: |
           ls -la wheelhouse/
@@ -179,15 +141,13 @@ jobs:
             # Check architecture tags
             if [[ "$wheel" == *"x86_64"* ]]; then
               echo "  Architecture: x86_64"
-            elif [[ "$wheel" == *"aarch64"* ]]; then
-              echo "  Architecture: ARM64"
             fi
           done
 
-      # Step 7: Upload artifacts
+      # Step 5: Upload artifacts
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels
+          name: linux-x86_64-wheels
           path: ./wheelhouse/*.whl
 
   upload_testpypi:
