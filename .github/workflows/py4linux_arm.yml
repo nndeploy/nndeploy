@@ -1,101 +1,105 @@
-# GitHub Actions workflow configuration file - Python Linux platform compilation
-# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux environment
-# Using cibuildwheel to build compatible wheel packages with multi-architecture support
+# GitHub Actions workflow configuration file - Python Linux ARM平台编译
+# 此文件配置CI/CD流水线，用于在Linux ARM环境中自动编译Python扩展包并上传到PyPI
+# 使用cibuildwheel构建ARM架构兼容的wheel包
 
-name: Py4Linux  # Workflow name, displayed in GitHub Actions interface
+name: Py4Linux_ARM  # 工作流名称，在GitHub Actions界面中显示
 
-# Trigger conditions configuration
+# 触发条件配置
 on:
-  workflow_dispatch:  # Manual trigger
-  pull_request:       # Pull Request trigger
+  workflow_dispatch:  # 手动触发
+  pull_request:       # Pull Request触发
   push:
     branches:
-      - main          # Trigger when pushing to main branch
-      - testpypi      # Trigger test upload when pushing to testpypi branch
+      - main          # 推送到main分支时触发
+      - testpypi      # 推送到testpypi分支时触发测试上传
   release:
     types:
-      - published     # Trigger when publishing Release
+      - published     # 发布Release时触发
 
-# Job definitions
+# 任务定义
 jobs:
   build_wheels:
-    name: Build Linux wheels
+    name: Build Linux ARM wheels
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout source code
+      # 步骤1: 检出源代码
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # Step 2: Setup QEMU for ARM architecture support
+      # 步骤2: 设置QEMU以支持ARM架构
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
-      # Step 3: Install system dependencies
+      # 步骤3: 安装系统依赖
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
-      # Step 5: Build wheels using cibuildwheel
+      # 步骤4: 使用cibuildwheel构建wheels
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
-          # Build configuration
+          # 构建配置
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-musllinux*"
-          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_ARCHS_LINUX: "aarch64"
           
-          # Use manylinux_2_28 for better compatibility
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+          # 使用manylinux_2_28以获得更好的兼容性
           CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux_2_28"
           
           CIBW_BUILD_VERBOSITY: 2
           
-          # Install system dependencies before build
+          # 构建前安装系统依赖
           CIBW_BEFORE_ALL_LINUX: |
-            # Update package manager
+            # 更新包管理器
             if command -v yum > /dev/null; then
                 yum update -y
-                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++ libatomic-devel
                 source /opt/rh/gcc-toolset-11/enable
             elif command -v apt-get > /dev/null; then
                 apt-get update
-                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev libatomic1
             fi
             
-            # Install Rust
+            # 安装Rust
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
             rustup update
 
           CIBW_BEFORE_BUILD: |
-            # Activate toolchain
+            # 激活工具链
             if [ -f /opt/rh/gcc-toolset-11/enable ]; then
                 source /opt/rh/gcc-toolset-11/enable
             fi
             source $HOME/.cargo/env
+            
+            # 创建libatomic符号链接（如果需要）
+            if [ -f /usr/lib64/libatomic.so.1 ] && [ ! -f /usr/lib64/libatomic.so ]; then
+              ln -s /usr/lib64/libatomic.so.1 /usr/lib64/libatomic.so
+            fi
 
-            # Install Python build dependencies
+            # 安装Python构建依赖
             pip install pybind11 setuptools wheel twine requests pathlib cython
             
-            # Install OpenCV and ONNX Runtime
+            # 安装OpenCV和ONNX Runtime
             cd {project}/tool/script
             python install_opencv.py
             python install_onnxruntime.py
             
-            # Build C++ libraries
+            # 构建C++库
             cd {project}
-            # Remove existing build directory if it exists
+            # 如果存在则删除现有构建目录
             # rm -rf build
             mkdir -p build
             cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
             cd build
             
-            # Set compilers
+            # 设置编译器
             export CC=gcc
             export CXX=g++
             
@@ -104,15 +108,14 @@ jobs:
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
-              -DPython3_EXECUTABLE=$(which python)
+              -DPython3_EXECUTABLE=$(which python) \
+              -DCMAKE_EXE_LINKER_FLAGS="-L/usr/lib64 -latomic" \
+              -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/lib64 -latomic"
             
             ninja -j$(nproc)
             ninja install
-            
-            # Install Python build dependencies
-            # pip install pybind11 setuptools wheel twine requests pathlib cython
 
-          # Test built wheels
+          # 测试构建的wheels
           # CIBW_TEST_COMMAND: |
           #   python -c "
           #   import platform
@@ -126,33 +129,34 @@ jobs:
           #       exit(1)
           #   "
 
-          # Environment variables
+          # 环境变量
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
-            SETUPTOOLS_EXT_SUFFIX=.so  # 新增这一行
+            SETUPTOOLS_EXT_SUFFIX=.so
+            LDFLAGS="-L/usr/lib64 -latomic"
+            CFLAGS="-I/usr/include"
+            CXXFLAGS="-I/usr/include"
 
         with:
           package-dir: ./python
 
-      # Step 6: Verify generated wheels
+      # 步骤5: 验证生成的wheels
       - name: Verify wheels
         run: |
           ls -la wheelhouse/
           echo "=== Generated wheel files ==="
           for wheel in wheelhouse/*.whl; do
             echo "✓ $(basename $wheel)"
-            # Check architecture tags
-            if [[ "$wheel" == *"x86_64"* ]]; then
-              echo "  Architecture: x86_64"
-            elif [[ "$wheel" == *"aarch64"* ]]; then
+            # 检查架构标签
+            if [[ "$wheel" == *"aarch64"* ]]; then
               echo "  Architecture: ARM64"
             fi
           done
 
-      # Step 7: Upload artifacts
+      # 步骤6: 上传构建产物
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels
+          name: linux-arm-wheels
           path: ./wheelhouse/*.whl
 
   upload_testpypi:
