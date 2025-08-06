@@ -5,7 +5,6 @@
 #include "nndeploy/base/log.h"
 #include "nndeploy/device/opencl/opencl_include.h"
 
-
 namespace nndeploy {
 namespace device {
 #define NNDEPLOY_OPENCL_FETAL_ERROR(err)                           \
@@ -36,7 +35,9 @@ inline int clGetNumDevices() {
   std::vector<cl::Platform> platforms;
   std::vector<cl::Device> gpuDevices;
   NNDEPLOY_OPENCL_CHECK(cl::Platform::get(&platforms));
-  printf("num plats: %d\n", platforms.size());
+  if (platforms.size() <= 0) {
+    return n;
+  }
   NNDEPLOY_OPENCL_CHECK(
       platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &gpuDevices));
   n = gpuDevices.size();

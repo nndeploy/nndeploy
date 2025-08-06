@@ -4,7 +4,6 @@
 #include "nndeploy/device/opencl/opencl_util.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace device {
 TypeArchitectureRegister<OpenCLArchitecture> opencl_architecture_register(
@@ -18,7 +17,13 @@ OpenCLArchitecture::~OpenCLArchitecture(){};
 base::Status OpenCLArchitecture::checkDevice(int device_id,
                                              std::string library_path) {
   int device_count = clGetNumDevices();
-  return base::kStatusCodeOk;
+  if (device_id > -1 && device_id < device_count) {
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("device id is invalid, device id: %d, device count: %d\n",
+                  device_id, device_count);
+    return base::kStatusCodeErrorDeviceOpenCL;
+  }
 }
 
 base::Status OpenCLArchitecture::enableDevice(int device_id,
@@ -122,8 +127,9 @@ base::Status OpenCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 }
 
 void *OpenCLDevice::getContext() {
-  NNDEPLOY_LOGE("Not Implemented\n");
-  return nullptr;
+  auto numDev = _context.getInfo<CL_CONTEXT_DEVICES>();
+  std::cout << "Num Devices in this context: " << numDev.size() << std::endl;
+  return &_context;
 }
 
 Stream *OpenCLDevice::createStream() {
@@ -175,6 +181,18 @@ base::Status OpenCLDevice::init() {
     return base::kStatusCodeErrorDeviceOpenCL;
   }
   NNDEPLOY_LOGI("opencl loaded successfully!\n");
+  NNDEPLOY_OPENCL_CHECK(cl::Platform::get(&_platforms));
+  if (_platforms.size() <= 0) {
+    return base::kStatusCodeErrorDeviceOpenCL;
+  }
+  NNDEPLOY_OPENCL_CHECK(
+      _platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &_gpuDevices));
+  if (_gpuDevices.size() <= 0) {
+    return base::kStatusCodeErrorDeviceOpenCL;
+  }
+  cl_int err;
+  _context = cl::Context(_gpuDevices, NULL, NULL, NULL, &err);
+  NNDEPLOY_OPENCL_CHECK(err);
   return base::kStatusCodeOk;
 }
 

@@ -5,7 +5,6 @@
 #include "nndeploy/device/opencl/opencl_include.h"
 #include "nndeploy/device/opencl/opencl_wrapper.h"
 
-
 namespace nndeploy {
 namespace device {
 class OpenCLArchitecture : public Architecture {
@@ -90,6 +89,7 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device {
                                 Stream *stream = nullptr) override;
   virtual base::Status upload(Buffer *src, Buffer *dst,
                               Stream *stream = nullptr) override;
+
   virtual void *getContext();
 
   // stream
@@ -129,6 +129,11 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device {
    * @return base::Status
    */
   virtual base::Status deinit();
+
+ private:
+  cl::Context _context;
+  std::vector<cl::Platform> _platforms;
+  std::vector<cl::Device> _gpuDevices;
 };
 
 class OpenCLStream : public Stream {
