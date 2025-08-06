@@ -28,7 +28,7 @@
 namespace nndeploy {
 namespace qwen {
 
-struct QwenConfig {
+struct NNDEPLOY_CC_API QwenConfig {
   int layer_nums_;
   int hidden_size_;
   int max_seq_len_;
@@ -40,7 +40,7 @@ struct QwenConfig {
   std::vector<int32_t> kv_init_shape_;
 };
 
-QwenConfig parseConfig(const std::string& file_path);
+extern NNDEPLOY_CC_API QwenConfig parseConfig(const std::string& file_path);
 
 #define NNDEPLOY_LLAMA2 "NNDEPLOY_LLAMA2"
 #define DELETE_POINTER(ptr) \
