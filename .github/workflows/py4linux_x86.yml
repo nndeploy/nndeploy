@@ -43,8 +43,8 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_ARCHS_LINUX: "x86_64"
           
-          # 使用 manylinux2014 镜像，它基于 CentOS 7，支持 devtoolset-11
-          CIBW_MANYLINUX_X86_64_IMAGE: "quay.io/pypa/manylinux2014_x86_64:latest"
+          # 升级到 manylinux_2_28 以获得更新的 glibc 和工具链
+          CIBW_MANYLINUX_X86_64_IMAGE: "quay.io/pypa/manylinux_2_28_x86_64:latest"
           
           CIBW_BUILD_VERBOSITY: 2
           
@@ -53,15 +53,12 @@ jobs:
             # 更新包管理器并安装依赖
             if command -v yum > /dev/null; then
                 yum update -y
-                yum install -y cmake3 ninja-build pkgconfig protobuf-compiler protobuf-devel wget curl
-                # 安装 devtoolset-11 (GCC 11)
-                yum install -y centos-release-scl
-                yum install -y devtoolset-11-gcc devtoolset-11-gcc-c++ devtoolset-11-binutils
-                # 创建 cmake 符号链接
-                ln -sf /usr/bin/cmake3 /usr/bin/cmake
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel wget curl
+                # 安装 GCC 工具链 (manylinux_2_28 默认包含较新的工具链)
+                yum install -y gcc gcc-c++ binutils
             elif command -v apt-get > /dev/null; then
                 apt-get update
-                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev gcc g++
             fi
             
             # 安装 Rust
@@ -70,10 +67,7 @@ jobs:
             rustup update
 
           CIBW_BEFORE_BUILD: |
-            # 激活工具链
-            if [ -f /opt/rh/devtoolset-11/enable ]; then
-                source /opt/rh/devtoolset-11/enable
-            fi
+            # 设置环境变量 (manylinux_2_28 无需 devtoolset)
             source $HOME/.cargo/env
 
             # 安装 Python 构建依赖
