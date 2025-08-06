@@ -23,12 +23,7 @@ build:
     - pkg-config
     - libopencv-dev
     - protobuf-compiler
-    - libprotobuf-dev
-
-  commands:
-    # 安装Python包
-    - pip install --upgrade pip
-    - pip install pybind11 setuptools wheel twine requests pathlib cython auditwheel
+    - libprotobuf-dev    
   jobs:
     post_checkout:
       # 确保所有子模块被正确初始化和更新
@@ -38,6 +33,9 @@ build:
       - which cmake
       - cmake --version
     pre_build:
+      # 安装Python包
+      - pip install --upgrade pip
+      - pip install pybind11 setuptools wheel twine requests pathlib cython auditwheel
       # - cd tool/script && python install_opencv.py && python install_onnxruntime.py
       # 创建build目录
       # - mkdir -p build && cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake 
