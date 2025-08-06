@@ -24,6 +24,14 @@ build:
     - libopencv-dev
     - protobuf-compiler
     - libprotobuf-dev
+    - pybind11
+    - setuptools
+    - wheel
+    - twine
+    - requests
+    - pathlib
+    - cython
+    - auditwheel
   jobs:
     post_checkout:
       # 确保所有子模块被正确初始化和更新
@@ -33,10 +41,12 @@ build:
       - which cmake
       - cmake --version
     pre_build:
+      # - cd tool/script && python install_opencv.py && python install_onnxruntime.py
       # 创建build目录
-      - mkdir -p build
+      # - mkdir -p build && cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake 
       # 进入构建目录进行配置和编译
       - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
+      - cd python && pip install -e . && python -c "import nndeploy; print(nndeploy.__version__)"
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

@@ -22,76 +22,9 @@ def build_and_install_nndeploy():
     
     print("🚀 开始编译和安装 nndeploy...")
     
-    # 获取项目根目录
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-    build_dir = os.path.join(project_root, 'build')
-    python_dir = os.path.join(project_root, 'python')
-    
     try:
-        # # 1. 初始化子模块
-        # print("📦 初始化子模块...")
-        # subprocess.run(['git', 'submodule', 'update', '--init', '--recursive'], 
-        #               cwd=project_root, check=True, capture_output=True)
-        # print("✅ 子模块初始化完成")
-        
-        # # 2. 创建并进入build目录
-        # print("🏗️  创建build目录...")
-        # os.makedirs(build_dir, exist_ok=True)
-        # # 拷贝cmake/config.cmake到build/config.cmake
-        # config_src = os.path.join(project_root, 'cmake', 'config.cmake')
-        # config_dst = os.path.join(build_dir, 'config.cmake')
-        # shutil.copyfile(config_src, config_dst)
-        # print("✅ 已拷贝 config.cmake 到 build 目录")
-        
-        # # 3. CMAKE配置
-        # print("⚙️  执行CMAKE配置...")
-        # cmake_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '..']
-        # subprocess.run(cmake_cmd, cwd=build_dir, check=True, capture_output=True)
-        # print("✅ CMAKE配置完成")
-        
-        # # 4. 编译
-        # print("🔨 开始编译...")
-        # make_cmd = ['make', f'-j{os.cpu_count()}']
-        # subprocess.run(make_cmd, cwd=build_dir, check=True, capture_output=True)
-        # print("✅ 编译完成")
-        
-        # # 5. 安装
-        # print("📦 执行make install...")
-        # subprocess.run(['make', 'install'], cwd=build_dir, check=True, capture_output=True)
-        # print("✅ make install完成")
-        
-        # 6. 设置库路径并安装Python包
-        print("🐍 安装Python包...")
-        
-        # 设置环境变量
-        library_path = os.path.join(python_dir, 'nndeploy')
-        current_ld_path = os.environ.get('LD_LIBRARY_PATH', '')
-        if current_ld_path:
-            new_ld_path = f"{library_path}:{current_ld_path}"
-        else:
-            new_ld_path = library_path
-        
-        # 更新当前进程的环境变量
-        os.environ['LD_LIBRARY_PATH'] = new_ld_path
-        
-        # 安装Python包
-        pip_cmd = [sys.executable, '-m', 'pip', 'install', '-e', '.']
-        subprocess.run(pip_cmd, cwd=python_dir, check=True, 
-                      env=os.environ.copy(), capture_output=True)
-        print("✅ Python包安装完成")
-        
-        # 7. 验证安装
-        print("🔍 验证安装...")
-        test_cmd = [sys.executable, '-c', 'import nndeploy; print(f"nndeploy version: {nndeploy.__version__}")']
-        result = subprocess.run(test_cmd, cwd=python_dir, 
-                               env=os.environ.copy(), capture_output=True, text=True)
-        if result.returncode == 0:
-            print(f"✅ 验证成功: {result.stdout.strip()}")
-            return True
-        else:
-            print(f"⚠️  验证失败: {result.stderr}")
-            return False
-            
+       import nndeploy
+       return True
     except subprocess.CalledProcessError as e:
         print(f"❌ 编译/安装过程出错: {e}")
         print(f"错误输出: {e.stderr if hasattr(e, 'stderr') and e.stderr else '无详细错误信息'}")
