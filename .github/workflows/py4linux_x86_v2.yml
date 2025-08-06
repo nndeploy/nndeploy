@@ -107,7 +107,7 @@ jobs:
           pip install -e .
           python setup.py bdist_wheel --plat-name manylinux2014_x86_64  # Build wheel package
           # 修复python包目录
-          auditwheel repair dist/*.whl --plat manylinux2014_x86_64 --wheel-dir auditwheel_dist
+          auditwheel repair dist/*.whl --wheel-dir auditwheel_dist
 
       # Step 10: Verify compilation results
       - name: Check compilation results

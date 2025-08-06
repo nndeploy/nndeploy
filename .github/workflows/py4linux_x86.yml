@@ -43,9 +43,10 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_ARCHS_LINUX: "x86_64"
           
-          # Use manylinux_2_28 for better compatibility
+          # Use default manylinux image selected by cibuildwheel
           # CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014_x86_64"
+          # CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014_x86_64"
+          CIBW_MANYLINUX_X86_64_IMAGE: "quay.io/pypa/manylinux2014_x86_64:latest"
           
           CIBW_BUILD_VERBOSITY: 2
           
