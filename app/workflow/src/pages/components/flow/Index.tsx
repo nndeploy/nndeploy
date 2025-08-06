@@ -255,7 +255,8 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       const businessContent = designDataToBusinessData(
         flowJson,
-        graphTopNode
+        graphTopNode, 
+        flowJson.nodes
       );
 
       const response = await apiWorkFlowRun(businessContent);

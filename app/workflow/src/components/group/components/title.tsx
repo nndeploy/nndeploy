@@ -84,10 +84,12 @@ export const GroupTitle: FC = () => {
     var j = 0
 
     let designContent: FlowDocumentJSON = buildDesignData(selectedNodes, allEdges)
+  
+    //designContent.edges = allEdges
 
-    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode)
+    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes)
 
-    let edgeMaps = getEdgeMaps(allNodes, designContent.edges)
+    let edgeMaps = getEdgeMaps(allNodes, allEdges)
 
     let selectedNodeIds = selectedNodes.map(node => {
       return node.id

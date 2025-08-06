@@ -248,14 +248,19 @@ export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON
 
   let edge_map: { [key: string]: string } = {};
   allEdges.map((edge) => {
-    edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
-    edge_map[edge.targetNodeID + "@" + edge.targetPortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
+
+    var name = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string); 
+    if(!name){
+      let j = 0;
+    }
+    edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = name
+    edge_map[edge.targetNodeID + "@" + edge.targetPortID] = name;
   });
 
   return edge_map
 }
 
-export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode) {
+export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode, allNodes: FlowNodeJSON[]) {
 
   let allEdges = getAllEdges(designData);
 
@@ -356,7 +361,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     return "";
   }
 
-  const edge_map = getEdgeMaps(designData.nodes, allEdges)
+  const edge_map = getEdgeMaps(allNodes, allEdges)
 
 
 
@@ -412,6 +417,10 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
       const originName = input.name_
       const name_ = edge_map[node.id + "@" + input.id]
+
+      if(!name_){
+        //debugger
+      }
 
       changeNodeDescendConnecitonName(node, originName, name_)
       return {

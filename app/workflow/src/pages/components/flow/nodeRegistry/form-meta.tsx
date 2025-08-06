@@ -59,6 +59,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const key_ = form.getValueIn("key_");
 
 
+
+
   const excludeFields = [
     "id",
     "key_",
@@ -223,6 +225,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   }, [outputResources])
 
+  const [refresh, setRefresh] = useState({})
+
   return (
     <div className="drawer-render-form" ref={renderFormRef}>
       <FormHeader />
@@ -233,12 +237,17 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             <div className="connection-area">
               <div className="input-area">
                 <FieldArray name="inputs_">
-                  {({ field }) => (
-                    <>
+                  {({ field }) => {
+                    // setTimeout(()=>{
+                    //   setRefresh({})
+                    // }, 0)
+                    return <>
                       {field.map((child, index) => {
                         return (
                           <Field<any> key={child.name} name={child.name}>
                             {({ field: childField, fieldState: childState }) => {
+
+                              console.log('inputs_ childField.value.id', childField.value.id)
                               return (
                                 <FormItem
                                   name={`${childField.value.type_}`}///${childField.value.desc_}
@@ -260,7 +269,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                         );
                       })}
                     </>
-                  )}
+                  }}
                 </FieldArray>
                 {/* {
               inputValues.map((item) => {
@@ -287,29 +296,37 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </div>
               <div className="output-area">
                 <FieldArray name="outputs_">
-                  {({ field }) => (
-                    <>
+                  {({ field }) => {
+
+                    //  setTimeout(()=>{
+                    //   setRefresh({})
+                    // }, 0)
+                    return <>
                       {field.map((child, index) => (
                         <Field<any> key={child.name} name={child.name}>
-                          {({ field: childField, fieldState: childState }) => (
-                            <FormItem
+                          {({ field: childField, fieldState: childState }) => {
+
+                            console.log('outputs_ childField.value.id', childField.value.id)
+                            return <FormItem
                               name={`${childField.value.type_}`}///${childField.value.desc_}
                               type="boolean"
                               required={false}
-                            //labelWidth={40}
+
                             >
+
                               <div
                                 className="connection-point connection-point-right"
                                 data-port-id={childField.value.id}
                                 data-port-type="output"
                                 data-port-desc={childField.value.desc_}
                               ></div>
+
                             </FormItem>
-                          )}
+                          }}
                         </Field>
                       ))}
                     </>
-                  )}
+                  }}
                 </FieldArray>
               </div>
             </div>
@@ -437,13 +454,13 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             {/* </Section> */}
 
             {is_dynamic_input_ && (
-              <Section text={"inputs_"}>
+              <Section text={"inputs_"} key="inputs_">
                 <FormDynamicPorts portType="inputs_" />
               </Section>
             )}
 
             {is_dynamic_output_ && (
-              <Section text={"outputs_"}>
+              <Section text={"outputs_"} key="outputs_">
                 <FormDynamicPorts portType="outputs_" />
               </Section>
             )}
@@ -495,11 +512,11 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 }}
               </Field>
 
-              
+
             }
-             {
+            {
               isTextNode() && needShowTextContent() &&
-              <TextArea rows={8}  value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
+              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
             }
