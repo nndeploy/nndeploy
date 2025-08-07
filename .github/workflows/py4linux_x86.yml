@@ -64,7 +64,9 @@ jobs:
             # 安装 Rust
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
-            rustup update
+            rustup toolchain install 1.88.0
+            rustup default 1.88.0
+            rustup target add x86_64-unknown-linux-gnu
 
           CIBW_BEFORE_BUILD: |
             # 设置环境变量 (manylinux_2_28 无需 devtoolset)
