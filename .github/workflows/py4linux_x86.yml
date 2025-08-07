@@ -6,12 +6,12 @@ name: Py4Linux_x86  # 工作流名称，在 GitHub Actions 界面中显示
 
 # 触发条件配置
 on:
-  workflow_dispatch:  # 手动触发
-  pull_request:       # Pull Request 触发
-  push:
-    branches:
-      - main          # 推送到 main 分支时触发
-      - testpypi      # 推送到 testpypi 分支时触发测试上传
+  workflow_dispatch:  # Manual trigger
+  # pull_request:       # Pull Request 触发
+  # push:
+  #   branches:
+  #     - main          # 推送到 main 分支时触发
+  #     - testpypi      # 推送到 testpypi 分支时触发测试上传
   release:
     types:
       - published     # 发布 Release 时触发

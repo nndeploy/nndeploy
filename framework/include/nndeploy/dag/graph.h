@@ -35,21 +35,21 @@ class NNDEPLOY_CC_API Graph : public Node {
         std::vector<Edge *> outputs);
   virtual ~Graph();
 
-  base::Status setImageUrl(const std::string &key, const std::string &url);
-  base::Status removeImageUrl(const std::string &key);
-  base::Status setVideoUrl(const std::string &key, const std::string &url);
-  base::Status removeVideoUrl(const std::string &key);
-  base::Status setAudioUrl(const std::string &key, const std::string &url);
-  base::Status removeAudioUrl(const std::string &key);
-  base::Status setModelUrl(const std::string &key, const std::string &url);
-  base::Status removeModelUrl(const std::string &key);
-  base::Status setOtherUrl(const std::string &key, const std::string &url);
-  base::Status removeOtherUrl(const std::string &key);
-  std::string getImageUrl(const std::string &key);
-  std::string getVideoUrl(const std::string &key);
-  std::string getAudioUrl(const std::string &key);
-  std::string getModelUrl(const std::string &key);
-  std::string getOtherUrl(const std::string &key);
+  base::Status addImageUrl(const std::string &url);
+  base::Status removeImageUrl(const std::string &url);
+  base::Status addVideoUrl(const std::string &url);
+  base::Status removeVideoUrl(const std::string &url);
+  base::Status addAudioUrl(const std::string &url);
+  base::Status removeAudioUrl(const std::string &url);
+  base::Status addModelUrl(const std::string &url);
+  base::Status removeModelUrl(const std::string &url);
+  base::Status addOtherUrl(const std::string &url);
+  base::Status removeOtherUrl(const std::string &url);
+  std::vector<std::string> getImageUrl() const;
+  std::vector<std::string> getVideoUrl() const;
+  std::vector<std::string> getAudioUrl() const;
+  std::vector<std::string> getModelUrl() const;
+  std::vector<std::string> getOtherUrl() const;
 
   base::Status setEdgeQueueMaxSize(int queue_max_size);
   int getEdgeQueueMaxSize();
@@ -326,11 +326,11 @@ class NNDEPLOY_CC_API Graph : public Node {
 
  protected:
   // 
-  std::map<std::string, std::string> image_url_;
-  std::map<std::string, std::string> video_url_;
-  std::map<std::string, std::string> audio_url_;
-  std::map<std::string, std::string> model_url_;
-  std::map<std::string, std::string> other_url_;
+  std::vector<std::string> image_url_;
+  std::vector<std::string> video_url_;
+  std::vector<std::string> audio_url_;
+  std::vector<std::string> model_url_;
+  std::vector<std::string> other_url_;
 
   bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
