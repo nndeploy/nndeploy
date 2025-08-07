@@ -36,6 +36,12 @@ bool DataType::operator!=(const DataTypeCode &other) const {
   return !(*this == other);
 }
 
+bool DataType::operator<(const DataType &other) const {
+  if (code_ != other.code_) return code_ < other.code_;
+  if (bits_ != other.bits_) return bits_ < other.bits_;
+  return lanes_ < other.lanes_;
+}
+
 size_t DataType::size() const { return (bits_ * lanes_) >> 3; }
 
 template <>
@@ -165,7 +171,7 @@ std::string dataTypeToString(DataType data_type) {
   if (data_type.code_ == kDataTypeCodeUint) {
     dst = "kDataTypeCodeUint" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeInt) {
-    dst = "kDataTypeCodeInt" + std::to_string(data_type.bits_); 
+    dst = "kDataTypeCodeInt" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeFp) {
     dst = "kDataTypeCodeFp" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeBFp) {
@@ -186,7 +192,7 @@ DataType stringToDataType(const std::string &str) {
   DataType dst;
   std::string code_str;
   std::string bits_str;
-  std::string lanes_str = "1"; // Default lanes to 1
+  std::string lanes_str = "1";  // Default lanes to 1
 
   // Try to parse format like "kDataTypeCodeUint32:4"
   size_t colon_pos = str.find(':');
@@ -194,7 +200,7 @@ DataType stringToDataType(const std::string &str) {
     // Handle "kDataTypeCodeUint32:4" format
     lanes_str = str.substr(colon_pos + 1);
     std::string main_part = str.substr(0, colon_pos);
-    
+
     // Extract bits and code
     for (int i = main_part.length() - 1; i >= 0; i--) {
       if (!isdigit(main_part[i])) {
@@ -254,10 +260,10 @@ DataType stringToDataType(const std::string &str) {
     if (!bits_str.empty()) {
       dst.bits_ = static_cast<uint8_t>(std::stoi(bits_str));
     } else {
-      dst.bits_ = 32; // Default to 32 bits if not specified
+      dst.bits_ = 32;  // Default to 32 bits if not specified
     }
     dst.lanes_ = static_cast<uint16_t>(std::stoi(lanes_str));
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     NNDEPLOY_LOGI("Error parsing bits/lanes from string: %s\n", str.c_str());
     dst.code_ = kDataTypeCodeNotSupport;
   }
@@ -792,7 +798,6 @@ std::string shareMemoryTypeToString(ShareMemoryType src) {
   }
 }
 
-
 MemoryType stringToMemoryType(const std::string &src) {
   if (src == "kMemoryTypeNone") {
     return kMemoryTypeNone;
@@ -985,7 +990,6 @@ PowerType stringToPowerType(const std::string &src) {
     return kPowerTypeNormal;
   }
 }
-
 
 std::string powerTypeToString(PowerType src) {
   switch (src) {
@@ -1196,7 +1200,6 @@ std::string topoSortTypeToString(TopoSortType src) {
       return "kTopoSortTypeBFS";
   }
 }
-
 
 PrecisionType getPrecisionType(DataType data_type) {
   if (data_type.code_ == kDataTypeCodeBFp && data_type.bits_ == 16) {
