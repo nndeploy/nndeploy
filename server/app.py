@@ -65,11 +65,12 @@ def start_worker(
         result_q: "mp.queues.Queue",
         progress_q: "mp.queues.Queue",
         log_q: "mp.queues.Queue",
-        plugin_update_q: "mp.queues.Queue") -> mp.Process:
+        plugin_update_q: "mp.queues.Queue",
+        resources) -> mp.Process:
     p = mp.Process(
         target=worker_run,
         name="WorkerProcess",
-        args=(task_q, result_q, progress_q, log_q, plugin_update_q),
+        args=(task_q, result_q, progress_q, log_q, plugin_update_q, resources),
         daemon=True,
     )
     p.start()
@@ -83,6 +84,7 @@ def monitor_worker(
     progress_q: "mp.queues.Queue",
     log_q: "mp.queues.Queue",
     plugin_update_q: "mp.queues.Queue",
+    resources,
     stop_event: threading.Event,
 ) -> None:
     while not stop_event.is_set():
@@ -91,7 +93,7 @@ def monitor_worker(
                 "Worker died (exitcode=%s). Restarting in 2 seconds...", worker.exitcode
             )
             time.sleep(2)
-            worker = start_worker(task_q, result_q, progress_q, log_q, plugin_update_q)
+            worker = start_worker(task_q, result_q, progress_q, log_q, plugin_update_q, resources)
         time.sleep(1)
 
 def start_scheduler(queue: TaskQueue, job_q: mp.Queue):
@@ -162,11 +164,11 @@ def main() -> None:
     start_finisher(server.queue, result_q)
 
     # worker and monitor
-    worker = start_worker(job_mp_queue, result_q, progress_q, log_q, plugin_update_q)
+    worker = start_worker(job_mp_queue, result_q, progress_q, log_q, plugin_update_q, args.resources)
     stop_event = threading.Event()
     monitor_t = threading.Thread(
         target=monitor_worker,
-        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, stop_event),
+        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, args.resources, stop_event),
         daemon=True,
     )
     monitor_t.start()
