@@ -66,9 +66,7 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
-          rustup toolchain install 1.88.0
-          rustup default 1.88.0
-          rustup target add x86_64-unknown-linux-gnu
+          rustup update
 
       # Step 6: Install OpenCV and ONNXRUNTIME
       - name: Install OpenCV and ONNXRUNTIME

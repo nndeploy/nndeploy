@@ -25,7 +25,6 @@ class NnDeployGraphRuntimeError(RuntimeError):
 class GraphRunner:
     def __init__(self):
         self.graph = None
-        self.is_dump = False
 
     def _check_status(self, status):
         if status != nndeploy.base.StatusCode.Ok:
@@ -57,7 +56,7 @@ class GraphRunner:
             self.graph = None
         import gc; gc.collect()
 
-    def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
+    def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
         try:
             nndeploy.base.time_profiler_reset()
 
@@ -70,6 +69,45 @@ class GraphRunner:
             self.graph.set_debug_flag(False)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+            
+            if args is not None:
+                if args.parallel_type != "":
+                    parallel_type = nndeploy.base.name_to_parallel_type(args.parallel_type)
+                    self.graph.set_parallel_type(parallel_type)
+                if args.input_path != {}:
+                    i = 0
+                    for key, value in args.input_path.items():
+                        node = None
+                        if key.isdigit():
+                            node = self.graph.get_input_node(i)
+                        else:
+                            node = self.graph.get_node(key)
+                        if node is not None:
+                            if hasattr(node, 'set_path'):
+                                node.set_path(value)
+                            else:
+                                print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
+                        i += 1
+                if args.output_path != {}:
+                    i = 0
+                    for key, value in args.output_path.items():
+                        node = None
+                        if key.isdigit():
+                            node = self.graph.get_output_node(i)
+                        else:
+                            node = self.graph.get_node(key)
+                        if node is not None:
+                            if hasattr(node, 'set_path'):
+                                node.set_path(value)
+                            else:
+                                print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
+                        i += 1
+                if args.node_param != {}:
+                    for node_name, param_map in args.node_param.items():
+                        for param_key, param_value in param_map.items():
+                            node = self.graph.get_node(node_name)
+                            if node is not None:
+                                node.set_param(param_key, param_value)
 
             nndeploy.base.time_point_start("init_" + name)
             status = self.graph.init()
@@ -79,7 +117,7 @@ class GraphRunner:
             parallel_type = self.graph.get_parallel_type()
             results = []
 
-            if self.is_dump:
+            if args is not None and args.dump:
                 self.graph.dump()
 
             nndeploy.base.time_point_start("sum_" + name)
@@ -154,17 +192,78 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--json_file", type=str, required=True)
     parser.add_argument("--name", type=str, default="", required=False)
-    parser.add_argument("--i", type=str, default="", required=False)
-    parser.add_argument("--o", type=str, default="", required=False)
+    parser.add_argument("--task_id", type=str, default="", required=False)
+    
+    # image.jpg or decodec1:image.jpg
+    parser.add_argument("--input_path", "-i", type=str, nargs='*', default=[], required=False)
+    # image.jpg or decodec1:image.jpg
+    parser.add_argument("--output_path", "-o", type=str, nargs='*', default=[], required=False)
+    
+    # node_name:param_key:param_value
+    parser.add_argument("--node_param", "-np", type=str, nargs='*', default=[], required=False)
+    
+    # kParallelTypeSequential
+    parser.add_argument("--parallel_type", type=str, default="", required=False)
+    parser.add_argument("--dump", action="store_true", default=False, required=False)
     return parser.parse_args()
 
+
+class GraphRunnerArgs:
+    def __init__(self):
+        self.json_file = ""
+        self.name = ""
+        self.task_id = ""
+        self.input_path = {}
+        self.output_path = {}
+        self.node_param = {}
+        self.parallel_type = ""
+        self.dump = False
+        
+    def parse_args(self):
+        args = parse_args()
+        self.json_file = args.json_file
+        self.name = args.name
+        self.task_id = args.task_id
+        
+        # 解析输入路径参数
+        i = 0
+        for item in args.input_path:
+            if ":" in item:
+                key, value = item.split(":", 1)
+                self.input_path[key] = value
+            else:
+                self.input_path[i] = item
+            i += 1
+        
+        # 解析输出路径参数
+        i = 0
+        for item in args.output_path:
+            if ":" in item:
+                key, value = item.split(":", 1)
+                self.output_path[key] = value
+            else:
+                self.output_path[i] = item
+            i += 1
+        
+        i = 0
+        for item in args.node_param:
+            node_name, param_key, param_value = item.split(":")
+            self.node_param[node_name][param_key] = param_value
+            i += 1
+        
+        self.parallel_type = args.parallel_type
+        self.dump = args.dump
+
+
 def main():
-    args = parse_args()
+    args = GraphRunnerArgs()
+    args.parse_args()
+    
     graph_json_str = ""
     with open(args.json_file, "r") as f:
         graph_json_str = f.read()
     gr = GraphRunner()
-    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, "test_graph_runner")
+    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args)
     print(time_profiler_map)
     print(results)
 

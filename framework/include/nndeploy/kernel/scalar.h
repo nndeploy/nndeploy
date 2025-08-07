@@ -22,19 +22,25 @@ class Scalar {
                             std::is_same<std::complex<float>, T>::value ||
                                 std::is_same<std::complex<double>, T>::value,
                             int>::type = 0>
-  Scalar(const T& value)
-      : value_{.c = {value.real(), value.imag()}}, active_tag_(HAS_C) {}
+  Scalar(const T& value) : active_tag_(HAS_C) {
+    value_.c.real = value.real();
+    value_.c.imag = value.imag();
+  }
 
   // Constructor for bool type
   template <typename T, typename std::enable_if<std::is_same<T, bool>::value,
                                                 int>::type = 0>
-  Scalar(const T& value) : value_{.b = value}, active_tag_(HAS_B) {}
+  Scalar(const T& value) : active_tag_(HAS_B) {
+    value_.b = value;
+  }
 
   // Constructor for signed integral types
   template <typename T, typename std::enable_if<std::is_integral<T>::value &&
                                                     std::is_signed<T>::value,
                                                 int>::type = 0>
-  Scalar(const T& value) : value_{.s = value}, active_tag_(HAS_S) {}
+  Scalar(const T& value) : active_tag_(HAS_S) {
+    value_.s = value;
+  }
 
   // Constructor for unsigned integral types
   template <typename T,
@@ -42,12 +48,16 @@ class Scalar {
                                         std::is_unsigned<T>::value &&
                                         !std::is_same<T, bool>::value,
                                     int>::type = 0>
-  Scalar(const T& value) : value_{.u = value}, active_tag_(HAS_U) {}
+  Scalar(const T& value) : active_tag_(HAS_U) {
+    value_.u = value;
+  }
 
   // Constructor for floating point types
   template <typename T, typename std::enable_if<
                             std::is_floating_point<T>::value, int>::type = 0>
-  Scalar(const T& value) : value_{.d = value}, active_tag_(HAS_D) {}
+  Scalar(const T& value) : active_tag_(HAS_D) {
+    value_.d = value;
+  }
 
   // Assignment operator
   template <typename T, typename std::enable_if<!std::is_same<T, Scalar>::value,

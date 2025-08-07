@@ -745,6 +745,46 @@ std::vector<std::string> Graph::getNodesNameRecursive() {
   return names;
 }
 
+Node *Graph::getInputNode(int index) {
+  // 查找输入节点
+  int input_count = 0;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+      if (input_count == index) {
+        return node_wrapper->node_;
+      }
+      input_count++;
+    }
+  }
+  return nullptr;
+}
+Node *Graph::getOutputNode(int index) {
+  // 查找输出节点
+  int output_count = 0;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+      if (output_count == index) {
+        return node_wrapper->node_;
+      }
+      output_count++;
+    }
+  }
+  return nullptr;
+}
+Node *Graph::getInferNode(int index) {
+  // 查找推理节点（key为nndeploy::plugin::Infer的节点）
+  int infer_count = 0;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getKey() == "nndeploy::plugin::Infer") {
+      if (infer_count == index) {
+        return node_wrapper->node_;
+      }
+      infer_count++;
+    }
+  }
+  return nullptr;
+}
+
 std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatus() {
   std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
   for (auto node_wrapper : node_repository_) {

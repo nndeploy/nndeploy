@@ -79,7 +79,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph", &Node::getGraph, py::return_value_policy::reference)
       .def("set_device_type", &Node::setDeviceType, py::arg("device_type"))
       .def("get_device_type", &Node::getDeviceType)
-      .def("set_param", &Node::setParamSharedPtr, py::arg("param"))
+      .def("set_param", 
+           py::overload_cast<std::shared_ptr<base::Param>>(&Node::setParamSharedPtr), 
+           py::arg("param"))
+      .def("set_param", 
+           py::overload_cast<const std::string &, const std::string &>(&Node::setParam), 
+           py::arg("key"), py::arg("value"))
       .def("get_param", &Node::getParamSharedPtr)
       .def("set_external_param", &Node::setExternalParam, py::arg("key"),
            py::arg("external_param"))
@@ -426,6 +431,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_nodes_name", &Graph::getNodesName,
            py::return_value_policy::reference)
       .def("get_nodes_name_recursive", &Graph::getNodesNameRecursive,
+           py::return_value_policy::reference)
+      .def("get_input_node", &Graph::getInputNode, py::arg("index"),
+           py::return_value_policy::reference)
+      .def("get_output_node", &Graph::getOutputNode, py::arg("index"),
+           py::return_value_policy::reference)
+      .def("get_infer_node", &Graph::getInferNode, py::arg("index"),
            py::return_value_policy::reference)
       .def("get_nodes_run_status", &Graph::getNodesRunStatus,
            py::call_guard<py::gil_scoped_release>())

@@ -132,6 +132,9 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setExternalParam(
       const std::string &key, std::shared_ptr<base::Param> external_param);
   virtual std::shared_ptr<base::Param> getExternalParam(const std::string &key);
+  virtual base::Status setParam(const std::string &key, base::Any &any);
+  virtual base::Status getParam(const std::string &key, base::Any &any);
+  virtual base::Status setParam(const std::string &key, const std::string &value);
 
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);

@@ -60,6 +60,10 @@ class PyNode : public Base {
                            param);
   }
 
+  base::Status setParam(const std::string &key, const std::string &value) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam, key, value);
+  }
+
   //   base::Param *getParam() override {
   //     PYBIND11_OVERRIDE_NAME(base::Param *, Base, "get_param", getParam);
   //   }
