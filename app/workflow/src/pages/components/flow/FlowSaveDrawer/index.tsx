@@ -29,7 +29,8 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
 
         const businessContent = designDataToBusinessData(
               props.entity.designContent, 
-              flowEnviroment.graphTopNode
+              flowEnviroment.graphTopNode, 
+              props.entity.designContent.nodes
             );
 
       const data: IWorkFlowEntity = {
