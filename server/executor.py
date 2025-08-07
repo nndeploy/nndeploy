@@ -45,6 +45,9 @@ class GraphExecutor:
             if not isinstance(url_list, list):
                 logging.warning(f"{field} is not a list")
                 continue
+            if not url_list:
+                logging.info(f"{field} is an empty list, skipping.")
+                continue
 
             for idx, url in enumerate(url_list):
                 if not isinstance(url, str):
