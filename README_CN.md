@@ -51,21 +51,31 @@
 
 ## 快速开始
 
-### 启动可视化工作流
+### 启动可视化工作流界面
+
+安装nndeploy包并启动可视化工作流工具
+
 ```bash
+# 通过pip安装nndeploy
 pip install nndeploy
+# 在8000端口启动可视化工作流应用
 nndeploy-app --port 8000
 ```
 
-在浏览器中访问 `http://localhost:8000` 开始使用，更多细节参考文档。
+打开 http://localhost:8000 访问工作流界面。
 
-### 保存工作流为json文件，执行工作流
+### 通过JSON保存和执行工作流
+
+在可视化界面中配置好工作流后，将其保存为JSON文件（例如yolo.json）。可以通过使用以下命令执行该工作流：
 
 ```bash
+# 执行JSON文件中定义的工作流
+# -i: 指定输入文件（例如input.jpg）
+# -o: 指定输出文件（例如output.jpg）
 nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
 ```
 
-> 注: Window要求python环境为3.12, Mac要求python环境为3.13, Linux暂不支持，建议采用开发者模式
+> 注意：需要Python 3.10或更高版本，支持通过[docker](docker/README.md)进行替代安装/执行
 
 ### 文档
 
