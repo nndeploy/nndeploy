@@ -1,4 +1,4 @@
-FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/ubuntu:22.04
+FROM nvcr.io/nvidia/tensorrt:22.12-py3
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
@@ -32,7 +32,7 @@ RUN cd tool/script && \
 # ---- Build C++ and Install Python Module ----
 RUN rm -rf build && \
     mkdir build && \
-    cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake && \
+    cp cmake/config_opencv_ort_ov_trt_tokenizer.cmake build/config.cmake && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .. && \
     make -j$(nproc) && \

@@ -12,330 +12,553 @@ from .node import Node, NodeDesc, NodeCreator, register_node, get_all_node_json
 class Graph(_C.dag.Graph):
     def __init__(self, name: str, inputs: Union[Edge, List[Edge]] = None, outputs: Union[Edge, List[Edge]] = None):
         """
-        初始化 Graph 对象
+        Initialize Graph object
         
-        参数:
-            name: 图名称
-            inputs: 输入边或输入边列表
-            outputs: 输出边或输出边列表
+        Args:
+            name: Graph name
+            inputs: Input edge or list of input edges
+            outputs: Output edge or list of output edges
         """
         if inputs is None and outputs is None:
             super().__init__(name)
         elif isinstance(inputs, list) and isinstance(outputs, list):
             super().__init__(name, inputs, outputs)
         else:
-            raise ValueError("无效的输入或输出类型")
+            raise ValueError("Invalid input or output type")
         self.set_key("nndeploy.dag.Graph")
         self.set_desc("Graph: Graph for nndeploy in python")
         self.nodes = []
         
     def __del__(self):
+        """Destructor to clean up graph resources"""
         if self.get_initialized():
             self.deinit()
             self.set_initialized_flag(False)
         # super().__del__()
         
-    def set_input_type(self, input_type: type):
-        """设置输入类型
+    def set_image_url(self, key: str, url: str):
+        """Set image URL
         
         Args:
-            input_type: 输入类型
+            key: Key name
+            url: URL address
             
         Returns:
-            状态码
+            Status code
+        """
+        return super().set_image_url(key, url)
+        
+    def remove_image_url(self, key: str):
+        """Remove image URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            Status code
+        """
+        return super().remove_image_url(key)
+        
+    def set_video_url(self, key: str, url: str):
+        """Set video URL
+        
+        Args:
+            key: Key name
+            url: URL address
+            
+        Returns:
+            Status code
+        """
+        return super().set_video_url(key, url)
+        
+    def remove_video_url(self, key: str):
+        """Remove video URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            Status code
+        """
+        return super().remove_video_url(key)
+        
+    def set_audio_url(self, key: str, url: str):
+        """Set audio URL
+        
+        Args:
+            key: Key name
+            url: URL address
+            
+        Returns:
+            Status code
+        """
+        return super().set_audio_url(key, url)
+        
+    def remove_audio_url(self, key: str):
+        """Remove audio URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            Status code
+        """
+        return super().remove_audio_url(key)
+        
+    def set_model_url(self, key: str, url: str):
+        """Set model URL
+        
+        Args:
+            key: Key name
+            url: URL address
+            
+        Returns:
+            Status code
+        """
+        return super().set_model_url(key, url)
+        
+    def remove_model_url(self, key: str):
+        """Remove model URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            Status code
+        """
+        return super().remove_model_url(key)
+        
+    def set_other_url(self, key: str, url: str):
+        """Set other URL
+        
+        Args:
+            key: Key name
+            url: URL address
+            
+        Returns:
+            Status code
+        """
+        return super().set_other_url(key, url)
+        
+    def remove_other_url(self, key: str):
+        """Remove other URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            Status code
+        """
+        return super().remove_other_url(key)
+        
+    def get_image_url(self, key: str) -> str:
+        """Get image URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            URL address
+        """
+        return super().get_image_url(key)
+        
+    def get_video_url(self, key: str) -> str:
+        """Get video URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            URL address
+        """
+        return super().get_video_url(key)
+        
+    def get_audio_url(self, key: str) -> str:
+        """Get audio URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            URL address
+        """
+        return super().get_audio_url(key)
+        
+    def get_model_url(self, key: str) -> str:
+        """Get model URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            URL address
+        """
+        return super().get_model_url(key)
+        
+    def get_other_url(self, key: str) -> str:
+        """Get other URL
+        
+        Args:
+            key: Key name
+            
+        Returns:
+            URL address
+        """
+        return super().get_other_url(key)
+        
+    def set_input_type(self, input_type: type):
+        """Set input type
+        
+        Args:
+            input_type: Input type
+            
+        Returns:
+            Status code
         """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(input_type)
         return self.set_input_type_info(edge_type_info)
 
     def set_output_type(self, output_type: type):
+        """Set output type
+        
+        Args:
+            output_type: Output type
+            
+        Returns:
+            Status code
+        """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
         return self.set_output_type_info(edge_type_info)
     
     def set_edge_queue_max_size(self, queue_max_size: int):
-        """设置边队列最大大小
+        """Set edge queue maximum size
         
-        参数:
-            queue_max_size: 队列最大大小
+        Args:
+            queue_max_size: Maximum queue size
         """
         return super().set_edge_queue_max_size(queue_max_size)
         
     def get_edge_queue_max_size(self) -> int:
-        """获取边队列最大大小
+        """Get edge queue maximum size
         
-        返回:
-            队列最大大小
+        Returns:
+            Maximum queue size
         """
         return super().get_edge_queue_max_size()
         
     def set_input(self, input: Edge, index: int = -1):
-        """设置输入边
+        """Set input edge
         
-        参数:
-            input: 输入边
-            index: 输入边索引,默认为-1
+        Args:
+            input: Input edge
+            index: Input edge index, default is -1
         """
         return super().set_input(input, index)
         
     def set_output(self, output: Edge, index: int = -1):
-        """设置输出边
+        """Set output edge
         
-        参数:
-            output: 输出边
-            index: 输出边索引,默认为-1
+        Args:
+            output: Output edge
+            index: Output edge index, default is -1
         """
         return super().set_output(output, index)
         
     def set_inputs(self, inputs: List[Edge]):
-        """设置输入边列表
+        """Set input edge list
         
-        参数:
-            inputs: 输入边列表
+        Args:
+            inputs: List of input edges
         """
         return super().set_inputs(inputs)
         
     def set_outputs(self, outputs: List[Edge]):
-        """设置输出边列表
+        """Set output edge list
         
-        参数:
-            outputs: 输出边列表
+        Args:
+            outputs: List of output edges
         """
         return super().set_outputs(outputs)
 
     def create_edge(self, name: str) -> Edge:
         """
-        创建一个边
+        Create an edge
         
-        参数:
-            name: 边名称
-        返回:
-            Edge 对象
+        Args:
+            name: Edge name
+        Returns:
+            Edge object
         """
         return super().create_edge(name)
 
     def add_edge(self, edge: Edge):
         """
-        添加一个边
+        Add an edge
         
-        参数:
-            edge: Edge 对象
+        Args:
+            edge: Edge object
         """
         return super().add_edge(edge)
 
     def update_edge(self, edge_wrapper: Edge, edge: Edge, is_external: bool = True):
         """
-        更新边
+        Update edge
         
-        参数:
-            edge_wrapper: 边包装器
-            edge: 边对象
-            is_external: 是否为外部边
+        Args:
+            edge_wrapper: Edge wrapper
+            edge: Edge object
+            is_external: Whether it's an external edge
         """
         return super().update_edge(edge_wrapper, edge, is_external)
 
     def get_edge(self, name: str) -> Edge:
         """
-        通过名称获取边
+        Get edge by name
         
-        参数:
-            name: 边名称
-        返回:
-            Edge 对象
+        Args:
+            name: Edge name
+        Returns:
+            Edge object
         """
         return super().get_edge(name)
 
     def create_node(self, key_or_desc: Union[str, NodeDesc], name: str = "") -> Node:
         """
-        创建节点
+        Create node
         
-        参数:
-            key_or_desc: 节点key或节点描述对象
-            name: 节点名称,仅当key_or_desc为str时有效,默认为空字符串
-        返回:
-            Node 对象
+        Args:
+            key_or_desc: Node key or node description object
+            name: Node name, only valid when key_or_desc is str, default is empty string
+        Returns:
+            Node object
         """
         if isinstance(key_or_desc, str):
             return super().create_node(key_or_desc, name)
         elif isinstance(key_or_desc, NodeDesc):
             return super().create_node(key_or_desc)
         else:
-            raise ValueError("无效的节点描述对象")
+            raise ValueError("Invalid node description object")
         
     def set_node_desc(self, node: Node, desc: NodeDesc):
         """
-        设置节点描述
+        Set node description
         
-        参数:
-            node: 节点对象
-            desc: 节点描述对象
+        Args:
+            node: Node object
+            desc: Node description object
             
         """
         return super().set_node_desc(node, desc)      
         
     def add_node(self, node: _C.dag.Node):
         """
-        添加节点
+        Add node
         
-        参数:
-            node: Node 对象
+        Args:
+            node: Node object
         """
         return super().add_node(node)
     
     def get_node(self, name_or_index: Union[str, int]) -> Node:
         """
-        通过名称获取节点
+        Get node by name or index
         
-        参数:
-            name: 节点名称
-        返回:
-            Node 对象
+        Args:
+            name_or_index: Node name or index
+        Returns:
+            Node object
         """
         return super().get_node(name_or_index)
         
     def get_node_by_key(self, key: str) -> Node:
         """
-        通过key获取节点
+        Get node by key
         
-        参数:
-            key: 节点key
-        返回:
-            Node 对象
+        Args:
+            key: Node key
+        Returns:
+            Node object
         """
         return super().get_node_by_key(key)
         
     def get_nodes_by_key(self, key: str) -> List[Node]:
         """
-        通过key获取所有匹配的节点
+        Get all matching nodes by key
         
-        参数:
-            key: 节点key
-        返回:
-            Node对象列表
+        Args:
+            key: Node key
+        Returns:
+            List of Node objects
         """
         return super().get_nodes_by_key(key)
     
     def get_node_count(self) -> int:
+        """Get node count in the graph
+        
+        Returns:
+            Number of nodes
+        """
         return super().get_node_count()
     
     def get_nodes(self) -> List[Node]:
+        """Get all nodes in the graph
+        
+        Returns:
+            List of all nodes
+        """
         return super().get_nodes()
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
-        设置节点参数
+        Set node parameter
         
-        参数:
-            node_name: 节点名称
-            param: 参数对象
+        Args:
+            node_name: Node name
+            param: Parameter object
         """
         return super().set_node_param(node_name, param)
 
     def get_node_param(self, node_name: str) -> nndeploy.base.Param:
         """
-        获取节点参数
+        Get node parameter
         
-        参数:
-            node_name: 节点名称
-        返回:
-            参数对象
+        Args:
+            node_name: Node name
+        Returns:
+            Parameter object
         """
         return super().get_node_param(node_name)
     
     def set_external_param(self, key: str, param: nndeploy.base.Param):
+        """Set external parameter
+        
+        Args:
+            key: Parameter key
+            param: Parameter object
+        """
         return super().set_external_param(key, param)
     
     def get_external_param(self, key: str) -> nndeploy.base.Param:
+        """Get external parameter
+        
+        Args:
+            key: Parameter key
+        Returns:
+            Parameter object
+        """
         return super().get_external_param(key)
     
     def set_node_parallel_type(self, node_name: str, parallel_type: nndeploy.base.ParallelType):
+        """Set node parallel type
+        
+        Args:
+            node_name: Node name
+            parallel_type: Parallel type
+        """
         return super().set_node_parallel_type(node_name, parallel_type)
 
     def set_graph_node_share_stream(self, flag: bool):
         """
-        设置图节点流共享标志
+        Set graph node stream sharing flag
         
-        参数:
-            flag: 标志值
+        Args:
+            flag: Flag value
         """
         return super().set_graph_node_share_stream(flag)
 
     def get_graph_node_share_stream(self) -> bool:
         """
-        获取图节点流共享标志
+        Get graph node stream sharing flag
         
-        返回:
-            流共享标志
+        Returns:
+            Stream sharing flag
         """
         return super().get_graph_node_share_stream()
 
     def update_node_io(self, node: Node, inputs: List[Edge], outputs: List[str]):
         """
-        更新节点输入和输出
+        Update node inputs and outputs
         
-        参数:
-            node: 节点对象
-            inputs: 输入边列表
-            outputs: 输出边名称列表
+        Args:
+            node: Node object
+            inputs: List of input edges
+            outputs: List of output edge names
         """
         return super().update_node_io(node, inputs, outputs)
     
     def mark_input_edge(self, inputs: List[Edge]):
+        """Mark edges as input edges
+        
+        Args:
+            inputs: List of input edges
+        """
         return super().mark_input_edge(inputs)
     
     def mark_output_edge(self, outputs: List[Edge]):
+        """Mark edges as output edges
+        
+        Args:
+            outputs: List of output edges
+        """
         return super().mark_output_edge(outputs)
     
     def default_param(self):
+        """Initialize graph with default parameters
+        
+        Returns:
+            Status code
+        """
         return super().default_param()
 
     def init(self):
-        """初始化图"""
+        """Initialize graph"""
         return super().init()
 
     def deinit(self):
-        """反初始化图"""
+        """Deinitialize graph"""
         return super().deinit()
 
     def run(self):
-        """运行图"""
+        """Run graph execution"""
         return super().run()
 
     def synchronize(self):
-        """同步图"""
+        """Synchronize graph execution"""
         return super().synchronize()
 
     # def __call__(self, inputs):
     #     """
-    #     调用图
+    #     Call graph
         
-    #     参数:
-    #         inputs: 输入
+    #     Args:
+    #         inputs: Input data
     #     """
     #     return super().__call__(inputs)
 
     def dump(self):
-        """输出图信息到标准输出"""
+        """Dump graph information to standard output"""
         return super().dump()
     
     def set_trace_flag(self, flag: bool):
         """
-        设置追踪标志
+        Set trace flag
         
-        参数:
-            flag: 追踪标志
+        Args:
+            flag: Trace flag
         """
         return super().set_trace_flag(flag)
         
     def trace(self, inputs: Union[List[Edge], Edge, None] = None) -> List[Edge]:
         """
-        追踪图的执行流程
+        Trace graph execution flow
         
-        参数:
-            inputs: 输入边列表、单个边或None。如果为None则使用默认输入
+        Args:
+            inputs: List of input edges, single edge or None. If None, use default inputs
             
-        返回:
-            追踪后的边列表
+        Returns:
+            List of traced edges
         """
         if inputs is None:
             return super().trace()
@@ -347,34 +570,68 @@ class Graph(_C.dag.Graph):
             raise ValueError("inputs must be List[Edge], Edge or None")
         
     def to_static_graph(self):
+        """Convert to static graph representation
+        
+        Returns:
+            Static graph object
+        """
         return super().to_static_graph()
     
     def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
+        """Get edge wrapper
+        
+        Args:
+            edge: Edge object or edge name
+        Returns:
+            Edge wrapper object
+        """
         return super().get_edge_wrapper(edge)
     
     def get_node_wrapper(self, node: Union[Node, str]) -> NodeWrapper:
+        """Get node wrapper
+        
+        Args:
+            node: Node object or node name
+        Returns:
+            Node wrapper object
+        """
         return super().get_node_wrapper(node)
         
     def serialize(self) -> str:
+        """Serialize graph to JSON string
+        
+        Returns:
+            JSON string representation of the graph
+        """
         return super().serialize()
     
     def save_file(self, path: str):
+        """Save graph to file
+        
+        Args:
+            path: File path
+        """
         return super().save_file(path)
         
     def deserialize(self, json_str: str):
+        """Deserialize graph from JSON string
+        
+        Args:
+            json_str: JSON string to deserialize
+        """
         json_obj = json.loads(json_str)
         node_count = self.get_node_count()
-        # 解析node_repository数组
+        # Parse node_repository array
         if "node_repository_" in json_obj:
             for i, node_json in enumerate(json_obj["node_repository_"]):
-                # 创建节点描述对象
+                # Create node description object
                 # node_desc = NodeDesc()
                 # node_desc.deserialize(json.dumps(node_json))
                 # print(f"node_desc: {node_desc.get_name()}, {node_desc.get_key()}")
                 node_key = node_json["key_"]
                 
                 node = None
-                # 如果节点已存在则更新描述
+                # Update description if node already exists
                 if node_count > i:
                     node = self.get_node(i)
                     # self.set_node_desc(node, node_desc)
@@ -382,18 +639,23 @@ class Graph(_C.dag.Graph):
                     node = self.nodes[i]
                     # self.set_node_desc(node, node_desc)
                 else:
-                    # 否则创建新节点
+                    # Otherwise create new node
                     node = self.create_node(node_key)
                     if node is None:
                         print(f"create node: {node_key}, {node}")
                         print(f"node_count: {node_count}, i: {i}")
-                        raise RuntimeError("创建节点失败")
+                        raise RuntimeError("Failed to create node")
                     if node not in self.nodes:
                         # print(f"add node: {node_key}, {node}")
                         self.nodes.append(node)
         return super().deserialize(json_str)
     
     def load_file(self, path: str):
+        """Load graph from file
+        
+        Args:
+            path: File path
+        """
         with open(path, "r") as f:
             json_str = f.read()
             self.deserialize(json_str)
@@ -556,46 +818,79 @@ class Graph(_C.dag.Graph):
             print(f"Exception during automatic edge addition: {str(e)}")
 
 def serialize(graph: Graph) -> str:
+    """Serialize graph to JSON string
+    
+    Args:
+        graph: Graph object to serialize
+    Returns:
+        JSON string representation
+    """
     return graph.serialize()
 
 def save_file(graph: Graph, path: str):
     """
-    保存图到文件
+    Save graph to file
     
-    参数:
-        path: 文件路径
+    Args:
+        graph: Graph object to save
+        path: File path
     """
     return graph.save_file(path)
 
 def deserialize(json_str: str) -> Graph:
+    """Deserialize graph from JSON string
+    
+    Args:
+        json_str: JSON string to deserialize
+    Returns:
+        Graph object
+    """
     graph = Graph("")
     graph.deserialize(json_str)
     return graph
    
 def load_file(path: str) -> Graph:
     """
-    从文件加载图
+    Load graph from file
     
-    参数:
-        path: 文件路径
+    Args:
+        path: File path
+    Returns:
+        Graph object
     """
     graph = Graph("")
     graph.load_file(path)
     return graph
 
 class GraphCreator(NodeCreator):
+    """Graph creator for creating graph nodes"""
     def __init__(self):
         super().__init__()
         
     def create_node(self, name: str, inputs: list[Edge], outputs: list[Edge]):
+        """Create a graph node
+        
+        Args:
+            name: Node name
+            inputs: Input edges
+            outputs: Output edges
+        Returns:
+            Graph node
+        """
         self.node = Graph(name, inputs, outputs)
         return self.node
       
+# Register graph creator
 graph_node_creator = GraphCreator()
 register_node("nndeploy.dag.Graph", graph_node_creator)   
 
 
 def get_graph_json():
+    """Get graph JSON representation
+    
+    Returns:
+        JSON string containing graph information
+    """
     graph = Graph("Graph")
     status = graph.default_param()
     if status != nndeploy.base.StatusCode.Ok:
@@ -603,23 +898,28 @@ def get_graph_json():
     graph.set_inner_flag(False)
     json_str = graph.serialize()
     graph_json = "{\"graph\":" + json_str + "}"
-    # 美化json
+    # Beautify JSON
     graph_json = nndeploy.base.pretty_json_str(graph_json)
     return graph_json
 
 
 def get_dag_json():
+    """Get DAG JSON representation containing graph, nodes and edge types
+    
+    Returns:
+        JSON string containing complete DAG information
+    """
     graph_json = get_graph_json()
     node_json = get_all_node_json()
     # edge_json = get_accepted_edge_type_json()
     
-    # 解析各个json字符串，提取内容
+    # Parse JSON strings and extract content
     import json
     graph_data = json.loads(graph_json)
     node_data = json.loads(node_json)
     # edge_data = json.loads(edge_json)
     
-    # 合并为指定格式的json
+    # Merge into specified JSON format
     dag_data = {
         "graph": graph_data["graph"],
         "nodes": node_data["nodes"],
@@ -629,4 +929,3 @@ def get_dag_json():
     dag_json = json.dumps(dag_data, ensure_ascii=False, indent=2)
     
     return dag_json
-

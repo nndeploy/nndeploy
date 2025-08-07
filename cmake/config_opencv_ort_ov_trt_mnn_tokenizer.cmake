@@ -15,10 +15,10 @@
 # --------------------------------------------------------------------
 
 # IR ONNX
-set(ENABLE_NNDEPLOY_IR_ONNX OFF) # Support generating IR directly from ONNX models, disabled by default
+set(ENABLE_NNDEPLOY_IR_ONNX ON) # Support generating IR directly from ONNX models, disabled by default
 
 # Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)
-set(ENABLE_NNDEPLOY_DEVICE_CUDA OFF) # Whether to enable device CUDA, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_CUDA ON) # Whether to enable device CUDA, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ROCM OFF) # Whether to enable device ROCM, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_SYCL OFF) # Whether to enable device SYCL, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_OPENCL OFF) # Whether to enable device OpenCL, default is OFF
@@ -34,20 +34,20 @@ set(ENABLE_NNDEPLOY_DEVICE_MTK_NPU OFF) # Whether to enable device MTK NPU, defa
 set(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU OFF) # Whether to enable device Sophon NPU, default is OFF
 
 # Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)
-set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_CUDNN ON) # Whether to enable operator CUDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN OFF) # Whether to enable operator X86_ONEDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK OFF) # Whether to enable operator ARM_XNNPACK, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNNPACK, default is OFF
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
-set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON) # Whether to enable INFERENCE TENSORRT, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "tool/script/third_party/openvino2023.1") # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_MNN OFF) # Whether to enable INFERENCE MNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_MNN "tool/script/third_party/mnn2.4.0") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # Whether to enable INFERENCE TVM, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # Whether to enable INFERENCE PADDLELITE, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # Whether to enable INFERENCE RKNN_TOOLKIT_1, default is OFF

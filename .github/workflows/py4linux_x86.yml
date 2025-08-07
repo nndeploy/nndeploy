@@ -1,94 +1,90 @@
-# GitHub Actions workflow configuration file - Python Linux x86_64 platform compilation
-# This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux x86_64 environment
-# Using cibuildwheel to build compatible wheel packages for x86_64 architecture
+# GitHub Actions 工作流配置文件 - Python Linux x86_64 平台编译
+# 该文件配置了在 Linux x86_64 环境中自动编译 Python 扩展包并上传到 PyPI 的 CI/CD 流水线
+# 使用 cibuildwheel 构建 x86_64 架构的兼容 wheel 包
 
-name: Py4Linux_x86  # Workflow name, displayed in GitHub Actions interface
+name: Py4Linux_x86  # 工作流名称，在 GitHub Actions 界面中显示
 
-# Trigger conditions configuration
+# 触发条件配置
 on:
-  workflow_dispatch:  # Manual trigger
-  pull_request:       # Pull Request trigger
+  workflow_dispatch:  # 手动触发
+  pull_request:       # Pull Request 触发
   push:
     branches:
-      - main          # Trigger when pushing to main branch
-      - testpypi      # Trigger test upload when pushing to testpypi branch
+      - main          # 推送到 main 分支时触发
+      - testpypi      # 推送到 testpypi 分支时触发测试上传
   release:
     types:
-      - published     # Trigger when publishing Release
+      - published     # 发布 Release 时触发
 
-# Job definitions
+# 作业定义
 jobs:
   build_wheels:
-    name: Build Linux x86_64 wheels
+    name: 构建 Linux x86_64 wheels
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout source code
+      # 步骤 1: 检出源码
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # Step 2: Install system dependencies
-      - name: Install system dependencies
+      # 步骤 2: 安装系统依赖
+      - name: 安装系统依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
-      # Step 3: Build wheels using cibuildwheel
-      - name: Build wheels
+      # 步骤 3: 使用 cibuildwheel 构建 wheels
+      - name: 构建 wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
-          # Build configuration
+          # 构建配置
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-musllinux*"
           CIBW_ARCHS_LINUX: "x86_64"
           
-          # Use manylinux_2_28 for better compatibility
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_28"
+          # 升级到 manylinux_2_28 以获得更新的 glibc 和工具链
+          CIBW_MANYLINUX_X86_64_IMAGE: "quay.io/pypa/manylinux_2_28_x86_64:latest"
           
           CIBW_BUILD_VERBOSITY: 2
           
-          # Install system dependencies before build
+          # 在构建前安装系统依赖
           CIBW_BEFORE_ALL_LINUX: |
-            # Update package manager
+            # 更新包管理器并安装依赖
             if command -v yum > /dev/null; then
                 yum update -y
-                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel gcc-toolset-11-gcc gcc-toolset-11-gcc-c++
-                source /opt/rh/gcc-toolset-11/enable
+                yum install -y cmake ninja-build pkgconfig protobuf-compiler protobuf-devel wget curl
+                # 安装 GCC 工具链 (manylinux_2_28 默认包含较新的工具链)
+                yum install -y gcc gcc-c++ binutils
             elif command -v apt-get > /dev/null; then
                 apt-get update
-                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev
+                apt-get install -y cmake ninja-build pkg-config protobuf-compiler libprotobuf-dev gcc g++
             fi
             
-            # Install Rust
+            # 安装 Rust
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
             rustup update
 
           CIBW_BEFORE_BUILD: |
-            # Activate toolchain
-            if [ -f /opt/rh/gcc-toolset-11/enable ]; then
-                source /opt/rh/gcc-toolset-11/enable
-            fi
+            # 设置环境变量 (manylinux_2_28 无需 devtoolset)
             source $HOME/.cargo/env
 
-            # Install Python build dependencies
+            # 安装 Python 构建依赖
             pip install pybind11 setuptools wheel twine requests pathlib cython
             
-            # Install OpenCV and ONNX Runtime
+            # 安装 OpenCV 和 ONNX Runtime
             cd {project}/tool/script
             python install_opencv.py
             python install_onnxruntime.py
             
-            # Build C++ libraries
+            # 构建 C++ 库
             cd {project}
-            # Remove existing build directory if it exists
-            # rm -rf build
             mkdir -p build
             cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
             cd build
             
-            # Set compilers
+            # 设置编译器
             export CC=gcc
             export CXX=g++
             
@@ -97,50 +93,53 @@ jobs:
               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
               -DCMAKE_CXX_FLAGS="-fPIC" \
               -DCMAKE_C_FLAGS="-fPIC" \
-              -DPython3_EXECUTABLE=$(which python)
+              -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+              -DPython3_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
+              -DPython3_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") \
+              -DPython3_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))") \
+              -DPYTHON_EXECUTABLE=$(python -c "import sys; print(sys.executable)")
             
             ninja -j$(nproc)
             ninja install
-            
-            # Install Python build dependencies
-            # pip install pybind11 setuptools wheel twine requests pathlib cython
 
-          # Test built wheels
-          # CIBW_TEST_COMMAND: |
-          #   python -c "
-          #   import platform
-          #   try:
-          #       import nndeploy
-          #       print(f'✓ Successfully imported nndeploy {nndeploy.__version__}')
-          #       print(f'Platform: {platform.platform()}')
-          #       print(f'Architecture: {platform.machine()}')
-          #   except ImportError as e:
-          #       print(f'✗ Import failed: {e}')
-          #       exit(1)
-          #   "
+          # 测试构建的 wheels
+          CIBW_TEST_COMMAND: |
+            python -c "
+            import platform
+            try:
+                import nndeploy
+                print(f'✓ 成功导入 nndeploy {nndeploy.__version__}')
+                print(f'平台: {platform.platform()}')
+                print(f'架构: {platform.machine()}')
+                print(f'Python版本: {platform.python_version()}')
+            except ImportError as e:
+                print(f'✗ 导入失败: {e}')
+                exit(1)
+            "
 
-          # Environment variables
+          # 环境变量
           CIBW_ENVIRONMENT: |
             PATH=$PATH:$HOME/.cargo/bin
             SETUPTOOLS_EXT_SUFFIX=.so
+            PYTHONPATH=$(python -c "import sys; print(':'.join(sys.path))")
 
         with:
           package-dir: ./python
 
-      # Step 4: Verify generated wheels
-      - name: Verify wheels
+      # 步骤 4: 验证生成的 wheels
+      - name: 验证 wheels
         run: |
           ls -la wheelhouse/
-          echo "=== Generated wheel files ==="
+          echo "=== 生成的 wheel 文件 ==="
           for wheel in wheelhouse/*.whl; do
             echo "✓ $(basename $wheel)"
-            # Check architecture tags
+            # 检查架构标签
             if [[ "$wheel" == *"x86_64"* ]]; then
-              echo "  Architecture: x86_64"
+              echo "  架构: x86_64"
             fi
           done
 
-      # Step 5: Upload artifacts
+      # 步骤 5: 上传构建产物
       - uses: actions/upload-artifact@v4
         with:
           name: linux-x86_64-wheels
@@ -156,24 +155,24 @@ jobs:
         with:
           path: wheels/
           
-      - name: Merge wheels
+      - name: 合并 wheels
         run: |
           mkdir -p dist/
           find wheels/ -name "*.whl" -exec cp {} dist/ \;
           ls -la dist/
 
-      - name: Verify Token configuration
+      - name: 验证 Token 配置
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
         run: |
           if [ -z "$TWINE_PASSWORD" ]; then
-            echo "ERROR: TEST_PYPI_NNDEPLOY_TOKEN is empty!"
+            echo "错误: TEST_PYPI_NNDEPLOY_TOKEN 为空!"
             exit 1
           fi
-          echo "Token configuration looks OK"
+          echo "Token 配置正常"
 
-      - name: Upload to TestPyPI
+      - name: 上传到 TestPyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_NNDEPLOY_TOKEN }}
@@ -192,24 +191,24 @@ jobs:
         with:
           path: wheels/
           
-      - name: Merge wheels
+      - name: 合并 wheels
         run: |
           mkdir -p dist/
           find wheels/ -name "*.whl" -exec cp {} dist/ \;
           ls -la dist/
 
-      - name: Verify Token configuration
+      - name: 验证 Token 配置
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
         run: |
           if [ -z "$TWINE_PASSWORD" ]; then
-            echo "ERROR: PYPI_NNDEPLOY_TOKEN is empty!"
+            echo "错误: PYPI_NNDEPLOY_TOKEN 为空!"
             exit 1
           fi
-          echo "Token configuration looks OK"
+          echo "Token 配置正常"
 
-      - name: Upload to PyPI
+      - name: 上传到 PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}

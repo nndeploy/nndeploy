@@ -2,6 +2,19 @@
 
 This Docker image builds and runs the [nndeploy](https://github.com/nndeploy/nndeploy) framework in a clean Ubuntu 22.04 environment. It includes all dependencies such as OpenCV, ONNX Runtime, and builds both the C++ backend and Python package.
 
+## Available Docker Images
+
+We currently support the following Docker configurations:
+
+- **Dockerfile**: Basic version with ONNX Runtime only
+- **Dockerfile.ort_ov**: Includes ONNX Runtime, OpenVINO
+- **Dockerfile.ort_ov_trt**: Includes ONNX Runtime, OpenVINO, TensorRT
+- **Dockerfile.ort_ov_mnn_trt**: Includes ONNX Runtime, OpenVINO, TensorRT, MNN
+<!-- - **Dockerfile.ort_ascend**: Includes ONNX Runtime and Huawei Ascend inference engine
+- **Dockerfile.ort_rknn**: Includes ONNX Runtime and Rockchip RKNN inference engine -->
+
+The following instructions use `Dockerfile` as an example, but the same operations apply to all other Docker files.
+
 ## Build the Image
 
 ```bash

@@ -4,6 +4,18 @@ include(ExternalProject)
 if (ENABLE_NNDEPLOY_INFERENCE_TVM STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_INFERENCE_TVM STREQUAL "ON")
 else()
+  if(IS_ABSOLUTE ${ENABLE_NNDEPLOY_INFERENCE_TVM})
+    # Absolute path, use directly
+    set(ENABLE_NNDEPLOY_INFERENCE_TVM ${ENABLE_NNDEPLOY_INFERENCE_TVM})
+    message(STATUS "Using absolute path for TVM: ${ENABLE_NNDEPLOY_INFERENCE_TVM}")
+  else()
+    # Relative path, relative to project root directory
+    set(ENABLE_NNDEPLOY_INFERENCE_TVM ${CMAKE_SOURCE_DIR}/${ENABLE_NNDEPLOY_INFERENCE_TVM})
+    message(STATUS "Using relative path for TVM: ${ENABLE_NNDEPLOY_INFERENCE_TVM}")
+    # Update ENABLE_NNDEPLOY_INFERENCE_TVM to absolute path
+    set(ENABLE_NNDEPLOY_INFERENCE_TVM ${ENABLE_NNDEPLOY_INFERENCE_TVM})
+  endif()
+
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_TVM}/include)
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_TVM}/3rdparty/cnpy)
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_TVM}/3rdparty/dlpack/include)

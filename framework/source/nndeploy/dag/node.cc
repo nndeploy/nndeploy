@@ -218,8 +218,12 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
+void Node::setDeveloper(const std::string &developer) { developer_ = developer; }
+std::string Node::getDeveloper() { return developer_; }
 void Node::setDesc(const std::string &desc) { desc_ = desc; }
 std::string Node::getDesc() { return desc_; }
+void Node::setSource(const std::string &source) { source_ = source; }
+std::string Node::getSource() { return source_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -892,6 +896,10 @@ base::Status Node::serialize(rapidjson::Value &json,
   //   name = tmp_key;
   // }
   json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
+  json.AddMember("developer_", rapidjson::Value(developer_.c_str(), allocator),
+                 allocator);
+  json.AddMember("source_", rapidjson::Value(source_.c_str(), allocator),
+                 allocator);
   json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
                  allocator);
   // 写入设备类型
@@ -1097,6 +1105,14 @@ base::Status Node::deserialize(rapidjson::Value &json) {
 
   if (json.HasMember("name_") && json["name_"].IsString()) {
     name_ = json["name_"].GetString();
+  }
+
+  if (json.HasMember("developer_") && json["developer_"].IsString()) {
+    developer_ = json["developer_"].GetString();
+  }
+
+  if (json.HasMember("source_") && json["source_"].IsString()) {
+    source_ = json["source_"].GetString();
   }
 
   if (json.HasMember("desc_") && json["desc_"].IsString()) {
