@@ -17,4 +17,4 @@ exhale
 
 setuptools>=40.0.0,<70.0.0
 
-nndeploy==0.2.11 --index-url https://test.pypi.org/simple/
+nndeploy

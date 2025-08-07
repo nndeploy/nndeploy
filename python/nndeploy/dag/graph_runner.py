@@ -154,6 +154,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--json_file", type=str, required=True)
     parser.add_argument("--name", type=str, default="", required=False)
+    parser.add_argument("--i", type=str, default="", required=False)
+    parser.add_argument("--o", type=str, default="", required=False)
     return parser.parse_args()
 
 def main():

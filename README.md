@@ -50,15 +50,34 @@ Workflow-based Multi-platform AI Deployment Tool
 
 ## Quick Start
 
-### Launch Visual Workflow
+### Launch the Visual Workflow Interface
+
+First, install the nndeploy package and start the visual workflow tool
+
 ```bash
+# Install nndeploy via pip
 pip install nndeploy
+
+# Launch the visual workflow application on port 8000
 nndeploy-app --port 8000
 ```
+Once running, open your web browser and navigate to http://localhost:8000 to access the interactive workflow interface.
 
-Access `http://localhost:8000` in your browser to get started. For more details, refer to the documentation.
+### Save and Execute Workflows via JSON
 
-> Note: Windows requires Python 3.12, Mac requires Python 3.13, Linux requires developer mode
+After configuring your workflow in the visual interface, save it as a JSON file (e.g., yolo.json). You can then execute the workflow using the following command:
+
+```bash
+# Execute the workflow defined in the JSON file
+# -i: Specify input file (e.g., input.jpg)
+# -o: Specify output file (e.g., output.jpg)
+nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
+```
+
+> Note: 
+  > + Requires Python 3.10 or higher
+  > + Alternative installation/execution via [docker](docker/README.md) is supported
+  > + For more details, refer to the documentation.
 
 ### Docs
 - [How to Build](docs/zh_cn/quick_start/build.md)

@@ -63,7 +63,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: 1.88.0
           targets: x86_64-pc-windows-msvc
 
       # Step 6: Install OpenCV and ONNXRUNTIME

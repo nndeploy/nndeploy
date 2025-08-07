@@ -59,6 +59,12 @@ nndeploy-app --port 8000
 
 在浏览器中访问 `http://localhost:8000` 开始使用，更多细节参考文档。
 
+### 保存工作流为json文件，执行工作流
+
+```bash
+nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
+```
+
 > 注: Window要求python环境为3.12, Mac要求python环境为3.13, Linux暂不支持，建议采用开发者模式
 
 ### 文档
