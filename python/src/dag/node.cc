@@ -55,8 +55,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_name", &Node::getName)
       .def("set_developer", &Node::setDeveloper, py::arg("developer"))
       .def("get_developer", &Node::getDeveloper)
-      .def("set_github", &Node::setGithub, py::arg("github"))
-      .def("get_github", &Node::getGithub)
+      .def("set_source", &Node::setSource, py::arg("source"))
+      .def("get_source", &Node::getSource)
       .def("set_desc", &Node::setDesc, py::arg("desc"))
       .def("get_desc", &Node::getDesc)
       .def("set_dynamic_input", &Node::setDynamicInput,

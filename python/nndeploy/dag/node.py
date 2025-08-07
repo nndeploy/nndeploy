@@ -99,13 +99,13 @@ class Node(_C.dag.Node):
         """Get the developer information of the node."""
         return super().get_developer()
     
-    def set_github(self, github: str):
-        """Set the GitHub repository information for the node."""
-        return super().set_github(github)
+    def set_source(self, source: str):
+        """Set the Source repository information for the node."""
+        return super().set_source(source)
     
-    def get_github(self) -> str:
-        """Get the GitHub repository information of the node."""
-        return super().get_github()
+    def get_source(self) -> str:
+        """Get the Source repository information of the node."""
+        return super().get_source()
     
     def set_desc(self, desc: str):
         """Set the description of the node."""
@@ -675,8 +675,8 @@ def sub_remove_node_keys(node_keys: list[str]):
 
 # def get_all_node_json():
 #     # Import all required modules
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
 #     import_global_import_lib()
     
 #     global remove_node_keys
@@ -717,8 +717,8 @@ def get_all_node_json():
         JSON string containing all nodes in tree format
     """
     # Import all required modules
-    # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-    # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+    # add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+    # add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
     import_global_import_lib()
     
     global remove_node_keys
@@ -844,8 +844,8 @@ def get_all_node_json():
 
 # def get_all_node_json():
 #     # Import all required modules
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
 #     import_global_import_lib()
     
 #     global remove_node_keys

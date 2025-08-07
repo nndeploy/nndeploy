@@ -222,8 +222,8 @@ void Node::setDeveloper(const std::string &developer) { developer_ = developer; 
 std::string Node::getDeveloper() { return developer_; }
 void Node::setDesc(const std::string &desc) { desc_ = desc; }
 std::string Node::getDesc() { return desc_; }
-void Node::setGithub(const std::string &github) { github_ = github; }
-std::string Node::getGithub() { return github_; }
+void Node::setSource(const std::string &source) { source_ = source; }
+std::string Node::getSource() { return source_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -898,7 +898,7 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
   json.AddMember("developer_", rapidjson::Value(developer_.c_str(), allocator),
                  allocator);
-  json.AddMember("github_", rapidjson::Value(github_.c_str(), allocator),
+  json.AddMember("source_", rapidjson::Value(source_.c_str(), allocator),
                  allocator);
   json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
                  allocator);
@@ -1111,8 +1111,8 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     developer_ = json["developer_"].GetString();
   }
 
-  if (json.HasMember("github_") && json["github_"].IsString()) {
-    github_ = json["github_"].GetString();
+  if (json.HasMember("source_") && json["source_"].IsString()) {
+    source_ = json["source_"].GetString();
   }
 
   if (json.HasMember("desc_") && json["desc_"].IsString()) {
