@@ -6,11 +6,11 @@ name: Py4Linux  # Workflow name, displayed in GitHub Actions interface
 # Trigger conditions configuration
 on:
   workflow_dispatch:  # Manual trigger
-  pull_request:       # Pull Request trigger
-  push:
-    branches:
-      - main          # Trigger when pushing to main branch
-      - testpypi      # Trigger test upload when pushing to testpypi branch
+  # pull_request:       # Pull Request trigger
+  # push:
+  #   branches:
+  #     - main          # Trigger when pushing to main branch
+  #     - testpypi      # Trigger test upload when pushing to testpypi branch
   release:
     types:
       - published     # Trigger when publishing Release

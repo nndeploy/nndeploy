@@ -36,175 +36,155 @@ class Graph(_C.dag.Graph):
             self.set_initialized_flag(False)
         # super().__del__()
         
-    def set_image_url(self, key: str, url: str):
-        """Set image URL
+    def add_image_url(self, url: str):
+        """添加图像URL
         
         Args:
-            key: Key name
-            url: URL address
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().set_image_url(key, url)
+        return super().add_image_url(url)
         
-    def remove_image_url(self, key: str):
-        """Remove image URL
+    def remove_image_url(self, url: str):
+        """移除图像URL
         
         Args:
-            key: Key name
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().remove_image_url(key)
+        return super().remove_image_url(url)
         
-    def set_video_url(self, key: str, url: str):
-        """Set video URL
+    def add_video_url(self, url: str):
+        """添加视频URL
         
         Args:
-            key: Key name
-            url: URL address
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().set_video_url(key, url)
+        return super().add_video_url(url)
         
-    def remove_video_url(self, key: str):
-        """Remove video URL
+    def remove_video_url(self, url: str):
+        """移除视频URL
         
         Args:
-            key: Key name
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().remove_video_url(key)
+        return super().remove_video_url(url)
         
-    def set_audio_url(self, key: str, url: str):
-        """Set audio URL
+    def add_audio_url(self, url: str):
+        """添加音频URL
         
         Args:
-            key: Key name
-            url: URL address
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().set_audio_url(key, url)
+        return super().add_audio_url(url)
         
-    def remove_audio_url(self, key: str):
-        """Remove audio URL
+    def remove_audio_url(self, url: str):
+        """移除音频URL
         
         Args:
-            key: Key name
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().remove_audio_url(key)
+        return super().remove_audio_url(url)
         
-    def set_model_url(self, key: str, url: str):
-        """Set model URL
+    def add_model_url(self, url: str):
+        """添加模型URL
         
         Args:
-            key: Key name
-            url: URL address
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().set_model_url(key, url)
+        return super().add_model_url(url)
         
-    def remove_model_url(self, key: str):
-        """Remove model URL
+    def remove_model_url(self, url: str):
+        """移除模型URL
         
         Args:
-            key: Key name
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().remove_model_url(key)
+        return super().remove_model_url(url)
         
-    def set_other_url(self, key: str, url: str):
-        """Set other URL
+    def add_other_url(self, url: str):
+        """添加其他URL
         
         Args:
-            key: Key name
-            url: URL address
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().set_other_url(key, url)
+        return super().add_other_url(url)
         
-    def remove_other_url(self, key: str):
-        """Remove other URL
+    def remove_other_url(self, url: str):
+        """移除其他URL
         
         Args:
-            key: Key name
+            url: URL地址
             
         Returns:
-            Status code
+            状态码
         """
-        return super().remove_other_url(key)
+        return super().remove_other_url(url)
         
-    def get_image_url(self, key: str) -> str:
-        """Get image URL
+    def get_image_url(self):
+        """获取图像URL列表
         
-        Args:
-            key: Key name
-            
         Returns:
-            URL address
+            URL地址列表
         """
-        return super().get_image_url(key)
+        return super().get_image_url()
         
-    def get_video_url(self, key: str) -> str:
-        """Get video URL
+    def get_video_url(self):
+        """获取视频URL列表
         
-        Args:
-            key: Key name
-            
         Returns:
-            URL address
+            URL地址列表
         """
-        return super().get_video_url(key)
+        return super().get_video_url()
         
-    def get_audio_url(self, key: str) -> str:
-        """Get audio URL
+    def get_audio_url(self):
+        """获取音频URL列表
         
-        Args:
-            key: Key name
-            
         Returns:
-            URL address
+            URL地址列表
         """
-        return super().get_audio_url(key)
+        return super().get_audio_url()
         
-    def get_model_url(self, key: str) -> str:
-        """Get model URL
+    def get_model_url(self):
+        """获取模型URL列表
         
-        Args:
-            key: Key name
-            
         Returns:
-            URL address
+            URL地址列表
         """
-        return super().get_model_url(key)
+        return super().get_model_url()
         
-    def get_other_url(self, key: str) -> str:
-        """Get other URL
+    def get_other_url(self):
+        """获取其他URL列表
         
-        Args:
-            key: Key name
-            
         Returns:
-            URL address
+            URL地址列表
         """
-        return super().get_other_url(key)
+        return super().get_other_url()
         
     def set_input_type(self, input_type: type):
         """Set input type
