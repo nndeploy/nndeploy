@@ -79,11 +79,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph", &Node::getGraph, py::return_value_policy::reference)
       .def("set_device_type", &Node::setDeviceType, py::arg("device_type"))
       .def("get_device_type", &Node::getDeviceType)
-      .def("set_param", 
-           py::overload_cast<std::shared_ptr<base::Param>>(&Node::setParamSharedPtr), 
+      .def("set_param",
+           py::overload_cast<std::shared_ptr<base::Param>>(
+               &Node::setParamSharedPtr),
            py::arg("param"))
-      .def("set_param", 
-           py::overload_cast<const std::string &, const std::string &>(&Node::setParam), 
+      .def("set_param",
+           py::overload_cast<const std::string &, const std::string &>(
+               &Node::setParam),
            py::arg("key"), py::arg("value"))
       .def("get_param", &Node::getParamSharedPtr)
       .def("set_external_param", &Node::setExternalParam, py::arg("key"),
@@ -147,17 +149,19 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_stream", &Node::getStream, py::return_value_policy::reference)
       .def(
           "set_input_type_info",
-          [](Node &node, std::shared_ptr<EdgeTypeInfo> input_type_info) {
-            return node.setInputTypeInfo(input_type_info);
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> input_type_info,
+             std::string desc = "") {
+            return node.setInputTypeInfo(input_type_info, desc);
           },
-          py::arg("input_type_info"))
+          py::arg("input_type_info"), py::arg("desc") = "")
       .def("get_input_type_info", &Node::getInputTypeInfo)
       .def(
           "set_output_type_info",
-          [](Node &node, std::shared_ptr<EdgeTypeInfo> output_type_info) {
-            return node.setOutputTypeInfo(output_type_info);
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> output_type_info,
+             std::string desc = "") {
+            return node.setOutputTypeInfo(output_type_info, desc);
           },
-          py::arg("output_type_info"))
+          py::arg("output_type_info"), py::arg("desc") = "")
       .def("get_output_type_info", &Node::getOutputTypeInfo)
       .def("default_param", &Node::defaultParam)
       .def("init", &Node::init, py::call_guard<py::gil_scoped_release>())

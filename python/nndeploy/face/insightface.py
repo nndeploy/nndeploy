@@ -320,10 +320,10 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.InsightFaceSwapper")
         super().set_desc("InsightFace Swapper: swap face from image")
-        self.set_input_type(list[insightface.app.common.Face])
-        self.set_input_type(list[insightface.app.common.Face])
-        self.set_input_type(np.ndarray)
-        self.set_output_type(np.ndarray)
+        self.set_input_type(list[insightface.app.common.Face], "source_face")
+        self.set_input_type(list[insightface.app.common.Face], "target_face")
+        self.set_input_type(np.ndarray, "target_frame")
+        self.set_output_type(np.ndarray, "swapped_frame")
         
         self.mouth_mask_ = False
         self.show_mouth_mask_box_ = False

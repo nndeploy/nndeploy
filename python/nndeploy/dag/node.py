@@ -255,11 +255,11 @@ class Node(_C.dag.Node):
         """Get the execution stream of the node."""
         return super().get_stream()
     
-    def set_input_type_info(self, input_type_info: EdgeTypeInfo):
+    def set_input_type_info(self, input_type_info: EdgeTypeInfo, desc: str = ""):
         """Set the input type information for the node."""
-        return super().set_input_type_info(input_type_info)
+        return super().set_input_type_info(input_type_info, desc)
     
-    def set_input_type(self, input_type: type):
+    def set_input_type(self, input_type: type, desc: str = ""):
         """Set the input type for the node.
         
         Args:
@@ -270,21 +270,21 @@ class Node(_C.dag.Node):
         """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(input_type)
-        return self.set_input_type_info(edge_type_info)
+        return self.set_input_type_info(edge_type_info, desc)
         
     def get_input_type_info(self) -> EdgeTypeInfo:
         """Get the input type information of the node."""
         return super().get_input_type_info()
     
-    def set_output_type_info(self, output_type_info: EdgeTypeInfo):
+    def set_output_type_info(self, output_type_info: EdgeTypeInfo, desc: str = ""):
         """Set the output type information for the node."""
-        return super().set_output_type_info(output_type_info)
+        return super().set_output_type_info(output_type_info, desc)
     
-    def set_output_type(self, output_type: type):
+    def set_output_type(self, output_type: type, desc: str = ""):
         """Set the output type for the node."""
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
-        return self.set_output_type_info(edge_type_info)
+        return self.set_output_type_info(edge_type_info, desc)
         
     def get_output_type_info(self) -> EdgeTypeInfo:
         """Get the output type information of the node."""
