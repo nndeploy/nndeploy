@@ -11,54 +11,52 @@ const Log: React.FC<any> = (props) => {
 
   const { log } = useFlowEnviromentContext()
 
-  return <Tooltip
-    content={'log'}>
+  return <Popover
+    trigger="custom"
+    position="topLeft"
+    closeOnEsc
+    visible={visible}
+    onVisibleChange={(v) => {
+      //onPopupVisibleChange?.(v);
+    }}
+    onClickOutSide={() => {
+      setVisible(false);
+    }}
+    spacing={20}
 
-    <Popover
-      trigger="custom"
-      position="topLeft"
-      closeOnEsc
-      visible={visible}
-      onVisibleChange={(v) => {
-        //onPopupVisibleChange?.(v);
-      }}
-      onClickOutSide={() => {
-        setVisible(false);
-      }}
-      spacing={20}
-
-      content={
-        <div className="tools-log-content">
-          {/* {
+    content={
+      <div className="tools-log-content">
+        {/* {
             log.items.map((item, index) => {
               return <div key={index}>{item}</div>
             })
 
 
           } */}
-          <List
-            header={<div>log list</div>}
-            footer={<>
-              {
-                log.time_profile.init_time && <div>init time: <span className="number">{log.time_profile.init_time}</span></div>
-              }
-              {
-                log.time_profile.run_time && <div>run time: <span className="number">{log.time_profile.run_time}</span></div>
-              }
-            </>}
-            bordered
-            dataSource={log.items}
-            renderItem={item => <List.Item className='list-item'>{item}</List.Item>}
-          />
+        <List
+          header={<div>log list</div>}
+          footer={<>
+            {
+              log.time_profile.init_time && <div>init time: <span className="number">{log.time_profile.init_time}</span></div>
+            }
+            {
+              log.time_profile.run_time && <div>run time: <span className="number">{log.time_profile.run_time}</span></div>
+            }
+          </>}
+          bordered
+          dataSource={log.items}
+          renderItem={item => <List.Item className='list-item'>{item}</List.Item>}
+        />
 
 
-        </div>
+      </div>
 
-      }
+    }
 
 
-    >
-
+  >
+    <Tooltip
+      content={'log'}>
       <IconButton
         icon={<IconChangelog />}
         type="tertiary"
@@ -67,8 +65,9 @@ const Log: React.FC<any> = (props) => {
           setVisible(!visible)
         }}
       />
-    </Popover>
-  </Tooltip>
+    </Tooltip>
+  </Popover>
+
 }
 
 export default Log
