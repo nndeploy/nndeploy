@@ -2,7 +2,7 @@ import React from 'react';
 import { FlowDocumentJSON } from '../typings';
 import { INodeEntity } from '../pages/Node/entity';
 import { IBusinessNode, IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
-import { IFlowNodesRunningStatus, IOutputResource } from '../pages/components/flow/entity';
+import { IFlowNodesRunningStatus, ILog, IOutputResource } from '../pages/components/flow/entity';
 
 export const FlowEnviromentContext = React.createContext<
   {
@@ -13,14 +13,23 @@ export const FlowEnviromentContext = React.createContext<
     onConfig: ()=>void; 
     graphTopNode: IBusinessNode;
     paramTypes: IParamTypes;
-    outputResources: IOutputResource;
-    flowNodesRunningStatus: IFlowNodesRunningStatus
+    outputResource: IOutputResource;
+    flowNodesRunningStatus: IFlowNodesRunningStatus, 
+    log: ILog
   }
 
 >({
   outputResources: {path: [], text: []}, 
   flowNodesRunningStatus: {}, 
-  graphTopNode: {}
+  graphTopNode: {},
+  log: {
+    items: [],
+    time_profile: {
+      init_time: undefined,
+      run_time: undefined
+    }
+  }
+
 } as any);
 
 export function useFlowEnviromentContext() {

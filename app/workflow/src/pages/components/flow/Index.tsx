@@ -39,7 +39,7 @@ import { getNextNameNumberSuffix } from "./functions";
 import store, { initialState, reducer } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
-import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
+import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
 import FlowConfigDrawer from "./FlowConfigDrawer";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 
@@ -58,11 +58,19 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const { nodeRegistries, nodeList } = state
 
-  const [outputResources, setOutputResources] = useState<IOutputResource>({ path: [], text: [] })
+  const [outputResource, setOutputResource] = useState<IOutputResource>({ path: [], text: [] })
 
   const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
 
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  const [log, setLog] = useState<ILog>({
+    items: [], time_profile: {
+      init_time: undefined,
+      run_time: undefined
+
+    }
+  })
 
   useEffect(() => {
     setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
@@ -253,9 +261,16 @@ const Flow: React.FC<FlowProps> = (props) => {
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
+      setLog({
+        items: [],
+        time_profile: {
+          init_time: undefined,
+          run_time: undefined
+        }
+      })
       const businessContent = designDataToBusinessData(
         flowJson,
-        graphTopNode, 
+        graphTopNode,
         flowJson.nodes
       );
 
@@ -309,12 +324,39 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
 
         if (response.result.type == 'preview') {
-          const resource = response.result
+          response.result.path = response.result.path.map(item => {
+            return {
+              ...item,
+              path: `${item.path}&time=${Date.now()}`
+            }
+          })
 
-          setOutputResources(resource)
+          setOutputResource(response.result)
         } else if (response.result.type == 'progress') {
           setFlowNodesRunningStatus(response.result.detail)
+        } else if (response.result.type == 'log') {
+
+
+          setLog((oldLog) => {
+            var newLog = {
+              ...oldLog,
+              items: [...oldLog.items, response.result.log],
+
+            }
+            return newLog
+          })
+        } else if (response.result.type == 'task_run_info') {
+     
+           setLog((oldLog) => {
+            var newLog = {
+              ...oldLog,
+              time_profile: response.result.time_profile,
+
+            }
+            return newLog
+          })
         }
+
 
 
 
@@ -441,7 +483,11 @@ const Flow: React.FC<FlowProps> = (props) => {
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
+          value={{
+            element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+
+            log: log
+          }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
