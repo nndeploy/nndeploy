@@ -49,46 +49,6 @@
 
 ---
 
-## 快速开始
-
-### 启动可视化工作流界面
-
-安装nndeploy包并启动可视化工作流工具
-
-```bash
-# 通过pip安装nndeploy
-pip install nndeploy
-# 在8000端口启动可视化工作流应用
-nndeploy-app --port 8000
-```
-
-打开 http://localhost:8000 访问工作流界面。
-
-### 通过JSON保存和执行工作流
-
-在可视化界面中配置好工作流后，将其保存为JSON文件（例如yolo.json）。可以通过使用以下命令执行该工作流：
-
-```bash
-# 执行JSON文件中定义的工作流
-# -i: 指定输入文件（例如input.jpg）
-# -o: 指定输出文件（例如output.jpg）
-nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
-```
-
-> 注意：需要Python 3.10或更高版本，支持通过[docker](docker/README.md)进行替代安装/执行
-
-### 文档
-
-- [如何编译](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
-- [Python Quick Start](docs/zh_cn/quick_start/python.md)
-- [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-
----
-
 ## 已部署模型
 
 | 模型类别 | 支持模型 |
