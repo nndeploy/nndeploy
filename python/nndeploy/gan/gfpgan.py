@@ -1,6 +1,4 @@
 from typing import Any, List
-import cv2
-import threading
 import gfpgan
 import os
 import numpy as np

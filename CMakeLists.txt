@@ -6,7 +6,7 @@ ENABLE_LANGUAGE(ASM C CXX)
 
 set(NNDEPLOY_MAJOR_VERSION 0)
 set(NNDEPLOY_MINOR_VERSION 2)
-set(NNDEPLOY_PATCH_VERSION 11)
+set(NNDEPLOY_PATCH_VERSION 12)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
 add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
@@ -761,6 +761,8 @@ if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/*.h"
     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/kernel/*.cc"
   )
 
   # if(ENABLE_NNDEPLOY_DEVICE_CPU)
@@ -792,6 +794,9 @@ if(ENABLE_NNDEPLOY_OP)
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cu"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/cuda/*.h"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/cuda/*.cuh"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/kernel/cuda/*.cu"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
   endif()

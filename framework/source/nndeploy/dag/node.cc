@@ -344,6 +344,23 @@ std::shared_ptr<base::Param> Node::getExternalParam(const std::string &key) {
   return external_param_[key];
 }
 
+base::Status Node::setParam(const std::string &key, base::Any &any) {
+  if (param_ != nullptr) {
+    return param_->set(key, any);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::getParam(const std::string &key, base::Any &any) {
+  if (param_ != nullptr) {
+    return param_->get(key, any);
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setParam(const std::string &key, const std::string &value) {
+  return base::kStatusCodeOk;
+}
+
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");

@@ -114,6 +114,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Node *> getNodesRecursive();
   std::vector<std::string> getNodesName();
   std::vector<std::string> getNodesNameRecursive();
+  Node *getInputNode(int index);
+  Node *getOutputNode(int index);
+  Node *getInferNode(int index);
 
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatus();
   std::map<std::string, std::shared_ptr<RunStatus>>
