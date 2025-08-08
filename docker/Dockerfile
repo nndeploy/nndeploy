@@ -41,7 +41,7 @@ RUN rm -rf build && \
 RUN cd python && \
     pip install -e .
 
-RUN echo "/workspace/python/nndeploy" > /etc/ld.so.conf.d/nndeploy.conf && ldconfig
+RUN echo "/workspace/python/nndeploy" >> /etc/ld.so.conf.d/nndeploy.conf && ldconfig
 
 # ---- Default Interface ----
 WORKDIR /workspace/

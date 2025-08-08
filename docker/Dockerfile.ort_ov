@@ -24,10 +24,15 @@ RUN git clone --recursive https://github.com/nndeploy/nndeploy.git . && \
 
 # ---- Install OpenCV + ONNX Runtime ----
 RUN cd tool/script && \
-    python3 install_opencv.py && \
-    python3 install_onnxruntime.py && \
-    python3 install_openvino.py && \
-    cd ../..
+    python3 install_opencv.py
+
+RUN cd tool/script && \
+    python3 install_onnxruntime.py
+
+COPY tool/script/download/l_openvino_toolkit_ubuntu20_2023.1.0.12185.47b736f63ed_x86_64.tgz /workspace/tool/script/download
+
+RUN cd tool/script && \
+    python3 install_openvino.py
 
 # ---- Build C++ and Install Python Module ----
 RUN rm -rf build && \
@@ -42,7 +47,7 @@ RUN rm -rf build && \
 RUN cd python && \
     pip install -e .
 
-# RUN echo "/workspace/python/nndeploy" > /etc/ld.so.conf.d/nndeploy.conf && ldconfig
+RUN echo "/workspace/python/nndeploy" >> /etc/ld.so.conf.d/nndeploy.conf && ldconfig
 
 # ---- Default Interface ----
 WORKDIR /workspace/
