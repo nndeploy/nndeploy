@@ -85,17 +85,20 @@ class NnDeployServer:
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS workflows (
             id TEXT PRIMARY KEY,
+            path TEXT NOT NULL UNIQUE,
             name TEXT,
-            filename TEXT,
-            content TEXT,
-            created_at TIMESTAMP,
-            updated_at TIMESTAMP,
-            description TEXT
+            ext TEXT,
+            size INTEGER,
+            cover TEXT,
+            requirements TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
+        cursor.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_workflows_path ON workflows(path)""")
+
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             path TEXT NOT NULL UNIQUE,
             name TEXT,
             ext TEXT,
@@ -111,6 +114,69 @@ class NnDeployServer:
         """)
 
         self.conn.commit()
+
+    def _write_json_replace(self, dst: Path, data: dict | bytes) -> None:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dst.with_suffix(dst.suffix + ".tmp")
+        if isinstance(data, dict):
+            tmp.write_text(json.dumps(data, indent=4, ensure_ascii=False), encoding="utf-8")
+        else:
+            tmp.write_bytes(data)
+        tmp.replace(dst)
+
+    def _norm_id(self, val) -> Optional[str]:
+        if val is None:
+            return None
+        if isinstance(val, str):
+            s = val.strip()
+            return s or None
+        s = str(val).strip()
+
+    def _generate_unique_path(self, desired: Path) -> Path:
+        if not desired.exists():
+            return desired
+        stem, suf = desired.stem, desired.suffix
+        i = 1
+        while True:
+            cand = desired.with_name(f"{stem}({i}){suf}")
+            if not cand.exists():
+                return cand
+            i += 1
+
+    def _insert_workflow_row(self, file_path: Path) -> str | None:
+        try:
+            wid = str(uuid.uuid4())
+            abs_path = str(file_path.resolve())
+            name = file_path.name
+            ext = file_path.suffix.lower()
+            size = file_path.stat().st_size if file_path.exists() else None
+            cover, req = self._find_cover_and_requirements(file_path)
+            cur = self.conn.cursor()
+            cur.execute("""
+                INSERT INTO workflows (id, path, name, ext, size, cover, requirements)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (wid, abs_path, name, ext, size, cover, req))
+            self.conn.commit()
+            return wid
+        except Exception as e:
+            logging.warning(f"[_insert_workflow_row] failed for {file_path}: {e}")
+            return None
+
+    def _update_workflow_row_metadata(self, id_: str, file_path: Path) -> None:
+        try:
+            name = file_path.name
+            ext = file_path.suffix.lower()
+            size = file_path.stat().st_size if file_path.exists() else None
+            cover, req = self._find_cover_and_requirements(file_path)
+            cur = self.conn.cursor()
+            cur.execute("""
+                UPDATE workflows
+                SET name = ?, ext = ?, size = ?, cover = ?, requirements = ?
+                WHERE id = ?
+            """, (name, ext, size, cover, req, id_))
+            self.conn.commit()
+        except Exception as e:
+            logging.warning(f"[_update_workflow_row_metadata] failed for id={id_}: {e}")
 
     def _get_workdir(self) -> Path:
         return Path(self.args.resources)
@@ -150,6 +216,65 @@ class NnDeployServer:
 
         return cover, req
 
+    def _record_workflow_file(self, file_path: Path) -> Optional[str]:
+        try:
+            abs_path = str(file_path.resolve())
+            name = file_path.name
+            ext = file_path.suffix.lower()
+            size = file_path.stat().st_size if file_path.exists() else None
+            cover = None
+            req = None
+
+            cursor = self.conn.cursor()
+            row = cursor.execute("SELECT id FROM workflows WHERE path = ?", (abs_path,)).fetchone()
+
+            if row:
+                wid = row["id"]
+                cursor.execute("""
+                    UPDATE workflows
+                    SET name = ?,
+                        ext = ?,
+                        size = ?,
+                        cover = ?,
+                        requirements = ?
+                    WHERE id = ?
+                """, (name, ext, size, cover, req, wid))
+                self.conn.commit()
+                return wid
+            else:
+                wid = str(uuid.uuid4())
+                cursor.execute("""
+                    INSERT INTO workflows (id, path, name, ext, size, cover, requirements)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (wid, abs_path, name, ext, size, cover, req))
+                self.conn.commit()
+                return wid
+        except Exception as e:
+            logging.warning(f"[_upsert_workflow_by_path] failed for {file_path}: {e}")
+            return None
+
+    # def _record_workflow_file(self, file_path: Path) -> Optional[int]:
+    #     try:
+    #         abs_path = str(file_path.resolve())
+    #         name = file_path.name
+    #         ext = file_path.suffix.lower()
+    #         size = file_path.stat().st_size if file_path.exists() else None
+    #         cover = None
+    #         req = None
+
+    #         cursor = self.conn.cursor()
+    #         wid = str(uuid.uuid4())
+    #         cursor.execute("""
+    #             INSERT OR IGNORE INTO workflows (id, path, name, ext, size, cover, requirements)
+    #             VALUES (?, ?, ?, ?, ?, ?, ?)
+    #         """, (wid, abs_path, name, ext, size, cover, req))
+    #         row = cursor.execute("SELECT id FROM workflows WHERE path = ?", (abs_path,)).fetchone()
+    #         self.conn.commit()
+    #         return row["id"] if row else None
+    #     except Exception as e:
+    #         logging.warning(f"[_record_workflow_file] failed for {file_path}: {e}")
+    #         return None
+
     def _record_template_file(self, file_path: Path) -> None:
         try:
             abs_path = str(file_path.resolve())
@@ -160,29 +285,17 @@ class NnDeployServer:
             cover, req = self._find_cover_and_requirements(file_path)
 
             cursor = self.conn.cursor()
+            wid = str(uuid.uuid4())
             cursor.execute(
                 """
-                INSERT OR IGNORE INTO templates (path, name, ext, size, cover, requirements)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT OR IGNORE INTO templates (id, path, name, ext, size, cover, requirements)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (abs_path, name, ext, size, cover, req)
+                (wid, abs_path, name, ext, size, cover, req)
             )
             self.conn.commit()
         except Exception as e:
             logging.warning(f"[_record_template_file] failed for {file_path}: {e}")
-
-    # def copy_images_recursive(self, root: Path) -> None:
-    #     target_dir = Path(self.args.resources  / "images")
-    #     target_dir.mkdir(parents=True, exist_ok=True)
-    #     image_extensions = {".png", ".jpg", ".jpeg"}
-
-    #     for image_file in root.rglob("*"):
-    #         if image_file.suffix.lower() in image_extensions:
-    #             try:
-    #                 target_path = target_dir / image_file.name
-    #                 shutil.copy2(image_file, target_path)
-    #             except Exception as e:
-    #                 logging.warning(f"Failed to copy {image_file} to {target_path}: {e}")
 
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
@@ -221,35 +334,61 @@ class NnDeployServer:
             "/workflow/save",
             tags=["Workflow"],
             response_model=WorkFlowSaveResponse,
-            summary="save workflow to file",
+            summary="save workflow (update if id provided, else create)",
         )
-        async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
-            # Use the 'name_' field from the incoming JSON or generate a UUID as fallback
-            file_name = filename or req.root.get("name_", str(uuid.uuid4()))
-            file_path = self.workflow_dir / f"{file_name}"
-
+        async def save_json(req: EnqueueRequest):
             try:
-                with open(file_path, 'w') as f:
-                    json.dump(req.root, f, indent=4)
+                root = req.root if isinstance(req.root, dict) else {}
+                data = root.get("businessContent")
+                if data is None:
+                    raise HTTPException(status_code=400, detail="businessContent is required")
 
-                workflow_id = str(uuid.uuid4())
-                name = req.root.get("name_", "unnamed")
-                content_str = json.dumps(req.root)
-                now = datetime.utcnow().isoformat()
-                desc = req.root.get("desc_", "")
-                cursor = self.conn.cursor()
-                cursor.execute("""
-                    INSERT INTO workflows (id, name, filename, content, created_at, updated_at, description)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (workflow_id, name, filename, content_str, now, now, desc))
-                self.conn.commit()
+                if isinstance(data, str):
+                    try:
+                        data = json.loads(data)
+                    except json.JSONDecodeError as e:
+                        raise HTTPException(status_code=400, detail=f"businessContent must be valid JSON: {e}")
+                elif not isinstance(data, dict):
+                    raise HTTPException(status_code=400, detail="businessContent must be a JSON object or JSON string")
 
-                flag = "success"
-                message = "success"
-                result = {"message": f"JSON saved to {file_path}", "file_path": str(file_path)}
-                return WorkFlowSaveResponse(flag=flag, message=message, result=result)
+                id = self._norm_id(root.get("id"))
+
+                if id:
+                    cur = self.conn.cursor()
+                    row = cur.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
+                    if not row:
+                        raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
+                    dst = Path(row["path"])
+                    self._write_json_replace(dst, data)
+                    self._update_workflow_row_metadata(id, dst)
+
+                    return WorkFlowSaveResponse(
+                        flag="success",
+                        message="updated",
+                        result={"id": id}
+                    )
+
+                else:
+                    name_from_json = req.root.get("name_")
+                    base_name = name_from_json if name_from_json else f"{uuid.uuid4()}.json"
+                    if not base_name.endswith((".json", ".yml", ".yaml")):
+                        base_name = f"{base_name}.json"
+                    desired = self.workflow_dir / base_name
+                    dst = self._generate_unique_path(desired)
+
+                    self._write_json_replace(dst, data)
+                    wid = self._insert_workflow_row(dst)
+
+                    return WorkFlowSaveResponse(
+                        flag="success",
+                        message="created",
+                        result={"id": wid}
+                    )
+
+            except HTTPException:
+                raise
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
+                raise HTTPException(status_code=500, detail=f"save error: {e}")
 
         @api.post(
                 "/workflow/upload",
@@ -268,126 +407,263 @@ class NnDeployServer:
                     status_code=400,
                     detail=f"Only .json, .yml and .yaml files are allowed, got: {suffix}"
                 )
-            dst = self.workflow_dir / file.filename
-            with dst.open("wb") as w:
-                w.write(file.file.read())
+            desired = self.workflow_dir / file.filename
+            dst = self._generate_unique_path(desired)
+            try:
+                content = await file.read()
+                self._write_json_replace(dst, content)
+                wid = self._insert_workflow_row(dst)
 
-            flag = "success"
-            message = f"workflow {dst.name} has been uploaded successfully"
-            result = {
-                "filename":file.filename,
-                "saved_path":str(dst.resolve()),
-                "size":dst.stat().st_size,
-                "uploaded_at":datetime.utcnow(),
-                "extension": (dst.suffix or "unknown").lstrip(".")
-            }
-            return UploadResponse(flag=flag, message=message, result=result)
+                return UploadResponse(
+                    flag="success",
+                    message=f"workflow {dst.name} has been uploaded",
+                    result={
+                        "id": wid,
+                        "filename": dst.name,
+                        "saved_path": str(dst.resolve()),
+                        "size": dst.stat().st_size,
+                        "uploaded_at": datetime.utcnow(),
+                        "extension": (dst.suffix or "unknown").lstrip("."),
+                    }
+                )
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"upload error: {e}")
 
         @api.get(
-            "/workflow/download",
+            "/workflow/download/{id}",
             tags=["Workflow"],
-            summary="download workflow",
+            summary="download workflow by id",
             response_class=FileResponse,
         )
-        async def download_workflow(file_path: str = Query(..., description="absolute_path or relative path")):
+        async def download_workflow(id: str):
             """
-            download existed workflow file
+            download workflow file by id (UUID)
             """
-            f = self.workflow_dir / file_path
+            cursor = self.conn.cursor()
+            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail=f"workflow id {id} not found in DB")
+
+            f = Path(row["path"])
             if not f.exists():
-                raise HTTPException(status_code=404, detail="Not found")
-            
+                raise HTTPException(status_code=404, detail=f"workflow file not found: {f}")
+
             MIME_MAP: dict[str, str] = {
                 ".json": "application/json",
                 ".yaml": "application/x-yaml",
-                ".yml":  "application/x-yaml"
+                ".yml": "application/x-yaml"
             }
 
             media_type = MIME_MAP.get(f.suffix.lower(), "application/octet-stream")
-
-            if media_type is None:
+            if not media_type:
                 raise HTTPException(
                     status_code=400,
-                    detail="Unsupported download type"
+                    detail=f"Unsupported download type: {f.suffix}"
                 )
+
             return FileResponse(f, media_type=media_type, filename=f.name)
 
+        # @api.get(
+        #     "/workflow/download",
+        #     tags=["Workflow"],
+        #     summary="download workflow",
+        #     response_class=FileResponse,
+        # )
+        # async def download_workflow(file_path: str = Query(..., description="absolute_path or relative path")):
+        #     """
+        #     download existed workflow file
+        #     """
+        #     f = self.workflow_dir / file_path
+        #     if not f.exists():
+        #         raise HTTPException(status_code=404, detail="Not found")
+
+        #     MIME_MAP: dict[str, str] = {
+        #         ".json": "application/json",
+        #         ".yaml": "application/x-yaml",
+        #         ".yml":  "application/x-yaml"
+        #     }
+
+        #     media_type = MIME_MAP.get(f.suffix.lower(), "application/octet-stream")
+
+        #     if media_type is None:
+        #         raise HTTPException(
+        #             status_code=400,
+        #             detail="Unsupported download type"
+        #         )
+        #     return FileResponse(f, media_type=media_type, filename=f.name)
+
         @api.get(
-            "/workflow",
+            "/workflows",
             tags=["Workflow"],
             response_model=WorkFlowListResponse,
-            summary="load workflow lists",
+            summary="list workflows summary",
         )
-        async def get_workflow_json():
-            workflow_dir = self.workflow_dir
-
-            if not workflow_dir.exists():
+        async def list_workflows_summary():
+            if not self.workflow_dir.exists():
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
-            workflow = []
-            filenames = []
-            result = {}
-            try:
-                for json_file in workflow_dir.glob("*.json"):
-                    with open(json_file, 'r') as f:
-                        data = json.load(f)
-                        workflow.append(data)
-                        filenames.append(json_file.name)
-                result["fileNames"]=filenames
-                result["workflows"]=workflow
-                flag = "success"
-                message = "success"
-                return WorkFlowListResponse(flag=flag, message=message, result=result)
+            results = []
+            cursor = self.conn.cursor()
 
+            try:
+                for jf in self.workflow_dir.rglob("*.json"):
+                    try:
+                        wid = self._record_workflow_file(jf)
+                        abs_path = str(jf.resolve())
+                        row = cursor.execute(
+                            "SELECT id, cover FROM workflows WHERE path = ?",
+                            (abs_path,)
+                        ).fetchone()
+                        if not row:
+                            logging.warning(f"[workflow->db] missing id for {abs_path}")
+                            continue
+
+                        with jf.open("r", encoding="utf-8") as f:
+                            content = json.load(f)
+
+                        results.append({
+                            "id": row["id"],
+                            "name_": content.get("name_"),
+                            "developer_": content.get("developer_"),
+                            "desc_": content.get("desc_")
+                        })
+                    except Exception as fe:
+                        logging.warning(f"[workflow->scan] failed for {jf}: {fe}")
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"reading error: {e}")
+                logging.warning(f"[workflow->db] batch record failed: {e}")
+
+            return WorkFlowListResponse(
+                flag="success",
+                message=f"{len(results)} workflows found",
+                result=results
+            )
+
+        # @api.get(
+        #     "/workflow",
+        #     tags=["Workflow"],
+        #     response_model=WorkFlowListResponse,
+        #     summary="load workflow lists",
+        # )
+        # async def get_workflow_json():
+        #     workflow_dir = self.workflow_dir
+
+        #     if not workflow_dir.exists():
+        #         raise HTTPException(status_code=404, detail="workflow dir is not exist")
+
+        #     workflow = []
+        #     filenames = []
+        #     result = {}
+        #     try:
+        #         for json_file in workflow_dir.glob("*.json"):
+        #             with open(json_file, 'r') as f:
+        #                 data = json.load(f)
+        #                 workflow.append(data)
+        #                 filenames.append(json_file.name)
+        #         result["fileNames"]=filenames
+        #         result["workflows"]=workflow
+        #         flag = "success"
+        #         message = "success"
+        #         return WorkFlowListResponse(flag=flag, message=message, result=result)
+
+        #     except Exception as e:
+        #         raise HTTPException(status_code=500, detail=f"reading error: {e}")
 
         @api.post(
-            "/workflow/delete/{file_name}",
+            "/workflow/delete/{id}",
             tags=["Workflow"],
             response_model=WorkFlowDeleteResponse,
-            summary="delete workflow json",
+            summary="delete workflow by id",
         )
-        async def delete_workflow_json(file_name: str):
-            workflow_dir = self.workflow_dir
+        async def delete_workflow_json(id: str):
+            cursor = self.conn.cursor()
+            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
 
-            file_path = workflow_dir / f"{file_name}"
+            if not row:
+                raise HTTPException(status_code=404, detail=f"workflow id {id} not found in DB")
 
+            file_path = Path(row["path"])
             if not file_path.exists():
-                raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+                cursor.execute("DELETE FROM workflows WHERE id = ?", (id,))
+                self.conn.commit()
+                raise HTTPException(status_code=404, detail=f"workflow file not found: {file_path}")
 
             try:
-                file_path.unlink()
-                flag = "success"
-                message = f"file {file_name}.json has been deleted"
-                return WorkFlowDeleteResponse(flag=flag, message=message)
+                file_path.unlink(missing_ok=False)
+                cursor.execute("DELETE FROM workflows WHERE id = ?", (id,))
+                self.conn.commit()
 
+                return WorkFlowDeleteResponse(flag="success", message=f"workflow id {id} has been deleted")
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"delete error: {e}")
 
+        # @api.post(
+        #     "/workflow/delete/{file_name}",
+        #     tags=["Workflow"],
+        #     response_model=WorkFlowDeleteResponse,
+        #     summary="delete workflow json",
+        # )
+        # async def delete_workflow_json(file_name: str):
+        #     workflow_dir = self.workflow_dir
+
+        #     file_path = workflow_dir / f"{file_name}"
+
+        #     if not file_path.exists():
+        #         raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+
+        #     try:
+        #         file_path.unlink()
+        #         flag = "success"
+        #         message = f"file {file_name}.json has been deleted"
+        #         return WorkFlowDeleteResponse(flag=flag, message=message)
+
+        #     except Exception as e:
+        #         raise HTTPException(status_code=500, detail=f"delete error: {e}")
+
         @api.get(
-            "/workflow/{file_name}",
+            "/workflow/{id}",
             tags=["Workflow"],
             response_model=WorkFlowLoadResponse,
-            summary="get workflow json",
+            summary="get workflow json by id",
         )
-        async def get_workflow_json(file_name: str):
-            workflow_dir = self.workflow_dir
+        async def get_workflow_by_id(id: str):
+            cursor = self.conn.cursor()
+            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
 
-            file_path = workflow_dir / f"{file_name}"
-
+            file_path = Path(row["path"])
             if not file_path.exists():
-                raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+                raise HTTPException(status_code=404, detail=f"workflow file not found: {file_path}")
+            if file_path.suffix.lower() != ".json":
+                raise HTTPException(status_code=400, detail=f"unsupported workflow type: {file_path.suffix}")
 
-            try:
-                with open(file_path, 'r') as f:
-                    result = json.load(f)
-                flag = "success"
-                message = "success"
-                return WorkFlowLoadResponse(flag=flag, message=message, result=result)
+            with file_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
 
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"reading file error: {e}")
+            return WorkFlowLoadResponse(flag="success", message="success", result=data)
+        # @api.get(
+        #     "/workflow/{file_name}",
+        #     tags=["Workflow"],
+        #     response_model=WorkFlowLoadResponse,
+        #     summary="get workflow json",
+        # )
+        # async def get_workflow_json(file_name: str):
+        #     workflow_dir = self.workflow_dir
+
+        #     file_path = workflow_dir / f"{file_name}"
+
+        #     if not file_path.exists():
+        #         raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+
+        #     try:
+        #         with open(file_path, 'r') as f:
+        #             result = json.load(f)
+        #         flag = "success"
+        #         message = "success"
+        #         return WorkFlowLoadResponse(flag=flag, message=message, result=result)
+
+        #     except Exception as e:
+        #         raise HTTPException(status_code=500, detail=f"reading file error: {e}")
 
         @api.get(
             "/template",
@@ -454,7 +730,7 @@ class NnDeployServer:
             response_model=WorkFlowLoadResponse,
             summary="get workflow json",
         )
-        async def get_template_json(id: int):
+        async def get_template_json(id: str):
             try:
                 cursor = self.conn.cursor()
                 row = cursor.execute(
