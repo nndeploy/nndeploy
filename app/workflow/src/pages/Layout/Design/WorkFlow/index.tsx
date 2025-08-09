@@ -39,7 +39,7 @@ function WorkFlow (props: WorkFlowProps) {
   const {freshFlowTreeCnt} = state
 
   const { onFlowDeleteCallBack } = props
-  const { treeData, setTreeData, getWorkFlowTree, fileNames } = useGetWorkflowTree();
+  const { treeData, setTreeData, getWorkFlowTree } = useGetWorkflowTree();
 
   const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
   const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
@@ -85,7 +85,7 @@ function WorkFlow (props: WorkFlowProps) {
     if (response.flag == "success") {
       onFlowDeleteCallBack(id)
       const newData = treeData.filter(item => {
-        return item.label != id
+        return item.key != id
       })
 
       setTreeData(newData);
@@ -149,10 +149,10 @@ function WorkFlow (props: WorkFlowProps) {
     };
     input.click();
   }
-  function onDownload(fileName: string) {
+  function onDownload(flowId: string) {
 
     //const fileName = fileNames[workFlowName] ;
-    const url = `/api/workflow/download?file_path=${fileName}`;
+    const url = `/api/workflow/download/${flowId}`;
     request.download(url, {})
   }
 
@@ -208,13 +208,13 @@ function WorkFlow (props: WorkFlowProps) {
               <Popconfirm
                 title="Are you sure?"
                 content="Are you sure to delete this item?"
-                onConfirm={() => deleteNode(workFlow.label as string)}
+                onConfirm={() => deleteNode(workFlow.key as string)}
                 onCancel={() => { }}
               >
                 delete
               </Popconfirm>
             </Dropdown.Item>
-            <Dropdown.Item onClick={() => onDownload(workFlow.label as string)}>
+            <Dropdown.Item onClick={() => onDownload(workFlow.key as string)}>
               download
             </Dropdown.Item>
           </Dropdown.Menu>

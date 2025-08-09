@@ -20,7 +20,7 @@ import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, setupWebSocket } from "./api";
+import { apiGetNodeById, apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
@@ -42,11 +42,15 @@ import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
 import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
 import FlowConfigDrawer from "./FlowConfigDrawer";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
+import { IResponse } from "../../../request/types";
+import { EnumFlowType } from "../../../enum";
 
 let nameId = 0;
 
 interface FlowProps {
   id: string;
+  flowType: EnumFlowType;
+
   activeKey: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
 }
@@ -57,6 +61,9 @@ const Flow: React.FC<FlowProps> = (props) => {
   const { state, dispatch } = React.useContext(store);
 
   const { nodeRegistries, nodeList } = state
+
+  const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
+
 
   const [outputResource, setOutputResource] = useState<IOutputResource>({ path: [], text: [] })
 
@@ -84,7 +91,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: props.id,
+   // name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -138,17 +145,27 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
-  const fetchData = async (flowName: string) => {
+  const fetchData = async (flowId: string, flowType: EnumFlowType) => {
+
     //setLoading(true);
 
     //const nodeRegistries = await getNodeRegistry();
     // setNodeRegistries(nodeRegistries);
 
-    if (!flowName) {
+    if (!flowId) {
       setLoading(false);
       return;
     }
-    const response = await apiGetWorkFlow(flowName);
+
+    let response : IResponse<IBusinessNode>
+
+    if(flowType == EnumFlowType.template) {
+      response = await apiGetTemeplateWorkFlow(flowId);
+    }else{
+        response = await apiGetWorkFlow(flowId);
+    }
+
+
     if (response.flag == "error") {
       return;
     }
@@ -188,8 +205,8 @@ const Flow: React.FC<FlowProps> = (props) => {
     if (nodeRegistries.length < 1) {
       return
     }
-    fetchData(props.id);
-  }, [props.id, nodeRegistries]);
+    fetchData(props.id, props.flowType);
+  }, [props.id, nodeRegistries, props.flowType]);
 
   // useEffect(() => {
   //   if (ref.current) {
@@ -373,6 +390,9 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
+
+    setFlowType(EnumFlowType.workspace) //after save, template converted to user's flow
+
     setSaveDrawerVisible(false);
     setEntity({ ...entity });
 
@@ -518,6 +538,8 @@ const Flow: React.FC<FlowProps> = (props) => {
               entity={entity!}
               onSure={onflowSaveDrawrSure}
               onClose={onFlowSaveDrawerClose}
+              flowType={flowType}
+
             />
           </SideSheet>
 

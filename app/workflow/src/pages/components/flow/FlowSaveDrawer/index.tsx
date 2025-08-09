@@ -8,10 +8,13 @@ import { IBusinessNode, IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
 import { designDataToBusinessData } from "./functions";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
+import { EnumFlowType } from "../../../../enum";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
   onClose: () => void;
+  flowType: EnumFlowType;
+
   entity: IWorkFlowEntity;
 }
 
@@ -43,10 +46,12 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
       businessContent.name_ = formData['name']
 
       //return
+      const id = props.flowType == EnumFlowType.template ? '':  props.entity.id ?? ""
 
-      const response = await apiWorkFlowSave(businessContent);
+      const response = await apiWorkFlowSave(id,   businessContent );
       if (response.flag == "success") {
-        props.onSure(data);
+        props.onSure({...data, id: response.result.id});
+
       }
 
       Toast.success("save sucess!");
@@ -57,7 +62,8 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
 
   const initValues = {
     parentId: props.entity.parentId,
-    name: props.entity.name,
+    name: props.entity.businessContent.name_,
+
   }
 
   return (
