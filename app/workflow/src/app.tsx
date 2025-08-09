@@ -16,7 +16,8 @@ const app = createRoot(document.getElementById("root")!);
 app.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<Design />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/design" element={<Design />} />
 
       
 
@@ -28,7 +29,7 @@ app.render(
          <Route path="node" element={<NodePage />} />
       </Route>
       <Route path="about" element={<About />} />
-      <Route path="home" element={<Home />} />
+      
 
 
       <Route path="*" element={<NoMatch />} />

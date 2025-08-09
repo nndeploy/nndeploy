@@ -514,9 +514,9 @@ export function transferBusinessContentToDesignContent(
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
 
-  const layout = businessContent.nndeploy_ui_layout.layout ?? {}
+  const layout = businessContent.nndeploy_ui_layout?.layout ?? {}
 
-  const groups = businessContent.nndeploy_ui_layout.groups ?? []
+  const groups = businessContent.nndeploy_ui_layout?.groups ?? []
 
   function businessNodeIterate(
     businessNode: IBusinessNode,

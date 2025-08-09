@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
-import { apiGetWorkFlowBranch, apiGetWorkFlowTree } from "./api";
+import { apiGetWorkFlowBranch } from "./api";
 import { IBusinessNode, IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "./entity";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import { apiGetWorkflows } from "../../../../api";
 
 export function useGetWorkflowTree(): {
  // flatData: IBusinessNode[];
   //setFlatData: React.Dispatch<React.SetStateAction<IBusinessNode[]>>;
-  fileNames: string[];
   treeData: TreeNodeData[];
   setTreeData: React.Dispatch<React.SetStateAction<TreeNodeData[]>>;
   getWorkFlowTree: () => Promise<void>;
 } {
  // const [flatData, setFlatData] = useState<IBusinessNode[]>([]);
   const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
-
-  const [fileNames, setFileNames] = useState<string[]>([]);
 
   // function buildTreeFromArray(
   //   data: IWorkFlowTreeNodeEntity[],
@@ -41,19 +39,19 @@ export function useGetWorkflowTree(): {
   // }
 
   async function getWorkFlowTree() {
-    const res = await apiGetWorkFlowTree();
-    if(res.flag != 'success'){
+    const response = await apiGetWorkflows();
+    if(response.flag != 'success'){
       return
     }
 
-    const {fileNames, workflows}  =res.result
+    // const {fileNames, workflows}  =res.result
 
-    setFileNames(fileNames)
+    // setFileNames(fileNames)
 
-    const treeData = workflows.map((item, index)=>{
+    const treeData = response.result.map((item, index)=>{
       return {
-        key: item.name_, 
-        label: fileNames[index], 
+        key: item.id, 
+        label: item.name_, 
         children: undefined
       }
     })
@@ -74,7 +72,7 @@ export function useGetWorkflowTree(): {
   //   setTreeData(tree);
   // }, [flatData]);
 
-  return { treeData, setTreeData,  getWorkFlowTree,  fileNames};
+  return { treeData, setTreeData,  getWorkFlowTree};
 }
 
 // export function useGetWorkflowBranch(): {

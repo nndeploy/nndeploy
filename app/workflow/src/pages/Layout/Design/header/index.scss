@@ -1,0 +1,27 @@
+ .topNav {
+   background-color: #f5f5f5;
+   display: flex;
+   height: 35px;
+   align-items: center;
+   justify-content: space-between;
+   padding: 0 8px 0 0;
+
+   .semi-avatar-small {
+     width: 16px;
+     height: 16px;
+   }
+
+   .companyName {
+     margin-left: 1em;
+   }
+
+   .companyLogo {
+     cursor: pointer;
+   }
+
+
+   .logo {
+     height: 40px;
+     margin-right: 16px;
+   }
+ }

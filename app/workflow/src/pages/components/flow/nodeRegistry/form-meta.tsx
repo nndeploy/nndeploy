@@ -41,7 +41,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   // const { node } = useNodeRender();
 
-  const { nodeList = [], paramTypes, element: flowElementRef, outputResources } = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes, element: flowElementRef, outputResource } = useFlowEnviromentContext()
 
 
 
@@ -57,6 +57,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const path_ = form.getValueIn("path_") as string;
 
   const key_ = form.getValueIn("key_");
+
+  const name_ = form.getValueIn('name_')
 
 
 
@@ -115,7 +117,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   function needShowTextContent() {
 
-    const nodeNames = outputResources.text.map(item => item.name)
+    const nodeNames = outputResource.text.map(item => item.name)
 
     const needShow = isTextNode() && nodeNames.includes(form.getValueIn('name_')) //path_.includes('&time=')
 
@@ -200,7 +202,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
   function needShowMedia() {
 
-    const nodeNames = outputResources.path.map(item => item.name)
+    const nodeNames = outputResource.path.map(item => item.name)
     const needShow = isInputMediaNode() || (isOutputMediaNode() && nodeNames.includes(form.getValueIn('name_')))  //path_.includes('&time=')
 
     return needShow
@@ -216,14 +218,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   // }, [updateVal])
 
-  useEffect(() => {
-    if (outputResources) {
-      console.log('outputResources', outputResources,)
-      console.log('name', form.getValueIn('name_'))
-    }
+  // useEffect(() => {
+  //   if (outputResources) {
+  //     console.log('outputResources', outputResources,)
+  //     console.log('name', form.getValueIn('name_'))
+  //   }
 
 
-  }, [outputResources])
+  // }, [outputResources])
 
   const [refresh, setRefresh] = useState({})
 
@@ -336,7 +338,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                 if (needShowMedia() && field.value && isImageFile(field.value as string)) {
 
-                  const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
+                  const filePath = outputResource.path.find(item=>item.name == name_)?.path ?? field.value
+
+                  const url = `/api/preview?file_path=${filePath}` //${field.value}&time=${Date.now()}
                   return <div className="resource-preview">
                     <img src={url} onClick={((event) => onShowMediaFile(event, field.value as string))}
 
@@ -344,7 +348,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                   </div>
                 } else if (needShowMedia() && field.value && isVideoFile(field.value as string)) {
 
-                  const url = `/api/preview?file_path=${field.value}&time=${Date.now()}`
+                  const filePath = outputResource.path.find(item=>item.name == name_)?.path ?? field.value
+
+                  const url = `/api/preview?file_path=${filePath}`  //${field.value}&time=${Date.now()}
                   return <div className="resource-preview"
                     onClick={((event) => onShowMediaFile(event, field.value as string))}
                   >
@@ -368,7 +374,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             </Field>
             {
               isTextNode() && needShowTextContent() &&
-              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
+              <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
             }
@@ -516,7 +522,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             }
             {
               isTextNode() && needShowTextContent() &&
-              <TextArea rows={8} value={outputResources.text.find(item => item.name == form.getValueIn('name_'))?.text}>
+              <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
             }

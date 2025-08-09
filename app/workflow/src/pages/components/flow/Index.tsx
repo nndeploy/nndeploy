@@ -20,7 +20,7 @@ import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, setupWebSocket } from "./api";
+import { apiGetNodeById, apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
@@ -39,14 +39,18 @@ import { getNextNameNumberSuffix } from "./functions";
 import store, { initialState, reducer } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
-import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
+import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
 import FlowConfigDrawer from "./FlowConfigDrawer";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
+import { IResponse } from "../../../request/types";
+import { EnumFlowType } from "../../../enum";
 
 let nameId = 0;
 
 interface FlowProps {
   id: string;
+  flowType: EnumFlowType;
+
   activeKey: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
 }
@@ -58,11 +62,22 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const { nodeRegistries, nodeList } = state
 
-  const [outputResources, setOutputResources] = useState<IOutputResource>({ path: [], text: [] })
+  const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
+
+
+  const [outputResource, setOutputResource] = useState<IOutputResource>({ path: [], text: [] })
 
   const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
 
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  const [log, setLog] = useState<ILog>({
+    items: [], time_profile: {
+      init_time: undefined,
+      run_time: undefined
+
+    }
+  })
 
   useEffect(() => {
     setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
@@ -76,7 +91,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: props.id,
+   // name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -130,17 +145,27 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
-  const fetchData = async (flowName: string) => {
+  const fetchData = async (flowId: string, flowType: EnumFlowType) => {
+
     //setLoading(true);
 
     //const nodeRegistries = await getNodeRegistry();
     // setNodeRegistries(nodeRegistries);
 
-    if (!flowName) {
+    if (!flowId) {
       setLoading(false);
       return;
     }
-    const response = await apiGetWorkFlow(flowName);
+
+    let response : IResponse<IBusinessNode>
+
+    if(flowType == EnumFlowType.template) {
+      response = await apiGetTemeplateWorkFlow(flowId);
+    }else{
+        response = await apiGetWorkFlow(flowId);
+    }
+
+
     if (response.flag == "error") {
       return;
     }
@@ -180,8 +205,8 @@ const Flow: React.FC<FlowProps> = (props) => {
     if (nodeRegistries.length < 1) {
       return
     }
-    fetchData(props.id);
-  }, [props.id, nodeRegistries]);
+    fetchData(props.id, props.flowType);
+  }, [props.id, nodeRegistries, props.flowType]);
 
   // useEffect(() => {
   //   if (ref.current) {
@@ -253,9 +278,16 @@ const Flow: React.FC<FlowProps> = (props) => {
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
+      setLog({
+        items: [],
+        time_profile: {
+          init_time: undefined,
+          run_time: undefined
+        }
+      })
       const businessContent = designDataToBusinessData(
         flowJson,
-        graphTopNode, 
+        graphTopNode,
         flowJson.nodes
       );
 
@@ -309,12 +341,39 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
 
         if (response.result.type == 'preview') {
-          const resource = response.result
+          response.result.path = response.result.path.map(item => {
+            return {
+              ...item,
+              path: `${item.path}&time=${Date.now()}`
+            }
+          })
 
-          setOutputResources(resource)
+          setOutputResource(response.result)
         } else if (response.result.type == 'progress') {
           setFlowNodesRunningStatus(response.result.detail)
+        } else if (response.result.type == 'log') {
+
+
+          setLog((oldLog) => {
+            var newLog = {
+              ...oldLog,
+              items: [...oldLog.items, response.result.log],
+
+            }
+            return newLog
+          })
+        } else if (response.result.type == 'task_run_info') {
+     
+           setLog((oldLog) => {
+            var newLog = {
+              ...oldLog,
+              time_profile: response.result.time_profile,
+
+            }
+            return newLog
+          })
         }
+
 
 
 
@@ -331,6 +390,9 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
+
+    setFlowType(EnumFlowType.workspace) //after save, template converted to user's flow
+
     setSaveDrawerVisible(false);
     setEntity({ ...entity });
 
@@ -441,7 +503,11 @@ const Flow: React.FC<FlowProps> = (props) => {
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
+          value={{
+            element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+
+            log: log
+          }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
@@ -472,6 +538,8 @@ const Flow: React.FC<FlowProps> = (props) => {
               entity={entity!}
               onSure={onflowSaveDrawrSure}
               onClose={onFlowSaveDrawerClose}
+              flowType={flowType}
+
             />
           </SideSheet>
 

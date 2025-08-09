@@ -9,6 +9,15 @@ export interface IFlowNodesRunningStatus {
 
 
 export interface IOutputResource {
-  path: { name: string }[],
+  path: { name: string, path: string }[],
   text: { name: string, text: string }[]
+}
+
+
+export interface ILog {
+  items: string[],
+  time_profile: {
+    init_time?: number,
+    run_time?: number
+  }
 }
