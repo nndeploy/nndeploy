@@ -15,7 +15,12 @@ RUN python3 -m pip install --upgrade pip
 RUN pip install pybind11 setuptools wheel cython requests pathlib packaging
 
 # ---- Install Rust（Optional）----
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y \
+    && . "$HOME/.cargo/env" \
+    && rustup install 1.88.0 \
+    && rustup default 1.88.0 \
+    && rustup target add x86_64-unknown-linux-gnu
+
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # ---- Clone nndeploy Project（Include Submodules）----
@@ -29,7 +34,7 @@ RUN cd tool/script && \
 RUN cd tool/script && \
     python3 install_onnxruntime.py
 
-COPY tool/script/download/l_openvino_toolkit_ubuntu20_2023.1.0.12185.47b736f63ed_x86_64.tgz /workspace/tool/script/download
+# COPY tool/script/download/l_openvino_toolkit_ubuntu20_2023.1.0.12185.47b736f63ed_x86_64.tgz /workspace/tool/script/download
 
 RUN cd tool/script && \
     python3 install_openvino.py

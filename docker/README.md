@@ -18,7 +18,11 @@ The following instructions use `Dockerfile` as an example, but the same operatio
 ## Build the Image
 
 ```bash
+# Use cache
 docker build -f docker/Dockerfile -t nndeploy-linux .
+
+# No cache
+docker build --no-cache -f docker/Dockerfile -t nndeploy-linux .
 ````
 
 ## Run the Container (Default Port 8888)

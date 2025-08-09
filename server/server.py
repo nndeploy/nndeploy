@@ -14,6 +14,7 @@ import asyncio
 import uuid
 import logging
 import sqlite3
+import shutil
 
 import nndeploy.dag
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
@@ -35,7 +36,8 @@ from .schemas import (
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
     ParamTypeResponse,
-    TemplateJsonListResponse
+    TemplateJsonListResponse,
+    TemplateLoadResponse
 )
 from .files import router as files_router
 from .files import get_workdir
@@ -61,7 +63,7 @@ class NnDeployServer:
         )
 
         self.workflow_dir = Path(self.args.resources) / "workflow"
-        self.db_path = Path(self.args.resources) / "db" / "workflow.db"
+        self.db_path = Path(self.args.resources) / "db" / "nndeploy.db"
         self.workflow_dir.mkdir(parents=True, exist_ok=True)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
@@ -91,11 +93,28 @@ class NnDeployServer:
             description TEXT
         )
         """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            path TEXT NOT NULL UNIQUE,
+            name TEXT,
+            ext TEXT,
+            size INTEGER,
+            cover TEXT,
+            requirements TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+        cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_templates_path
+        ON templates(path)
+        """)
+
         self.conn.commit()
 
     def _get_workdir(self) -> Path:
         return Path(self.args.resources)
-    
+
     def read_json_recursive(self, root: Path) -> list[dict]:
         result = []
         for json_file in root.rglob("*.json"):
@@ -106,6 +125,64 @@ class NnDeployServer:
             except Exception as e:
                 logging.warning(f"Failed to read {json_file}: {e}")
         return result
+
+    def _find_cover_and_requirements(self, json_path: Path) -> tuple[Optional[str], Optional[str]]:
+        d = json_path.parent
+        base = json_path.stem
+
+        # cover
+        cover = None
+        for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+            p = d / f"cover.{base}{ext}"
+            if p.exists():
+                cover = str(p.resolve())
+                break
+
+        # requirements
+        req = None
+        cand = d / f"requirement.{base}.txt"
+        if cand.exists():
+            req = str(cand.resolve())
+        else:
+            cand2 = d / "requirement.template.txt"
+            if cand2.exists():
+                req = str(cand2.resolve())
+
+        return cover, req
+
+    def _record_template_file(self, file_path: Path) -> None:
+        try:
+            abs_path = str(file_path.resolve())
+            name = file_path.name
+            ext = file_path.suffix.lower()
+            size = file_path.stat().st_size if file_path.exists() else None
+
+            cover, req = self._find_cover_and_requirements(file_path)
+
+            cursor = self.conn.cursor()
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO templates (path, name, ext, size, cover, requirements)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (abs_path, name, ext, size, cover, req)
+            )
+            self.conn.commit()
+        except Exception as e:
+            logging.warning(f"[_record_template_file] failed for {file_path}: {e}")
+
+    # def copy_images_recursive(self, root: Path) -> None:
+    #     target_dir = Path(self.args.resources  / "images")
+    #     target_dir.mkdir(parents=True, exist_ok=True)
+    #     image_extensions = {".png", ".jpg", ".jpeg"}
+
+    #     for image_file in root.rglob("*"):
+    #         if image_file.suffix.lower() in image_extensions:
+    #             try:
+    #                 target_path = target_dir / image_file.name
+    #                 shutil.copy2(image_file, target_path)
+    #             except Exception as e:
+    #                 logging.warning(f"Failed to copy {image_file} to {target_path}: {e}")
 
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
@@ -325,14 +402,89 @@ class NnDeployServer:
                     message="template directory not found",
                     result=[]
                 )
-            
-            all_json_data = self.read_json_recursive(self.template_path)
+
+            results = []
+            new_count = 0
+            cursor = self.conn.cursor()
+
+            try:
+                for jf in self.template_path.rglob("*.json"):
+                    try:
+                        self._record_template_file(jf)
+
+                        abs_path = str(jf.resolve())
+                        row = cursor.execute(
+                            "SELECT id, cover FROM templates WHERE path = ?",
+                            (abs_path,)
+                        ).fetchone()
+                        if row is None:
+                            logging.warning(f"[template->db] missing id for {abs_path}")
+                            continue
+                        tid = row["id"]
+                        cover = row["cover"]
+
+                        with jf.open("r", encoding="utf-8") as f:
+                            content = json.load(f)
+
+                        item = {
+                            "id": tid,
+                            "name_": content.get("name_"),
+                            "developer_": content.get("developer_"),
+                            "source_": content.get("source_"),
+                            "desc_": content.get("desc_"),
+                            "cover_": cover
+                        }
+                        results.append(item)
+                        new_count += 1
+                    except Exception as fe:
+                        logging.warning(f"[template->scan] failed to handle {jf}: {fe}")
+
+            except Exception as e:
+                logging.warning(f"[template->db] batch record failed: {e}")
 
             return TemplateJsonListResponse(
                 flag="success",
-                message=f"{len(all_json_data)} json files loaded",
-                result=all_json_data
+                message=f"{len(results)} json files loaded",
+                result=results
             )
+
+        @api.get(
+            "/template/{id}",
+            tags=["Template"],
+            response_model=WorkFlowLoadResponse,
+            summary="get workflow json",
+        )
+        async def get_template_json(id: int):
+            try:
+                cursor = self.conn.cursor()
+                row = cursor.execute(
+                    "SELECT path FROM templates WHERE id = ?",
+                    (id,)
+                ).fetchone()
+
+                if row is None:
+                    raise HTTPException(status_code=404, detail=f"template id {id} not found")
+
+                file_path = Path(row["path"])
+
+                if not file_path.exists():
+                    raise HTTPException(status_code=404, detail=f"template file not found: {file_path}")
+
+                if file_path.suffix.lower() != ".json":
+                    raise HTTPException(status_code=400, detail=f"unsupported template type: {file_path.suffix}")
+
+                with file_path.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                flag = "success"
+                message = "template load response"
+                return TemplateLoadResponse(flag=flag, message=message, result=data)
+
+            except HTTPException:
+                raise
+            except Exception as e:
+                logging.exception("[get_template_json] unexpected error")
+                raise HTTPException(status_code=500, detail=f"read template error: {e}")
 
         @api.get(
             "/dag/info",

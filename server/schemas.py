@@ -57,6 +57,11 @@ class TemplateJsonListResponse(BaseModel):
     message: str
     result: list[dict]
 
+class TemplateLoadResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
 class WorkFlowDeleteResponse(BaseModel):
     flag: str
     message: str
