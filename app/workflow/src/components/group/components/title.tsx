@@ -97,7 +97,7 @@ export const GroupTitle: FC = () => {
 
     let subFlowInputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.sourceNodeID))
 
-    let inputs_ = subFlowInputEdges.map(edge => {
+    let inputs_ = lodash.uniqBy(subFlowInputEdges, item=>item.sourceNodeID).map(edge => {
 
       let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
 
@@ -115,7 +115,7 @@ export const GroupTitle: FC = () => {
 
     let subFlowOutputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.targetNodeID))
 
-    let outputs_ = subFlowOutputEdges.map(edge => {
+    let outputs_ = lodash.uniqBy(subFlowOutputEdges, item=>item.targetNodeID).map(edge => {
 
       let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
 
