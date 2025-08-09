@@ -148,10 +148,10 @@ class NNDEPLOY_CC_API YoloMultiConvDrawBox : public dag::Node {
                     box[1], width, height);
       cv::Point p = cv::Point(box[0], box[1]);
       cv::Rect rect = cv::Rect(box[0], box[1], width, height);
-      cv::rectangle(*input_mat, rect, randColor[id], 2);
+      cv::rectangle(*input_mat, rect, randColor[id], -1);
       std::string text = " ID:" + std::to_string(id);
       cv::putText(*input_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
-                  randColor[id]);
+                  randColor[id], 8);
     }
     // cv::Mat *output_mat = new cv::Mat(*input_mat);
     cv::Mat *output_mat = new cv::Mat();

@@ -145,5 +145,31 @@
 + 加一个INIT的标志
 + 大批量名字不会修改
 
-### 
-+ 
+### 2025.08.09
++ 保存子图，输入名字重复
++ 错误之后，没有标志，前端还是转圈
+   + 节点点出现报警感叹号 && 节点运行信息标志 
+   + log标志标红，用户可以知道怎么回事，点击log后能看到错误信息
++ 鼠标移到节点上
+   + desc：node
+   + input：input_0
+   + output：output_0
++ 鼠标放到workflow上
+   + desc：Graph
+   + input：input_0
+   + output：output_0
++ 鼠标放到port上
+   + type：Tensor
+   + desc：input_0
++ 将Workflow更改成Workspace
+   + 对应后端需要修改
+
++ 添加的了Group之后，无法把节点拉到界面上来
+
++ 对于节点而言
+   + developer_是隐藏的
+   + source_也是隐藏的
+
++ 所有参数都不是必填的，把必填参数去掉
+
++ 图片资源有时候显示不出来

@@ -46,8 +46,8 @@ class DrawLable : public dag::Node {
                          " score: " + std::to_string(label.scores_);
 
       // 在图像左上角绘制文本
-      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+      cv::putText(*output_mat, text, cv::Point(30, 50 + i * 30),
+                  cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 0), 8);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
     outputs_[0]->set(output_mat, false);
