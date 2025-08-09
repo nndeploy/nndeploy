@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
+from typing import Optional
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -72,11 +73,11 @@ def _delete(filename: str, workdir: Path, subdir: str) -> DeleteResponse:
     message = f"file {filename}.json has been deleted"
     return DeleteResponse(flag=flag, message=message)
 
-def _file_info(path: Path) -> Dict[str, str]:
+def _file_info(path: Path, base: Optional[Path] = None) -> Dict[str, str]:
     stat = path.stat()
     return {
         "filename":path.name,
-        "saved_path":str(path.resolve()),
+        "saved_path":str(path.relative_to(base)) if base else p.name,
         "size": stat.st_size,
         "uploaded_at":datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
         "extension": (path.suffix or "unknown").lstrip(".")
@@ -94,7 +95,7 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
             if folder.is_dir():
                 if (folder.name not in ["images", "videos", "models"]):
                     continue
-                tree[folder.name] = [_file_info(p) for p in folder.iterdir() if p.is_file()]
+                tree[folder.name] = [_file_info(p, base=folder) for p in folder.rglob("*") if p.is_file()]
     flag = "success"
     message = "List all resources"
     return FileListResponse(flag=flag, message=message, result=tree)

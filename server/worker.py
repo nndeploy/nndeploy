@@ -167,11 +167,11 @@ def poll_plugin_updates(plugin_update_q):
         else:
             logging.warning(f"[Plugin] Plugin path not found: {plugin_path}")
 
-def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
+def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None:
     logger = configure_worker_logger(log_q)
     redirect_fd_to_logger_once(logger)
 
-    executor = GraphExecutor()
+    executor = GraphExecutor(resources)
     logging.info("Worker PID=%s started", os.getpid())
 
     while True:
@@ -191,6 +191,7 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q) -> None:
         def _exec():
             set_current_task_id(task_id)
             try:
+                executor.handle_urls(payload["graph_json"])
                 tp_map, results, status, msg = executor.execute(payload["graph_json"], task_id)
                 result_holder["tp_map"] = tp_map
                 result_holder["results"] = results

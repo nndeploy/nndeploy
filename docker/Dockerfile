@@ -15,7 +15,12 @@ RUN python3 -m pip install --upgrade pip
 RUN pip install pybind11 setuptools wheel cython requests pathlib packaging
 
 # ---- Install Rust（Optional）----
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y \
+    && . "$HOME/.cargo/env" \
+    && rustup install 1.88.0 \
+    && rustup default 1.88.0 \
+    && rustup target add x86_64-unknown-linux-gnu
+
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # ---- Clone nndeploy Project（Include Submodules）----
@@ -41,7 +46,7 @@ RUN rm -rf build && \
 RUN cd python && \
     pip install -e .
 
-RUN echo "/workspace/python/nndeploy" > /etc/ld.so.conf.d/nndeploy.conf && ldconfig
+RUN echo "/workspace/python/nndeploy" >> /etc/ld.so.conf.d/nndeploy.conf && ldconfig
 
 # ---- Default Interface ----
 WORKDIR /workspace/
