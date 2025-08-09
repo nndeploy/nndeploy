@@ -314,12 +314,12 @@ install_requires = [
     # 'setuptools<=68.0.0',  # Setup tools
     'gitpython>=3.1.30',  # Git operations
     'aiofiles>=24.1.0',  # Asynchronous file operations
-    'PyYAML>=5.3.1',  # YAML parsing
     'pytest',  # Testing framework
     'jsonschema',  # JSON Schema validation
     'multiprocess',  # Multiprocessing support
     'numpy',  # Numerical computation
     # 'opencv-python>=4.8.0',  # Image processing
+    'modelscope',
 ]
 
 # Detect if CUDA is available and its version

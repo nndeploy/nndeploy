@@ -156,15 +156,11 @@
    + output：output_0
 + 鼠标放到workflow上
    + desc：Graph
-   + input：input_0
-   + output：output_0
 + 鼠标放到port上
    + type：Tensor
    + desc：input_0
 + 将Workflow更改成Workspace
    + 对应后端需要修改
-
-+ 添加的了Group之后，无法把节点拉到界面上来
 
 + 对于节点而言
    + developer_是隐藏的
@@ -173,3 +169,11 @@
 + 所有参数都不是必填的，把必填参数去掉
 
 + 图片资源有时候显示不出来
+
++ 路径有时候是全路径、有时候是相对路径、有时候只有名字
+
++ list的前端无法正确序列化
+
++ map<str, str> 也无法正确序列化
+
++ 添加的了Group之后，无法把节点拉到界面上来
