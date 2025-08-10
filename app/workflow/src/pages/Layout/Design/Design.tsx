@@ -183,7 +183,7 @@ const Design: React.FC = () => {
   function onFlowSave(flow: IWorkFlowEntity) {
     const newTabs = tabs.map((tab) => {
       if (tab.tabId === activeKey) {
-        return { ...tab, name: flow.businessContent.name_, id: flow.id,
+        return { ...tab, name: flow.businessContent.name_, id: flow.id,flowType: EnumFlowType.workspace
 
           //newName: '' 
           }

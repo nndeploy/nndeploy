@@ -4,13 +4,8 @@ import {
   ValidateTrigger,
   Field,
   FieldArray,
-  useFieldValidate,
-  useWatch,
-  useWatchFormValueIn,
-  useNodeRender,
-  useWatchFormValues,
 } from "@flowgram.ai/free-layout-editor";
-import { Modal, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -22,14 +17,12 @@ import { FormItem } from "../form-item";
 import { FormParams } from "../form-params";
 import { FxExpression } from "../../../../form-components/fx-expression";
 import Section from "@douyinfe/semi-ui/lib/es/form/section";
-import { GroupNodeRender } from "../../../../components";
-import lodash, { random, uniqueId } from "lodash";
+import lodash, { uniqueId } from "lodash";
 import { FormDynamicPorts } from "../form-dynamic-ports";
-import { FlowEnviromentContext, useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
+import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 import { getFieldType } from "../functions";
 import { INodeEntity } from "../../../Node/entity";
-import { useContext, useEffect, useRef, useState } from "react";
-import RepositoryItemDrawer from "../NodeRepositoryEditor";
+import { useRef, useState } from "react";
 import NodeRepositoryEditor from "../NodeRepositoryEditor";
 import { IResourceTreeNodeEntity } from "../../../Layout/Design/Resource/entity";
 import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDrawer";
@@ -43,25 +36,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const { nodeList = [], paramTypes, element: flowElementRef, outputResource } = useFlowEnviromentContext()
 
-
-
-  //console.log("form.values", form.values);
-
-  // const basicFields = ["name_", "device_type_", "type_"].filter((item) =>
-  //   form.values.hasOwnProperty(item)
-  // );
-
   const is_dynamic_input_ = form.getValueIn("is_dynamic_input_");
   const is_dynamic_output_ = form.getValueIn("is_dynamic_output_");
-
-  const path_ = form.getValueIn("path_") as string;
 
   const key_ = form.getValueIn("key_");
 
   const name_ = form.getValueIn('name_')
-
-
-
 
   const excludeFields = [
     "id",
@@ -82,30 +62,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     excludeFields
   );
 
-  const [respository, setRespository] = useState<INodeEntity>({} as INodeEntity)
-  const [repositoryDrawerVisible, setRepositoryDrawerVisible] = useState(false)
-
-  function onShowRepositoryItemDrawer(respository: INodeEntity) {
-    setRespository(respository)
-    setRepositoryDrawerVisible(true)
-  }
-
-  function onRepositoryDrawerClose() {
-    setRepositoryDrawerVisible(false)
-  }
-
-  function onRepositoryDrawerSave(respository: INodeEntity) {
-
-  }
-
-  function isMediaNode() {
-
-    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvImageEncode']
-    if (imageNodes.includes(key_)) {
-      return true
-    }
-    return false
-  }
 
   function isTextNode() {
     const textNodes: string[] = ['nndeploy::qwen::PrintNode',]
@@ -142,14 +98,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
 
   function isImageFile(filename: string) {
-    // 支持的图片后缀（不区分大小写）
+
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
     const lowerFilename = filename.toLowerCase();
     return imageExtensions.some(ext => lowerFilename.endsWith(ext));
   }
-  // 新增判断视频文件的函数
+
   function isVideoFile(filename: string) {
-    // 支持的视频后缀（不区分大小写）
+
     const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm', '.mpeg', '.mpg'];
     const lowerFilename = filename.toLowerCase();
     return videoExtensions.some(ext => lowerFilename.endsWith(ext));
@@ -163,7 +119,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     event.stopPropagation();
     event.preventDefault();
 
-    //setFile(file)
     const parentId = file.includes('images') ? 'images' : file.includes('videos') ? 'videos' : ''
     const fileName = file.substring(file.lastIndexOf('/') + 1)
     setResourceEdit({ id: uniqueId(), parentId, type: 'leaf', name: fileName })
@@ -184,10 +139,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const renderFormRef = useRef<any>();
 
-  // const getContainer = () => {
-  //       return document.querySelector('#root')! as HTMLDivElement;
-  //   };
-
   function getPopupContainer() {
 
     let container = renderFormRef?.current;
@@ -195,10 +146,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
       container = container.parentElement;
     }
     return container
-
-    // const container = document.querySelector('div.demo-container')! as HTMLDivElement
-    // const container = document.querySelector('#root')! as HTMLDivElement  //div.demo-container
-    //  return container
   }
   function needShowMedia() {
 
@@ -208,26 +155,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     return needShow
   }
 
-  const [updateVal, setUpdateVal] = useState({})
-
-  // const update = ()=>{
-  //   setUpdateVal({})
-  // }
-
-  // useEffect(()=>{
-
-  // }, [updateVal])
-
-  // useEffect(() => {
-  //   if (outputResources) {
-  //     console.log('outputResources', outputResources,)
-  //     console.log('name', form.getValueIn('name_'))
-  //   }
-
-
-  // }, [outputResources])
-
-  const [refresh, setRefresh] = useState({})
 
   return (
     <div className="drawer-render-form" ref={renderFormRef}>
@@ -240,9 +167,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               <div className="input-area">
                 <FieldArray name="inputs_">
                   {({ field }) => {
-                    // setTimeout(()=>{
-                    //   setRefresh({})
-                    // }, 0)
+
                     return <>
                       {field.map((child, index) => {
                         return (
@@ -273,36 +198,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                     </>
                   }}
                 </FieldArray>
-                {/* {
-              inputValues.map((item) => {
-                
-                return (
-                 
-                  <FormItem
-                   key={`${item.type_}/${item.desc_}`}
-                    name={`${item.type_}/${item.desc_}`}
-                    type="boolean"
-                    required={false}
-                    //labelWidth={40}
-                  >
-                    <div
-                      className="connection-point connection-point-left"
-                      data-port-id={item.desc_}
-                      data-port-type="input"
-                    ></div>
-                  </FormItem>
-                )
-              }
-              )
-            } */}
+
               </div>
               <div className="output-area">
                 <FieldArray name="outputs_">
                   {({ field }) => {
 
-                    //  setTimeout(()=>{
-                    //   setRefresh({})
-                    // }, 0)
                     return <>
                       {field.map((child, index) => (
                         <Field<any> key={child.name} name={child.name}>
@@ -338,7 +239,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                 if (needShowMedia() && field.value && isImageFile(field.value as string)) {
 
-                  const filePath = outputResource.path.find(item=>item.name == name_)?.path ?? field.value
+                  const filePath = outputResource.path.find(item => item.name == name_)?.path ?? field.value
 
                   const url = `/api/preview?file_path=${filePath}` //${field.value}&time=${Date.now()}
                   return <div className="resource-preview">
@@ -348,7 +249,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                   </div>
                 } else if (needShowMedia() && field.value && isVideoFile(field.value as string)) {
 
-                  const filePath = outputResource.path.find(item=>item.name == name_)?.path ?? field.value
+                  const filePath = outputResource.path.find(item => item.name == name_)?.path ?? field.value
 
                   const url = `/api/preview?file_path=${filePath}`  //${field.value}&time=${Date.now()}
                   return <div className="resource-preview"
@@ -383,7 +284,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         )}
         {isSidebar ? (
           <>
-            {/* <Section text={"basic"}> */}
             {basicFields.map((fieldName) => {
               return (
                 <Field key={fieldName} name={fieldName}>
@@ -457,8 +357,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 </Field>
               );
             })}
-            {/* </Section> */}
-
+   
             {is_dynamic_input_ && (
               <Section text={"inputs_"} key="inputs_">
                 <FormDynamicPorts portType="inputs_" />
@@ -476,50 +375,29 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </Section>
             }
 
-            {
-              // form.values.hasOwnProperty('node_repository_') && <Section text={"node_repository_"}>
-              //   {
+            <Field<any> name="node_repository_">
+              {({ field: node_repository_ }) => {
 
-              //     <NodeRepositoryEditor node_repository_ = {form.getValueIn('node_repository_') as INodeEntity[]}
-              //       nodeList = {nodeList} paramTypes = {paramTypes}
+                if (node_repository_.value && node_repository_.value.length > 0) {
+                  return <Section text={"node_repository_"}>
+                    {
 
-
-              //     onUpdate={(values)=>{
-              //        //console.log(values)
-              //        form.setValueIn('node_repository_', values)
-
-              //        var temp = form.values
-              //        var i = 0
-              //     }}  />
-              //   }
-              // </Section>
-
-              <Field<any> name="node_repository_">
-                {({ field: node_repository_ }) => {
-
-                  if (node_repository_.value && node_repository_.value.length > 0) {
-                    return <Section text={"node_repository_"}>
-                      {
-
-                        <NodeRepositoryEditor node_repository_={form.getValueIn('node_repository_') as INodeEntity[]}
-                          nodeList={nodeList} paramTypes={paramTypes}
+                      <NodeRepositoryEditor node_repository_={form.getValueIn('node_repository_') as INodeEntity[]}
+                        nodeList={nodeList} paramTypes={paramTypes}
 
 
-                          onUpdate={(values) => {
-                            //console.log(values)
-                            node_repository_.onChange(values)
-                          }} />
-                      }
-                    </Section>
-                  } else {
-                    return <></>
-                  }
+                        onUpdate={(values) => {
+                          //console.log(values)
+                          node_repository_.onChange(values)
+                        }} />
+                    }
+                  </Section>
+                } else {
+                  return <></>
+                }
 
-                }}
-              </Field>
-
-
-            }
+              }}
+            </Field>
             {
               isTextNode() && needShowTextContent() &&
               <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
@@ -532,39 +410,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
           <></>
         )}
       </FormContent>
-      {/* <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
-                <RepositoryItemDrawer respository = {respository} onRepositoryDrawerSave = {onRepositoryDrawerSave}/>
 
-            </SideSheet> */}
-      {/* 
-      <Modal
-        title="file preview"
-        visible={fileModelVisible}
-        //onOk={handleOk}
-        //afterClose={fileModelClose} //>=1.16.0
-       // onCancel={fileModelClose}
-        closeOnEsc={false}
-        //zIndex={100000000000000}
-      >
-        <>
-        <h2>model content..........</h2>
-          {file?.includes("images") ?
-            <div className="image-preview">
-              <img src={`/api/preview/images/${file.split('images')[1]}`} />
-            </div>
-            : file.includes("videos") ?
-              <div className="video-preview">
-                <VideoPlayer
-                  height={430}
-                  src={`/api/preview/videos/${file.split('images')[1]}}`}
-               
-                />
-              </div>
-              : <></>
 
-          }
-        </>
-      </Modal> */}
       <SideSheet
         width={"60%"}
         mask={true}
@@ -572,8 +419,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         onCancel={handleResoureDrawerClose}
         closeOnEsc={true}
         title={'resource preview'}
-
-        //zIndex={10000}
         getPopupContainer={getPopupContainer}
       >
         <ResourceEditDrawer
@@ -600,16 +445,3 @@ export const formMeta: FormMeta<FlowNodeJSON> = {
     // },
   },
 };
-
-// export const groupFormMeta: FormMeta<FlowNodeJSON> = {
-//   render: GroupNodeRender,
-//   validateTrigger: ValidateTrigger.onChange,
-//   validate: {
-//     title: ({ value }: { value: string }) =>
-//       value ? undefined : "Title is required",
-//     "inputsValues.conditions.*": ({ value }) => {
-//       if (!value?.value?.content) return "Condition is required";
-//       return undefined;
-//     },
-//   },
-// };

@@ -134,7 +134,11 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
                         //debugger
                         let i = 0
                       }
+                      if (fieldName == 'image_url_') {
+                        let j = 0
+                      }
                       const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+
                       return <FormItem
                         name={fieldName}
                         type={"string" as string}

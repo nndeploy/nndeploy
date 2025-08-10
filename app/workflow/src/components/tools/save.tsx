@@ -20,7 +20,7 @@ export function Save(props: { disabled: boolean }) {
   /**
    * Validate all node and Save
    */
-  const onSave = useCallback(async () => {
+  const onSave = async () => {
     const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
     try{
 
@@ -39,7 +39,7 @@ export function Save(props: { disabled: boolean }) {
        console.error('onSave', e)
      }
     //console.log('>>>>> save data: ', clientContext.document.toJSON());
-  }, [clientContext]);
+  };
 
   /**
    * Listen single node validate
