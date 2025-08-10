@@ -78,7 +78,7 @@ class NnDeployServer:
         self._register_routes(args)
 
         template_parent = WorkflowTemplateManager.init_templates()
-        self.template_path = Path(template_parent) / "nndeploy-workflow-main"
+        self.template_path = Path(template_parent) / "nndeploy-workflow"
 
     def _init_db(self):
         cursor = self.conn.cursor()
@@ -253,28 +253,6 @@ class NnDeployServer:
             logging.warning(f"[_upsert_workflow_by_path] failed for {file_path}: {e}")
             return None
 
-    # def _record_workflow_file(self, file_path: Path) -> Optional[int]:
-    #     try:
-    #         abs_path = str(file_path.resolve())
-    #         name = file_path.name
-    #         ext = file_path.suffix.lower()
-    #         size = file_path.stat().st_size if file_path.exists() else None
-    #         cover = None
-    #         req = None
-
-    #         cursor = self.conn.cursor()
-    #         wid = str(uuid.uuid4())
-    #         cursor.execute("""
-    #             INSERT OR IGNORE INTO workflows (id, path, name, ext, size, cover, requirements)
-    #             VALUES (?, ?, ?, ?, ?, ?, ?)
-    #         """, (wid, abs_path, name, ext, size, cover, req))
-    #         row = cursor.execute("SELECT id FROM workflows WHERE path = ?", (abs_path,)).fetchone()
-    #         self.conn.commit()
-    #         return row["id"] if row else None
-    #     except Exception as e:
-    #         logging.warning(f"[_record_workflow_file] failed for {file_path}: {e}")
-    #         return None
-
     def _record_template_file(self, file_path: Path) -> None:
         try:
             abs_path = str(file_path.resolve())
@@ -352,6 +330,7 @@ class NnDeployServer:
                     raise HTTPException(status_code=400, detail="businessContent must be a JSON object or JSON string")
 
                 id = self._norm_id(root.get("id"))
+                print(id)
 
                 if id:
                     cur = self.conn.cursor()
@@ -369,7 +348,7 @@ class NnDeployServer:
                     )
 
                 else:
-                    name_from_json = req.root.get("name_")
+                    name_from_json = data.get("name_")
                     base_name = name_from_json if name_from_json else f"{uuid.uuid4()}.json"
                     if not base_name.endswith((".json", ".yml", ".yaml")):
                         base_name = f"{base_name}.json"
@@ -378,6 +357,7 @@ class NnDeployServer:
 
                     self._write_json_replace(dst, data)
                     wid = self._insert_workflow_row(dst)
+                    print(wid)
 
                     return WorkFlowSaveResponse(
                         flag="success",
@@ -463,35 +443,6 @@ class NnDeployServer:
 
             return FileResponse(f, media_type=media_type, filename=f.name)
 
-        # @api.get(
-        #     "/workflow/download",
-        #     tags=["Workflow"],
-        #     summary="download workflow",
-        #     response_class=FileResponse,
-        # )
-        # async def download_workflow(file_path: str = Query(..., description="absolute_path or relative path")):
-        #     """
-        #     download existed workflow file
-        #     """
-        #     f = self.workflow_dir / file_path
-        #     if not f.exists():
-        #         raise HTTPException(status_code=404, detail="Not found")
-
-        #     MIME_MAP: dict[str, str] = {
-        #         ".json": "application/json",
-        #         ".yaml": "application/x-yaml",
-        #         ".yml":  "application/x-yaml"
-        #     }
-
-        #     media_type = MIME_MAP.get(f.suffix.lower(), "application/octet-stream")
-
-        #     if media_type is None:
-        #         raise HTTPException(
-        #             status_code=400,
-        #             detail="Unsupported download type"
-        #         )
-        #     return FileResponse(f, media_type=media_type, filename=f.name)
-
         @api.get(
             "/workflows",
             tags=["Workflow"],
@@ -538,36 +489,6 @@ class NnDeployServer:
                 result=results
             )
 
-        # @api.get(
-        #     "/workflow",
-        #     tags=["Workflow"],
-        #     response_model=WorkFlowListResponse,
-        #     summary="load workflow lists",
-        # )
-        # async def get_workflow_json():
-        #     workflow_dir = self.workflow_dir
-
-        #     if not workflow_dir.exists():
-        #         raise HTTPException(status_code=404, detail="workflow dir is not exist")
-
-        #     workflow = []
-        #     filenames = []
-        #     result = {}
-        #     try:
-        #         for json_file in workflow_dir.glob("*.json"):
-        #             with open(json_file, 'r') as f:
-        #                 data = json.load(f)
-        #                 workflow.append(data)
-        #                 filenames.append(json_file.name)
-        #         result["fileNames"]=filenames
-        #         result["workflows"]=workflow
-        #         flag = "success"
-        #         message = "success"
-        #         return WorkFlowListResponse(flag=flag, message=message, result=result)
-
-        #     except Exception as e:
-        #         raise HTTPException(status_code=500, detail=f"reading error: {e}")
-
         @api.post(
             "/workflow/delete/{id}",
             tags=["Workflow"],
@@ -596,29 +517,6 @@ class NnDeployServer:
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"delete error: {e}")
 
-        # @api.post(
-        #     "/workflow/delete/{file_name}",
-        #     tags=["Workflow"],
-        #     response_model=WorkFlowDeleteResponse,
-        #     summary="delete workflow json",
-        # )
-        # async def delete_workflow_json(file_name: str):
-        #     workflow_dir = self.workflow_dir
-
-        #     file_path = workflow_dir / f"{file_name}"
-
-        #     if not file_path.exists():
-        #         raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
-
-        #     try:
-        #         file_path.unlink()
-        #         flag = "success"
-        #         message = f"file {file_name}.json has been deleted"
-        #         return WorkFlowDeleteResponse(flag=flag, message=message)
-
-        #     except Exception as e:
-        #         raise HTTPException(status_code=500, detail=f"delete error: {e}")
-
         @api.get(
             "/workflow/{id}",
             tags=["Workflow"],
@@ -641,29 +539,6 @@ class NnDeployServer:
                 data = json.load(f)
 
             return WorkFlowLoadResponse(flag="success", message="success", result=data)
-        # @api.get(
-        #     "/workflow/{file_name}",
-        #     tags=["Workflow"],
-        #     response_model=WorkFlowLoadResponse,
-        #     summary="get workflow json",
-        # )
-        # async def get_workflow_json(file_name: str):
-        #     workflow_dir = self.workflow_dir
-
-        #     file_path = workflow_dir / f"{file_name}"
-
-        #     if not file_path.exists():
-        #         raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
-
-        #     try:
-        #         with open(file_path, 'r') as f:
-        #             result = json.load(f)
-        #         flag = "success"
-        #         message = "success"
-        #         return WorkFlowLoadResponse(flag=flag, message=message, result=result)
-
-        #     except Exception as e:
-        #         raise HTTPException(status_code=500, detail=f"reading file error: {e}")
 
         @api.get(
             "/template",

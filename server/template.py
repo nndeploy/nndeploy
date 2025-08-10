@@ -84,9 +84,9 @@ def _stream_download_with_retry(url: str, dest_dir: Path, retries: int = 3, dela
                 raise
 
 def _download_via_release(rel: dict, dest: Path) -> None:
-    asset_url = next((a["browser_download_url"] for a in rel.get("assets", []) if a["name"] == "nndeploy-workflow-main.zip"), None)
+    asset_url = next((a["browser_download_url"] for a in rel.get("assets", []) if a["name"] == "nndeploy-workflow.zip"), None)
     if asset_url is None:
-        raise RuntimeError("nndeploy-workflow-main.zip not found in release assets")
+        raise RuntimeError("nndeploy-workflow.zip not found in release assets")
     _stream_download_with_retry(asset_url, dest)
 
 class WorkflowTemplateManager:
@@ -113,14 +113,14 @@ class WorkflowTemplateManager:
 
         # If not latest, try cached directory first
         if tag != "latest":
-            dest = TEMPLATE_ROOT / f"{owner}_{repo}" / tag.lstrip("v")
-            dest_inner = dest / "nndeploy-workflow-main"
+            dest = TEMPLATE_ROOT
+            dest_inner = dest / "nndeploy-workflow"
             if dest_inner.exists():
                 logging.info(f"use cached templates at {dest_inner}")
                 return str(dest)
 
             # Try direct download from GitHub release asset URL
-            direct_url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/nndeploy-workflow-main.zip"
+            direct_url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/nndeploy-workflow.zip"
             try:
                 logging.info(f"Attempting direct download: {direct_url} → {dest}")
                 dest.mkdir(parents=True, exist_ok=True)
@@ -137,7 +137,7 @@ class WorkflowTemplateManager:
         provider = TemplateProvider(owner, repo)
         rel = provider.latest if tag == "latest" else provider.by_tag(tag)
         semver = rel["tag_name"].lstrip("v")
-        dest = TEMPLATE_ROOT / f"{owner}_{repo}" / semver
+        dest = TEMPLATE_ROOT
         if not dest.exists():
             logging.info(f"Downloading templates via API: {owner}/{repo}@{semver} → {dest}")
             dest.mkdir(parents=True, exist_ok=True)
