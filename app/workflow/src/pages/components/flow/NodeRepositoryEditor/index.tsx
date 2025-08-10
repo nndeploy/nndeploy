@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Select, SideSheet, Switch, Typography } from '@douyinfe/semi-ui';
+import { Button, Select, SideSheet, Switch, Typography } from '@douyinfe/semi-ui';
 
 import { Form, Field, FieldArray, useForm } from "@flowgram.ai/free-layout-editor";
 import { INodeEntity } from '../../../Node/entity';
@@ -13,6 +13,8 @@ import { FxExpression } from '../../../../form-components/fx-expression';
 import { Feedback } from '../../../../form-components';
 import Section from '@douyinfe/semi-ui/lib/es/form/section';
 import { FormParams } from '../form-params';
+import { IconCrossCircleStroked, IconPlus } from '@douyinfe/semi-icons';
+import { useIsSidebar } from '../../../../hooks';
 
 const { Text } = Typography;
 
@@ -35,18 +37,12 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
   const { nodeEntity, visible, onClose, onSave, paramTypes, nodeList } = props
 
+  //const readonly = !useIsSidebar();
+
   const formRef = useRef<any>()
-
-
-  //const form = useForm();
-
 
   const [childEditingNode, setChildEditingNode] = useState<INodeEntity | null>(null);
   const [childDrawerVisible, setChildDrawerVisible] = useState(false);
-
-  // useEffect(() => {
-  //   form.initialValues = nodeEntity
-  // }, [nodeEntity, form]);
 
   const openChildEditor = (childNode: INodeEntity) => {
     setChildEditingNode(childNode);
@@ -127,6 +123,106 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
               }}
             >
               {basicFields.map((fieldName) => {
+                const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+
+
+
+                if (fieldType.isArray) {
+                  return (
+                    <div className="number-array-field">
+                      <div className="field-label">{fieldName}</div>
+                      <div className="filed-array-items">
+                        <FieldArray name={`${fieldName}`}>
+                          {({ field }) => {
+
+                            if (!lodash.isFunction(field.map)) {
+                              var xx = 0
+                            }
+                            return <>
+                              {field.map((child, index) => (
+                                <Field key={child.name} name={child.name}>
+                                  {({
+                                    field: childField,
+                                    fieldState: childState,
+                                  }) => (
+                                    <div className="expression-field" style={{ width: '100%' }}
+                                    >
+                                      <>
+                                        {
+
+                                          fieldType.componentType == 'boolean' ?
+                                            <Switch checked={!!childField.value}
+                                              //label='开关(Switch)' 
+                                              onChange={(value: boolean) => {
+                                                childField.onChange(value)
+                                              }} />
+                                            : fieldType.componentType == 'select' ?
+                                              <Select
+
+                                                value={childField.value as number}
+                                                style={{ width: '100%' }}
+                                                optionList={paramTypes[fieldType.selectKey!].map(item => {
+                                                  return {
+                                                    label: item,
+                                                    value: item
+                                                  }
+                                                })}
+
+                                                onChange={(value) => {
+                                                  childField.onChange(value)
+                                                }}
+
+                                              >
+
+                                              </Select> :
+
+                                              <FxExpression
+                                                value={childField.value as number}
+                                                fieldType={fieldType}
+                                                onChange={(v) => childField.onChange(v)}
+                                                icon={
+                                                  <Button
+                                                    theme="borderless"
+                                                    icon={<IconCrossCircleStroked />}
+                                                    onClick={() => field.delete(index)}
+                                                  />
+                                                }
+                                                hasError={
+                                                  Object.keys(childState?.errors || {})
+                                                    .length > 0
+                                                }
+                                                readonly={false}
+                                              />
+
+
+                                        }
+                                        <Feedback
+                                          errors={childState?.errors}
+                                          invalid={childState?.invalid}
+                                        />
+                                      </>
+                                    </div>
+                                  )}
+                                </Field>
+                              ))}
+                              {!false && (
+                                <div>
+                                  <Button
+                                    theme="borderless"
+                                    icon={<IconPlus />}
+                                    onClick={() => field.append(0)}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                              )}
+                            </>
+                          }}
+                        </FieldArray>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <Field key={fieldName} name={fieldName}>
                     {({ field, fieldState }) => {
@@ -137,7 +233,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
                       if (fieldName == 'image_url_') {
                         let j = 0
                       }
-                      const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+
 
                       return <FormItem
                         name={fieldName}
