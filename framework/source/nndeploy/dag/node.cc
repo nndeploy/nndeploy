@@ -635,7 +635,8 @@ void Node::setStream(device::Stream *stream) {
 device::Stream *Node::getStream() { return stream_; }
 
 base::Status Node::setInputTypeInfo(
-    std::shared_ptr<EdgeTypeInfo> input_type_info) {
+    std::shared_ptr<EdgeTypeInfo> input_type_info, std::string desc) {
+  input_type_info->setEdgeName(desc);
   input_type_info_.push_back(input_type_info);
   return base::Status::Ok();
 }
@@ -644,7 +645,8 @@ std::vector<std::shared_ptr<EdgeTypeInfo>> Node::getInputTypeInfo() {
 }
 
 base::Status Node::setOutputTypeInfo(
-    std::shared_ptr<EdgeTypeInfo> output_type_info) {
+    std::shared_ptr<EdgeTypeInfo> output_type_info, std::string desc) {
+  output_type_info->setEdgeName(desc);
   output_type_info_.push_back(output_type_info);
   return base::Status::Ok();
 }

@@ -186,7 +186,7 @@ class Graph(_C.dag.Graph):
         """
         return super().get_other_url()
         
-    def set_input_type(self, input_type: type):
+    def set_input_type(self, input_type: type, desc: str = ""):
         """Set input type
         
         Args:
@@ -197,9 +197,9 @@ class Graph(_C.dag.Graph):
         """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(input_type)
-        return self.set_input_type_info(edge_type_info)
+        return self.set_input_type_info(edge_type_info, desc)
 
-    def set_output_type(self, output_type: type):
+    def set_output_type(self, output_type: type, desc: str = ""):
         """Set output type
         
         Args:
@@ -210,7 +210,7 @@ class Graph(_C.dag.Graph):
         """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
-        return self.set_output_type_info(edge_type_info)
+        return self.set_output_type_info(edge_type_info, desc)
     
     def set_edge_queue_max_size(self, queue_max_size: int):
         """Set edge queue maximum size

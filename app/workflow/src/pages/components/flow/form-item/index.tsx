@@ -12,7 +12,7 @@ interface FormItemProps {
   name: string;
   type: string;
   required?: boolean;
-  description?: string;
+  description?: React.ReactNode;
   labelWidth?: number;
 }
 export function FormItem({

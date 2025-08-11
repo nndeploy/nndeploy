@@ -1,6 +1,6 @@
 import { IconExpand } from "@douyinfe/semi-icons"
 import { IconChangelog } from "@douyinfe/semi-icons-lab"
-import { IconButton, List, Popover, Tooltip } from "@douyinfe/semi-ui"
+import { Badge, IconButton, List, Popover, Tooltip } from "@douyinfe/semi-ui"
 import { useState } from "react";
 import './index.less'
 import { useFlowEnviromentContext } from "../../../context/flow-enviroment-context";
@@ -9,7 +9,7 @@ const Log: React.FC<any> = (props) => {
 
   const [visible, setVisible] = useState(false);
 
-  const { log } = useFlowEnviromentContext()
+  const { log, runResult } = useFlowEnviromentContext()
 
   return <Tooltip
     content={'log'}>
@@ -58,15 +58,28 @@ const Log: React.FC<any> = (props) => {
 
 
     >
-
-      <IconButton
-        icon={<IconChangelog />}
-        type="tertiary"
-        theme="borderless"
-        onClick={() => {
-          setVisible(!visible)
-        }}
-      />
+      <Badge type='danger' 
+      // count={runResult ? runResult : undefined}
+      //  position="leftTop" 
+      dot={runResult === 'error'}
+       >
+        <IconButton
+          icon={<IconChangelog 
+            color = {runResult ? 'red': undefined}
+            //style={ runResult === 'error' ? {color: 'var(--semi-color-danger)'}: {}}
+            style={{ color: runResult ? 'red' : undefined }} 
+            />}
+          type="tertiary"
+          theme="borderless"
+          color = {runResult ? 'red': undefined}
+          onClick={() => {
+            setVisible(!visible)
+          }}
+          
+         
+          //style={{marginRight: 10}}
+        />
+      </Badge>
 
     </Popover>
   </Tooltip>

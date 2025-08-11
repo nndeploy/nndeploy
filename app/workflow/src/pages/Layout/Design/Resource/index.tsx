@@ -19,7 +19,7 @@ import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 
 const { Text, Paragraph } = Typography;
 const Resource: React.FC = () => {
-  const { flatData, setFlatData, treeData } = useGetTree();
+  const { flatData, setFlatData, treeData  ,getResourceTree} = useGetTree();
 
   const [resoureEditVisible, setResourceEditVisible] = useState(false);
   const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
@@ -76,17 +76,18 @@ const Resource: React.FC = () => {
 
       return descendants;
     }
-    const url = `/api/files/delete/${node.parentId}/${node.id}`
+    const url = `/api/files/delete?file_path=${node.file_info?.saved_path}`
     const response = await apiResourceDelete( url);
 
     if (response.flag == "success") {
-      var toDeleteIds = findDescendantsIncludingSelf(flatData, node.id).map(
-        (item) => item.id
-      );
-      var newFlatData = flatData.filter(
-        (item) => !toDeleteIds.includes(item.id)
-      );
-      setFlatData(newFlatData);
+      // var toDeleteIds = findDescendantsIncludingSelf(flatData, node.id).map(
+      //   (item) => item.id
+      // );
+      // var newFlatData = flatData.filter(
+      //   (item) => !toDeleteIds.includes(item.id)
+      // );
+      // setFlatData(newFlatData);
+      getResourceTree()
     }
   }
 
@@ -114,7 +115,8 @@ const Resource: React.FC = () => {
   }
 
   function onResourceEditDrawerSure(resource: IResourceTreeNodeEntity) {
-    addNode(resource);
+    //addNode(resource);
+     getResourceTree()
     setResourceEditVisible(false);
   }
 
@@ -150,15 +152,18 @@ const Resource: React.FC = () => {
               </Dropdown.Item>
             )} */}
             {resource.type == "branch" && (
+
+              <>
               <Dropdown.Item
                 onClick={() =>{
-                    onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf"  })
+                    onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf" , parent_info: resource })
                 }
                   
                 }
               >
                 add resource
               </Dropdown.Item>
+              </>
             )}
              {resource.type == "leaf" && (
             <Dropdown.Item>

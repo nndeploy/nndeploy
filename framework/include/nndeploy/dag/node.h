@@ -198,26 +198,28 @@ class NNDEPLOY_CC_API Node {
   device::Stream *getStream();
 
   template <typename T>
-  base::Status setInputTypeInfo() {
+  base::Status setInputTypeInfo(std::string desc = "") {
     std::shared_ptr<EdgeTypeInfo> edge_type_info =
         std::make_shared<EdgeTypeInfo>();
     edge_type_info->setType<T>();
+    edge_type_info->setEdgeName(desc);
     input_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
   }
-  base::Status setInputTypeInfo(std::shared_ptr<EdgeTypeInfo> input_type_info);
+  base::Status setInputTypeInfo(std::shared_ptr<EdgeTypeInfo> input_type_info, std::string desc = "");
   std::vector<std::shared_ptr<EdgeTypeInfo>> getInputTypeInfo();
 
   template <typename T>
-  base::Status setOutputTypeInfo() {
+  base::Status setOutputTypeInfo(std::string desc = "") {
     std::shared_ptr<EdgeTypeInfo> edge_type_info =
         std::make_shared<EdgeTypeInfo>();
     edge_type_info->setType<T>();
+    edge_type_info->setEdgeName(desc);
     output_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
   }
   base::Status setOutputTypeInfo(
-      std::shared_ptr<EdgeTypeInfo> output_type_info);
+      std::shared_ptr<EdgeTypeInfo> output_type_info, std::string desc = "");
   std::vector<std::shared_ptr<EdgeTypeInfo>> getOutputTypeInfo();
 
   /**

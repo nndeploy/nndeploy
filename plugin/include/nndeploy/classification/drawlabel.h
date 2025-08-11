@@ -46,8 +46,22 @@ class DrawLable : public dag::Node {
                          " score: " + std::to_string(label.scores_);
 
       // 在图像左上角绘制文本
-      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+      // 计算文本大小以确保不会被截断，使用更大的字体
+      int baseline = 0;
+      cv::Size text_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 2.0, 4, &baseline);
+      
+      // 确保文本在图像顶部有足够的边距，避免被截断
+      int y_position = std::max(text_size.height + 10, 50 + i * (text_size.height + 10));
+      
+      // 添加文本背景矩形，提高可读性
+      cv::Point text_origin(30, y_position);
+      cv::Rect background_rect(text_origin.x - 5, text_origin.y - text_size.height - 5,
+                              text_size.width + 10, text_size.height + baseline + 10);
+      cv::rectangle(*output_mat, background_rect, cv::Scalar(0, 0, 0), -1);
+      
+      // 绘制文本，使用更大更粗的字体以提高可见性
+      cv::putText(*output_mat, text, text_origin,
+                  cv::FONT_HERSHEY_SIMPLEX, 2.0, cv::Scalar(0, 255, 0), 4);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
     outputs_[0]->set(output_mat, false);

@@ -26,6 +26,17 @@ export function FormParams() {
     return <></>;
   }
 
+  function isRequiredField(fieldName: string) {
+
+   // var temp = form.getValueIn('param_')
+    const required_params = form.getValueIn("param_.required_params_");
+    if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
+      return true
+    }
+    return false
+
+  }
+
   return (
     <Field<any> name="param_">
       {({ field: params }) => {
@@ -153,7 +164,8 @@ export function FormParams() {
                 return <FormItem
                   name={key}
                   type={"string" as string}
-                //required={required.includes(key)}
+                  labelWidth={138}
+                  required={isRequiredField(key)}
                 >
                   <>
                     {

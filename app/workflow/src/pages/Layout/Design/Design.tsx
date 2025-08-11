@@ -337,7 +337,7 @@ const Design: React.FC = () => {
                   onClick={() => handleFirstLevelClick("nodes")}
                 />
               </Tooltip>
-              <Tooltip content="Workflow" position="right">
+              <Tooltip content="Workspace" position="right">
                 <Nav.Item
                   itemKey="workflow"
                   icon={<IconApps />}
