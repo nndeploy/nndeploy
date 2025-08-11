@@ -6,12 +6,7 @@
 namespace nndeploy {
 namespace inference {
 
-InferenceParam::InferenceParam() : base::Param() {
-  required_params_.emplace_back("inference_type_");
-  required_params_.emplace_back("model_type_");
-  required_params_.emplace_back("model_value_");
-  required_params_.emplace_back("device_type_");
-}
+InferenceParam::InferenceParam() : base::Param() {}
 
 InferenceParam::InferenceParam(base::InferenceType type)
     : base::Param(), inference_type_(type) {}
@@ -474,6 +469,10 @@ void InferenceParam::setLibraryPath(const std::string& library_path, int i) {
 
 base::Status InferenceParam::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addRequiredParam("inference_type_");
+  this->addRequiredParam("model_type_");
+  this->addRequiredParam("model_value_");
+  this->addRequiredParam("device_type_");
   base::Status status = base::Param::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("InferenceParam serialize failed\n");

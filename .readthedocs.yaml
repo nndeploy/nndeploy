@@ -12,7 +12,7 @@ build:
     python: "3.11"
     # You can also specify other tool versions:
     # nodejs: "19"
-    rust: "1.88.0"
+    rust: "1.86"
     # golang: "1.19"
   apt_packages:
     - doxygen

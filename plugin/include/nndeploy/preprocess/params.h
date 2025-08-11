@@ -33,6 +33,9 @@ namespace preprocess {
  */
 class NNDEPLOY_CC_API CvtcolorParam : public base::Param {
  public:
+  CvtcolorParam() : base::Param() {}
+  virtual ~CvtcolorParam() {}
+
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
 
@@ -40,6 +43,11 @@ class NNDEPLOY_CC_API CvtcolorParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtcolorParam::serialize failed\n");
+      return status;
+    }
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
     json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
@@ -52,6 +60,11 @@ class NNDEPLOY_CC_API CvtcolorParam : public base::Param {
   }
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtcolorParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("src_pixel_type_") &&
         json["src_pixel_type_"].IsString()) {
       src_pixel_type_ =
@@ -66,11 +79,13 @@ class NNDEPLOY_CC_API CvtcolorParam : public base::Param {
   }
 };
 
-
 class NNDEPLOY_CC_API CropParam : public base::Param {
  public:
+  CropParam() : base::Param() {}
+  virtual ~CropParam() {}
+
   int top_left_x_ = 0;
-  int top_left_y_ = 0; 
+  int top_left_y_ = 0;
   int width_ = 0;
   int height_ = 0;
 
@@ -78,6 +93,11 @@ class NNDEPLOY_CC_API CropParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CropParam::serialize failed\n");
+      return status;
+    }
     json.AddMember("top_left_x_", top_left_x_, allocator);
     json.AddMember("top_left_y_", top_left_y_, allocator);
     json.AddMember("width_", width_, allocator);
@@ -87,6 +107,11 @@ class NNDEPLOY_CC_API CropParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CropParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("top_left_x_") && json["top_left_x_"].IsInt()) {
       top_left_x_ = json["top_left_x_"].GetInt();
     }
@@ -105,6 +130,9 @@ class NNDEPLOY_CC_API CropParam : public base::Param {
 
 class NNDEPLOY_CC_API NormlizeParam : public base::Param {
  public:
+  NormlizeParam() : base::Param() {}
+  virtual ~NormlizeParam() {}
+
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -114,6 +142,11 @@ class NNDEPLOY_CC_API NormlizeParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("NormlizeParam::serialize failed\n");
+      return status;
+    }
     rapidjson::Value scale_array(rapidjson::kArrayType);
     rapidjson::Value mean_array(rapidjson::kArrayType);
     rapidjson::Value std_array(rapidjson::kArrayType);
@@ -130,6 +163,11 @@ class NNDEPLOY_CC_API NormlizeParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("NormlizeParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("scale_") && json["scale_"].IsArray()) {
       const rapidjson::Value& scale_array = json["scale_"];
       for (int i = 0; i < 4 && i < scale_array.Size(); i++) {
@@ -160,6 +198,9 @@ class NNDEPLOY_CC_API NormlizeParam : public base::Param {
 
 class NNDEPLOY_CC_API TransposeParam : public base::Param {
  public:
+  TransposeParam() : base::Param() {}
+  virtual ~TransposeParam() {}
+
   base::DataFormat src_data_format_ = base::kDataFormatNHWC;
   base::DataFormat dst_data_format_ = base::kDataFormatNCHW;
 
@@ -167,11 +208,18 @@ class NNDEPLOY_CC_API TransposeParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
-    std::string src_data_format_str = base::dataFormatToString(src_data_format_);
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("TransposeParam::serialize failed\n");
+      return status;
+    }
+    std::string src_data_format_str =
+        base::dataFormatToString(src_data_format_);
     json.AddMember("src_data_format_",
                    rapidjson::Value(src_data_format_str.c_str(), allocator),
                    allocator);
-    std::string dst_data_format_str = base::dataFormatToString(dst_data_format_);
+    std::string dst_data_format_str =
+        base::dataFormatToString(dst_data_format_);
     json.AddMember("dst_data_format_",
                    rapidjson::Value(dst_data_format_str.c_str(), allocator),
                    allocator);
@@ -180,11 +228,20 @@ class NNDEPLOY_CC_API TransposeParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
-    if (json.HasMember("src_data_format_") && json["src_data_format_"].IsString()) {
-      src_data_format_ = base::stringToDataFormat(json["src_data_format_"].GetString());
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("TransposeParam::deserialize failed\n");
+      return status;
     }
-    if (json.HasMember("dst_data_format_") && json["dst_data_format_"].IsString()) {
-      dst_data_format_ = base::stringToDataFormat(json["dst_data_format_"].GetString());
+    if (json.HasMember("src_data_format_") &&
+        json["src_data_format_"].IsString()) {
+      src_data_format_ =
+          base::stringToDataFormat(json["src_data_format_"].GetString());
+    }
+    if (json.HasMember("dst_data_format_") &&
+        json["dst_data_format_"].IsString()) {
+      dst_data_format_ =
+          base::stringToDataFormat(json["dst_data_format_"].GetString());
     }
     return base::kStatusCodeOk;
   }
@@ -192,6 +249,9 @@ class NNDEPLOY_CC_API TransposeParam : public base::Param {
 
 class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
  public:
+  DynamicShapeParam() : base::Param() {}
+  virtual ~DynamicShapeParam() {}
+
   bool is_power_of_n_ = false;
   int n_ = 2;
   int w_align_ = 1;
@@ -204,6 +264,11 @@ class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("DynamicShapeParam::serialize failed\n");
+      return status;
+    }
     json.AddMember("is_power_of_n_", is_power_of_n_, allocator);
     json.AddMember("n_", n_, allocator);
     json.AddMember("w_align_", w_align_, allocator);
@@ -232,6 +297,11 @@ class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("DynamicShapeParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("is_power_of_n_") && json["is_power_of_n_"].IsBool()) {
       is_power_of_n_ = json["is_power_of_n_"].GetBool();
     }
@@ -281,6 +351,9 @@ class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
 
 class NNDEPLOY_CC_API ResizeParam : public base::Param {
  public:
+  ResizeParam() : base::Param() {}
+  virtual ~ResizeParam() {}
+
   base::InterpType interp_type_ = base::kInterpTypeLinear;
   float scale_w_ = 0.0f;
   float scale_h_ = 0.0f;
@@ -290,18 +363,30 @@ class NNDEPLOY_CC_API ResizeParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    this->addRequiredParam("dst_h");
+    this->addRequiredParam("dst_w");
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("ResizeParam::serialize failed\n");
+      return status;
+    }
     std::string interp_type_str = base::interpTypeToString(interp_type_);
-    json.AddMember("interp_type_", 
+    json.AddMember("interp_type_",
                    rapidjson::Value(interp_type_str.c_str(), allocator),
                    allocator);
     json.AddMember("scale_w_", scale_w_, allocator);
-    json.AddMember("scale_h_", scale_h_, allocator); 
+    json.AddMember("scale_h_", scale_h_, allocator);
     json.AddMember("dst_h_", dst_h_, allocator);
     json.AddMember("dst_w_", dst_w_, allocator);
     return base::kStatusCodeOk;
   }
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("ResizeParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
       interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
     }
@@ -323,6 +408,9 @@ class NNDEPLOY_CC_API ResizeParam : public base::Param {
 
 class NNDEPLOY_CC_API PaddingParam : public base::Param {
  public:
+  PaddingParam() : base::Param() {}
+  virtual ~PaddingParam() {}
+
   base::BorderType border_type_ = base::kBorderTypeConstant;
   int top_ = 0;
   int bottom_ = 0;
@@ -333,6 +421,11 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("PaddingParam::serialize failed\n");
+      return status;
+    }
     std::string border_type_str = base::borderTypeToString(border_type_);
     json.AddMember("border_type_",
                    rapidjson::Value(border_type_str.c_str(), allocator),
@@ -341,7 +434,7 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
     json.AddMember("bottom_", bottom_, allocator);
     json.AddMember("left_", left_, allocator);
     json.AddMember("right_", right_, allocator);
-    // 
+    //
     rapidjson::Value border_val_array(rapidjson::kArrayType);
     for (int i = 0; i < 4; i++) {
       border_val_array.PushBack(border_val_.val_[i], allocator);
@@ -351,6 +444,11 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
   }
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("PaddingParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("border_type_") && json["border_type_"].IsString()) {
       border_type_ = base::stringToBorderType(json["border_type_"].GetString());
     }
@@ -373,7 +471,7 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
           border_val_.val_[i] = (double)border_val_array[i].GetFloat();
         } else if (border_val_array[i].IsDouble()) {
           border_val_.val_[i] = (double)border_val_array[i].IsDouble();
-        } 
+        }
       }
     }
     return base::kStatusCodeOk;
@@ -386,9 +484,12 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
  */
 class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
  public:
-  float transform_[2][3];
-  int dst_w_;
-  int dst_h_;
+  WarpAffineCvtNormTransParam() : base::Param() {}
+  virtual ~WarpAffineCvtNormTransParam() {}
+
+  float transform_[2][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+  int dst_w_ = -1;
+  int dst_h_ = -1;
 
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
@@ -411,6 +512,16 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    this->addRequiredParam("transform_");
+    this->addRequiredParam("dst_w");
+    this->addRequiredParam("dst_h");
+    this->addRequiredParam("h_");
+    this->addRequiredParam("w");
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("WarpAffineCvtNormTransParam::serialize failed\n");
+      return status;
+    }
     // transform matrix
     rapidjson::Value transform_array(rapidjson::kArrayType);
     for (int i = 0; i < 2; i++) {
@@ -419,12 +530,12 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
       }
     }
     json.AddMember("transform_", transform_array, allocator);
-    
+
     json.AddMember("dst_w_", dst_w_, allocator);
     json.AddMember("dst_h_", dst_h_, allocator);
 
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
-    json.AddMember("src_pixel_type_", 
+    json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
                    allocator);
     std::string dst_pixel_type_str = base::pixelTypeToString(dst_pixel_type_);
@@ -479,6 +590,11 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("WarpAffineCvtNormTransParam::deserialize failed\n");
+      return status;
+    }
     if (json.HasMember("transform_") && json["transform_"].IsArray()) {
       const rapidjson::Value& transform_array = json["transform_"];
       int idx = 0;
@@ -499,11 +615,15 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
       dst_h_ = json["dst_h_"].GetInt();
     }
 
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
 
     if (json.HasMember("data_type_") && json["data_type_"].IsString()) {
@@ -575,6 +695,9 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
 
 class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
  public:
+  CvtNormTransParam() : base::Param() {}
+  virtual ~CvtNormTransParam() {}
+
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   // 数据类型，默认为浮点型
@@ -595,6 +718,11 @@ class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtNormTransParam::serialize failed\n");
+      return status;
+    }
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
     json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
@@ -629,11 +757,20 @@ class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtNormTransParam::deserialize failed\n");
+      return status;
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
+    }
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
     if (json.HasMember("data_type_") && json["data_type_"].IsString()) {
       data_type_ = base::stringToDataType(json["data_type_"].GetString());
@@ -674,6 +811,9 @@ class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
 
 class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
  public:
+  CvtResizeNormTransParam() : base::Param() {}
+  virtual ~CvtResizeNormTransParam() {}
+
   // 源图像的像素类型
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   // 目标图像的像素类型
@@ -701,6 +841,8 @@ class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
   using base::Param::serialize;
   virtual base::Status serialize(
       rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+    this->addRequiredParam("h_");
+    this->addRequiredParam("w_");
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
@@ -816,6 +958,9 @@ class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
  */
 class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
  public:
+  CvtResizePadNormTransParam() : base::Param() {}
+  virtual ~CvtResizePadNormTransParam() {}
+
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   base::InterpType interp_type_ = base::kInterpTypeLinear;
@@ -840,6 +985,13 @@ class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    this->addRequiredParam("h_");
+    this->addRequiredParam("w_");
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtResizePadNormTransParam::serialize failed\n");
+      return status;
+    }
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
     json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
@@ -896,11 +1048,20 @@ class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtResizePadNormTransParam::deserialize failed\n");
+      return status;
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
+    }
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
     if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
       interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
@@ -981,6 +1142,9 @@ class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
  */
 class NNDEPLOY_CC_API CvtResizeCropNormTransParam : public base::Param {
  public:
+  CvtResizeCropNormTransParam() : base::Param() {}
+  virtual ~CvtResizeCropNormTransParam() {}
+
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   base::InterpType interp_type_ = base::kInterpTypeLinear;
@@ -1005,6 +1169,13 @@ class NNDEPLOY_CC_API CvtResizeCropNormTransParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
+    this->addRequiredParam("resize_h");
+    this->addRequiredParam("resize_w");
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtResizeCropNormTransParam::serialize failed\n");
+      return status;
+    }
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
     json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
@@ -1052,11 +1223,20 @@ class NNDEPLOY_CC_API CvtResizeCropNormTransParam : public base::Param {
 
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("CvtResizeCropNormTransParam::deserialize failed\n");
+      return status;
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
+    }
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
     if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
       interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
