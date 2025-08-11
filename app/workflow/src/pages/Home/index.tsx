@@ -98,7 +98,7 @@ export default function Home() {
                     <div className="source">
 
 
-                      <a href={item.source_} target="_blank">
+                      <a href={item.source_ ? item.source_.split(',')[0]: ''} target="_blank">
                         <Tag
                           color='light-blue'
                           //prefixIcon={<IconGithubLogo />}
@@ -107,7 +107,7 @@ export default function Home() {
                           type='light'
                         >
 
-                          {item.source_ ?? 'unknown source'}
+                          {item.source_ ? item.source_.split(',')[0].substr(0, 50) :  'unknown source'}
 
                         </Tag>
                       </a>

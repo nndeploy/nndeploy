@@ -3,7 +3,7 @@ import request from "../../../../request";
 import { IResourceBranchEntity, IResourceEntity, IResourceTreeNodeEntity, IServerResourceFileEntity, IServerResourceResonseData } from "./entity";
 
 export async function apiGetResourceTree(){
- var response = await request.get<IServerResourceResonseData>('/api/files', {});
+ var response = await request.get<IResourceTreeNodeEntity[]>('/api/files', {});
 
   return response;
 }
@@ -23,7 +23,7 @@ export async function apiResourceBranchSave(entity: IResourceBranchEntity){
 
 
 export async function apiResourceSave(url:string, formData: FormData){
- var response = await request.upload<IServerResourceFileEntity>(url, formData);
+ var response = await request.upload<IResourceTreeNodeEntity>(url, formData);
 
   return response;
 }

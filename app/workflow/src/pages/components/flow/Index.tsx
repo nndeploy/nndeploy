@@ -44,6 +44,7 @@ import FlowConfigDrawer from "./FlowConfigDrawer";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
 import { EnumFlowType } from "../../../enum";
+import { WorkflowNodeStatus } from "../../../components/base-node/node-status-bar/type";
 
 let nameId = 0;
 
@@ -70,6 +71,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
 
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  const [runResult, setRunResult] = useState<string>('');
 
   const [log, setLog] = useState<ILog>({
     items: [], time_profile: {
@@ -278,6 +281,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
+      setRunResult('')
       setLog({
         items: [],
         time_profile: {
@@ -337,6 +341,12 @@ const Flow: React.FC<FlowProps> = (props) => {
         const response = JSON.parse(event.data);
 
         if (response.flag != "success") {
+
+          if(response.result.type == 'task_run_info'){
+            setFlowNodesRunningStatus({})
+            setRunResult('error')
+            Toast.error("run fail " );
+          }
           return;
         }
 
@@ -505,8 +515,9 @@ const Flow: React.FC<FlowProps> = (props) => {
         <FlowEnviromentContext.Provider
           value={{
             element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
-
-            log: log
+           
+            log: log, 
+             runResult: runResult
           }}
         >
           <FreeLayoutEditorProvider

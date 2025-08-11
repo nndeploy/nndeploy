@@ -68,10 +68,10 @@ export const GroupTitle: FC = () => {
 
   async function hanleSubFlowSave(groupName: string) {
 
-    if(!groupName.endsWith('.json')){
-      Toast.warning('sub flow name should end with .json')
+    // if(!groupName.endsWith('.json')){
+    //   Toast.warning('sub flow name should end with .json')
       
-    }
+    // }
 
     let workFlowJson:any= ctx.document.toJSON()
     let allNodes = workFlowJson.nodes

@@ -276,7 +276,7 @@ function WorkFlow (props: WorkFlowProps) {
   return (
     <div className="tree-workflow">
       <div className="tree-workflow-header">
-        <Text>Workflow</Text>
+        <Text>Workspace</Text>
         <Text
           link
           icon={<IconPlus />}

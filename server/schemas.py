@@ -62,6 +62,16 @@ class TemplateLoadResponse(BaseModel):
     message: str
     result: Dict[str, Any]
 
+class TemplateDownloadRequest(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
+class TemplateDownloadResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
 class WorkFlowDeleteResponse(BaseModel):
     flag: str
     message: str
@@ -78,7 +88,7 @@ class DeleteResponse(BaseModel):
 class FileListResponse(BaseModel):
     flag: str
     message: str
-    result: Dict[str, Any]
+    result: list[Dict]
 
 class PreviewPayload(BaseModel):
     type: Literal["preview"]

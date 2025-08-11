@@ -3,6 +3,7 @@ import { FlowDocumentJSON } from '../typings';
 import { INodeEntity } from '../pages/Node/entity';
 import { IBusinessNode, IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
 import { IFlowNodesRunningStatus, ILog, IOutputResource } from '../pages/components/flow/entity';
+import { run } from 'node:test';
 
 export const FlowEnviromentContext = React.createContext<
   {
@@ -15,7 +16,8 @@ export const FlowEnviromentContext = React.createContext<
     paramTypes: IParamTypes;
     outputResource: IOutputResource;
     flowNodesRunningStatus: IFlowNodesRunningStatus, 
-    log: ILog
+    log: ILog, 
+    runResult: string
   }
 
 >({
@@ -28,7 +30,8 @@ export const FlowEnviromentContext = React.createContext<
       init_time: undefined,
       run_time: undefined
     }
-  }
+  },
+  runResult: '',
 
 } as any);
 

@@ -5,7 +5,7 @@ import {
   Field,
   FieldArray,
 } from "@flowgram.ai/free-layout-editor";
-import { Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { Popover, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -54,9 +54,15 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_output_',
     "is_graph_",
     "is_inner_",
-    "node_type_"
+    "node_type_", 
+    'developer_', 
+    'source_', 
+    'version_', 
+    //'required_params_'
 
   ];
+
+
   const basicFields = lodash.difference(
     Object.keys(form.values),
     excludeFields
@@ -119,9 +125,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     event.stopPropagation();
     event.preventDefault();
 
-    const parentId = file.includes('images') ? 'images' : file.includes('videos') ? 'videos' : ''
-    const fileName = file.substring(file.lastIndexOf('/') + 1)
-    setResourceEdit({ id: uniqueId(), parentId, type: 'leaf', name: fileName })
+    //const parentId = file.includes('images') ? 'images' : file.includes('videos') ? 'videos' : ''
+    //const fileName = file.substring(file.lastIndexOf('/') + 1)
+    setResourceEdit({ id: uniqueId(), parentId: "", type: 'leaf', file_info:{ saved_path: file} })
     setResoureEditVisible(true)
 
   }
@@ -179,16 +185,20 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                 <FormItem
                                   name={`${childField.value.type_}`}///${childField.value.desc_}
                                   type="boolean"
+                                  description={<> <p>type: {childField.value.type_}</p>
+                                    <p>desc: {childField.value.desc_}</p></>}
                                   required={false}
                                 //labelWidth={40}
                                 >
-                                  <div
-                                    className="connection-point connection-point-left"
-                                    data-port-id={childField.value.id}
-                                    data-port-type="input"
-                                    data-port-desc={childField.value.desc_}
-                                  //data-port-wangba={childField.value.desc_}
-                                  ></div>
+                                  <Popover content={childField.value.desc_} position="right">
+                                    <div
+                                      className="connection-point connection-point-left"
+                                      data-port-id={childField.value.id}
+                                      data-port-type="input"
+                                      data-port-desc={childField.value.desc_}
+                                    //data-port-wangba={childField.value.desc_}
+                                    ></div>
+                                  </Popover>
                                 </FormItem>
                               );
                             }}
@@ -212,6 +222,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                             console.log('outputs_ childField.value.id', childField.value.id)
                             return <FormItem
                               name={`${childField.value.type_}`}///${childField.value.desc_}
+                              description={<> <p>type: {childField.value.type_}</p>
+                                <p>desc: {childField.value.desc_}</p></>}
                               type="boolean"
                               required={false}
 
@@ -296,7 +308,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                     return <FormItem
                       name={fieldName}
                       type={"string" as string}
-                      required={true}
+                      //required={true}
                     >
 
                       <div className="expression-field"
@@ -357,7 +369,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 </Field>
               );
             })}
-   
+
             {is_dynamic_input_ && (
               <Section text={"inputs_"} key="inputs_">
                 <FormDynamicPorts portType="inputs_" />
