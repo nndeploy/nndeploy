@@ -37,9 +37,8 @@ python -c "import nndeploy; print(nndeploy.__version__)"
 ```
 
 > 注:
->   Window要求python环境为3.12
->   Mac要求python环境为3.13
->   Linux暂不支持，建议采用开发者模式
+>   python >= 3.10
+>   MacOS >= 14 && ARM
 
 ## 快速上手
 
