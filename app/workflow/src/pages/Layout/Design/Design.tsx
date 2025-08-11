@@ -45,6 +45,9 @@ import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { apiGetDagInfo } from "./api";
 import store, { initialState, reducer } from "./store/store";
 import { initDagGraphInfo } from "./store/actionType";
+import { useQueryParams } from "./effect";
+import { EnumFlowType } from "../../../enum";
+import Header from "./header";
 
 var tabId = 2;
 
@@ -53,9 +56,51 @@ const Design: React.FC = () => {
 
   const [activeKey, setActiveKey] = useState<string>("1");
 
-  const [tabs, setTabs] = useState<Array<{ id: string, tabId: string, name: string; newName: string }>>([
-    { newName: "Unsaved Workflow 1", id: '1', name: '', tabId: '1' },
+
+  // const search = window.location.search; // "?foo=bar&baz=qux"
+  // const params = new URLSearchParams(search);
+
+  const [tabs, setTabs] = useState<Array<{ id: string, tabId: string, name: string; 
+    //newName: string, 
+    flowType: EnumFlowType }>>([
+
+    // { newName: "Unsaved Workflow 1", id: '1', name: '', tabId: '1' },
   ]);
+
+  function getQueryObject(url?: string) {
+    const search = url ? url.split('?')[1] : window.location.search.slice(1);
+    const params = new URLSearchParams(search);
+    const obj: { [key: string]: string } = {};
+    for (const [key, value] of params.entries()) {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  const params = getQueryObject()
+
+  useEffect(() => {
+    const newTabId = `${tabId++}`
+
+    if (params.id && params.flowType) {
+
+      setTabs([...tabs, { 
+        //newName: params.name, 
+        name: params.name, id: params.id, tabId: newTabId, flowType: params.flowType as EnumFlowType }]);
+      setActiveKey(newTabId);
+    } else {
+
+      setTabs([{ 
+        //newName: "Unsaved Workflow 1", 
+        id: '', name: 'Unsaved Workflow 1', tabId: '1', flowType: EnumFlowType.workspace }])
+
+
+    }
+
+  }, [])
+
+
+
   const [selectedFirstLevel, setSelectedFirstLevel] = useState<string | null>(
     null
   );
@@ -76,7 +121,7 @@ const Design: React.FC = () => {
     getDagInfo()
   }, [])
 
- // const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
+  // const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
 
 
 
@@ -99,14 +144,17 @@ const Design: React.FC = () => {
   const handleAddTab = () => {
     //const newKey = `${tabs.length + 1}`;
     const newTabId = `${tabId++}`
-    setTabs([...tabs, { newName: `Unsaved Workflow ${newTabId}`, name: '', id: '', tabId: newTabId }]);
+    setTabs([...tabs, {
+      // newName: `Unsaved Workflow ${newTabId}`, 
+       name: `Unsaved Workflow ${newTabId}`, id: '', tabId: newTabId, flowType: EnumFlowType.workspace }]);
+
     setActiveKey(newTabId);
   };
 
-  function onFlowDeleteCallBack(flowName: string) {
+  function onFlowDeleteCallBack(flowId: string) {
 
-    const flow = tabs.find(item => item.name == flowName)
-    const newTabs = tabs.filter(item => item.name != flowName)
+    const flow = tabs.find(item => item.id == flowId)
+    const newTabs = tabs.filter(item => item.id != flowId)
     if (flow && flow.tabId == activeKey) {
       if (newTabs.length > 0) {
         setActiveKey(newTabs[0].tabId)
@@ -122,18 +170,23 @@ const Design: React.FC = () => {
 
   function onShowFlow(node: TreeNodeData) {
 
-    if (tabs.find(item => item.name == node.label as string)) {
+    if (tabs.find(item => item.id == node.key as string)) {
       return
     }
     const newTabId = `${tabId++}`
-    setTabs([...tabs, { name: node.label as string, id: node.label as string, tabId: newTabId, newName: '' }]);
+    setTabs([...tabs, { name: node.label as string, id: node.key as string, tabId: newTabId, 
+     // newName: '',
+       flowType: EnumFlowType.workspace }]);
     setActiveKey(newTabId);
   }
 
   function onFlowSave(flow: IWorkFlowEntity) {
     const newTabs = tabs.map((tab) => {
       if (tab.tabId === activeKey) {
-        return { ...tab, name: flow.name, newName: '' }
+        return { ...tab, name: flow.businessContent.name_, id: flow.id,flowType: EnumFlowType.workspace
+
+          //newName: '' 
+          }
       }
       return tab;
     })
@@ -190,7 +243,7 @@ const Design: React.FC = () => {
   return (
     <div className="container design-page">
       <store.Provider value={{ state, dispatch }} >
-        <Nav mode="horizontal" className="topNav" >
+        {/* <Nav mode="horizontal" className="topNav" >
           <Nav.Header>
             <img
               src={companyLogo}
@@ -258,7 +311,8 @@ const Design: React.FC = () => {
               </Avatar>
             </Dropdown>
           </Nav.Footer>
-        </Nav>
+        </Nav> */}
+        <Header />
         <div className="main">
           <div className="leftNav">
             <Nav
@@ -299,9 +353,9 @@ const Design: React.FC = () => {
                   <Nav mode="vertical" >
                     {selectedFirstLevel === "nodes" ? <NodeTree />
                       : selectedFirstLevel === "resources" ? <Resource />
-                        : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow} 
-                        //ref={workFlowTreeRef} 
-                        onFlowDeleteCallBack={onFlowDeleteCallBack} />
+                        : selectedFirstLevel === "workflow" ? <WorkFlow onShowFlow={onShowFlow}
+                          //ref={workFlowTreeRef} 
+                          onFlowDeleteCallBack={onFlowDeleteCallBack} />
                           : <></>
                     }
 
@@ -337,14 +391,15 @@ const Design: React.FC = () => {
             >
               {tabs.map((tab) => (
                 <TabPane
-                  tab={tab.name ? tab.name : tab.newName}
+                  tab={tab.name }
                   itemKey={tab.tabId}
                   key={tab.tabId}
                   closable={true}
 
                 >
                   <div className="tab-content">
-                    <Flow id={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} />
+                    <Flow id={tab.id} onFlowSave={onFlowSave} activeKey={activeKey} flowType={tab.flowType} />
+
                   </div>
                 </TabPane>
               ))}

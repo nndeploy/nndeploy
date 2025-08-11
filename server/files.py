@@ -77,7 +77,7 @@ def _file_info(path: Path, base: Optional[Path] = None) -> Dict[str, str]:
     stat = path.stat()
     return {
         "filename":path.name,
-        "saved_path":str(path.relative_to(base)) if base else p.name,
+        "saved_path":str(path),
         "size": stat.st_size,
         "uploaded_at":datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
         "extension": (path.suffix or "unknown").lstrip(".")

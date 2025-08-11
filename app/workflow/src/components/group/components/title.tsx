@@ -140,7 +140,7 @@ export const GroupTitle: FC = () => {
 
     //return;
 
-    const response = await apiWorkFlowSave(businessContent);
+    const response = await apiWorkFlowSave("", businessContent);
     if (response.flag == "success") {
       Toast.success('save subflow successed')
     } else {

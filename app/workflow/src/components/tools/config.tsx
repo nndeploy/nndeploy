@@ -15,7 +15,7 @@ export function Config() {
   /**
    * Validate all node and Save
    */
-  const onConfig = useCallback(async () => {
+  const onConfig = async () => {
 
     try {
 
@@ -30,7 +30,7 @@ export function Config() {
       console.error('onSave', e)
     }
 
-  }, [clientContext]);
+  };
 
 
   return (
