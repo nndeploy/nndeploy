@@ -6,7 +6,8 @@ export interface IResourceTreeNodeEntity {
   name: string;
   parentId: string;
   type: 'branch' | 'leaf', 
-  entity?: IServerResourceFileEntity
+  parent_info: IResourceTreeNodeEntity;
+  file_info?: IServerResourceFileEntity
 
   
   //isLeaf: boolean;

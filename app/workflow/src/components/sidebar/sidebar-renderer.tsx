@@ -85,7 +85,9 @@ export const SidebarRenderer = () => {
   }
 
   return (
-    <SideSheet mask={false} visible={visible} onCancel={handleClose}  getPopupContainer={getPopupContainer}>
+    <SideSheet mask={false} visible={visible} onCancel={handleClose}  getPopupContainer={getPopupContainer} 
+    width="500px"
+    >
       <IsSidebarContext.Provider value={true}>{content}</IsSidebarContext.Provider>
     </SideSheet>
     // <></>
