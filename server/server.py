@@ -16,10 +16,13 @@ import logging
 import sqlite3
 import shutil
 
+import requests
+from urllib.parse import urlparse
+
 import nndeploy.dag
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from nndeploy import get_type_enum_json
-from .utils import extract_encode_output_paths
+from .utils import extract_encode_output_paths, _handle_urls
 from .frontend import FrontendManager
 from .template import WorkflowTemplateManager
 from .task_queue import TaskQueue
@@ -763,7 +766,8 @@ class NnDeployServer:
         @api.get("/download", tags=["Files"],
                 summary="download images/videos/models")
         async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
-            f = Path(self.args.resources) / file_path
+            # f = Path(self.args.resources) / file_path
+            f = Path(file_path)
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
