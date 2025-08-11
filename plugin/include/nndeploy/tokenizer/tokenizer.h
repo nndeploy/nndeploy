@@ -68,15 +68,7 @@ stringToTokenizerType(const std::string &src);
 
 class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
  public:
-  TokenizerPraram() : base::Param() {
-    // this->addRequiredParam("is_path");
-    // this->addRequiredParam("tokenizer_type");
-    // this->addRequiredParam("json_blob");
-    // this->addRequiredParam("model_blob");
-    // this->addRequiredParam("vocab_blob");
-    // this->addRequiredParam("merges_blob");
-    // this->addRequiredParam("added_tokens");
-  }
+  TokenizerPraram() : base::Param() {}
   virtual ~TokenizerPraram() {}
 
   PARAM_COPY(TokenizerPraram)
@@ -141,7 +133,7 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator) override {
-    this->addRequiredParam("tokenizer_type");
+    this->addRequiredParam("tokenizer_type_");
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("TokenizerPraram::serialize failed\n");

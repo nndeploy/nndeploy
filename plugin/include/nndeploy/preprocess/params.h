@@ -363,8 +363,8 @@ class NNDEPLOY_CC_API ResizeParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
-    this->addRequiredParam("dst_h");
-    this->addRequiredParam("dst_w");
+    this->addRequiredParam("dst_h_");
+    this->addRequiredParam("dst_w_");
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("ResizeParam::serialize failed\n");
@@ -513,10 +513,10 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
     this->addRequiredParam("transform_");
-    this->addRequiredParam("dst_w");
-    this->addRequiredParam("dst_h");
+    this->addRequiredParam("dst_w_");
+    this->addRequiredParam("dst_h_");
     this->addRequiredParam("h_");
-    this->addRequiredParam("w");
+    this->addRequiredParam("w_");
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("WarpAffineCvtNormTransParam::serialize failed\n");
@@ -1169,8 +1169,8 @@ class NNDEPLOY_CC_API CvtResizeCropNormTransParam : public base::Param {
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override {
-    this->addRequiredParam("resize_h");
-    this->addRequiredParam("resize_w");
+    this->addRequiredParam("resize_h_");
+    this->addRequiredParam("resize_w_");
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("CvtResizeCropNormTransParam::serialize failed\n");
