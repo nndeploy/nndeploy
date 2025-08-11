@@ -361,6 +361,37 @@ base::Status Node::setParam(const std::string &key, const std::string &value) {
   return base::kStatusCodeOk;
 }
 
+base::Status Node::setVersion(const std::string &version) {
+  version_ = version;
+  return base::kStatusCodeOk;
+}
+std::string Node::getVersion() { 
+  return version_; 
+}
+
+base::Status Node::setRequiredParams(const std::vector<std::string> &required_params) {
+  required_params_ = required_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addRequiredParam(const std::string &required_param) {
+  required_params_.emplace_back(required_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeRequiredParam(const std::string &required_param) {
+  auto it = std::find(required_params_.begin(), required_params_.end(), required_param);
+  if (it != required_params_.end()) {
+    required_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearRequiredParams() {
+  required_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getRequiredParams() {
+  return required_params_;
+}
+
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");
@@ -927,6 +958,15 @@ base::Status Node::serialize(rapidjson::Value &json,
                  rapidjson::Value(device_type_str.c_str(), allocator),
                  allocator);
 
+  json.AddMember("version_", rapidjson::Value(version_.c_str(), allocator),
+                 allocator);
+  rapidjson::Value required_params(rapidjson::kArrayType);
+  for (auto &required_param : required_params_) {
+    required_params.PushBack(rapidjson::Value(required_param.c_str(), allocator),
+                             allocator);
+  }
+  json.AddMember("required_params_", required_params, allocator);
+
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
   // 写入输入
@@ -1141,6 +1181,20 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // 读取设备类型
   if (json.HasMember("device_type_") && json["device_type_"].IsString()) {
     device_type_ = base::stringToDeviceType(json["device_type_"].GetString());
+  }
+
+  if (json.HasMember("version_") && json["version_"].IsString()) {
+    version_ = json["version_"].GetString();
+  }
+
+  if (json.HasMember("required_params_") && json["required_params_"].IsArray()) {
+    required_params_.clear();
+    auto &required_params_array = json["required_params_"];
+    for (int i = 0; i < required_params_array.Size(); i++) {
+      if (required_params_array[i].IsString()) {
+        required_params_.emplace_back(required_params_array[i].GetString());
+      }
+    }
   }
 
   if (json.HasMember("is_external_stream_") &&

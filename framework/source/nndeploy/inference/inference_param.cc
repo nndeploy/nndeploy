@@ -6,7 +6,12 @@
 namespace nndeploy {
 namespace inference {
 
-InferenceParam::InferenceParam() : base::Param() {}
+InferenceParam::InferenceParam() : base::Param() {
+  required_params_.emplace_back("inference_type_");
+  required_params_.emplace_back("model_type_");
+  required_params_.emplace_back("model_value_");
+  required_params_.emplace_back("device_type_");
+}
 
 InferenceParam::InferenceParam(base::InferenceType type)
     : base::Param(), inference_type_(type) {}
@@ -469,6 +474,11 @@ void InferenceParam::setLibraryPath(const std::string& library_path, int i) {
 
 base::Status InferenceParam::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status status = base::Param::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("InferenceParam serialize failed\n");
+    return status;
+  }
   if (inference_type_ != base::kInferenceTypeNotSupport) {
     std::string inference_type_str =
         base::inferenceTypeToString(inference_type_);
@@ -660,6 +670,11 @@ base::Status InferenceParam::serialize(
 }
 
 base::Status InferenceParam::deserialize(rapidjson::Value& json) {
+  base::Status status = base::Param::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("InferenceParam deserialize failed\n");
+    return status;
+  }
   if (json.HasMember("inference_type_")) {
     std::string inference_type_str = json["inference_type_"].GetString();
     inference_type_ = base::stringToInferenceType(inference_type_str);
