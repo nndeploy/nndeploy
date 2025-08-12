@@ -17,7 +17,7 @@ from typing_extensions import NotRequired
 REQUEST_TIMEOUT = 60  # second
 FRONTEND_ROOT = Path.cwd() / "frontend"
 
-DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.0.0")
+DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.1.0")
 DEFAULT_VERSION_STRING = "!"
 
 class Asset(TypedDict):
