@@ -766,7 +766,6 @@ class NnDeployServer:
         @api.get("/download", tags=["Files"],
                 summary="download images/videos/models")
         async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
-            # f = Path(self.args.resources) / file_path
             f = Path(file_path)
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
@@ -798,6 +797,21 @@ class NnDeployServer:
                     detail="Unsupported download type"
                 )
             return FileResponse(f, media_type=mime, filename=f.name)
+
+        @api.post(
+            "/models/download",
+            status_code=status.HTTP_202_ACCEPTED,
+            summary="start model download by json"
+        )
+        async def download_models(req: EnqueueRequest):
+            task_id = str(uuid.uuid4())
+            graph_json = req.root if isinstance(req.root, dict) else {}
+            asyncio.create_task(self._download_models_task(task_id, graph_json))
+            return JSONResponse({
+                "flag": "success",
+                "message": "download started",
+                "result": {"task_id": task_id}
+            }, status_code=status.HTTP_202_ACCEPTED)
 
         @self.app.on_event("startup")
         async def _on_startup():
@@ -838,6 +852,26 @@ class NnDeployServer:
             if dist_inside.is_dir():
                 web_root = str(dist_inside)
             self.app.mount("/", StaticFiles(directory=web_root, html=True), name="frontend")
+
+    # model download notify
+    def notify_download_done(self, task_id: str, success: bool, result: dict | None, error: str | None):
+        payload = {
+            "flag": "success" if success else "failed",
+            "message": "download done" if success else f"download failed: {error}",
+            "result": {
+                "task_id": task_id,
+                "type": "model_download_done",
+                "detail": result or {}
+            }
+        }
+        ws_set = self.task_ws_map.get(task_id, set())
+        if not ws_set:
+            return
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+            else:
+                logging.warning("[notify_download_done] Event loop not ready or not running")
 
     # task progress notify
     def notify_task_progress(self, task_id: str, status_dict: dict):
@@ -909,3 +943,11 @@ class NnDeployServer:
             except Exception as e:
                 logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
+
+    async def _download_models_task(self, task_id: str, graph_json: dict):
+        try:
+            result = await asyncio.to_thread(_handle_urls, graph_json, self.args.resources)
+            self.notify_download_done(task_id, success=True, result=result, error=None)
+        except Exception as e:
+            logging.exception("[_download_models_task] failed")
+            self.notify_download_done(task_id, success=False, result=None, error=str(e))

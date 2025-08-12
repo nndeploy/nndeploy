@@ -53,10 +53,10 @@ def get_workdir(server) -> Path:
 
 def _save(file: UploadFile, target_dir: str) -> UploadResponse:
     """
-    将上传文件保存到指定的完整目录路径
+    upload file to target path
     """
     folder = Path(target_dir)
-    folder.mkdir(parents=True, exist_ok=True)  # 自动创建目录
+    folder.mkdir(parents=True, exist_ok=True)
 
     dst = folder / file.filename
     with dst.open("wb") as w:
@@ -100,7 +100,7 @@ def _save(file: UploadFile, target_dir: str) -> UploadResponse:
 
 def _delete(target_path: str) -> DeleteResponse:
     """
-    根据传入的完整路径删除文件或目录（目录递归删除）
+    delete file according to target path
     """
     path = Path(target_path)
 
@@ -116,7 +116,7 @@ def _delete(target_path: str) -> DeleteResponse:
             path.unlink()
             message = f"file {path.name} has been deleted (size={size} bytes)"
         elif path.is_dir():
-            shutil.rmtree(path)  # 递归删除目录
+            shutil.rmtree(path)
             message = f"directory {path.name} has been deleted"
         else:
             return DeleteResponse(
@@ -145,7 +145,6 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
     stat = path.stat()
     is_dir = path.is_dir()
 
-    # 如果是目录，固定 size=4096；否则读取真实大小
     size = 4096 if is_dir else stat.st_size
 
     file_info = {
@@ -161,7 +160,7 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
         "name": path.name,
         "parentId": parent_id,
         "type": "branch" if is_dir else "leaf",
-        "path": str(path),  # 返回完整路径
+        "path": str(path),
         "file_info": file_info
     }
 
@@ -184,19 +183,14 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
 
 @router.get("", response_model=FileListResponse, summary="list upload dir files")
 async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dict[str, str]]]:
-    """
-    遍历 workdir 下的 images / videos / models 三个目录
-    返回扁平化的文件+目录信息列表
-    """
     allowed_dirs = ["images", "videos", "models"]
     file_info_list: List[Dict[str, str]] = []
 
     def traverse_directory(path: Path, parent_id: str = "") -> None:
-        """
-        递归遍历目录，将目录和文件信息添加到 file_info_list 中
-        """
         if path.exists() and path.is_dir():
             for item in path.iterdir():
+                if item.name.startswith("."):
+                    continue
                 info = _file_info(item, base=workdir, parent_id=parent_id)
                 file_info_list.append(info)
                 if item.is_dir():
@@ -205,6 +199,8 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
     if workdir.exists():
         for folder in workdir.iterdir():
             if folder.is_dir() and folder.name in allowed_dirs:
+                if folder.name.startswith("."):
+                    continue
                 top_info = _file_info(folder, base=workdir, parent_id="")
                 file_info_list.append(top_info)
                 traverse_directory(folder, top_info["id"])
@@ -300,7 +296,7 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
 #     return _save(file, file_path)
 
 # ──────────────────────────────────────────────
-# node: delete model
+# node: delete file
 # ──────────────────────────────────────────────
 @router.post(
     "/delete",
@@ -313,7 +309,7 @@ async def delete_file(file_path: str
     return _delete(file_path)
 
 # ──────────────────────────────────────────────
-# node: upload models
+# node: upload file
 # ──────────────────────────────────────────────
 @router.post(
     "/upload",

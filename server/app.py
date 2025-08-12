@@ -11,11 +11,11 @@ import sys
 import time
 from pathlib import Path
 from typing import Tuple
+from logging.handlers import QueueHandler, QueueListener
+from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from .task_queue import TaskQueue
 from .server import NnDeployServer
 from .worker import run as worker_run
-from logging.handlers import QueueHandler, QueueListener
-from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from .log_broadcast import LogBroadcaster
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

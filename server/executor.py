@@ -101,6 +101,9 @@ class GraphExecutor:
                     except Exception as e:
                         logging.error(f"Failed to download http resource for {field}.{idx}: {e}")
                         continue
+                elif type_.startswith("template"):
+                    logging.info(f"Skip processing template resource for {field}.{idx}")
+                    continue
                 else:
                     logging.warning(f"Unsupported or failed to download resource for {field}.{idx} with type '{type_}'")
 
