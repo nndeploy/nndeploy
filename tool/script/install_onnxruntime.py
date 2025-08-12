@@ -115,7 +115,7 @@ if ONNXRUNTIME_INSTALL_DIR.exists():
     shutil.rmtree(ONNXRUNTIME_INSTALL_DIR)
 
 # 拷贝整个目录
-shutil.copytree("onnxruntime", ONNXRUNTIME_INSTALL_DIR)
+shutil.copytree("onnxruntime", ONNXRUNTIME_INSTALL_DIR, symlinks=True)
 
 # 验证安装
 include_dir = ONNXRUNTIME_INSTALL_DIR / "include"
