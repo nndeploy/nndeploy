@@ -113,22 +113,38 @@ def redirect_fd_to_logger_once(logger):
     global _STDIO_REDIRECTED
     if _STDIO_REDIRECTED:
         return
+    # for fd, level, label in [(1, logging.INFO, "stdout"),
+    #                          (2, logging.ERROR, "stderr")]:
+    #     r, w = os.pipe()
+    #     os.dup2(w, fd)
+    #     os.close(w)
+
+    #     def reader():
+    #         with os.fdopen(r, "r", buffering=1) as pr:
+    #             for line in pr:
+    #                 line = line.rstrip()
+    #                 if line:
+    #                     logger.log(level, f"[C++ {label}]{line}")
+
+    #     t = threading.Thread(target=reader, daemon=True,
+    #                          name=f"FDReader-{label}")
+    #     t.start()
+    pipes = {}
     for fd, level, label in [(1, logging.INFO, "stdout"),
-                             (2, logging.ERROR, "stderr")]:
+                            (2, logging.ERROR, "stderr")]:
         r, w = os.pipe()
         os.dup2(w, fd)
         os.close(w)
+        pipes[fd] = (r, level, label)
 
-        def reader():
+    for fd, (r, level, label) in pipes.items():
+        def reader(r=r, level=level, label=label):
             with os.fdopen(r, "r", buffering=1) as pr:
                 for line in pr:
                     line = line.rstrip()
                     if line:
                         logger.log(level, f"[C++ {label}]{line}")
-
-        t = threading.Thread(target=reader, daemon=True,
-                             name=f"FDReader-{label}")
-        t.start()
+        threading.Thread(target=reader, daemon=True).start()
     _STDIO_REDIRECTED = True
 
 def configure_worker_logger(log_q) -> logging.LoggerAdapter:

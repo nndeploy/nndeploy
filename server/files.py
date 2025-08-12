@@ -197,6 +197,8 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
         """
         if path.exists() and path.is_dir():
             for item in path.iterdir():
+                if item.name.startswith("."):
+                    continue
                 info = _file_info(item, base=workdir, parent_id=parent_id)
                 file_info_list.append(info)
                 if item.is_dir():
@@ -205,6 +207,8 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
     if workdir.exists():
         for folder in workdir.iterdir():
             if folder.is_dir() and folder.name in allowed_dirs:
+                if folder.name.startswith("."):
+                    continue
                 top_info = _file_info(folder, base=workdir, parent_id="")
                 file_info_list.append(top_info)
                 traverse_directory(folder, top_info["id"])
