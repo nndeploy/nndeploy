@@ -489,10 +489,16 @@ install(CODE "
       foreach(ext IN LISTS LIB_EXTENSIONS)
         file(GLOB_RECURSE DYNAMIC_LIBS \"\${search_path}/\${ext}\")
         foreach(lib_file IN LISTS DYNAMIC_LIBS)
-          get_filename_component(lib_name \"\${lib_file}\" NAME)
-          message(STATUS \"Copying dynamic library: \${lib_name}\")
-          file(COPY \"\${lib_file}\" 
-               DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+          # 检查是否为软连接，如果是则跳过
+          if(NOT IS_SYMLINK \"\${lib_file}\")
+            get_filename_component(lib_name \"\${lib_file}\" NAME)
+            message(STATUS \"Copying dynamic library: \${lib_name}\")
+            file(COPY \"\${lib_file}\" 
+                 DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+          else()
+            get_filename_component(lib_name \"\${lib_file}\" NAME)
+            message(STATUS \"Skipping symlink: \${lib_name}\")
+          endif()
         endforeach()
       endforeach()
     else()
