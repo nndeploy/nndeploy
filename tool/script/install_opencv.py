@@ -180,38 +180,4 @@ if lib_dir.exists():
         if lib_file.is_file():
             print(f"  {lib_file.name}")
             
-# 删除当前已存在的软连接，为每个libopencv_xxx.so.x.y.z建立libopencv_xxx.so的软连接
-if lib_dir.exists():
-    print("正在处理库文件软连接...")
-    
-    # 删除当前已存在的软连接
-    glob_ = lib_dir.glob("*.so*")
-    for lib_file in glob_:
-        if lib_file.is_symlink():
-            print(f"删除已存在的软连接: {lib_file.name}")
-            lib_file.unlink()
-    
-    # 为每个libopencv_xxx.so.x.y.z建立libopencv_xxx.so的软连接
-    glob_ = lib_dir.glob("*.so*")
-    for lib_file in glob_:
-        if lib_file.is_file():
-            lib_name = lib_file.name
-            # 检查是否是版本化的库文件 (例如: libopencv_core.so.4.8.0)
-            if lib_name.count('.') >= 3:  # libopencv_xxx.so.x.y.z 格式
-                # 提取基础库名 (例如: libopencv_core.so)
-                base_name_parts = lib_name.split('.')
-                if len(base_name_parts) >= 4:
-                    base_name = '.'.join(base_name_parts[:2])  # libopencv_xxx.so
-                    base_symlink = lib_dir / base_name
-                    
-                    # 如果基础软连接不存在，则创建它
-                    if not base_symlink.exists():
-                        try:
-                            base_symlink.symlink_to(lib_file.name)
-                            print(f"创建软连接: {base_name} -> {lib_name}")
-                        except OSError as e:
-                            print(f"创建软连接失败 {base_name}: {e}")
-    
-    print("库文件软连接处理完成")
-
 print(f"OpenCV {OPENCV_VER} installation completed!")
