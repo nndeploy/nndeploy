@@ -143,7 +143,7 @@ def redirect_fd_to_logger_once(logger):
                 for line in pr:
                     line = line.rstrip()
                     if line:
-                        logger.log(level, f"[C++ {label}]{line}")
+                        logger.log(level, f"{line}")
         threading.Thread(target=reader, daemon=True).start()
     _STDIO_REDIRECTED = True
 
