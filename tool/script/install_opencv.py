@@ -185,14 +185,16 @@ if lib_dir.exists():
     print("正在处理库文件软连接...")
     
     # 删除当前已存在的软连接
-    for lib_file in lib_dir.iterdir():
+    glob_ = lib_dir.glob("*.so*")
+    for lib_file in glob_:
         if lib_file.is_symlink():
             print(f"删除已存在的软连接: {lib_file.name}")
             lib_file.unlink()
     
     # 为每个libopencv_xxx.so.x.y.z建立libopencv_xxx.so的软连接
-    for lib_file in lib_dir.iterdir():
-        if lib_file.is_file() and lib_file.suffix == ".so":
+    glob_ = lib_dir.glob("*.so*")
+    for lib_file in glob_:
+        if lib_file.is_file():
             lib_name = lib_file.name
             # 检查是否是版本化的库文件 (例如: libopencv_core.so.4.8.0)
             if lib_name.count('.') >= 3:  # libopencv_xxx.so.x.y.z 格式
