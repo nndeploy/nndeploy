@@ -15,7 +15,8 @@ class NNDEPLOY_CC_API CvtTokenIds2Tensor : public dag::Node {
                      std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::CvtTokenIds2Tensor";
-    desc_ = "TokenizerIds to device::Tensor";
+    desc_ =
+        "Convert TokenizerIds to int32 NC tensor with BOS=49406 and PAD=49407.";
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<device::Tensor>();
   }
@@ -57,7 +58,9 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::ConcatEmbedding";
-    desc_ = "concat embedding";
+    desc_ =
+        "Concatenate prompt and negative prompt embeddings for classifier-free "
+        "guidance.";
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -138,9 +141,8 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::EmbeddingGraph";
     desc_ =
-        "stable diffusion embedding "
-        "graph[tokenIds->TokenizerEncodeCpp->CvtTokenIds2Tensor->infer->"
-        "Tensor]";
+        "Stable Diffusion text-to-embedding graph: TokenizerText -> "
+        "TokenizerEncodeCpp -> CvtTokenIds2Tensor -> CLIP inference -> Tensor.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<device::Tensor>();
     tokenize_ = dynamic_cast<tokenizer::TokenizerEncodeCpp *>(
@@ -197,7 +199,9 @@ class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
  public:
   ClipGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::stable_diffusion::ClipGraph";
-    desc_ = "clip graph[[prompt, negative_prompt]->text_embedding]";
+    desc_ =
+        "CLIP text encoder graph: [prompt, negative_prompt] -> embeddings -> "
+        "concatenated text_embedding.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -213,7 +217,9 @@ class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::ClipGraph";
-    desc_ = "clip graph[[prompt, negative_prompt]->text_embedding]";
+    desc_ =
+        "CLIP text encoder graph: [prompt, negative_prompt] -> embeddings -> "
+        "concatenated text_embedding.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<device::Tensor>();

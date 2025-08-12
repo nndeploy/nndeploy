@@ -20,7 +20,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
                 std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::InitTokenText";
-    desc_ = "construct tokenize text [String => TokenizerText]";
+    desc_ = "Create TokenizerText from input prompt string.";
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
@@ -108,7 +108,7 @@ class NNDEPLOY_CC_API TensorToMat : public dag::Node {
               std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::TensorToMat";
-    desc_ = "save cvmat to image";
+    desc_ = "Convert float tensor to cv::Mat image.";
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<cv::Mat>();
   }
