@@ -5,7 +5,7 @@ nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度
 ## 环境要求
 
 - Python 3.10+
-- 支持的操作系统：Linux、Windows、macOS(待进一步测试)
+- 支持的操作系统：Linux(< Python3.13 && x86)、Windows、macOS(OS >=14 && ARM)，其他平台建议采用开发者模式
 
 ## 安装方式
 
@@ -35,11 +35,6 @@ pip install -e .
 ```bash
 python -c "import nndeploy; print(nndeploy.__version__)"
 ```
-
-> 注:
->   Window要求python环境为3.12
->   Mac要求python环境为3.13
->   Linux暂不支持，建议采用开发者模式
 
 ## 快速上手
 

@@ -371,6 +371,8 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        self.add_required_param("model_path_")
+        self.add_required_param("providers_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["mouth_mask_"] = self.mouth_mask_

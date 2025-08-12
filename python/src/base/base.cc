@@ -907,6 +907,12 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("set", &Param::set)
       .def("get", &Param::get)
 
+      .def("set_required_params", &Param::setRequiredParams)
+      .def("add_required_param", &Param::addRequiredParam)
+      .def("remove_required_param", &Param::removeRequiredParam)
+      .def("clear_required_params", &Param::clearRequiredParams)
+      .def("get_required_params", &Param::getRequiredParams)
+
       .def("serialize", py::overload_cast<rapidjson::Value&,
                                           rapidjson::Document::AllocatorType&>(
                             &Param::serialize))

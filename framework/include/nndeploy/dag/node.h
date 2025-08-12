@@ -136,6 +136,15 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status getParam(const std::string &key, base::Any &any);
   virtual base::Status setParam(const std::string &key, const std::string &value);
 
+  base::Status setVersion(const std::string &version);
+  std::string getVersion();
+
+  base::Status setRequiredParams(const std::vector<std::string> &required_params);
+  base::Status addRequiredParam(const std::string &required_param);
+  base::Status removeRequiredParam(const std::string &required_param);
+  base::Status clearRequiredParams();
+  std::vector<std::string> getRequiredParams();
+
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
 
@@ -326,6 +335,9 @@ class NNDEPLOY_CC_API Node {
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
   int loop_count_ = -1;
+
+  std::string version_ = "1.0.0";
+  std::vector<std::string> required_params_;
 };
 
 /**

@@ -146,6 +146,34 @@ class Node(_C.dag.Node):
     def get_external_param(self, key: str):
         """Get external parameter by key."""
         return super().get_external_param(key)
+    
+    def set_version(self, version: str):
+        """设置节点版本。"""
+        return super().set_version(version)
+    
+    def get_version(self) -> str:
+        """获取节点版本。"""
+        return super().get_version()
+    
+    def set_required_params(self, required_params: list):
+        """设置必需参数列表。"""
+        return super().set_required_params(required_params)
+    
+    def add_required_param(self, required_param: str):
+        """添加必需参数。"""
+        return super().add_required_param(required_param)
+    
+    def remove_required_param(self, required_param: str):
+        """移除必需参数。"""
+        return super().remove_required_param(required_param)
+    
+    def clear_required_params(self):
+        """清空必需参数列表。"""
+        return super().clear_required_params()
+    
+    def get_required_params(self) -> list:
+        """获取必需参数列表。"""
+        return super().get_required_params()
         
     def set_input(self, input, index: int = -1):
         """Set input at the specified index."""

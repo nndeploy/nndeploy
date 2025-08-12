@@ -1874,6 +1874,21 @@ class Param(_C.base.Param):
     def get(self, key: str):
         return super().get(key)
     
+    def set_required_params(self, params):
+        return super().set_required_params(params)
+    
+    def add_required_param(self, param):
+        return super().add_required_param(param)
+    
+    def remove_required_param(self, param):
+        return super().remove_required_param(param)
+    
+    def clear_required_params(self):
+        return super().clear_required_params()
+    
+    def get_required_params(self):
+        return super().get_required_params()
+    
     def serialize(self) -> str:
         return super().serialize()
 
