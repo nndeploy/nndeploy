@@ -209,49 +209,49 @@ def get_internal_so_path():
         raise FileNotFoundError(f"Directory {search_path} does not exist")
        
     # v1 
-    # # Find all dynamic library files
-    # all_matches = []
-    # for ext in extensions:
-    #     pattern = os.path.join(search_path, f"*{ext}*")  # Add * to match versioned suffixes
-    #     matches = glob.glob(pattern)
-    #     all_matches.extend(matches)
-    
-    # if not all_matches:
-    #     raise FileNotFoundError(f"No dynamic library files found in {search_path} directory")
-    
-    # v2
-    ## Find all dynamic library files
+    # Find all dynamic library files
     all_matches = []
-    symlink_info = {}  # Record symlink information
-    
     for ext in extensions:
-        pattern = os.path.join(search_path, f"*{ext}*")
+        pattern = os.path.join(search_path, f"*{ext}*")  # Add * to match versioned suffixes
         matches = glob.glob(pattern)
-        print(f"matches: {matches}")
-        
-        # Analyze each matched file
-        for match in matches:
-            if os.path.islink(match):
-                # If it's a symlink, record the link relationship but don't add to package list
-                target = os.readlink(match)
-                symlink_info[os.path.basename(match)] = os.path.basename(target)
-                print(f"Detected symlink: {os.path.basename(match)} -> {target}")
-            else:
-                # Only add real files to package list
-                all_matches.append(match)
-                print(f"Added real file: {os.path.basename(match)}")
+        all_matches.extend(matches)
     
     if not all_matches:
-        raise FileNotFoundError(f"No real dynamic library files found in {search_path} directory")
+        raise FileNotFoundError(f"No dynamic library files found in {search_path} directory")
     
-    # Save symlink information to file
-    symlink_info_file = os.path.join(search_path, "_symlink_info.json")
-    if symlink_info:
-        import json
-        with open(symlink_info_file, 'w') as f:
-            json.dump(symlink_info, f, indent=2)
-        all_matches.append(symlink_info_file)
-        print(f"Saved symlink info to: {symlink_info_file}")
+    # v2
+    # # Find all dynamic library files
+    # all_matches = []
+    # symlink_info = {}  # Record symlink information
+    
+    # for ext in extensions:
+    #     pattern = os.path.join(search_path, f"*{ext}*")
+    #     matches = glob.glob(pattern)
+    #     print(f"matches: {matches}")
+        
+    #     # Analyze each matched file
+    #     for match in matches:
+    #         if os.path.islink(match):
+    #             # If it's a symlink, record the link relationship but don't add to package list
+    #             target = os.readlink(match)
+    #             symlink_info[os.path.basename(match)] = os.path.basename(target)
+    #             print(f"Detected symlink: {os.path.basename(match)} -> {target}")
+    #         else:
+    #             # Only add real files to package list
+    #             all_matches.append(match)
+    #             print(f"Added real file: {os.path.basename(match)}")
+    
+    # if not all_matches:
+    #     raise FileNotFoundError(f"No real dynamic library files found in {search_path} directory")
+    
+    # # Save symlink information to file
+    # symlink_info_file = os.path.join(search_path, "_symlink_info.json")
+    # if symlink_info:
+    #     import json
+    #     with open(symlink_info_file, 'w') as f:
+    #         json.dump(symlink_info, f, indent=2)
+    #     all_matches.append(symlink_info_file)
+    #     print(f"Saved symlink info to: {symlink_info_file}")
         
     # Print all found dynamic library files
     print(f"Found the following dynamic library files in {search_path} directory:")

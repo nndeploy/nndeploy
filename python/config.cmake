@@ -497,7 +497,14 @@ install(CODE "
                  DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
           else()
             get_filename_component(lib_name \"\${lib_file}\" NAME)
-            message(STATUS \"Skipping symlink: \${lib_name}\")
+            # 检查是否为opencv库文件，如果是则仍然拷贝
+            if(\"\${lib_name}\" MATCHES \"^libopencv_.*\\.so\\.\")
+              message(STATUS \"Copying opencv symlink library: \${lib_name}\")
+              file(COPY \"\${lib_file}\" 
+                   DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+            else()
+              message(STATUS \"Skipping symlink: \${lib_name}\")
+            endif()
           endif()
         endforeach()
       endforeach()
