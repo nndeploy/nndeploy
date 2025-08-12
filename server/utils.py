@@ -1,5 +1,9 @@
+import logging
+import requests
+import os
 from typing import Dict, Any, List
 from pathlib import Path
+from urllib.parse import urlparse
 from modelscope.hub.file_download import model_file_download
 
 def extract_encode_output_paths(task_json: Dict[str, Any]) -> List[Dict[str, str]]:
@@ -35,7 +39,7 @@ def extract_encode_output_paths(task_json: Dict[str, Any]) -> List[Dict[str, str
     _search(task_json.get("node_repository_", []))
     return preview_path, preview_text
 
-def _handle_urls(self, graph_json: Dict) -> Dict[str, str]:
+def _handle_urls(graph_json: Dict, work_dir: str) -> Dict[str, str]:
 
     url_fields = {
         "image_url_": "images",
@@ -70,7 +74,7 @@ def _handle_urls(self, graph_json: Dict) -> Dict[str, str]:
                 logging.warning(f"Invalid URL format in {field}.{idx}: {url}")
                 continue
 
-            save_dir = Path(self.resources) / subdir
+            save_dir = Path(work_dir) / subdir
             save_dir.mkdir(parents=True, exist_ok=True)
 
             local_path = None
@@ -110,6 +114,9 @@ def _handle_urls(self, graph_json: Dict) -> Dict[str, str]:
 
                 except Exception as e:
                     logging.error(f"Failed to download http resource for {field}.{idx}: {e}")
+                    continue
+            elif type_.startswith("template"):
+                    logging.info(f"Skip processing template resource for {field}.{idx}")
                     continue
             else:
                 logging.warning(f"Unsupported or failed to download resource for {field}.{idx} with type '{type_}'")

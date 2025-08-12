@@ -56,7 +56,7 @@ def _save(file: UploadFile, target_dir: str) -> UploadResponse:
     upload file to target path
     """
     folder = Path(target_dir)
-    folder.mkdir(parents=True, exist_ok=True)  # 自动创建目录
+    folder.mkdir(parents=True, exist_ok=True)
 
     dst = folder / file.filename
     with dst.open("wb") as w:
