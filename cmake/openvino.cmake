@@ -3,6 +3,16 @@ include(ExternalProject)
 
 if (ENABLE_NNDEPLOY_INFERENCE_OPENVINO STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_INFERENCE_OPENVINO STREQUAL "ON")
+  # 使用系统安装的OpenVINO (通过 apt install openvino-2023.1.0 安装)
+  find_package(OpenVINO REQUIRED COMPONENTS Runtime)
+  
+  # 设置包含目录
+  include_directories(${OpenVINO_INCLUDE_DIRS})
+  
+  # 链接OpenVINO库
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} openvino::runtime)
+  
+  message(STATUS "Using system installed OpenVINO")
 else()
   if(IS_ABSOLUTE ${ENABLE_NNDEPLOY_INFERENCE_OPENVINO})
     # Absolute path, use directly

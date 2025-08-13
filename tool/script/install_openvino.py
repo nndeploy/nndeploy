@@ -387,3 +387,18 @@ if target_bin_dir.exists():
             print(f"  {bin_file.name}")
 
 print(f"OpenVINO {OPENVINO_VER} installation completed!")
+
+# # 添加 Intel® 软件包存储库
+# wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# echo "deb https://apt.repos.intel.com/openvino/2023 ubuntu20 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2023.list
+
+# # 更新软件包列表并安装
+# sudo apt update
+# sudo apt install openvino-2023.1.0
+
+# # 将这行
+# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "tool/script/third_party/openvino2023.1") 
+
+# # 改为
+# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO ON)  # 使用系统安装的 OpenVINO

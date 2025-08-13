@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     build-essential cmake ninja-build git wget curl pkg-config \
     python3-dev python3-pip python3-venv \
     libopencv-dev protobuf-compiler \
+    ca-certificates gnupg lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Install Python Libraray ----
@@ -34,15 +35,26 @@ RUN cd tool/script && \
 RUN cd tool/script && \
     python3 install_onnxruntime.py
 
+# ---- Install OpenVINO from local file ----
 # COPY tool/script/download/l_openvino_toolkit_ubuntu20_2023.1.0.12185.47b736f63ed_x86_64.tgz /workspace/tool/script/download
 
-RUN cd tool/script && \
-    python3 install_openvino.py
+# RUN cd tool/script && \
+#     python3 install_openvino.py
+
+# ---- Install OpenVINO from Intel Repository ----
+RUN mkdir -p /etc/apt/keyrings && \
+    wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
+    gpg --dearmor -o /etc/apt/keyrings/intel-sw-products.gpg && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/intel-sw-products.gpg] https://apt.repos.intel.com/openvino/2023 ubuntu22 main" | \
+    tee /etc/apt/sources.list.d/intel-openvino-2023.list && \
+    apt-get update && \
+    apt-get install -y openvino-2023.1.0 && \
+    rm -rf /var/lib/apt/lists/*
 
 # ---- Build C++ and Install Python Module ----
 RUN rm -rf build && \
     mkdir build && \
-    cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake && \
+    cp cmake/config_opencv_ort_ov_tokenizer.cmake build/config.cmake && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .. && \
     make -j$(nproc) && \
