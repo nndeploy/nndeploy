@@ -209,13 +209,15 @@ class NnDeployServer:
 
         # requirements
         req = None
-        cand = d / f"requirement.{base}.txt"
+        cand = d / f"readme.{base}.md"
         if cand.exists():
-            req = str(cand.resolve())
+            with open(cand, "r", encoding="utf-8") as f:
+                req = f.read()
         else:
-            cand2 = d / "requirement.template.txt"
+            cand2 = d / "readme.template.md"
             if cand2.exists():
-                req = str(cand2.resolve())
+                with open(cand2, "r", encoding="utf-8") as f:
+                    req = f.read()
 
         return cover, req
 
@@ -568,7 +570,7 @@ class NnDeployServer:
 
                         abs_path = str(jf.resolve())
                         row = cursor.execute(
-                            "SELECT id, cover FROM templates WHERE path = ?",
+                            "SELECT id, cover, requirements FROM templates WHERE path = ?",
                             (abs_path,)
                         ).fetchone()
                         if row is None:
@@ -576,6 +578,7 @@ class NnDeployServer:
                             continue
                         tid = row["id"]
                         cover = row["cover"]
+                        requirements = row["requirements"]
 
                         with jf.open("r", encoding="utf-8") as f:
                             content = json.load(f)
@@ -586,7 +589,8 @@ class NnDeployServer:
                             "developer_": content.get("developer_"),
                             "source_": content.get("source_"),
                             "desc_": content.get("desc_"),
-                            "cover_": cover
+                            "cover_": cover,
+                            "requirements_": requirements
                         }
                         results.append(item)
                         new_count += 1
