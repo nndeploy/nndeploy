@@ -36,6 +36,13 @@ export async function apiWorkFlowRun(entity: IBusinessNode){
   return response;
 }
 
+export async function apiModelsRunDownload(entity: IBusinessNode){
+
+ var response = await request.post<IWorkFlowRunResult>('/api/models/download', entity);
+
+  return response;
+}
+
 export async function apiGetWorkFlow(name: string){
  var response = await request.post<IWorkFlowEntity>(`aip/workflow/${name}`, {});
 

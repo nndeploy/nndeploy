@@ -11,6 +11,7 @@ export const FlowEnviromentContext = React.createContext<
     element?: React.MutableRefObject<HTMLDivElement | null>;
     onSave?: (flowJson: FlowDocumentJSON) => void;
     onRun?: (flowJson: FlowDocumentJSON) => void;
+    onDownload?: (flowJson: FlowDocumentJSON) => void;
     onConfig: ()=>void; 
     graphTopNode: IBusinessNode;
     paramTypes: IParamTypes;

@@ -20,7 +20,7 @@
         gap: 10px;
 
         .add-item {
-            width: 320px;
+          width: 320px;
           height: 180px;
           background-color: var(--semi-color-fill-0);
 
@@ -64,6 +64,7 @@
             flex: 1;
 
             .desc {
+              margin-top :1em;
               flex: 1;
             }
 
@@ -75,7 +76,7 @@
     .area-template {
       // margin: 12px;
       width: 1310px;
-      margin: auto;
+      margin: 2.5em auto 0;
 
       .items {
 
@@ -216,4 +217,11 @@
 
   }
 
+}
+
+.tip-content {
+  pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
 }

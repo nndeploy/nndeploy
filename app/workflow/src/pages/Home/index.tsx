@@ -3,7 +3,7 @@ import { JsonSchemaEditor } from "../components/json-schema-editor";
 import { JsonSchema } from "../components/type-selector/types";
 import './index.scss'
 import { useGetTemplates, useGetWorkflows } from "./effect";
-import { Button, Tag } from "@douyinfe/semi-ui";
+import { Button, Modal, Tag } from "@douyinfe/semi-ui";
 import { IconPlus } from "@douyinfe/semi-icons";
 import classNames from "classnames";
 import Title from "@douyinfe/semi-ui/lib/es/typography/title";
@@ -22,17 +22,44 @@ export default function Home() {
 
   const { workFlows } = useGetWorkflows();
 
-  function onCreateNewWorkFlow(){
+  const [item, setItem] = useState<IWorkFlowShortEntity | null>(null)
+
+  function onCreateNewWorkFlow() {
     navigate('/design')
   }
 
-  function onWorkFlowClick(item: IWorkFlowShortEntity){
+  function onWorkFlowClick(item: IWorkFlowShortEntity) {
     navigate(`/design?id=${item.id}&name=${item.name_}&flowType=workspace`)
   }
 
-  async function onAddToWorkspace(item: IWorkFlowShortEntity){
-   navigate(`/design?id=${item.id}&name=${item.name_}&flowType=template`)
+  async function onAddToWorkspace(item: IWorkFlowShortEntity) {
+
+    if (item.requirements_) {
+
+      setItem(item)
+      showDialog()
+      return
+
+    }
+    navigate(`/design?id=${item.id}&name=${item.name_}&flowType=template`)
   }
+  const [visible, setVisible] = useState(false);
+
+  const showDialog = () => {
+    setVisible(true);
+  };
+  const handleOk = () => {
+    setVisible(false);
+    navigate(`/design?id=${item?.id}&name=${item?.name_}&flowType=template`)
+  };
+  const handleCancel = () => {
+    setVisible(false);
+    console.log('Cancel button clicked');
+  };
+  const handleAfterClose = () => {
+    console.log('After Close callback executed');
+  };
+
 
   return (
     <div className="home-page">
@@ -40,12 +67,12 @@ export default function Home() {
       <div className="areas">
         <div className="area-workspace">
 
-          <Title heading={2} style={{ margin: '8px 0' }} >Workspace</Title>
+          <Title heading={1} style={{ margin: '8px 0' }} >Workspace</Title>
           {/* <Text type="secondary" >Create a blank workflow</Text> */}
 
 
           <div className="items">
-            <div className="add-item" onClick={()=>onCreateNewWorkFlow()}>
+            <div className="add-item" onClick={() => onCreateNewWorkFlow()}>
               <IconPlus size="extra-large" />
 
               <Paragraph type="secondary" >Click me to create a blank workflow</Paragraph>
@@ -53,7 +80,7 @@ export default function Home() {
             </div>
             {
               workFlows.map((item) => (
-                <div className={classNames("item")} key={item.id} onClick={()=>onWorkFlowClick(item)}>
+                <div className={classNames("item")} key={item.id} onClick={() => onWorkFlowClick(item)}>
 
 
 
@@ -75,8 +102,11 @@ export default function Home() {
           </div>
         </div>
         <div className="area-template">
-          <Title heading={2} style={{ margin: '8px 0' }} >Template</Title>
-          <Text type="secondary" >Use the following template workflows, or customize your own workflows based on the templates.</Text>
+          <Title heading={1} style={{ margin: '8px 0' }} >Template</Title>
+          <Paragraph 
+          //type="secondary" 
+          size="normal" style={{fontSize: '16px'}} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
+
 
           <div className="items">
 
@@ -98,7 +128,7 @@ export default function Home() {
                     <div className="source">
 
 
-                      <a href={item.source_ ? item.source_.split(',')[0]: ''} target="_blank">
+                      <a href={item.source_ ? item.source_.split(',')[0] : ''} target="_blank">
                         <Tag
                           color='light-blue'
                           //prefixIcon={<IconGithubLogo />}
@@ -107,7 +137,7 @@ export default function Home() {
                           type='light'
                         >
 
-                          {item.source_ ? item.source_.split(',')[0].substr(0, 50) :  'unknown source'}
+                          {item.source_ ? item.source_.split(',')[0].substr(0, 50) : 'unknown source'}
 
                         </Tag>
                       </a>
@@ -121,7 +151,7 @@ export default function Home() {
                         size="small"
                         style={{ borderRadius: '8px' }}
                         block
-                        theme='solid' type="primary" onClick={()=>onAddToWorkspace(item)}>Add to Workspace</Button>
+                        theme='solid' type="primary" onClick={() => onAddToWorkspace(item)}>Add to Workspace</Button>
 
 
                     </div>
@@ -134,7 +164,22 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <Modal
+        title="Requirements"
+        visible={visible}
+        onOk={handleOk}
+        afterClose={handleAfterClose} //>=1.16.0
+        onCancel={handleCancel}
+        closeOnEsc={true}
+        width={600}
+      >
+        <div className={'tip-content'}>
+      
 
+          <pre>{item?.requirements_}</pre>
+        </div>
+
+      </Modal>
     </div >
   );
 }

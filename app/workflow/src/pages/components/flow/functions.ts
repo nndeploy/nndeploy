@@ -46,7 +46,18 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
     if (fieldValue == null) {
       let i = 0
     }
-    fieldValue = fieldValue[fieldName]
+
+    // if(fieldName == '1'){
+    //   debugger
+    // }
+
+    if (lodash.isNumber(new Number(fieldName)) && !fieldValue[fieldName] && fieldValue[0]) {
+
+      fieldValue = fieldValue[0]
+    } else {
+      fieldValue = fieldValue[fieldName]
+    }
+
 
   }
 
@@ -68,6 +79,9 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
       result.primateType = 'string'
     }
 
+  } else if (lodash.isObject(fieldValue)) {
+    result.componentType = 'object'
+    result.primateType = 'object'
   } else {
     if (lodash.isNumber(fieldValue)) {
       result.componentType = 'number'
