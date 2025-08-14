@@ -25,8 +25,12 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y \
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # ---- Clone nndeploy Project（Include Submodules）----
-RUN git clone --recursive https://github.com/nndeploy/nndeploy.git . && \
-    git pull origin main
+# RUN git clone --recursive https://github.com/nndeploy/nndeploy.git . && \
+#     git pull origin main
+
+# ---- Copy all project files to workspace ----
+COPY . /workspace/
+
 
 # ---- Install OpenCV + ONNX Runtime ----
 RUN cd tool/script && \

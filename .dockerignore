@@ -4,7 +4,7 @@
 /build-*
 /docs/build
 /cmake-build-*
-/third_party
+#/third_party
 /examples/**/oneflow
 /benchmark/**/oneflow
 /.vscode
