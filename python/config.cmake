@@ -502,6 +502,10 @@ install(CODE "
               message(STATUS \"Copying opencv symlink library: \${lib_name}\")
               file(COPY \"\${lib_file}\" 
                    DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+            elseif(\"\${lib_name}\" MATCHES \"^libopencv_.*\\.*\\.dylib\")
+              message(STATUS \"Copying opencv symlink library: \${lib_name}\")
+              file(COPY \"\${lib_file}\" 
+                   DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
             else()
               message(STATUS \"Skipping symlink: \${lib_name}\")
             endif()
