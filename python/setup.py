@@ -534,6 +534,7 @@ setup(
         'console_scripts': [
             'nndeploy-run-json=nndeploy.dag.run_json:main',
             'nndeploy-app=nndeploy.server.app:main',
+            'nndeploy-clean=nndeploy.server.clean:main',
         ],
     },
     # extras_require={

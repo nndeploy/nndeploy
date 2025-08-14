@@ -15,7 +15,7 @@
 # --------------------------------------------------------------------
 
 # IR ONNX
-set(ENABLE_NNDEPLOY_IR_ONNX ON) # Support generating IR directly from ONNX models, disabled by default
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # Support generating IR directly from ONNX models, disabled by default
 
 # Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)
 set(ENABLE_NNDEPLOY_DEVICE_CUDA ON) # Whether to enable device CUDA, default is OFF
