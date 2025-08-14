@@ -140,7 +140,7 @@ After configuring your workflow in the visual interface, save it as a JSON file 
 nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
 ```
 
-> Note: Requires Python 3.10 or higher. Alternative installation/execution via [docker](docker/README.md) is supported.
+> Note: Requires Python 3.10 or higher. Alternative installation/execution via [docker](docker/README.md) is supported. Use `nndeploy-clean` to clear expired backend resources.
 
 ### Docs
 - [How to Build](docs/zh_cn/quick_start/build.md)
