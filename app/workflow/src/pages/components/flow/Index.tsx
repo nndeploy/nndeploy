@@ -32,7 +32,7 @@ import {
   //useGetRegistry
 } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
-import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
+import { apiModelsRunDownload, apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
@@ -277,6 +277,67 @@ const Flow: React.FC<FlowProps> = (props) => {
   }, [])
 
 
+  async function onDownload(flowJson: FlowDocumentJSON) {
+    try {
+
+   
+      const businessContent = designDataToBusinessData(
+        flowJson,
+        graphTopNode,
+        flowJson.nodes
+      );
+
+      const response = await apiModelsRunDownload(businessContent);
+
+      if (response.flag == "error") {
+        Toast.error("run fail " + response.message);
+        return;
+      }
+      const taskId = response.result.task_id
+
+      socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
+
+      socket!.onclose = () => {
+
+      };
+
+      var downloadResolve:any; 
+      var downloadReject:any
+
+      socket!.onmessage = (event) => {
+
+        const response = JSON.parse(event.data);
+
+        if (response.flag != "success") {
+
+          downloadReject()
+          Toast.error( response.message);
+          return;
+        }else{
+          downloadResolve()
+          Toast.success( response.message)
+
+        }
+
+
+      };
+
+
+      return new Promise((resolve, reject) => {
+        downloadResolve = resolve;
+        downloadReject = reject
+       
+      })
+
+
+      //Toast.success("run sucess!");
+    } catch (error) {
+      Toast.error("run fail " + error);
+    }
+
+  }
+
+
 
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
@@ -514,7 +575,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       ) : (
         <FlowEnviromentContext.Provider
           value={{
-            element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+            element: demoContainerRef, onSave, onRun, onDownload, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
            
             log: log, 
              runResult: runResult
