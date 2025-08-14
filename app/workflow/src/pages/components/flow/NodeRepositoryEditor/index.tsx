@@ -392,7 +392,7 @@ interface NodeRepositoryEditorProps {
  */
 const updateNodeInList = (list: INodeEntity[], updatedNode: INodeEntity): INodeEntity[] => {
   return list.map(node => {
-    if (node.key_ === updatedNode.key_) {
+    if (node.name_ === updatedNode.name_) {
       return updatedNode;
     }
     if (node.node_repository_ && node.node_repository_.length > 0) {

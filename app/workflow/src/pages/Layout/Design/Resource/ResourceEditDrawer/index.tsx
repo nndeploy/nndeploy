@@ -28,6 +28,13 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
   const formRef = useRef<FormApi<any>>();
 
+  function isImageFile(filename: string) {
+
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
+    const lowerFilename = filename.toLowerCase();
+    return imageExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
+
   //  useEffect(() => {
   //       if(props.entity.id){
   //         apiGetResource(props.entity.id).then((res) => {
@@ -71,7 +78,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
           //   entity: response.result
           // }
           response.result
-          
+
         );
       }
 
@@ -208,7 +215,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
         {
           entity.id ? <>
-            {entity.file_info?.saved_path?.includes("resources/images")  ? (
+            {  isImageFile(entity.file_info?.saved_path!) ? (
               <div className="image-preview">
                 <img src={`/api/preview?file_path=${entity.file_info?.saved_path}&time=${new Date().getTime()}`} />
 
@@ -231,7 +238,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
                 <></>
               )}
 
-  
+
             {
               showFileInfo && <>
                 <Descriptions data={data} column={4} style={{ marginTop: '.5em' }} />
@@ -246,7 +253,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
               getFormApi={(formApi) => (formRef.current = formApi)}
               onValueChange={(v) => console.log(v)}
             >
-       
+
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Input
                   type="file"
