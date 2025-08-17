@@ -45,6 +45,9 @@ from .schemas import (
 from .files import router as files_router
 from .files import get_workdir
 
+from .logging_taskid import set_task_id, reset_task_id, run_func_in_copied_context, scoped_stdio_to_logging
+import contextvars
+
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
@@ -949,9 +952,19 @@ class NnDeployServer:
                 self.sockets.discard(w)
 
     async def _download_models_task(self, task_id: str, graph_json: dict):
+        token = set_task_id(task_id)
         try:
-            result = await asyncio.to_thread(_handle_urls, graph_json, self.args.resources)
+            with scoped_stdio_to_logging("model-download"):
+                logging.info("model download task started")
+
+                result = await asyncio.to_thread(
+                    run_func_in_copied_context,
+                    _handle_urls, graph_json, self.args.resources
+                )
+                logging.info("model download task finished: %s", result)
             self.notify_download_done(task_id, success=True, result=result, error=None)
         except Exception as e:
-            logging.exception("[_download_models_task] failed")
+            logging.exception("model download task failed")
             self.notify_download_done(task_id, success=False, result=None, error=str(e))
+        finally:
+            reset_task_id(token)

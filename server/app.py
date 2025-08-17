@@ -17,6 +17,7 @@ from .task_queue import TaskQueue
 from .server import NnDeployServer
 from .worker import run as worker_run
 from .log_broadcast import LogBroadcaster
+from .logging_taskid import install_taskid_logrecord_factory
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -142,6 +143,8 @@ def main() -> None:
 
     args = cli()
     Path(args.log).parent.mkdir(parents=True, exist_ok=True)
+
+    install_taskid_logrecord_factory()
 
     # load plugin
     plugin_dir = Path(args.resources) / "plugin"
