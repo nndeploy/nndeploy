@@ -98,7 +98,7 @@ def main():
     with open(args.json_file, "r") as f:
         graph_json_str = f.read()
     gr = GraphRunner()
-    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args.plugin, args)
+    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args)
     print(time_profiler_map)
     print(results)
 
