@@ -12,7 +12,7 @@ import argparse
 import nndeploy.base
 import nndeploy.device
 from .graph import Graph
-from .node import Node, add_global_import_lib, import_global_import_lib, import_global_import_lib
+from .node import Node, add_global_import_lib, import_global_import_lib
 from .edge import Edge
 from .base import EdgeTypeInfo
 
@@ -57,8 +57,56 @@ class GraphRunner:
         import gc; gc.collect()
 
     def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
-        try:
+        try:           
             nndeploy.base.time_profiler_reset()
+            
+            # Update graph_json_str
+            if args is not None and args.node_param != []:
+                graph_json_obj = json.loads(graph_json_str)
+                for node_param in args.node_param:
+                    params = node_param.split(":")
+                    node_name = params[0]
+                    node_keys = params[1:-1]
+                    node_value = params[-1]
+                    # 递归查找节点，因为node_repository_可能存在嵌套
+                    def find_node_in_repository(repository, target_name):
+                        for node in repository:
+                            if node.get("name_") == target_name:
+                                return node
+                            # 递归查找嵌套的node_repository_
+                            if "node_repository_" in node and node["node_repository_"]:
+                                found = find_node_in_repository(node["node_repository_"], target_name)
+                                if found:
+                                    return found
+                        return None
+                    
+                    node_json_obj = find_node_in_repository(graph_json_obj["node_repository_"], node_name)
+                    if node_json_obj is None:
+                        print(f"Warning: not found {node_name}")
+                        continue
+                
+                # 处理多级嵌套的node_keys
+                current_obj = node_json_obj
+                for key in node_keys:
+                    if key in current_obj:
+                        current_obj = current_obj[key]
+                    else:
+                        print(f"Warning: key {key} not found in node {node_name}")
+                        current_obj = None
+                        break
+                
+                # 如果所有keys都找到了，设置最终的值
+                if current_obj is not None:
+                    # 获取父对象和最后一个key
+                    parent_obj = node_json_obj
+                    for key in node_keys[:-1]:
+                        parent_obj = parent_obj[key]
+                    parent_obj[node_keys[-1]] = node_value
+                else:
+                    print(f"Warning: no keys provided for node {node_name}")
+                    
+                
+                graph_json_str = json.dumps(graph_json_obj)
 
             nndeploy.base.time_point_start("deserialize_" + name)
             self.graph, status = self._build_graph(graph_json_str, name)
@@ -102,12 +150,6 @@ class GraphRunner:
                             else:
                                 print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
                         i += 1
-                if args.node_param != {}:
-                    for node_name, param_map in args.node_param.items():
-                        for param_key, param_value in param_map.items():
-                            node = self.graph.get_node(node_name)
-                            if node is not None:
-                                node.set_param(param_key, param_value)
 
             nndeploy.base.time_point_start("init_" + name)
             status = self.graph.init()
@@ -185,5 +227,6 @@ class GraphRunner:
             time_profiler_map["run_time"] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
 
             return time_profiler_map, results, status, status.get_desc()
+        
         except NnDeployGraphRuntimeError as e:
             return {}, {}, e.status, e.msg

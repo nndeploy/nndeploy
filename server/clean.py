@@ -12,7 +12,8 @@ def main() -> None:
     parser.add_argument('--template', action='store_true', help='Clean resources/template directory')
     parser.add_argument('--db', action='store_true', help='Clean resources/db directory')
     parser.add_argument('--frontend', action='store_true', help='Clean frontend directory')
-    parser.add_argument('--keep', nargs='+', choices=['logs', 'template', 'db', 'frontend'], 
+    parser.add_argument('--plugin', action='store_true', help='Clean plugins directory')
+    parser.add_argument('--keep', nargs='+', choices=['logs', 'template', 'db', 'frontend', 'plugin'], 
                        help='Keep specified directories (clean all others)')
     
     args = parser.parse_args()
@@ -25,7 +26,8 @@ def main() -> None:
         'logs': 'logs',
         'template': 'resources/template',
         'db': 'resources/db',
-        'frontend': 'frontend'
+        'frontend': 'frontend',
+        'plugin': 'resources/plugin'
     }
     
     # Determine directories to clean
@@ -36,7 +38,7 @@ def main() -> None:
         for key, path in available_dirs.items():
             if key not in args.keep:
                 dirs_to_clean.append(path)
-    elif any([args.logs, args.template, args.db, args.frontend]):
+    elif any([args.logs, args.template, args.db, args.frontend, args.plugin]):
         # Clean only specified directories
         if args.logs:
             dirs_to_clean.append(available_dirs['logs'])
@@ -46,6 +48,8 @@ def main() -> None:
             dirs_to_clean.append(available_dirs['db'])
         if args.frontend:
             dirs_to_clean.append(available_dirs['frontend'])
+        if args.plugin:
+            dirs_to_clean.append(available_dirs['plugin'])
     else:
         # Default: clean all directories
         dirs_to_clean = list(available_dirs.values())

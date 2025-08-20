@@ -31,6 +31,7 @@ def cli():
                     help="enable debug mode")
     ap.add_argument("--no-debug", dest="debug", action="store_false",
                     help="disable debug mode")
+    ap.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
     ap.set_defaults(debug=False)
     return ap.parse_args()
 
@@ -143,8 +144,19 @@ def main() -> None:
     args = cli()
     Path(args.log).parent.mkdir(parents=True, exist_ok=True)
 
-    # load plugin
+    # load plugin 
+    ## add by always
+    # if args.plugin != []:
+    #     for plugin_path in args.plugin:
+    #         add_global_import_lib(plugin_path)
+    #     import_global_import_lib()
+        
     plugin_dir = Path(args.resources) / "plugin"
+    plugin_dir.mkdir(parents=True, exist_ok=True)
+    if args.plugin != []:
+        for plugin_path in args.plugin:
+            import shutil
+            shutil.copy(plugin_path, plugin_dir)
     if plugin_dir.exists():
         load_existing_plugins(plugin_dir)
 

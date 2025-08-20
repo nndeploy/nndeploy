@@ -10,6 +10,7 @@ import argparse
 
 import nndeploy.base
 import nndeploy.device
+from .node import add_global_import_lib, import_global_import_lib
 from .graph_runner import GraphRunner
      
        
@@ -30,6 +31,9 @@ def parse_args():
     # kParallelTypeSequential
     parser.add_argument("--parallel_type", type=str, default="", required=False)
     parser.add_argument("--dump", action="store_true", default=False, required=False)
+    
+    # plugin
+    parser.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
     return parser.parse_args()
 
 
@@ -40,9 +44,10 @@ class GraphRunnerArgs:
         self.task_id = ""
         self.input_path = {}
         self.output_path = {}
-        self.node_param = {}
+        self.node_param = []
         self.parallel_type = ""
         self.dump = False
+        self.plugin = []
         
     def parse_args(self):
         args = parse_args()
@@ -70,11 +75,11 @@ class GraphRunnerArgs:
                 self.output_path[str(i)] = item
             i += 1
         
-        i = 0
         for item in args.node_param:
-            node_name, param_key, param_value = item.split(":")
-            self.node_param[node_name][param_key] = param_value
-            i += 1
+            self.node_param.append(item)
+        
+        for item in args.plugin:
+            self.plugin.append(item)
         
         self.parallel_type = args.parallel_type
         self.dump = args.dump
@@ -84,11 +89,16 @@ def main():
     args = GraphRunnerArgs()
     args.parse_args()
     
+    if args.plugin != []:
+        for plugin_path in args.plugin:
+            add_global_import_lib(plugin_path)
+        import_global_import_lib()
+    
     graph_json_str = ""
     with open(args.json_file, "r") as f:
         graph_json_str = f.read()
     gr = GraphRunner()
-    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args)
+    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args.plugin, args)
     print(time_profiler_map)
     print(results)
 
