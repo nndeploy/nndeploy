@@ -3,11 +3,13 @@ import logging
 import os
 import threading
 import traceback
+from pathlib import Path
 from logging.handlers import QueueHandler
 from .executor import GraphExecutor
 from queue import Empty
 from .task_queue import ExecutionStatus
 import nndeploy
+from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 
 from .logging_taskid import (
     install_taskid_logrecord_factory,
@@ -55,8 +57,16 @@ def configure_worker_logger(log_q):
     redirect_python_stdio()
     return root
 
-def poll_plugin_updates(plugin_update_q):
-    from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
+def load_existing_plugins(plugin_dir: Path):
+    for f in plugin_dir.iterdir():
+        if f.suffix in {".py", ".so"} and f.is_file():
+            add_global_import_lib(str(f.resolve()))
+    import_global_import_lib()
+
+def poll_plugin_updates(plugin_update_q, resources):
+    plugin_dir = Path(resources) / "plugin"
+    if plugin_dir.exists():
+        load_existing_plugins(plugin_dir)
     while not plugin_update_q.empty():
         plugin_path = plugin_update_q.get()
         if os.path.exists(plugin_path):
@@ -81,7 +91,7 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
         except Empty:
             continue
 
-        poll_plugin_updates(plugin_update_q)
+        poll_plugin_updates(plugin_update_q, resources)
 
         idx, payload = item
         task_id = payload["id"]
