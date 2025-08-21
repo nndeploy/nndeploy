@@ -165,6 +165,8 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 在 GitHub 上给 nndeploy Star，并立即收到新版本的通知。
 
+<img src="docs/image/star.gif">
+
 ## 下一步计划
 
 - [工作流生态](https://github.com/nndeploy/nndeploy/issues/191)
@@ -173,7 +175,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- 欢迎加入交流群！微信：titian5566（请简单备注个人信息^_^）
+- **加入开发者社区**：与工程师一起交流技术、获取支持、抢先体验新功能！微信：titian5566（请备注：名称 + 技术方向）
   
   <img src="docs/image/wechat.jpg" width="225px">
 
