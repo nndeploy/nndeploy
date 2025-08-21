@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 from typing import Optional
+from uuid import NAMESPACE_URL, uuid5
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -50,6 +51,15 @@ def get_workdir(server) -> Path:
 #         "extension": (dst.relative_to(workdir).suffix or "unknown").lstrip(".")
 #     }
 #     return UploadResponse(flag=flag, message=message, result=result)
+
+def path_to_id(path: Path) -> str:
+    return str(uuid5(NAMESPACE_URL, str(path.resolve())))
+
+def parent_path_to_id(path: Path, root: Path | None = None) -> str:
+    parent = path.parent
+    if root and parent.resolve() == root.resolve():
+        return ""
+    return path_to_id(parent)
 
 def _save(file: UploadFile, target_dir: str) -> UploadResponse:
     """
@@ -147,6 +157,8 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
 
     size = 4096 if is_dir else stat.st_size
 
+    node_id = path_to_id(path)
+
     file_info = {
         "filename": path.name,
         "saved_path": str(path),
@@ -156,7 +168,7 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
     }
 
     return {
-        "id": str(uuid.uuid4()),
+        "id": node_id,
         "name": path.name,
         "parentId": parent_id,
         "type": "branch" if is_dir else "leaf",
