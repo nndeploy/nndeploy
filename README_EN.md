@@ -1,7 +1,7 @@
 [简体中文](README.md) | English
 
 <h3 align="center">
-Workflow-based Multi-platform AI Deployment Tool
+nndeploy: Local AI Workflow Tool for Programmers
 </h3>
 
 <p align="center">
