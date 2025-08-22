@@ -29,7 +29,7 @@ class TemplateParam : public base::Param {
 
   using base::Param::serialize;
   virtual base::Status serialize(
-      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
     json.AddMember("template_param_",
                    rapidjson::Value(template_param_.c_str(),
                                     template_param_.length(), allocator),
@@ -37,7 +37,7 @@ class TemplateParam : public base::Param {
     return base::kStatusCodeOk;
   }
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json) {
+  virtual base::Status deserialize(rapidjson::Value &json) override {
     if (json.HasMember("template_param_") &&
         json["template_param_"].IsString()) {
       template_param_ = json["template_param_"].GetString();
@@ -60,7 +60,7 @@ class NNDEPLOY_CC_API TemplateCpp : public dag::Node {
   virtual ~TemplateCpp() {}
 
   // tensor copy to tensor
-  virtual base::Status run() {
+  virtual base::Status run() override {
     TemplateParam *tmp_param = dynamic_cast<TemplateParam *>(param_.get());
     device::Tensor *src = inputs_[0]->getTensor(this);
     std::string template_param = tmp_param->template_param_;
@@ -88,7 +88,7 @@ class NNDEPLOY_CC_API TemplateGraph : public dag::Graph {
   virtual ~TemplateGraph() {}
 
   // default param
-  virtual base::Status defaultParam() { return base::kStatusCodeOk; }
+  virtual base::Status defaultParam() override { return base::kStatusCodeOk; }
 
   // static graph
   base::Status make(dag::NodeDesc &pre_desc, dag::NodeDesc &infer_desc,
@@ -100,9 +100,9 @@ class NNDEPLOY_CC_API TemplateGraph : public dag::Graph {
   }
 
   // dynamic graph
-  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> &inputs) {
+  virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) override {
     std::vector<dag::Edge *> outputs;
-    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs[0]);
     std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs[0]);
     std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs[0]);
     return post_outputs;
