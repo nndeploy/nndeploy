@@ -43,7 +43,7 @@ nndeploy：你本地的AI工作流
 
 支持将搭建的工作流一键导出为JSON文件，并提供Python/C++ API接口来调用该JSON文件，让你轻松将AI应用部署到云服务器、桌面应用、移动设备、边缘计算设备等各种生产环境中。
 
-框架内置了多种业界主流的高性能推理引擎、丰富的节点和深度优化策略，帮助程序员将AI算法创意快速转化为高性能的企业级生产应用。
+内置了多种业界主流的高性能推理引擎、丰富的节点和深度优化策略，让你将AI算法创意快速转化为高性能的企业级生产应用。
 
 ---
 
@@ -107,11 +107,11 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ### **告别复杂开发，专注算法创新**
 - **可视化开发**：告别复杂的代码编写！无论你是技术小白还是经验丰富的开发者，通过拖拉拽操作，你就能快速搭建专业的AI工作流
-- **代码即工作流节点**：你只需使用熟悉的Python/C++编写算法逻辑，无需掌握任何前端技术，框架自动将代码转化为工作流中节点
+- **代码即工作流节点**：你只需使用熟悉的Python/C++编写算法节点逻辑，无需掌握任何前端技术，框架自动将代码转化为工作流中节点
 - **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
 
 ### **快速迭代，实时调试**
-- **积木式算法组合**：像搭乐高一样组合AI模型，快速验证创新想法
+- **积木式算法组合**：灵活组合不同算法，快速构建创新AI应用
 - **热更新参数调试**：前端实时调参，后端立即响应，调试效率提升10倍
 - **可视化性能监控**：实时查看每个节点的执行时间
 
@@ -124,14 +124,14 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
   | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | 跨平台推理 | ✅ |
   | [TensorRT](https://github.com/NVIDIA/TensorRT) | NVIDIA GPU高性能推理 | ✅ |
   | [OpenVINO](https://github.com/openvinotoolkit/openvino) | Intel CPU/GPU优化 | ✅ |
-  | [MNN](https://github.com/alibaba/MNN) | 移动端轻量化部署 | ✅ |
-  | [TNN](https://github.com/Tencent/TNN) | 腾讯高性能推理引擎 | ✅ |
-  | [ncnn](https://github.com/Tencent/ncnn) | ARM设备高效推理 | ✅ |
+  | [MNN](https://github.com/alibaba/MNN) | 阿里推出的移动端推理引擎 | ✅ |
+  | [TNN](https://github.com/Tencent/TNN) | 腾讯推出的移动端推理引擎 | ✅ |
+  | [ncnn](https://github.com/Tencent/ncnn) | 腾讯推出的移动端推理引擎 | ✅ |
   | [CoreML](https://github.com/apple/coremltools) | iOS/macOS原生加速 | ✅ |
-  | [AscendCL](https://www.hiascend.com/zh/) | 华为昇腾AI芯片 | ✅ |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微NPU加速 | ✅ |
+  | [AscendCL](https://www.hiascend.com/zh/) | 华为昇腾AI芯片推理框架 | ✅ |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微NPU推理框架 | ✅ |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | 高通骁龙NPU推理框架 | ✅ |
   | [TVM](https://github.com/apache/tvm) | 深度学习编译栈 | ✅ |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | 高通骁龙NPU | ✅ |
   | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | 定制化推理需求 | ✅ |
 
 - **并行加速**：支持串行、流水线并行、任务并行等执行模式，性能提升无需修改代码
