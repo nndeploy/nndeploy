@@ -9,13 +9,13 @@ namespace dag {
 class NNDEPLOY_CC_API Comment : public Node {
  public:
   Comment(const std::string &name) : dag::Node(name) {
-    key_ = "comment";
+    key_ = "nndeploy::dag::Comment";
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
   Comment(const std::string &name, const std::vector<Edge *> &inputs,
             const std::vector<Edge *> &outputs)
       : dag::Node(name) {
-    key_ = "comment";
+    key_ = "nndeploy::dag::Comment";
     node_type_ = dag::NodeType::kNodeTypeInput;
     inputs_ = inputs;
     outputs_ = outputs;
