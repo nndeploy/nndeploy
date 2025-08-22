@@ -12,6 +12,7 @@ export const FlowEnviromentContext = React.createContext<
     onSave?: (flowJson: FlowDocumentJSON) => void;
     onRun?: (flowJson: FlowDocumentJSON) => void;
     onDownload?: (flowJson: FlowDocumentJSON) => void;
+    downloading: boolean, 
     onConfig: ()=>void; 
     graphTopNode: IBusinessNode;
     paramTypes: IParamTypes;
@@ -24,6 +25,7 @@ export const FlowEnviromentContext = React.createContext<
 >({
   outputResources: {path: [], text: []}, 
   flowNodesRunningStatus: {}, 
+  downloading: false, 
   graphTopNode: {},
   log: {
     items: [],

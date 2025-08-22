@@ -1,31 +1,17 @@
-import React, { useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import {
   Nav,
   Tabs,
   TabPane,
   Tooltip,
-  Avatar,
-  Dropdown,
-  Button,
 } from "@douyinfe/semi-ui";
 import {
   IconBranch,
   IconFile,
   IconPlus,
-  IconUser,
-  IconHelpCircle,
-  IconGithubLogo,
   IconApps,
 } from "@douyinfe/semi-icons";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBilibili,
-  faDiscord,
-  faWeixin,
-  faZhihu,
-
-} from "@fortawesome/free-brands-svg-icons";
 
 
 import { Typography } from "@douyinfe/semi-ui";
@@ -35,17 +21,14 @@ import "./SecondLevelNav.scss";
 import "./TabContent.scss";
 import Flow from "../../components/flow/Index";
 
-import companyLogo from "../../../assets/kapybara_logo.png";
 import NodeTree from "./Node";
 import Resource from "./Resource";
 import WorkFlow from "./WorkFlow";
-import { IResourceTreeNodeEntity } from "./Resource/entity";
 import { IWorkFlowEntity } from "./WorkFlow/entity";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { apiGetDagInfo } from "./api";
 import store, { initialState, reducer } from "./store/store";
 import { initDagGraphInfo } from "./store/actionType";
-import { useQueryParams } from "./effect";
 import { EnumFlowType } from "../../../enum";
 import Header from "./header";
 

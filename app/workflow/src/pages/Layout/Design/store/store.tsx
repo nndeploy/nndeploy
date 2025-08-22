@@ -3,6 +3,7 @@ import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, } from './actionType'
 import { IDagGraphInfo, INodeEntity, INodeTreeNodeEntity, NodeTreeNodeData } from '../../../Node/entity';
 import { FlowNodeRegistry } from '../../../../typings';
 import { buildNodeRegistry } from '../../../components/flow/nodeRegistry/buildNodeRegistry';
+import { CommentNodeRegistry } from '../../../../nodes/comment';
 
 interface state {
   dagGraphInfo: IDagGraphInfo,
@@ -86,9 +87,11 @@ export function reducer(state: state, action: any): state {
         return item.nodeEntity! // 这里的nodeEntity是INodeEntity
       })
 
-      const nodeRegistries: FlowNodeRegistry[] = leafNodes.map((item) => {
+      let nodeRegistries: FlowNodeRegistry[] = leafNodes.map((item) => {
         return buildNodeRegistry(item)
       })
+
+      nodeRegistries.push(CommentNodeRegistry)
 
 
       var treeData = buildTreeFromArray(dagGraphInfo.nodes)
