@@ -2,7 +2,7 @@
 [English](README_EN.md) | 简体中文
 
 <h3 align="center">
-nndeploy：程序员本地的AI工作流工具
+nndeploy：你本地的AI工作流
 </h3>
 
 <p align="center">
@@ -39,7 +39,7 @@ nndeploy：程序员本地的AI工作流工具
   </picture>
 </p>
 
-作为开发者，你只需使用熟悉的Python/C++编写逻辑，无需掌握任何前端技术，就能快速构建你的可视化AI工作流。
+你只需使用的Python/C++编写算法逻辑，无需掌握任何前端技术，就能快速构建你的可视化AI工作流。
 
 支持将搭建的工作流一键导出为JSON文件，并提供Python/C++ API接口来调用该JSON文件，让你轻松将AI应用部署到云服务器、桌面应用、移动设备、边缘计算设备等各种生产环境中。
 
@@ -76,7 +76,7 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 - `--port`：指定Web服务端口号（默认为8000）
 - `--plugin`：加载用户自定义插件文件（可选参数，如果没有该参数，仅使用内置节点）
   - Python插件：参考[Python插件模板写法](template/python/template.py)
-  - C++插件：参考[C++插件模板写法]((template/cpp/template.h))
+  - C++插件：参考[C++插件模板写法](template/cpp/template.h)
   - 可以同时加载多个插件：`--plugin plugin1.py plugin2.so`
 
 启动成功后，打开 http://localhost:8000 即可访问工作流界面。
@@ -107,7 +107,9 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ### 🚀 开发效率提升
 
-- **可视化开发**：告别复杂的代码编写！无论你是技术小白还是经验丰富的开发者，通过简单的拖拽操作，你就能快速搭建专业的AI应用。
+- **可视化开发**：告别复杂的代码编写！无论你是技术小白还是经验丰富的开发者，通过简单的拖拽操作，你就能快速搭建专业的AI工作流
+
+- **自定义节点**：你只需使用熟悉的Python/C++编写逻辑，无需掌握任何前端技术，就能快速构建你的可视化AI工作流
 
 - **一键部署**：工作流导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
 
@@ -138,8 +140,6 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - **高性能算子**：内置C++/CUDA/SIMD等优化实现的节点，无需手动调优
 
 ### 🛠️ 极简扩展
-
-- **自定义节点**：你只需使用熟悉的Python/C++编写逻辑，无需掌握任何前端技术，就能快速构建你的可视化AI工作流
 
 - **算法随意组合**：像搭积木一样组合AI算法，快速验证创新想法
 
@@ -175,7 +175,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- **加入开发者社区**：与工程师一起交流技术、获取支持、抢先体验新功能！微信：titian5566（请备注：名称 + 技术方向）
+- **加入开发者社区**：与工程师一起交流技术、获取支持、抢先体验新功能！微信：Always031856（请备注：名称 + 技术方向）
   
   <img src="docs/image/wechat.jpg" width="225px">
 

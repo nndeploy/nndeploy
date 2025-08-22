@@ -927,7 +927,7 @@ msgstr ""
 
 #: ../../knowledge_shared/nndeploy-一款开源的模型端到端部署框架.md:433
 #: c77236aa81f14d688b24490f8dd8f5bb
-msgid "微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
+msgid "微信：Always031856 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
 msgstr ""
-"WeChat: titian5566 (You can add my WeChat to join the nndeploy discussion "
+"WeChat: Always031856 (You can add my WeChat to join the nndeploy discussion "
 "group, note: nndeploy+name)"
