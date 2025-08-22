@@ -1,7 +1,7 @@
 [简体中文](README.md) | English
 
 <h3 align="center">
-nndeploy: Local AI Workflow Tool for Programmers
+nndeploy: Your Local AI Workflow
 </h3>
 
 <p align="center">

@@ -105,45 +105,38 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ## 核心特性
 
-### 🚀 开发效率提升
+### **告别复杂开发，专注算法创新**
+- **可视化开发**：告别复杂的代码编写！无论你是技术小白还是经验丰富的开发者，通过拖拉拽操作，你就能快速搭建专业的AI工作流
+- **代码即工作流节点**：你只需使用熟悉的Python/C++编写算法逻辑，无需掌握任何前端技术，框架自动将代码转化为工作流中节点
+- **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
 
-- **可视化开发**：告别复杂的代码编写！无论你是技术小白还是经验丰富的开发者，通过简单的拖拽操作，你就能快速搭建专业的AI工作流
+### **快速迭代，实时调试**
+- **积木式算法组合**：像搭乐高一样组合AI模型，快速验证创新想法
+- **热更新参数调试**：前端实时调参，后端立即响应，调试效率提升10倍
+- **可视化性能监控**：实时查看每个节点的执行时间
 
-- **自定义节点**：你只需使用熟悉的Python/C++编写逻辑，无需掌握任何前端技术，就能快速构建你的可视化AI工作流
+### **生产级性能**
+- **13种推理引擎无缝集成**：一套工作流，多端部署。通过零抽象成本接入了13种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
 
-- **一键部署**：工作流导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
+  | 推理框架 | 适用场景 | 状态 |
+  | :------- | :------ | :--- |
+  | [PyTorch](https://pytorch.org/) | 研发调试、快速原型 | ✅ |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | 跨平台推理 | ✅ |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT) | NVIDIA GPU高性能推理 | ✅ |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | Intel CPU/GPU优化 | ✅ |
+  | [MNN](https://github.com/alibaba/MNN) | 移动端轻量化部署 | ✅ |
+  | [TNN](https://github.com/Tencent/TNN) | 腾讯高性能推理引擎 | ✅ |
+  | [ncnn](https://github.com/Tencent/ncnn) | ARM设备高效推理 | ✅ |
+  | [CoreML](https://github.com/apple/coremltools) | iOS/macOS原生加速 | ✅ |
+  | [AscendCL](https://www.hiascend.com/zh/) | 华为昇腾AI芯片 | ✅ |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微NPU加速 | ✅ |
+  | [TVM](https://github.com/apache/tvm) | 深度学习编译栈 | ✅ |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | 高通骁龙NPU | ✅ |
+  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | 定制化推理需求 | ✅ |
 
-- **跨平台推理**：一套工作流，多端部署。通过零抽象成本接入了13种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
-
-  | 框架 | 支持状态 |
-  | :------- | :------ |
-  | [PyTorch](https://pytorch.org/) | ✅ |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT) | ✅ |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | ✅ |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | ✅ |
-  | [MNN](https://github.com/alibaba/MNN) | ✅ |
-  | [TNN](https://github.com/Tencent/TNN) | ✅ |
-  | [ncnn](https://github.com/Tencent/ncnn) | ✅ |
-  | [CoreML](https://github.com/apple/coremltools) | ✅ |
-  | [AscendCL](https://www.hiascend.com/zh/) | ✅ |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅ |
-  | [TVM](https://github.com/apache/tvm) | ✅ |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | ✅ |
-  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | ✅ |
-
-### ⚡ 性能优化开箱即用
-
-- **零配置并行**：支持串行、流水线并行、任务并行等执行模式
-
-- **内存自动优化**：零拷贝、内存池、内存复用等优化策略
-  
-- **高性能算子**：内置C++/CUDA/SIMD等优化实现的节点，无需手动调优
-
-### 🛠️ 极简扩展
-
-- **算法随意组合**：像搭积木一样组合AI算法，快速验证创新想法
-
-- **所见即所得**：前端实时调参数，立即看效果，调试更直观
+- **并行加速**：支持串行、流水线并行、任务并行等执行模式，性能提升无需修改代码
+- **内存优化**：零拷贝、内存池、内存复用等优化策略
+- **CUDA/SIMD优化**：内置高性能节点，无需手动调优
 
 ## 开箱即用的AI算法
 
