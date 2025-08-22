@@ -3,7 +3,7 @@ import { JsonSchemaEditor } from "../components/json-schema-editor";
 import { JsonSchema } from "../components/type-selector/types";
 import './index.scss'
 import { useGetTemplates, useGetWorkflows } from "./effect";
-import { Button, Modal, Tag } from "@douyinfe/semi-ui";
+import { Button, Modal, Popover, Tag } from "@douyinfe/semi-ui";
 import { IconPlus } from "@douyinfe/semi-icons";
 import classNames from "classnames";
 import Title from "@douyinfe/semi-ui/lib/es/typography/title";
@@ -103,9 +103,9 @@ export default function Home() {
         </div>
         <div className="area-template">
           <Title heading={1} style={{ margin: '8px 0' }} >Template</Title>
-          <Paragraph 
-          //type="secondary" 
-          size="normal" style={{fontSize: '16px'}} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
+          <Paragraph
+            //type="secondary" 
+            size="normal" style={{ fontSize: '16px' }} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
 
 
           <div className="items">
@@ -118,13 +118,26 @@ export default function Home() {
                   </div>
 
                   <div className={classNames("item-content")}>
-
-                    <div className="title">{item.name_}</div>
+                   
+                      <div className="title">{item.name_}</div>
+                  
                     <div className="developer">{item.developer_ ?? 'unknown developer'}</div>
+
                     <div className="desc">
-                      {item.desc_ ?? 'No description'}
+                      {item.desc_ ?
+
+                        <Popover content={item.desc_} className="desc-popover">
+
+                          {item.desc_}
+                        </Popover>
+
+                        : 'No description'
+                      }
+
+
 
                     </div>
+
                     <div className="source">
 
 
@@ -135,9 +148,11 @@ export default function Home() {
                           size='large'
                           //shape='circle'
                           type='light'
+                          style={{ maxWidth: '100%' }}
+
                         >
 
-                          {item.source_ ? item.source_.split(',')[0].substr(0, 50) : 'unknown source'}
+                          {item.source_ ? item.source_.split(',')[0] : 'unknown source'}
 
                         </Tag>
                       </a>
@@ -174,7 +189,7 @@ export default function Home() {
         width={600}
       >
         <div className={'tip-content'}>
-      
+
 
           <pre>{item?.requirements_}</pre>
         </div>

@@ -74,8 +74,11 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [runResult, setRunResult] = useState<string>('');
 
+  const [downloading, setDownloading] = useState(false)
+
   const [log, setLog] = useState<ILog>({
-    items: [], time_profile: {
+    items: [],
+    time_profile: {
       init_time: undefined,
       run_time: undefined
 
@@ -94,7 +97,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-   // name: '',
+    // name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -160,12 +163,12 @@ const Flow: React.FC<FlowProps> = (props) => {
       return;
     }
 
-    let response : IResponse<IBusinessNode>
+    let response: IResponse<IBusinessNode>
 
-    if(flowType == EnumFlowType.template) {
+    if (flowType == EnumFlowType.template) {
       response = await apiGetTemeplateWorkFlow(flowId);
-    }else{
-        response = await apiGetWorkFlow(flowId);
+    } else {
+      response = await apiGetWorkFlow(flowId);
     }
 
 
@@ -280,7 +283,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   async function onDownload(flowJson: FlowDocumentJSON) {
     try {
 
-   
+      setDownloading(true)
+
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
@@ -290,6 +294,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       const response = await apiModelsRunDownload(businessContent);
 
       if (response.flag == "error") {
+        setDownloading(false)
         Toast.error("run fail " + response.message);
         return;
       }
@@ -301,21 +306,40 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       };
 
-      var downloadResolve:any; 
-      var downloadReject:any
+      var downloadResolve: any;
+      var downloadReject: any
 
       socket!.onmessage = (event) => {
 
         const response = JSON.parse(event.data);
 
+
+
+
         if (response.flag != "success") {
 
           downloadReject()
-          Toast.error( response.message);
+          Toast.error(response.message);
+          setDownloading(false)
           return;
-        }else{
-          downloadResolve()
-          Toast.success( response.message)
+        } else {
+
+          if (response.result.type == 'model_download_done') {
+            downloadResolve()
+            Toast.success( response.message)
+            setDownloading(false)
+          } else if (response.result.type == 'log')
+
+
+            setLog((oldLog) => {
+              var newLog = {
+                ...oldLog,
+                items: [...oldLog.items, response.result.log],
+
+              }
+              return newLog
+            })
+
 
         }
 
@@ -326,13 +350,16 @@ const Flow: React.FC<FlowProps> = (props) => {
       return new Promise((resolve, reject) => {
         downloadResolve = resolve;
         downloadReject = reject
-       
+
       })
 
 
       //Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
+      setDownloading(false)
+    } finally {
+      //setDownloading(false)
     }
 
   }
@@ -403,10 +430,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         if (response.flag != "success") {
 
-          if(response.result.type == 'task_run_info'){
+          if (response.result.type == 'task_run_info') {
             setFlowNodesRunningStatus({})
             setRunResult('error')
-            Toast.error("run fail " );
+            Toast.error("run fail ");
           }
           return;
         }
@@ -434,8 +461,8 @@ const Flow: React.FC<FlowProps> = (props) => {
             return newLog
           })
         } else if (response.result.type == 'task_run_info') {
-     
-           setLog((oldLog) => {
+
+          setLog((oldLog) => {
             var newLog = {
               ...oldLog,
               time_profile: response.result.time_profile,
@@ -575,10 +602,10 @@ const Flow: React.FC<FlowProps> = (props) => {
       ) : (
         <FlowEnviromentContext.Provider
           value={{
-            element: demoContainerRef, onSave, onRun, onDownload, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
-           
-            log: log, 
-             runResult: runResult
+            element: demoContainerRef, onSave, onRun, onDownload, downloading, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+
+            log: log,
+            runResult: runResult
           }}
         >
           <FreeLayoutEditorProvider

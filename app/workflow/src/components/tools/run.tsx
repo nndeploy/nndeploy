@@ -15,6 +15,9 @@ export function Run() {
 
    const flowEnviroment = useFlowEnviromentContext()
 
+   const {downloading} = flowEnviroment
+
+
    const clientContext = useClientContext();
    
   const onRun = async () => {
@@ -33,6 +36,7 @@ export function Run() {
   return (
     <Button
       onClick={onRun}
+      disabled = {downloading}
       loading={isRunning}
       style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
     >

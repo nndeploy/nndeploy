@@ -117,6 +117,9 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
   //const allNode = ref?.current?.document.toJSON() as FlowDocumentJSON;
   documentJSON.nodes.map(item => {
 
+    if(!item.data.name_){
+      let j = 0;
+    }
     var nameParts = item.data.name_.split('_')
     if (item.data.name_ && nameParts.length > 1) {
       var numberPart = parseInt(nameParts[nameParts.length - 1])
