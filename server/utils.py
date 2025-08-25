@@ -187,7 +187,7 @@ def _atomic_write_from_stream(response: requests.Response, dst_path: Path):
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:  # avoid keep-alive empty blank
                 tf.write(chunk)
-    # atomic replace（Windows/Linux/macOS 均可）
+    # atomic replace（Windows/Linux/macOS）
     os.replace(tmp_name, dst_path)
 
 
