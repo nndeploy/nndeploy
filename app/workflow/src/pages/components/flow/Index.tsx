@@ -1,12 +1,7 @@
 import {
   EditorRenderer,
-  FlowNodeEntity,
-  FlowNodeFormData,
-  FormModelV2,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
-  getNodeForm,
-  usePlaygroundTools,
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 
@@ -14,15 +9,14 @@ import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
 import "./styles/my.css";
 //import { nodeRegistries } from "../../../nodes";
-import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
 import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
+import { apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 
-import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
+import { FlowDocumentJSON } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
@@ -32,19 +26,17 @@ import {
   //useGetRegistry
 } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
-import { apiModelsRunDownload, apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
+import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
-import store, { initialState, reducer } from "../../Layout/Design/store/store";
+import store, {  } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
 import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
-import FlowConfigDrawer from "./FlowConfigDrawer";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
 import { EnumFlowType } from "../../../enum";
-import { WorkflowNodeStatus } from "../../../components/base-node/node-status-bar/type";
 
 let nameId = 0;
 
@@ -74,8 +66,11 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [runResult, setRunResult] = useState<string>('');
 
+  const [downloading, setDownloading] = useState(false)
+
   const [log, setLog] = useState<ILog>({
-    items: [], time_profile: {
+    items: [],
+    time_profile: {
       init_time: undefined,
       run_time: undefined
 
@@ -94,7 +89,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-   // name: '',
+    // name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -160,12 +155,12 @@ const Flow: React.FC<FlowProps> = (props) => {
       return;
     }
 
-    let response : IResponse<IBusinessNode>
+    let response: IResponse<IBusinessNode>
 
-    if(flowType == EnumFlowType.template) {
+    if (flowType == EnumFlowType.template) {
       response = await apiGetTemeplateWorkFlow(flowId);
-    }else{
-        response = await apiGetWorkFlow(flowId);
+    } else {
+      response = await apiGetWorkFlow(flowId);
     }
 
 
@@ -280,7 +275,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   async function onDownload(flowJson: FlowDocumentJSON) {
     try {
 
-   
+      setDownloading(true)
+
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
@@ -290,6 +286,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       const response = await apiModelsRunDownload(businessContent);
 
       if (response.flag == "error") {
+        setDownloading(false)
         Toast.error("run fail " + response.message);
         return;
       }
@@ -301,21 +298,40 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       };
 
-      var downloadResolve:any; 
-      var downloadReject:any
+      var downloadResolve: any;
+      var downloadReject: any
 
       socket!.onmessage = (event) => {
 
         const response = JSON.parse(event.data);
 
+
+
+
         if (response.flag != "success") {
 
           downloadReject()
-          Toast.error( response.message);
+          Toast.error(response.message);
+          setDownloading(false)
           return;
-        }else{
-          downloadResolve()
-          Toast.success( response.message)
+        } else {
+
+          if (response.result.type == 'model_download_done') {
+            downloadResolve()
+            Toast.success( response.message)
+            setDownloading(false)
+          } else if (response.result.type == 'log')
+
+
+            setLog((oldLog) => {
+              var newLog = {
+                ...oldLog,
+                items: [...oldLog.items, response.result.log],
+
+              }
+              return newLog
+            })
+
 
         }
 
@@ -326,13 +342,16 @@ const Flow: React.FC<FlowProps> = (props) => {
       return new Promise((resolve, reject) => {
         downloadResolve = resolve;
         downloadReject = reject
-       
+
       })
 
 
       //Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
+      setDownloading(false)
+    } finally {
+      //setDownloading(false)
     }
 
   }
@@ -403,10 +422,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         if (response.flag != "success") {
 
-          if(response.result.type == 'task_run_info'){
+          if (response.result.type == 'task_run_info') {
             setFlowNodesRunningStatus({})
             setRunResult('error')
-            Toast.error("run fail " );
+            Toast.error("run fail ");
           }
           return;
         }
@@ -434,8 +453,8 @@ const Flow: React.FC<FlowProps> = (props) => {
             return newLog
           })
         } else if (response.result.type == 'task_run_info') {
-     
-           setLog((oldLog) => {
+
+          setLog((oldLog) => {
             var newLog = {
               ...oldLog,
               time_profile: response.result.time_profile,
@@ -575,10 +594,10 @@ const Flow: React.FC<FlowProps> = (props) => {
       ) : (
         <FlowEnviromentContext.Provider
           value={{
-            element: demoContainerRef, onSave, onRun, onDownload, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
-           
-            log: log, 
-             runResult: runResult
+            element: demoContainerRef, onSave, onRun, onDownload, downloading, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+
+            log: log,
+            runResult: runResult
           }}
         >
           <FreeLayoutEditorProvider

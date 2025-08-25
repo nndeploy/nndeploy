@@ -2,17 +2,16 @@ import {
   Dropdown,
   Popconfirm,
   SideSheet,
-  Tooltip,
   Tree,
   Typography,
 } from "@douyinfe/semi-ui";
 import { useGetTree } from "./effect";
-import { IconMore, IconPlus } from "@douyinfe/semi-icons";
+import { IconMore } from "@douyinfe/semi-icons";
 import { ReactNode, useState } from "react";
 
 import "./index.scss";
 import ResourceEditDrawer from "./ResourceEditDrawer";
-import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
+import { IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 import BranchEditDrawer from "./BranchEditDrawer";
 import { apiResourceDelete } from "./api";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
@@ -165,7 +164,9 @@ const Resource: React.FC = () => {
               </Dropdown.Item>
               </>
             )}
-             {resource.type == "leaf" && (
+             {
+             //resource.type == "leaf" && 
+             resource.parentId != "" && (
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"

@@ -64,7 +64,7 @@
             flex: 1;
 
             .desc {
-              margin-top :1em;
+              margin-top: 1em;
               flex: 1;
             }
 
@@ -187,7 +187,8 @@
             overflow: hidden;
             display: -webkit-box;
             -webkit-box-orient: vertical;
-            -webkit-line-clamp: 4;
+            -webkit-line-clamp: 3;
+
           }
 
           .bottom {
@@ -203,7 +204,7 @@
             }
 
             .desc {
-              -webkit-line-clamp: 2;
+              //-webkit-line-clamp: 2;
             }
 
 
@@ -224,4 +225,9 @@
     white-space: pre-wrap;
     word-break: break-all;
   }
+}
+
+.desc-popover {
+  width: 300px;
+  padding: 16px;
 }
