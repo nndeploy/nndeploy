@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
@@ -47,6 +48,15 @@ from .files import get_workdir
 
 from .logging_taskid import set_task_id, reset_task_id, run_func_in_copied_context, scoped_stdio_to_logging
 import contextvars
+
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404:
+                return await super().get_response("index.html", scope)
+            raise
 
 class NnDeployServer:
     instance: "NnDeployServer" = None
@@ -858,7 +868,7 @@ class NnDeployServer:
             dist_inside = Path(web_root) / "dist"
             if dist_inside.is_dir():
                 web_root = str(dist_inside)
-            self.app.mount("/", StaticFiles(directory=web_root, html=True), name="frontend")
+            self.app.mount("/", SPAStaticFiles(directory=web_root, html=True), name="frontend")
 
     # model download notify
     def notify_download_done(self, task_id: str, success: bool, result: dict | None, error: str | None):
