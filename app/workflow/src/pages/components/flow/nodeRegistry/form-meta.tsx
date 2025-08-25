@@ -33,7 +33,7 @@ const { Text } = Typography;
 export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const isSidebar = useIsSidebar();
 
-    const readonly = !useIsSidebar();
+  const readonly = !useIsSidebar();
 
   // const { node } = useNodeRender();
 
@@ -57,10 +57,10 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_output_',
     "is_graph_",
     "is_inner_",
-    "node_type_", 
-    'developer_', 
-    'source_', 
-    'version_', 
+    "node_type_",
+    'developer_',
+    'source_',
+    'version_',
     'required_params_'
 
   ];
@@ -130,7 +130,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
     //const parentId = file.includes('images') ? 'images' : file.includes('videos') ? 'videos' : ''
     //const fileName = file.substring(file.lastIndexOf('/') + 1)
-    setResourceEdit({ id: uniqueId(), parentId: "", type: 'leaf', file_info:{ saved_path: file} })
+    setResourceEdit({ id: uniqueId(), parentId: "", type: 'leaf', file_info: { saved_path: file } })
     setResoureEditVisible(true)
 
   }
@@ -164,10 +164,10 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     return needShow
   }
 
-  
+
   function isRequiredField(fieldName: string) {
 
-   // var temp = form.getValueIn('param_')
+    // var temp = form.getValueIn('param_')
     const required_params = form.getValueIn("required_params_");
     if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
       return true
@@ -282,71 +282,71 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         let result = renderField(childFieldName, [...parentPaths, fieldName])
         results.push(result)
       }
-      
-        return <div className="object-field">
-          <div className="field-label">
-            {fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-          </div>
-          <div className="child-fields">
-            {results}
-          </div>
 
+      return <div className="object-field">
+        <div className="field-label">
+          {fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
         </div>
-      } else {
+        <div className="child-fields">
+          {results}
+        </div>
 
-        return <Field key={fieldPath} name={fieldPath} defaultValue={defaulValue}>
-          {({ field, fieldState }) => {
+      </div>
+    } else {
 
-            return <FormItem
-              name={fieldName}
-              type={"string" as string}
-              labelWidth={138}
-              required={isRequiredField(fieldName)}
-            >
-              <>
-                {
+      return <Field key={fieldPath} name={fieldPath} defaultValue={defaulValue}>
+        {({ field, fieldState }) => {
 
-                  fieldType.componentType == 'boolean' ?
-                    <Switch checked={!!field.value}
-                      //label='开关(Switch)' 
-                      onChange={(value: boolean) => {
+          return <FormItem
+            name={fieldName}
+            type={"string" as string}
+            labelWidth={138}
+            required={isRequiredField(fieldName)}
+          >
+            <>
+              {
+
+                fieldType.componentType == 'boolean' ?
+                  <Switch checked={!!field.value}
+                    //label='开关(Switch)' 
+                    onChange={(value: boolean) => {
+                      field.onChange(value)
+                    }} />
+                  : fieldType.componentType == 'select' ?
+                    <Select
+                      style={{ width: '100%' }}
+
+                      value={field.value}
+
+                      onChange={(value) => {
                         field.onChange(value)
-                      }} />
-                    : fieldType.componentType == 'select' ?
-                      <Select
-                        style={{ width: '100%' }}
+                      }}
+                      optionList={paramTypes[fieldType.selectKey!].map(item => {
+                        return {
+                          label: item,
+                          value: item
+                        }
+                      })}>
 
-                        value={field.value}
-
-                        onChange={(value) => {
-                          field.onChange(value)
-                        }}
-                        optionList={paramTypes[fieldType.selectKey!].map(item => {
-                          return {
-                            label: item,
-                            value: item
-                          }
-                        })}>
-
-                      </Select> :
-                      <FxExpression
-                        value={field.value}
-                        fieldType={fieldType}
-                        onChange={field.onChange}
-                        readonly={readonly}
-                        hasError={Object.keys(fieldState?.errors || {}).length > 0}
-                        icon={<></>}
-                      />
-                }
-              </>
-              <Feedback errors={fieldState?.errors} />
-            </FormItem>
-          }
-          }
-        </Field>
-      }
-
+                    </Select> :
+                    <FxExpression
+                      value={field.value}
+                      fieldType={fieldType}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      icon={<></>}
+                    />
+              }
+            </>
+            <Feedback errors={fieldState?.errors} />
+          </FormItem>
+        }
+        }
+      </Field>
     }
+
+  }
 
 
   return (
@@ -486,76 +486,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             {basicFields.map((fieldName) => {
               return (
                 renderField(fieldName, [])
-               
-              //  <Field key={fieldName} name={fieldName}>
-              //     {({ field, fieldState }) => {
-              //       if (fieldName == 'flag_') {
-              //         //debugger
-              //         let i = 0
-              //       }
-              //       const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
-              //       return <FormItem
-              //         name={fieldName}
-              //         type={"string" as string}
-              //         required={isRequiredField(fieldName)}
-              //       >
-
-              //         <div className="expression-field"
-              //         >
-              //           <>
-              //             {
-
-              //               fieldType.componentType == 'boolean' ?
-              //                 <Switch checked={!!field.value}
-              //                   //label='开关(Switch)' 
-              //                   onChange={(value: boolean) => {
-              //                     field.onChange(value)
-              //                   }} />
-              //                 : fieldType.componentType == 'select' ?
-              //                   <Select
-              //                     value={field.value as string}
-              //                     style={{ width: '100%' }}
-              //                     onChange={(value) => {
-              //                       field.onChange(value)
-              //                     }
-              //                     }
 
 
-              //                     optionList={paramTypes[fieldType.selectKey!].map(item => {
-              //                       return {
-              //                         label: item,
-              //                         value: item
-              //                       }
-              //                     })}>
-
-              //                   </Select> :
-
-              //                   <FxExpression
-              //                     value={field.value as string}
-              //                     fieldType={fieldType}
-              //                     onChange={(value) => {
-              //                       field.onChange(value)
-              //                       //setUpdateVal({})
-              //                     }
-              //                     }
-              //                     readonly={!isSidebar || fieldName == 'desc_'}
-              //                     hasError={
-              //                       Object.keys(fieldState?.errors || {}).length > 0
-              //                     }
-              //                     icon={<></>}
-              //                   />
-
-
-              //             }
-              //             <Feedback
-              //               errors={fieldState?.errors}
-              //               invalid={fieldState?.invalid}
-              //             />
-              //           </>
-              //         </div>
-              //       </FormItem>
-              //     }}
-              //   </Field>
               );
             })}
 
