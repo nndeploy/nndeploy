@@ -140,21 +140,21 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置C++/CUDA/Ascend C/SIMD等优化实现的节点
 
-## 开箱即用的AI算法节点
+## 开箱即用的节点
 
-已经部署了以下AI算法节点，并制作了[工作流模板](https://github.com/nndeploy/nndeploy-workflow)，让你能够立即体验和使用各种AI功能：
+针对以下算法，开发了40+节点，并制作了[工作流模板](https://github.com/nndeploy/nndeploy-workflow)，让你能够立即体验和使用各种AI功能：
 
 | 应用场景 | 可用模型 | 
 |---------|---------|
 | **图像分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet |
-| **目标检测** | YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx | 
+| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | 
 | **目标追踪** | FairMot | 
 | **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** |
-| **生成模型** | Stable Diffusion 1.5 | 
-| **大语言模型** | QWen-0.5B | 
-| **换脸应用** | deep-live-cam | 
+| **生成模型** | **Stable Diffusion 1.5** | 
+| **大语言模型** | **QWen-0.5B** | 
+| **换脸** | **deep-live-cam** | 
 
-> 会持续部署更多AI算法节点，如果你有需要的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
+> 会持续开发的节点，如果你有需要的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
 ## 保持领先
 
