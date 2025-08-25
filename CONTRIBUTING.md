@@ -26,7 +26,7 @@ Have a good idea for nndeploy? Share it with us! Here's how to request a feature
 
 1. Check if your idea is already in the [Issues](https://github.com/nndeploy/nndeploy/issues) section
 2. If it's a new feature request, click "New Issue" and use the "Feature Request" template to describe your idea
-3. Add WeChat: titian5566 (Note: nndeploy+name), share your ideas with us
+3. Add WeChat: Always031856 (Note: nndeploy+name), share your ideas with us
 
 ### Pull Requests
 
@@ -70,7 +70,7 @@ nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是
 
 1. 检查您的想法是否已在[Issues](https://github.com/nndeploy/nndeploy/issues)页面提出
 2. 如果是新的功能建议,点击"New Issue"并使用"Feature Request"模板描述您的想法
-3. 添加微信：titian5566 (备注：nndeploy+姓名)，将您的想法分享给我们
+3. 添加微信：Always031856 (备注：nndeploy+姓名)，将您的想法分享给我们
 
 ### 提交代码
 

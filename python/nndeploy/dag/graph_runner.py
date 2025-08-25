@@ -175,7 +175,8 @@ class GraphRunner:
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            copy_result = copy.deepcopy(result)
+                            # copy_result = copy.deepcopy(result)
+                            copy_result = result
                             results.append(copy_result)
             if parallel_type == nndeploy.base.ParallelType.Pipeline:
                 for i in range(count):
@@ -183,7 +184,8 @@ class GraphRunner:
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            copy_result = copy.deepcopy(result)
+                            # copy_result = copy.deepcopy(result)
+                            copy_result = result
                             results.append(copy_result)
             flag = self.graph.synchronize()
             if not flag:

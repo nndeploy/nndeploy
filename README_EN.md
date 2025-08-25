@@ -1,7 +1,7 @@
 [简体中文](README.md) | English
 
 <h3 align="center">
-Workflow-based Multi-platform AI Deployment Tool
+nndeploy: Your Local AI Workflow
 </h3>
 
 <p align="center">
@@ -159,7 +159,7 @@ nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
 - [Architecture Optimization](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## Contact Us
-- Welcome to join our community! WeChat: titian5566 (Please provide brief personal information ^_^)
+- Welcome to join our community! WeChat: Always031856 (Please provide brief personal information ^_^)
   
   <img src="docs/image/wechat.jpg" width="225px">
 
