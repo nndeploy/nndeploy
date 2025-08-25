@@ -72,12 +72,12 @@ nndeploy-app --port 8000
 nndeploy-app --port 8000 --plugin plugin1.py plugin2.py 
 ```
 
-#### 命令参数说明
-- `--port`：指定Web服务端口号（默认为8000）
-- `--plugin`：加载用户自定义插件文件（可选参数，如果没有该参数，仅使用内置节点）
-  - Python插件：参考[Python插件模板写法](template/python/template.py)
-  - C++插件：参考[C++插件模板写法](template/cpp/template.h)
-  - 可以同时加载多个插件：`--plugin plugin1.py plugin2.so`
+- 命令参数说明
+  - `--port`：指定Web服务端口号（默认为8000）
+  - `--plugin`：加载用户自定义插件文件（可选参数，如果没有该参数，仅使用内置节点）
+    - Python插件：参考[Python插件模板写法](template/python/template.py)
+    - C++插件：参考[C++插件模板写法](template/cpp/template.h)
+    - 可以同时加载多个插件：`--plugin plugin1.py plugin2.so`
 
 启动成功后，打开 http://localhost:8000 即可访问工作流界面。
 
@@ -88,6 +88,10 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 ```bash
 nndeploy-run-json --json-file workflow.json --plugin plugin.py
 ```
+
+- API加载运行JSON配置文件
+  - [Python API示例代码](python/nndeploy/dag/run_json.py)
+  - [C++ API示例代码](framework/include/nndeploy/dag/graph_runner.h)
 
 > 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端。如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
 
@@ -112,7 +116,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ### **快速迭代，实时调试**
 - **积木式算法组合**：灵活组合不同算法，快速构建创新AI应用
-- **热更新参数调试**：前端实时调参，后端立即响应，调试效率提升10倍
+- **可视化调参**：前端实时调参，后端立即响应
 - **可视化性能监控**：实时查看每个节点的执行时间
 
 ### **生产级性能**
