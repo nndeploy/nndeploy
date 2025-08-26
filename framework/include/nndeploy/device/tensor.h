@@ -171,6 +171,35 @@ class NNDEPLOY_CC_API Tensor {
   void *getData() const;
   base::MemoryType getMemoryType() const;
 
+  template <typename T, typename... Args>
+  T *getPtr(Args... args) {
+    uint8_t *ptr = reinterpret_cast<uint8_t *>(getData());
+    if (ptr == nullptr) {
+      NNDEPLOY_LOGE("Tensor data is empty\n");
+      return nullptr;
+    }
+
+    int coord[] = {std::forward<int>(args)...};
+    int dims = static_cast<int>(sizeof...(args));
+    if (dims > static_cast<int>(desc_.shape_.size())) {
+      NNDEPLOY_LOGE("dimension %d is out of range with shape size %d\n", dims,
+                    static_cast<int>(desc_.shape_.size()));
+      return nullptr;
+    }
+
+    size_t offset = 0;
+    for (int i = 0; i < dims; ++i) {
+      if (coord[i] < 0 || coord[i] >= desc_.shape_[i]) {
+        NNDEPLOY_LOGE("index: %d is out of range for dimension %d with size %d\n",
+                      coord[i], i, desc_.shape_[i]);
+        return nullptr;
+      }
+      offset += coord[i] * desc_.stride_[i];
+    }
+
+    return reinterpret_cast<T *>(ptr + offset);
+  }
+
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   static base::Status dtype2SafetensorsDtype(
       const base::DataType &data_type,
@@ -204,7 +233,7 @@ class NNDEPLOY_CC_API Tensor {
 
 class TensorCreator {
  public:
-  virtual ~TensorCreator() {};
+  virtual ~TensorCreator(){};
   virtual Tensor *createTensor() = 0;
 };
 
