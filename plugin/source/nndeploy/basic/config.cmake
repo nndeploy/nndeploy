@@ -1,14 +1,14 @@
-message(STATUS "plugin/template")
+message(STATUS "plugin/basic")
 
 # set
 set(PLUGIN_SOURCE)
 set(PLUGIN_OBJECT)
-set(PLUGIN_BINARY nndeploy_plugin_template)
+set(PLUGIN_BINARY nndeploy_plugin_basic)
 
 # SOURCE
 file(GLOB_RECURSE PLUGIN_SOURCE
-  "${PLUGIN_ROOT_PATH}/include/nndeploy/template/*.h"
-  "${PLUGIN_ROOT_PATH}/source/nndeploy/template/*.cc"
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/basic/*.h"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/basic/*.cc"
 )
 
 ## TARGET
@@ -28,14 +28,14 @@ target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 ## install
 if(SYSTEM.Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
-  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
+  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/basic DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 else() 
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
-  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
+  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/basic DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 endif()
 
 # appedn list
-# set(NNDEPLOY_PLUGIN_LIST ${NNDEPLOY_PLUGIN_LIST} ${PLUGIN_BINARY})
+set(NNDEPLOY_PLUGIN_LIST ${NNDEPLOY_PLUGIN_LIST} ${PLUGIN_BINARY})
 
 # unset
 unset(PLUGIN_SOURCE)
