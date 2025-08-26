@@ -5,7 +5,7 @@ import {
   Field,
   FieldArray,
 } from "@flowgram.ai/free-layout-editor";
-import { Button, Popover, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { Button, IconButton, Input, InputNumber, Popover, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -24,9 +24,14 @@ import { getFieldType } from "../functions";
 import { INodeEntity } from "../../../Node/entity";
 import { useRef, useState } from "react";
 import NodeRepositoryEditor from "../NodeRepositoryEditor";
-import { IResourceTreeNodeEntity } from "../../../Layout/Design/Resource/entity";
+import { IResourceTreeNodeEntity, IServerResourceFileEntity } from "../../../Layout/Design/Resource/entity";
 import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDrawer";
-import { IconCrossCircleStroked, IconPlus } from "@douyinfe/semi-icons";
+import { IconChevronDown, IconChevronRight, IconCrossCircleStroked, IconMinus, IconPlus } from "@douyinfe/semi-icons";
+import { IconAddChildren } from "../../json-schema-editor/styles";
+
+import classNames from 'classnames';
+import { usePropertiesEdit } from "./hooks";
+import { PropertyEdit } from "./propertyEdit";
 
 const { Text } = Typography;
 
@@ -49,10 +54,10 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const excludeFields = [
     "id",
     "key_",
-    "param_",
-    "inputs_",
-    "outputs_",
-    "node_repository_",
+    // "param_",
+   // "inputs_",
+   // "outputs_",
+   // "node_repository_",
     'is_dynamic_input_',
     'is_dynamic_output_',
     "is_graph_",
@@ -61,7 +66,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'developer_',
     'source_',
     'version_',
-    'required_params_'
+    //'required_params_'
 
   ];
 
@@ -165,188 +170,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
 
 
-  function isRequiredField(fieldName: string) {
-
-    // var temp = form.getValueIn('param_')
-    const required_params = form.getValueIn("required_params_");
-    if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
-      return true
-    }
-    return false
-
-  }
-
-  function renderField(fieldName: string, parentPaths: string[]) {
-    const fieldType = getFieldType([...parentPaths, fieldName], form, nodeList, paramTypes)
-
-    const filedPath = [...parentPaths, fieldName].join('.')
-
-    var defaulValue = form.getValueIn(filedPath)
 
 
-    var fieldPath = parentPaths.concat(fieldName).join('.')
-    if (fieldType.isArray) {
-      return (
-        <div className="number-array-field">
-          <div className="field-label">{fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}</div>
-          <div className="filed-array-items">
-            <FieldArray name={parentPaths.concat(fieldName).join('.')}>
-              {({ field }) => (
-                <>
-                  {field.map((child, index) => (
-                    <Field key={child.name} name={child.name}>
-                      {({
-                        field: childField,
-                        fieldState: childState,
-                      }) => (
-                        <div className="expression-field" style={{ width: '100%' }}
-                        >
-                          <>
-                            {
 
-                              fieldType.componentType == 'boolean' ?
-                                <Switch checked={!!childField.value}
-                                  //label='开关(Switch)' 
-                                  onChange={(value: boolean) => {
-                                    childField.onChange(value)
-                                  }} />
-                                : fieldType.componentType == 'select' ?
-                                  <Select
-
-                                    value={childField.value as number}
-                                    style={{ width: '100%' }}
-                                    optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                      return {
-                                        label: item,
-                                        value: item
-                                      }
-                                    })}
-
-                                    onChange={(value) => {
-                                      childField.onChange(value)
-                                    }}
-
-                                  >
-
-                                  </Select> :
-
-                                  <FxExpression
-                                    value={childField.value as number}
-                                    fieldType={fieldType}
-                                    onChange={(v) => childField.onChange(v)}
-                                    icon={
-                                      <Button
-                                        theme="borderless"
-                                        icon={<IconCrossCircleStroked />}
-                                        onClick={() => field.delete(index)}
-                                      />
-                                    }
-                                    hasError={
-                                      Object.keys(childState?.errors || {})
-                                        .length > 0
-                                    }
-                                    readonly={readonly}
-                                  />
-
-
-                            }
-                            <Feedback
-                              errors={childState?.errors}
-                              invalid={childState?.invalid}
-                            />
-                          </>
-                        </div>
-                      )}
-                    </Field>
-                  ))}
-                  {!readonly && (
-                    <div>
-                      <Button
-                        theme="borderless"
-                        icon={<IconPlus />}
-                        onClick={() => field.append(0)}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </FieldArray>
-          </div>
-        </div>
-      );
-    } else if (fieldType.componentType == 'object') { // 如果是对象类型 
-      let results: any[] = []
-      for (var childFieldName in defaulValue) {
-        let result = renderField(childFieldName, [...parentPaths, fieldName])
-        results.push(result)
-      }
-
-      return <div className="object-field">
-        <div className="field-label">
-          {fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-        </div>
-        <div className="child-fields">
-          {results}
-        </div>
-
-      </div>
-    } else {
-
-      return <Field key={fieldPath} name={fieldPath} defaultValue={defaulValue}>
-        {({ field, fieldState }) => {
-
-          return <FormItem
-            name={fieldName}
-            type={"string" as string}
-            labelWidth={138}
-            required={isRequiredField(fieldName)}
-          >
-            <>
-              {
-
-                fieldType.componentType == 'boolean' ?
-                  <Switch checked={!!field.value}
-                    //label='开关(Switch)' 
-                    onChange={(value: boolean) => {
-                      field.onChange(value)
-                    }} />
-                  : fieldType.componentType == 'select' ?
-                    <Select
-                      style={{ width: '100%' }}
-
-                      value={field.value}
-
-                      onChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      optionList={paramTypes[fieldType.selectKey!].map(item => {
-                        return {
-                          label: item,
-                          value: item
-                        }
-                      })}>
-
-                    </Select> :
-                    <FxExpression
-                      value={field.value}
-                      fieldType={fieldType}
-                      onChange={field.onChange}
-                      readonly={readonly}
-                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
-                      icon={<></>}
-                    />
-              }
-            </>
-            <Feedback errors={fieldState?.errors} />
-          </FormItem>
-        }
-        }
-      </Field>
-    }
-
-  }
 
 
   return (
@@ -483,15 +309,50 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         )}
         {isSidebar ? (
           <>
-            {basicFields.map((fieldName) => {
-              return (
-                renderField(fieldName, [])
+            <div className="property-container">
+              <div className="UIProperties">
 
+                {basicFields.slice(0, 20).map((fieldName, index) => {
 
-              );
-            })}
+                  return (
+                    <Field key={fieldName} name={fieldName} >
+                      {({ field, fieldState }) => {
+                        return <PropertyEdit fieldName={fieldName} parentPaths={[]}
+                          // value={form.getValueIn(fieldName)}
 
-            {is_dynamic_input_ && (
+                          // onChange={(value) => {
+                          //   form.setValueIn(fieldName, value)
+                          // }}
+
+                          value={field.value}
+
+                          onChange={(value) => {
+                            field.onChange(value)
+                          }}
+                          onRemove={() => { }}
+                          onFieldRename={()=>{
+
+                          }}
+
+                          showLine={false}
+
+                          form={form}
+                          nodeList={nodeList}
+                          paramTypes={paramTypes}
+                          isLast={index == basicFields.length - 1}
+                          topField = {true}
+
+                        />
+                      }}
+                    </Field>
+
+                  )
+                })}
+
+              </div>
+            </div>
+
+            {/* {is_dynamic_input_ && (
               <Section text={"inputs_"} key="inputs_">
                 <FormDynamicPorts portType="inputs_" />
               </Section>
@@ -536,7 +397,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
-            }
+            } */}
 
           </>
         ) : (
