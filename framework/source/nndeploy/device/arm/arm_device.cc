@@ -83,7 +83,7 @@ BufferDesc ArmDevice::toBufferDesc(const TensorDesc &desc,
       size *= desc.shape_[i];
     }
   } else {
-    size = desc.stride_[0];
+    size = desc.stride_[0] * desc.shape_[0];
   }
   return BufferDesc(size, config);
 }
