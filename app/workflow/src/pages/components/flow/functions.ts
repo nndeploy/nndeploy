@@ -25,18 +25,10 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
     componentType: 'string',
     primateType: 'string',
     selectOptions: [],
-    selectKey: ''
+    selectKey: '', 
+    originValue: ''
   }
 
-  if (isNumberArrayFields(fieldNames)) {
-    return result = {
-      isArray: true,
-      primateType: 'number',
-      componentType: 'number',
-      selectOptions: [],
-      selectKey: ''
-    }
-  }
   const nodeRegistry = getNodeRegistry(form, nodeList)
 
   let fieldValue: any = nodeRegistry
@@ -55,11 +47,42 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
 
       fieldValue = fieldValue[0]
     } else {
-      fieldValue = fieldValue[fieldName]
+      if(fieldName  in fieldValue ){
+         fieldValue = fieldValue[fieldName]
+      }else{
+          // let parts = fieldName.split("_") 
+          //  if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
+            
+          //   let firstField = parts[0] + "_0" ; 
+          //   if(firstField  in fieldValue ){ 
+          //     fieldValue = fieldValue[firstField]
+          //   }else{
+              
+          //   }
+          // }
+          const [firstKey] = Object.keys(fieldValue);
+          fieldValue = fieldValue[firstKey]
+
+      }
+     
     }
 
 
   }
+
+  if (isNumberArrayFields(fieldNames)) {
+    return result = {
+      isArray: true,
+      primateType: 'number',
+      componentType: 'number',
+      selectOptions: [],
+      selectKey: '', 
+      originValue: fieldValue
+    }
+  }
+
+  result.originValue = fieldValue
+
 
   //const fieldValue = nodeRegistry['param_']![fieldName]
 

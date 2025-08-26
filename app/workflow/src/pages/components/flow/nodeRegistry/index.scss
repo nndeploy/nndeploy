@@ -56,3 +56,110 @@
     max-width: 100%;
   }
 }
+
+.property-container {
+  .UIProperties {
+    display: grid;
+    grid-template-columns: auto 1fr;
+
+    
+
+    &.shrink {
+      padding-left: 10px;
+      margin-top: 10px;
+    }
+
+    .node_repositories{
+      grid-column: span 2;
+    }
+
+    .UIPropertyLeft {
+      grid-column: 1;
+      position: relative;
+
+      &.showLine {
+        &::before {
+          /* 竖线 */
+          content: '';
+          position: absolute;
+          left: -22px;
+          top: -18px;
+
+          // bottom: $ {
+          //   $isLast ? '12px': '0px'
+          // }
+          bottom: 14px; //orgigin 0
+          &.isLast {
+            bottom: 12px;
+          }
+
+          width: 1px;
+          background: #d9d9d9;
+          display: block;
+        }
+
+        &::after {
+          /* 横线 */
+          content: '';
+          position: absolute;
+          left: -22px; // 横线起点和竖线对齐
+          top: 16px; // 跟随你的行高调整
+          width: 22px; // 横线长度
+          height: 1px;
+          background: #d9d9d9;
+          display: block;
+        }
+      }
+
+      .UICollapseTrigger {
+        cursor: pointer;
+        margin-right: 5px;
+        margin-top:3px; //added by zzh
+      }
+
+    }
+
+    .UIPropertyRight {
+      grid-column: 2;
+      margin-bottom: 10px;
+
+      &:last-child {
+        margin-bottom: 0px;
+      }
+
+      .UIPropertyMain {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .UIRow {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          justify-content: space-between;
+
+          .UIName {
+            flex-basis: 140px;
+            display: flex;
+            
+          }
+          .UIComponent{
+            flex: 1;
+
+          }
+
+          .UIActions {
+            white-space: nowrap;
+          }
+        }
+      }
+      .UICollapsible{
+        display: block;
+        &.collapsed{
+          display: none;
+        }
+      }
+
+    }
+  }
+}
