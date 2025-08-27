@@ -15,18 +15,9 @@ import PIL.Image
 
 from huggingface_hub import list_models
 
-def get_all_diffuser_models():
-    # try:
-    #     print("get_all_diffuser_models")
-    #     models = list_models(library="diffusers")
-    #     return [model.modelId for model in models]
-    # except Exception as e:
-    #     return [
-    #         "stable-diffusion-v1-5/stable-diffusion-v1-5"
-    #     ]
-    return ["stable-diffusion-v1-5/stable-diffusion-v1-5", "runwayml/stable-diffusion-v1-5"]
+from .diffusers_util import get_diffusers_util
 
-diffuser_model_ids = get_all_diffuser_models()
+diffuser_model_ids = get_diffusers_util().get_supported_models(limit=10)
 
 def add_diffuser_model_id(model_id: str):
     diffuser_model_ids.append(model_id)
@@ -47,6 +38,22 @@ nndeploy.base.all_type_enum.append(get_diffuser_models_enum_json)
     
 print(diffuser_model_ids)
 
+# def get_cache_dir():
+#     """获取 Hugging Face 模型缓存目录路径"""
+#     import os
+#     # 优先使用环境变量 HF_HOME 设置的路径
+#     hf_home = os.environ.get('HF_HOME')
+#     if hf_home:
+#         return hf_home
+    
+#     # 其次使用环境变量 HUGGINGFACE_HUB_CACHE 设置的路径
+#     hf_cache = os.environ.get('HUGGINGFACE_HUB_CACHE')
+#     if hf_cache:
+#         return hf_cache
+    
+#     # 默认使用项目相对路径
+#     return "resources/models"
+
 class DiffusersPipeline(nndeploy.dag.Node):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
@@ -59,17 +66,28 @@ class DiffusersPipeline(nndeploy.dag.Node):
         
         self.diffuser_model_id = "stable-diffusion-v1-5/stable-diffusion-v1-5"
         self.torch_dtype = torch.float16
-        self.cache_dir = "resources/models"
+        # self.cache_dir = get_cache_dir()
+        # print(f"cache_dir: {self.cache_dir}")
         
         self.pipeline = None
         
     def init(self) -> bool:
         print("init")
-        self.pipeline = DiffusionPipeline.from_pretrained(
-            self.diffuser_model_id, 
-            torch_dtype=self.torch_dtype,
-            cache_dir=self.cache_dir
-        )
+        try:
+            self.pipeline = DiffusionPipeline.from_pretrained(
+                self.diffuser_model_id, 
+                torch_dtype=self.torch_dtype,
+                local_files_only=True,  # 强制只使用本地文件
+                use_safetensors=True     # 优先使用safetensors格式
+            )
+        except Exception as e:
+            self.pipeline = DiffusionPipeline.from_pretrained(
+                self.diffuser_model_id, 
+                torch_dtype=self.torch_dtype,
+                resume_download=True,    # 支持断点续传
+                force_download=False 
+            )
+        
         print("init pipeline")
         device_type = self.get_device_type()
         if device_type.code_ == nndeploy.base.DeviceTypeCode.cuda:
