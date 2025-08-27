@@ -14,6 +14,7 @@ def extract_encode_output_paths(task_json: Dict[str, Any]) -> List[Dict[str, str
     preview_target_keys = {
         "nndeploy::codec::OpenCvImageEncode",
         "nndeploy::codec::OpenCvVideoEncode",
+        "nndeploy.codec.PILImageEncodec"
     }
 
     text_target_keys = {
