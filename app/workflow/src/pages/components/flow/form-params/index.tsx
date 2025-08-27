@@ -62,7 +62,7 @@ export function FormParams() {
             <FieldArray name={fieldPath}>
               {({ field, fieldState }) => {
 
-                if (fieldPath == 'param_.input_shape_.1') {
+                if (fieldPath == 'param_.input_shape_.0') {
                   let j = 0
                   let tmp = fieldState
                   let k = 0
@@ -91,71 +91,7 @@ export function FormParams() {
                       let j = 0
                     }
                     return renderField(childPath[childPath.length - 1], [...parentPaths, fieldName])
-
-                    return <Field key={child.name} name={child.name}>
-                      {({
-                        field: childField,
-                        fieldState: childState,
-                      }) => (
-                        <div className="expression-field" style={{ width: '100%' }}
-                        >
-                          <>
-                            {
-
-                              fieldType.componentType == 'boolean' ?
-                                <Switch checked={!!childField.value}
-                                  //label='开关(Switch)' 
-                                  onChange={(value: boolean) => {
-                                    childField.onChange(value)
-                                  }} />
-                                : fieldType.componentType == 'select' ?
-                                  <Select
-
-                                    value={childField.value as number}
-                                    style={{ width: '100%' }}
-                                    optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                      return {
-                                        label: item,
-                                        value: item
-                                      }
-                                    })}
-
-                                    onChange={(value) => {
-                                      childField.onChange(value)
-                                    }}
-
-                                  >
-
-                                  </Select> :
-
-                                  <FxExpression
-                                    value={childField.value as number}
-                                    fieldType={fieldType}
-                                    onChange={(v) => childField.onChange(v)}
-                                    icon={
-                                      <Button
-                                        theme="borderless"
-                                        icon={<IconCrossCircleStroked />}
-                                        onClick={() => field.delete(index)}
-                                      />
-                                    }
-                                    hasError={
-                                      Object.keys(childState?.errors || {})
-                                        .length > 0
-                                    }
-                                    readonly={readonly}
-                                  />
-
-
-                            }
-                            <Feedback
-                              errors={childState?.errors}
-                              invalid={childState?.invalid}
-                            />
-                          </>
-                        </div>
-                      )}
-                    </Field>
+              
                   })}
                   {!readonly && (
                     <div>

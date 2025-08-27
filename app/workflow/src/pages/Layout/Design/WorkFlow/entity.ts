@@ -63,5 +63,6 @@ export interface IFieldType{
    primateType: string; 
    selectOptions?: string[]; 
    selectKey?: string; 
+   originValue: any
 }
 

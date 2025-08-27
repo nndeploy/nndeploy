@@ -15,6 +15,7 @@ import Section from '@douyinfe/semi-ui/lib/es/form/section';
 import { FormParams } from '../form-params';
 import { IconCrossCircleStroked, IconPlus } from '@douyinfe/semi-icons';
 import { useIsSidebar } from '../../../../hooks';
+import { PropertyEdit } from '../nodeRegistry/propertyEdit';
 
 const { Text } = Typography;
 
@@ -83,10 +84,10 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
     "is_time_profile_",
     "is_debug_",
     "is_external_stream_",
-    "param_",
-    "inputs_",
-    "outputs_",
-    "node_repository_",
+   // "param_",
+   // "inputs_",
+   // "outputs_",
+   // "node_repository_",
     'is_dynamic_input_',
     'is_dynamic_output_'
   ];
@@ -122,195 +123,225 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
               }}
             >
-              {basicFields.map((fieldName) => {
-                const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+              <div className="property-container">
+                <div className="UIProperties">
+                  {basicFields.map((fieldName, index) => {
+                    //const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+
+                    return (
+                      <Field key={fieldName} name={fieldName} >
+                        {({ field, fieldState }) => {
+                          return <PropertyEdit fieldName={fieldName} parentPaths={[]}
+                            // value={form.getValueIn(fieldName)}
+
+                            // onChange={(value) => {
+                            //   form.setValueIn(fieldName, value)
+                            // }}
+
+                            value={field.value}
+
+                            onChange={(value) => {
+                              field.onChange(value)
+                            }}
+                            onRemove={() => { }}
+                            onFieldRename={() => {
+
+                            }}
+
+                            showLine={false}
+                            topField={true}
+
+                            form={form}
+                            nodeList={nodeList}
+                            paramTypes={paramTypes}
+                            isLast={index == basicFields.length - 1}
+
+                          />
+                        }}
+                      </Field>
+
+                    )
+
+                    // if (fieldType.isArray) {
+                    //   return (
+                    //     <div className="number-array-field">
+                    //       <div className="field-label">{fieldName}</div>
+                    //       <div className="filed-array-items">
+                    //         <FieldArray name={`${fieldName}`}>
+                    //           {({ field }) => {
+
+                    //             if (!lodash.isFunction(field.map)) {
+                    //               var xx = 0
+                    //             }
+                    //             return <>
+                    //               {field.map((child, index) => (
+                    //                 <Field key={child.name} name={child.name}>
+                    //                   {({
+                    //                     field: childField,
+                    //                     fieldState: childState,
+                    //                   }) => (
+                    //                     <div className="expression-field" style={{ width: '100%' }}
+                    //                     >
+                    //                       <>
+                    //                         {
+
+                    //                           fieldType.componentType == 'boolean' ?
+                    //                             <Switch checked={!!childField.value}
+                    //                               //label='开关(Switch)' 
+                    //                               onChange={(value: boolean) => {
+                    //                                 childField.onChange(value)
+                    //                               }} />
+                    //                             : fieldType.componentType == 'select' ?
+                    //                               <Select
+
+                    //                                 value={childField.value as number}
+                    //                                 style={{ width: '100%' }}
+                    //                                 optionList={paramTypes[fieldType.selectKey!].map(item => {
+                    //                                   return {
+                    //                                     label: item,
+                    //                                     value: item
+                    //                                   }
+                    //                                 })}
+
+                    //                                 onChange={(value) => {
+                    //                                   childField.onChange(value)
+                    //                                 }}
+
+                    //                               >
+
+                    //                               </Select> :
+
+                    //                               <FxExpression
+                    //                                 value={childField.value as number}
+                    //                                 fieldType={fieldType}
+                    //                                 onChange={(v) => childField.onChange(v)}
+                    //                                 icon={
+                    //                                   <Button
+                    //                                     theme="borderless"
+                    //                                     icon={<IconCrossCircleStroked />}
+                    //                                     onClick={() => field.delete(index)}
+                    //                                   />
+                    //                                 }
+                    //                                 hasError={
+                    //                                   Object.keys(childState?.errors || {})
+                    //                                     .length > 0
+                    //                                 }
+                    //                                 readonly={false}
+                    //                               />
 
 
-
-                if (fieldType.isArray) {
-                  return (
-                    <div className="number-array-field">
-                      <div className="field-label">{fieldName}</div>
-                      <div className="filed-array-items">
-                        <FieldArray name={`${fieldName}`}>
-                          {({ field }) => {
-
-                            if (!lodash.isFunction(field.map)) {
-                              var xx = 0
-                            }
-                            return <>
-                              {field.map((child, index) => (
-                                <Field key={child.name} name={child.name}>
-                                  {({
-                                    field: childField,
-                                    fieldState: childState,
-                                  }) => (
-                                    <div className="expression-field" style={{ width: '100%' }}
-                                    >
-                                      <>
-                                        {
-
-                                          fieldType.componentType == 'boolean' ?
-                                            <Switch checked={!!childField.value}
-                                              //label='开关(Switch)' 
-                                              onChange={(value: boolean) => {
-                                                childField.onChange(value)
-                                              }} />
-                                            : fieldType.componentType == 'select' ?
-                                              <Select
-
-                                                value={childField.value as number}
-                                                style={{ width: '100%' }}
-                                                optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                                  return {
-                                                    label: item,
-                                                    value: item
-                                                  }
-                                                })}
-
-                                                onChange={(value) => {
-                                                  childField.onChange(value)
-                                                }}
-
-                                              >
-
-                                              </Select> :
-
-                                              <FxExpression
-                                                value={childField.value as number}
-                                                fieldType={fieldType}
-                                                onChange={(v) => childField.onChange(v)}
-                                                icon={
-                                                  <Button
-                                                    theme="borderless"
-                                                    icon={<IconCrossCircleStroked />}
-                                                    onClick={() => field.delete(index)}
-                                                  />
-                                                }
-                                                hasError={
-                                                  Object.keys(childState?.errors || {})
-                                                    .length > 0
-                                                }
-                                                readonly={false}
-                                              />
+                    //                         }
+                    //                         <Feedback
+                    //                           errors={childState?.errors}
+                    //                           invalid={childState?.invalid}
+                    //                         />
+                    //                       </>
+                    //                     </div>
+                    //                   )}
+                    //                 </Field>
+                    //               ))}
+                    //               {!false && (
+                    //                 <div>
+                    //                   <Button
+                    //                     theme="borderless"
+                    //                     icon={<IconPlus />}
+                    //                     onClick={() => field.append(0)}
+                    //                   >
+                    //                     Add
+                    //                   </Button>
+                    //                 </div>
+                    //               )}
+                    //             </>
+                    //           }}
+                    //         </FieldArray>
+                    //       </div>
+                    //     </div>
+                    //   );
+                    // }
+                    // return (
+                    //   <Field key={fieldName} name={fieldName}>
+                    //     {({ field, fieldState }) => {
+                    //       if (fieldName == 'flag_') {
+                    //         //debugger
+                    //         let i = 0
+                    //       }
+                    //       if (fieldName == 'image_url_') {
+                    //         let j = 0
+                    //       }
 
 
-                                        }
-                                        <Feedback
-                                          errors={childState?.errors}
-                                          invalid={childState?.invalid}
-                                        />
-                                      </>
-                                    </div>
-                                  )}
-                                </Field>
-                              ))}
-                              {!false && (
-                                <div>
-                                  <Button
-                                    theme="borderless"
-                                    icon={<IconPlus />}
-                                    onClick={() => field.append(0)}
-                                  >
-                                    Add
-                                  </Button>
-                                </div>
-                              )}
-                            </>
-                          }}
-                        </FieldArray>
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <Field key={fieldName} name={fieldName}>
-                    {({ field, fieldState }) => {
-                      if (fieldName == 'flag_') {
-                        //debugger
-                        let i = 0
-                      }
-                      if (fieldName == 'image_url_') {
-                        let j = 0
-                      }
+                    //       return <FormItem
+                    //         name={fieldName}
+                    //         type={"string" as string}
+                    //         required={true}
+                    //       >
+
+                    //         <div className="expression-field"
+                    //         >
+                    //           <>
+                    //             {
+
+                    //               fieldType.componentType == 'boolean' ?
+                    //                 <Switch checked={!!field.value}
+                    //                   //label='开关(Switch)' 
+                    //                   onChange={(value: boolean) => {
+                    //                     field.onChange(value)
+                    //                   }} />
+                    //                 : fieldType.componentType == 'select' ?
+                    //                   <Select
+                    //                     value={field.value as string}
+                    //                     style={{ width: '100%' }}
+                    //                     onChange={(value) => {
+                    //                       field.onChange(value)
+                    //                     }
+                    //                     }
 
 
-                      return <FormItem
-                        name={fieldName}
-                        type={"string" as string}
-                        required={true}
-                      >
+                    //                     optionList={paramTypes[fieldType.selectKey!].map(item => {
+                    //                       return {
+                    //                         label: item,
+                    //                         value: item
+                    //                       }
+                    //                     })}>
 
-                        <div className="expression-field"
-                        >
-                          <>
-                            {
+                    //                   </Select> :
 
-                              fieldType.componentType == 'boolean' ?
-                                <Switch checked={!!field.value}
-                                  //label='开关(Switch)' 
-                                  onChange={(value: boolean) => {
-                                    field.onChange(value)
-                                  }} />
-                                : fieldType.componentType == 'select' ?
-                                  <Select
-                                    value={field.value as string}
-                                    style={{ width: '100%' }}
-                                    onChange={(value) => {
-                                      field.onChange(value)
-                                    }
-                                    }
+                    //                   <FxExpression
+                    //                     value={field.value as string}
+                    //                     fieldType={fieldType}
+                    //                     onChange={field.onChange}
+                    //                     readonly={false}
+                    //                     hasError={
+                    //                       Object.keys(fieldState?.errors || {}).length > 0
+                    //                     }
+                    //                     icon={<></>}
+                    //                   />
 
 
-                                    optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                      return {
-                                        label: item,
-                                        value: item
-                                      }
-                                    })}>
-
-                                  </Select> :
-
-                                  <FxExpression
-                                    value={field.value as string}
-                                    fieldType={fieldType}
-                                    onChange={field.onChange}
-                                    readonly={false}
-                                    hasError={
-                                      Object.keys(fieldState?.errors || {}).length > 0
-                                    }
-                                    icon={<></>}
-                                  />
+                    //             }
+                    //             <Feedback
+                    //               errors={fieldState?.errors}
+                    //               invalid={fieldState?.invalid}
+                    //             />
+                    //           </>
+                    //         </div>
+                    //       </FormItem>
+                    //     }}
+                    //   </Field>
+                    // );
 
 
-                            }
-                            <Feedback
-                              errors={fieldState?.errors}
-                              invalid={fieldState?.invalid}
-                            />
-                          </>
-                        </div>
-                      </FormItem>
-                    }}
-                  </Field>
-                );
-              })}
+                  })}
+                </div>
+              </div>
 
-              {
+              {/* {
                 nodeEntity.hasOwnProperty('param_') && <Section text={"param_"}>
                   <FormParams />
                 </Section>
               }
               {
-                // nodeEntity['node_repository_'] &&
-                // <Section text={"node_repository_"}>
-                //   {(nodeEntity['node_repository_'] || []).map((child: INodeEntity) => (
-                //     <div key={child.key_} style={{ marginLeft: 20, marginBottom: 8 }}>
-                //       <Text link onClick={() => openChildEditor(child)}>{child.name_}</Text>
-
-                //     </div>
-                //   ))}
-                // </Section>
+  
 
                 <Field<any> name="node_repository_">
                   {({ field: node_repository_ }) => {
@@ -329,7 +360,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
                   }}
                 </Field>
-              }
+              } */}
 
 
 
@@ -337,32 +368,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
           }
           }
         </Form>
-        {/* <Form  onFinish={handleFinish} initialValues={nodeEntity} style={{ padding: 16 }} >
-          <Field name="key_" label="Key" rules={[{ required: true, message: '请输入Key' }]} />
-          <Field name="name_" label="名称" rules={[{ required: true, message: '请输入名称' }]} />
-          <Field name="device_type_" label="设备类型" />
-          <Field name="inputs_" label="输入" component="textarea" />
-          <Field name="outputs_" label="输出" component="textarea" />
 
-          <div style={{ marginTop: 16 }}>
-            <strong>子节点 node_repository_</strong>
-            {(form.getFieldValue('node_repository_') || []).map((child: INodeEntity) => (
-              <div key={child.key_} style={{ marginLeft: 20, marginBottom: 8 }}>
-                <span>{child.name_}</span>
-                <button style={{ marginLeft: 8 }} type="button" onClick={() => openChildEditor(child)}>
-                  编辑子节点
-                </button>
-              </div>
-            ))}
-            {(!form.getFieldValue('node_repository_') || form.getFieldValue('node_repository_').length === 0) && (
-              <div style={{ marginLeft: 20, color: '#999' }}>无子节点</div>
-            )}
-          </div>
-
-          <Form.Item style={{ marginTop: 24 }}>
-            <button type="submit">保存</button>
-          </Form.Item>
-        </Form> */}
       </SideSheet>
 
       {childEditingNode && (
@@ -439,9 +445,7 @@ const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
         node_repository_.map(node => (
           <div key={node.key_} style={{ marginBottom: 8 }}>
             <Text link onClick={() => openEditor(node)}>{node.name_}</Text>
-            {/* <button style={{ marginLeft: 8 }} onClick={() => openEditor(node)}>
-              编辑
-            </button> */}
+
           </div>
         ))
       ) : <></>}
