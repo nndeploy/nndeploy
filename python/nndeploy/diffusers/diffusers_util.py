@@ -46,22 +46,68 @@ class DiffusersUtil:
         Returns:
             List of model IDs
         """
-        try:
-            print(f"Getting {library} supported model list...")
-            models = list_models(library=library, limit=limit)
-            model_ids = [model.modelId for model in models]
-            print(f"Found {len(model_ids)} models")
-            return model_ids
-        except Exception as e:
-            print(f"Failed to get model list: {e}")
-            # Return some common stable diffusion models as fallback
-            return [
-                "runwayml/stable-diffusion-v1-5",
-                "stable-diffusion-v1-5/stable-diffusion-v1-5",
-                "stabilityai/stable-diffusion-xl-base-1.0",
-                "stabilityai/stable-diffusion-2-1",
-                "CompVis/stable-diffusion-v1-4"
-            ]
+        # try:
+        #     print(f"Getting {library} supported model list...")
+        #     models = list_models(library=library, limit=limit)
+        #     model_ids = [model.modelId for model in models]
+        #     print(f"Found {len(model_ids)} models")
+        #     return model_ids
+        # except Exception as e:
+        #     print(f"Failed to get model list: {e}")
+        #     # Return some common stable diffusion models as fallback
+        #     return [
+        #         "runwayml/stable-diffusion-v1-5",
+        #         "stable-diffusion-v1-5/stable-diffusion-v1-5",
+        #         "stabilityai/stable-diffusion-xl-base-1.0",
+        #         "stabilityai/stable-diffusion-2-1",
+        #         "CompVis/stable-diffusion-v1-4"
+        #     ]
+        # 基于 Hugging Face Diffusers 官方文档支持的主流模型列表
+        # 参考: https://github.com/huggingface/diffusers
+        return [
+            # Stable Diffusion v1.x 系列
+            "runwayml/stable-diffusion-v1-5",
+            "stable-diffusion-v1-5/stable-diffusion-v1-5", 
+            "CompVis/stable-diffusion-v1-4",
+            
+            # Stable Diffusion v2.x 系列
+            "stabilityai/stable-diffusion-2-1",
+            "stabilityai/stable-diffusion-2-base",
+            
+            # Stable Diffusion XL 系列
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            "stabilityai/stable-diffusion-xl-refiner-1.0",
+            
+            # 图像修复 (Inpainting) 模型
+            "runwayml/stable-diffusion-inpainting",
+            "stabilityai/stable-diffusion-2-inpainting",
+            
+            # 图像超分辨率模型
+            "stabilityai/stable-diffusion-x4-upscaler",
+            "stabilityai/sd-x2-latent-upscaler",
+            
+            # ControlNet 控制模型
+            "lllyasviel/sd-controlnet-canny",
+            "lllyasviel/sd-controlnet-depth",
+            "lllyasviel/sd-controlnet-openpose",
+            
+            # 图像变换模型
+            "lambdalabs/sd-image-variations-diffusers",
+            "timbrooks/instruct-pix2pix",
+            
+            # DeepFloyd IF 系列
+            "DeepFloyd/IF-I-XL-v1.0",
+            
+            # Kandinsky 系列
+            "kandinsky-community/kandinsky-2-2-decoder",
+            
+            # unCLIP 系列
+            "kakaobrain/karlo-v1-alpha",
+            
+            # DDPM 经典模型
+            "google/ddpm-ema-church-256",
+            "google/ddpm-cat-256"
+        ]
     
     def get_popular_models(self) -> Dict[str, List[str]]:
         """
