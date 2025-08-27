@@ -14,3 +14,16 @@
   width: 100%;
 
 }
+
+.file-upload-label {
+  color: var(--semi-color-primary);
+  background-color: var(--semi-color-fill-0);
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  outline: none;
+  vertical-align: middle;
+  white-space: nowrap;
+  display: inline-block;
+}
