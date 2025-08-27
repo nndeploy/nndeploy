@@ -35,7 +35,7 @@ nndeploy：你本地的AI工作流
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.png" width=100%>
+    <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
   </picture>
 </p>
 
