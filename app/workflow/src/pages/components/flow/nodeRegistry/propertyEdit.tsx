@@ -40,7 +40,7 @@ export function PropertyEdit(
   }
 
   function isHiddenField(fieldName: string) {
-    if ( fieldName == 'required_params_') {
+    if (fieldName == 'required_params_') {
 
       return true
     }
@@ -59,7 +59,7 @@ export function PropertyEdit(
     }
 
     if (parentPaths.includes('inputs_') || parentPaths.includes('outputs_')) {
-      if(fieldName == 'id'){
+      if (fieldName == 'id') {
         return true
       }
     }
@@ -85,7 +85,7 @@ export function PropertyEdit(
       return true
     }
 
-    
+
 
 
 
@@ -155,15 +155,19 @@ export function PropertyEdit(
           <div className="UIRow">
             <div className="UIName">
               <div>
-                <Input
-                  value={fieldName}
-                  required={isRequiredField(fieldName)}
+                {
+                  topField ? fieldName : <Input
+                    value={fieldName}
+                    required={isRequiredField(fieldName)}
 
-                  onChange={(value) => {
-                    //onEditProperty(_property.key!, _v);
-                    props.onFieldRename(value)
-                  }} />
+                    onChange={(value) => {
+                      //onEditProperty(_property.key!, _v);
+                      props.onFieldRename(value)
+                    }} />
+                }
               </div>
+
+
               {/* {fieldName}  */}
 
               {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
@@ -181,9 +185,9 @@ export function PropertyEdit(
                     let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
 
                     onAddProperty(property)
-                   
+
                     setPortsUpdateRefresh({})
-                     setShowPortsUpdate(true)
+                    setShowPortsUpdate(true)
 
 
                   } else {
@@ -240,15 +244,17 @@ export function PropertyEdit(
       <div className="UIPropertyMain">
         <div className="UIRow">
           <div className="UIName">
-            <Input
-              value={fieldName}
-              required={isRequiredField(fieldName)}
+            {
+              topField ? fieldName : <Input
+                value={fieldName}
+                required={isRequiredField(fieldName)}
 
-              onChange={(value) => {
-                //onEditProperty(_property.key!, _v);
-                props.onFieldRename(value)
-              }} />
-            {/* {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>} */}
+                onChange={(value) => {
+                  //onEditProperty(_property.key!, _v);
+                  props.onFieldRename(value)
+                }} />
+            }
+            {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
           </div>
           <div className="UIActions">
             <IconButton
@@ -377,7 +383,17 @@ export function PropertyEdit(
     children = <div className="UIPropertyMain">
       <div className="UIRow">
         <div className="UIName">
-          {fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
+          {
+              topField ? fieldName : <Input
+                value={fieldName}
+                required={isRequiredField(fieldName)}
+
+                onChange={(value) => {
+                  //onEditProperty(_property.key!, _v);
+                  props.onFieldRename(value)
+                }} />
+            }
+         {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>} 
         </div>
         <div className="UIComponent">
           {component}
@@ -432,19 +448,19 @@ export function PropertyEdit(
   </>
 }
 
-interface IPortsUpdateProps{
-  depends:any
+interface IPortsUpdateProps {
+  depends: any
 }
 
 const PortsUpdate: React.FC<IPortsUpdateProps> = (props) => {
 
-  
+
   const { node } = useNodeRender();
   const ports = node.getData(WorkflowNodePortsData)
 
-  useEffect(()=>{
-    setTimeout(()=>{
-       ports.updateDynamicPorts()
+  useEffect(() => {
+    setTimeout(() => {
+      ports.updateDynamicPorts()
     })
 
   }, [props.depends])
