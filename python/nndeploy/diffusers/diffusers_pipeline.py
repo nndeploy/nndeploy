@@ -36,7 +36,7 @@ def get_diffuser_models_enum_json():
 
 nndeploy.base.all_type_enum.append(get_diffuser_models_enum_json)
     
-print(diffuser_model_ids)
+# print(diffuser_model_ids)
 
 # def get_cache_dir():
 #     """获取 Hugging Face 模型缓存目录路径"""

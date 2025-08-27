@@ -22,7 +22,16 @@ class PILImage2Numpy(nndeploy.dag.Node):
         input_edge = self.get_input(0) # 获取输入边
         image = input_edge.get(self) # 获取输入的image
         image_array = np.array(image)
-        cv_mat = image_array[:, :, ::-1]  # 使用numpy切片将RGB转换为BGR
+        # 使用numpy实现颜色空间转换：PIL图像通常是RGB格式，转换为BGR格式（OpenCV标准）
+        if len(image_array.shape) == 3 and image_array.shape[2] == 3:
+            # RGB到BGR的numpy颜色空间转换
+            cv_mat = np.stack([image_array[:, :, 2], image_array[:, :, 1], image_array[:, :, 0]], axis=2)
+        elif len(image_array.shape) == 3 and image_array.shape[2] == 4:
+            # RGBA到BGRA的numpy颜色空间转换
+            cv_mat = np.stack([image_array[:, :, 2], image_array[:, :, 1], image_array[:, :, 0], image_array[:, :, 3]], axis=2)
+        else:
+            # 灰度图或其他格式直接使用
+            cv_mat = image_array
         output_edge = self.get_output(0) # 获取输出边
         output_edge.set(cv_mat) # 将输出写入到输出边中
         return nndeploy.base.Status.ok()
