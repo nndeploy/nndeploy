@@ -422,6 +422,9 @@ if cuda_version:
         'torch>=2.0.0',  # PyTorch (GPU version)
         'torchvision>=0.15.0',  # torchvision (GPU version)
         # 'onnxruntime-gpu>=1.18.0',  # ONNX Runtime GPU version
+        'diffusers',
+        'accelerate',
+        'transformers',
     ])
 else:
     print("CUDA not detected, using CPU version dependencies")
@@ -429,6 +432,9 @@ else:
         'torch>=2.0.0',  # PyTorch (CPU version)
         'torchvision>=0.15.0',  # torchvision (CPU version)
         # 'onnxruntime>=1.18.0',  # ONNX Runtime CPU version
+        'diffusers',
+        'accelerate',
+        'transformers',
     ])
 
 # Add server-related dependencies
