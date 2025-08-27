@@ -30,7 +30,7 @@ import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFl
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
-import store, {  } from "../../Layout/Design/store/store";
+import store, { } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
 import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
@@ -318,7 +318,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           if (response.result.type == 'model_download_done') {
             downloadResolve()
-            Toast.success( response.message)
+            Toast.success(response.message)
             setDownloading(false)
           } else if (response.result.type == 'log')
 
@@ -617,6 +617,14 @@ const Flow: React.FC<FlowProps> = (props) => {
               <SidebarRenderer />
 
             </SidebarProvider>
+            <NodeEntityForm
+              nodeEntity={graphTopNode}
+              visible={configDrawerVisible}
+              onClose={handleConfigDrawerClose}
+              onSave={handleConfigDrawerSure}
+              nodeList={nodeList!}
+              paramTypes={paramTypes}
+            />
           </FreeLayoutEditorProvider>
 
           <SideSheet
@@ -640,14 +648,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             onCancel={handleConfigDrawerClose}
             title={"config flow"}
           > */}
-          <NodeEntityForm
-            nodeEntity={graphTopNode}
-            visible={configDrawerVisible}
-            onClose={handleConfigDrawerClose}
-            onSave={handleConfigDrawerSure}
-            nodeList={nodeList!}
-            paramTypes={paramTypes}
-          />
+
           {/* </SideSheet> */}
 
         </FlowEnviromentContext.Provider>
