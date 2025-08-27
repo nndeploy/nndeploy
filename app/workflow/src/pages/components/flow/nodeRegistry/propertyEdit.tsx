@@ -16,6 +16,8 @@ export function PropertyEdit(
     fieldName: string,
     parentPaths: string[],
     value: any,
+    isArrayItem?: boolean,
+
     onChange: (value: any) => void,
     onFieldRename: (newName: string) => void,
     onRemove?: () => void;
@@ -27,13 +29,17 @@ export function PropertyEdit(
     nodeList: any,
     paramTypes: any
   }) {
-  const { fieldName, parentPaths, value, onChange: onChangeProps, onRemove, showLine = false,
+  let { fieldName, parentPaths, value,
+    isArrayItem = false,
+    onChange: onChangeProps, onRemove, showLine = false,
     isLast = false,
     topField = false,
     form
     , nodeList,
     paramTypes
   } = props
+
+  //isArrayItem = false
 
   if (fieldName == 'param_') {
     let j = 0
@@ -121,6 +127,8 @@ export function PropertyEdit(
   //   return <></>
   // }
 
+  const isTopField = topField || parentPaths[parentPaths.length - 1] == 'param_'
+
 
   if (fieldName == 'node_repository_') {
 
@@ -153,60 +161,61 @@ export function PropertyEdit(
       <>
         <div className="UIPropertyMain">
           <div className="UIRow">
-            <div className="UIName">
-              <div>
-                {
-                  topField ? fieldName : <Input
-                    value={fieldName}
-                    required={isRequiredField(fieldName)}
+            {
+              isArrayItem ? <></> :
+                <div className="UIName">
 
-                    onChange={(value) => {
-                      //onEditProperty(_property.key!, _v);
-                      props.onFieldRename(value)
-                    }} />
-                }
-              </div>
+                  {
 
+                    isTopField ? fieldName : <Input
+                      value={fieldName}
+                      required={isRequiredField(fieldName)}
 
-              {/* {fieldName}  */}
+                      onChange={(value) => {
+                        //onEditProperty(_property.key!, _v);
+                        props.onFieldRename(value)
+                      }} />
+                  }
 
-              {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-            </div>
+                  {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
+                </div>
+            }
+
             <div className="UIActions">
+
+
+              <IconButton
+                size="small"
+                theme="borderless"
+                icon={<IconAddChildren />}
+                onClick={() => {
+                  //onAddProperty(fieldType.originValue)
+                  if (fieldName == 'inputs_' || fieldName == 'outputs_') {
+
+
+                    let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
+
+                    onAddProperty(property)
+
+                    setPortsUpdateRefresh({})
+                    setShowPortsUpdate(true)
+
+
+                  } else {
+                    onAddProperty(fieldType.originValue[0])
+                  }
+
+                }}
+              />
               {
-                topField || parentPaths[parentPaths.length - 1] == 'param_' ?
-                  <></> : <>
-                    <IconButton
-                      size="small"
-                      theme="borderless"
-                      icon={<IconAddChildren />}
-                      onClick={() => {
-                        //onAddProperty(fieldType.originValue)
-                        if (fieldName == 'inputs_' || fieldName == 'outputs_') {
-
-
-                          let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
-
-                          onAddProperty(property)
-
-                          setPortsUpdateRefresh({})
-                          setShowPortsUpdate(true)
-
-
-                        } else {
-                          onAddProperty(fieldType.originValue[0])
-                        }
-
-                      }}
-                    />
-
-                    <IconButton
-                      size="small"
-                      theme="borderless"
-                      icon={<IconMinus size="small" />}
-                      onClick={onRemove}
-                    />
-                  </>
+                isTopField ?
+                  <></> :
+                  <IconButton
+                    size="small"
+                    theme="borderless"
+                    icon={<IconMinus size="small" />}
+                    onClick={onRemove}
+                  />
               }
 
             </div>
@@ -221,6 +230,8 @@ export function PropertyEdit(
                 parentPaths={[...parentPaths, fieldName]}
                 key={_property.key}
                 value={_property.value}
+                isArrayItem={_property.isArrayItem}
+
                 onChange={(_v) => {
                   onEditProperty(_property.key!, { value: _v });
                 }}
@@ -248,75 +259,82 @@ export function PropertyEdit(
     children = <>
       <div className="UIPropertyMain">
         <div className="UIRow">
-          <div className="UIName">
-            {
-              topField ? fieldName : <Input
-                value={fieldName}
-                required={isRequiredField(fieldName)}
+          {isArrayItem ? <></> :
+            <div className="UIName">
+              {
 
-                onChange={(value) => {
-                  //onEditProperty(_property.key!, _v);
-                  props.onFieldRename(value)
-                }} />
-            }
-            {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-          </div>
+                isTopField ? fieldName : <Input
+                  value={fieldName}
+                  required={isRequiredField(fieldName)}
+
+                  onChange={(value) => {
+                    //onEditProperty(_property.key!, _v);
+                    props.onFieldRename(value)
+                  }} />
+              }
+              {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
+            </div>
+          }
           <div className="UIActions">
             {
-              topField || parentPaths[parentPaths.length - 1] == 'param_' ? <></> :
-                <>
-                  <IconButton
-                    size="small"
-                    theme="borderless"
-                    icon={<IconAddChildren />}
-                    onClick={() => {
-                      //onAddProperty();
-                      //onAddProperty(fieldType.originValue)
+              fieldName == 'param_' ? <></> :
+
+                <IconButton
+                  size="small"
+                  theme="borderless"
+                  icon={<IconAddChildren />}
+                  onClick={() => {
+                    //onAddProperty();
+                    //onAddProperty(fieldType.originValue)
 
 
-                      let prefix = ''
+                    let prefix = ''
 
-                      let max_number = 0;
-                      let temp = value
-                      const keys = Object.keys(fieldType.originValue);
+                    let max_number = 0;
+                    let temp = value
+                    const keys = Object.keys(fieldType.originValue);
 
-                      let firstKey = keys[0]
+                    let firstKey = keys[0]
 
-                      prefix = firstKey.split('_')[0]
+                    prefix = firstKey.split('_')[0]
 
-                      keys.map(name => {
-                        let parts = name.split('_')
+                    keys.map(name => {
+                      let parts = name.split('_')
 
 
-                        if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
-                          let temp = new Number(parts[parts.length - 1]).valueOf()
-                          if (max_number < temp) {
-                            max_number = temp
-                          }
+                      if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
+                        let temp = new Number(parts[parts.length - 1]).valueOf()
+                        if (max_number < temp) {
+                          max_number = temp
                         }
-                      })
+                      }
+                    })
 
-                      let fieldName = prefix + '_' + (max_number + 1)
+                    let fieldName = prefix + '_' + (max_number + 1)
 
 
-                      const firstValue = fieldType.originValue[firstKey];
-                      onAddObjectProperty(fieldName, firstValue)
+                    const firstValue = fieldType.originValue[firstKey];
+                    onAddObjectProperty(fieldName, firstValue)
 
-                    }}
-                  />
-
-                  <IconButton
-                    size="small"
-                    theme="borderless"
-                    icon={<IconMinus size="small" />}
-                    onClick={onRemove}
-                  />
-                </>
+                  }}
+                />
             }
+            {isTopField ? <></> :
+              <IconButton
+                size="small"
+                theme="borderless"
+                icon={<IconMinus size="small" />}
+                onClick={onRemove}
+              />
+            }
+
+
+
+
 
           </div>
         </div>
-      </div>
+      </div >
       <div className={classNames('UICollapsible', { 'collapsed': collapse })}>
         <div className={classNames('UIProperties', { shrink: true })}>
           {propertyList.map((_property, index) => (
@@ -325,6 +343,8 @@ export function PropertyEdit(
               parentPaths={[...parentPaths, fieldName]}
               // key={_property.key}
               value={_property.value}
+              isArrayItem={_property.isArrayItem}
+
               onChange={(_v) => {
                 onEditProperty(_property.key!, { value: _v });
               }}
@@ -392,19 +412,22 @@ export function PropertyEdit(
 
     children = <div className="UIPropertyMain">
       <div className="UIRow">
-        <div className="UIName">
-          {
-            topField ? fieldName : <Input
-              value={fieldName}
-              required={isRequiredField(fieldName)}
+        {
+          isArrayItem ? <></> :
+            <div className="UIName">
 
-              onChange={(value) => {
-                //onEditProperty(_property.key!, _v);
-                props.onFieldRename(value)
-              }} />
-          }
-          {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-        </div>
+              {isTopField ? fieldName : <Input
+                value={fieldName}
+                required={isRequiredField(fieldName)}
+
+                onChange={(value) => {
+                  //onEditProperty(_property.key!, _v);
+                  props.onFieldRename(value)
+                }} />
+              }
+              {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
+            </div>
+        }
         <div className="UIComponent">
           {component}
         </div>
@@ -421,7 +444,7 @@ export function PropertyEdit(
             /> */}
 
           {
-            topField || parentPaths[parentPaths.length - 1] == 'param_' ? <></>
+            isTopField ? <></>
               : <>
                 <IconButton
                   size="small"
