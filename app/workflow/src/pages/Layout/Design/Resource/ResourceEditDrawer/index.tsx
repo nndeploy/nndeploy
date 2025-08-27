@@ -35,6 +35,13 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
     return imageExtensions.some(ext => lowerFilename.endsWith(ext));
   }
 
+  function isVideoFile(filename: string) {
+
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+    const lowerFilename = filename.toLowerCase();
+    return videoExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
+
   //  useEffect(() => {
   //       if(props.entity.id){
   //         apiGetResource(props.entity.id).then((res) => {
@@ -220,7 +227,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
                 <img src={`/api/preview?file_path=${entity.file_info?.saved_path}&time=${new Date().getTime()}`} />
 
               </div>
-            ) : entity.file_info?.saved_path?.includes("resources/videos") ? (
+            ) : isVideoFile(entity.file_info?.saved_path!) ? ( //entity.file_info?.saved_path?.includes("resources/videos")
               <div className="video-preview">
                 <VideoPlayer
                   height={430}
