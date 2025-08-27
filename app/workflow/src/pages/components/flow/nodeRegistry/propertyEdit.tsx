@@ -4,7 +4,7 @@ import { usePropertiesEdit } from "./hooks";
 import classNames from "classnames";
 import { IconButton, Input, InputNumber, Select, Switch } from "@douyinfe/semi-ui";
 import { IconAddChildren } from "../../json-schema-editor/styles";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import lodash from 'lodash'
 import { useNodeRender, WorkflowNodePortsData } from "@flowgram.ai/free-layout-editor";
 import Section from "@douyinfe/semi-ui/lib/es/form/section";
@@ -39,8 +39,61 @@ export function PropertyEdit(
     let j = 0
   }
 
-  const { node } = useNodeRender();
-  const ports = node.getData(WorkflowNodePortsData)
+  function isHiddenField(fieldName: string) {
+    if ( fieldName == 'required_params_') {
+
+      return true
+    }
+
+    let is_dynamic_input_ = getFieldType(['is_dynamic_input_'], form, nodeList, paramTypes)?.originValue;
+
+    if (fieldName == 'inputs_') {
+      return !is_dynamic_input_
+    }
+
+
+
+    let is_dynamic_output_ = getFieldType(['is_dynamic_output_'], form, nodeList, paramTypes)?.originValue;
+    if (fieldName == 'outputs_') {
+      return !is_dynamic_output_
+    }
+
+    if (parentPaths.includes('inputs_') || parentPaths.includes('outputs_')) {
+      if(fieldName == 'id'){
+        return true
+      }
+    }
+
+
+    return false
+  }
+
+  function isRequiredField(fieldName: string) {
+
+
+    if (fieldName == 'model_value_') {
+      let j = 0;
+    }
+
+    let required_params: string[] = []
+    if (parentPaths.includes('param_')) {
+      required_params = getFieldType(['param_', 'required_params_'], form, nodeList, paramTypes)?.originValue;
+    } else {
+      required_params = getFieldType(['required_params_'], form, nodeList, paramTypes)?.originValue;
+    }
+    if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
+      return true
+    }
+
+    
+
+
+
+
+    return false
+
+  }
+
 
   const fieldType = getFieldType([...parentPaths, fieldName], form, nodeList, paramTypes)
 
@@ -57,29 +110,17 @@ export function PropertyEdit(
   var showCollapse = fieldType.isArray || fieldType.componentType == 'object'
 
   const [collapse, setCollapse] = useState(false)
+  const [showPortsUpdate, setShowPortsUpdate] = useState(false)
+  const [portsUpdateRefresh, setPortsUpdateRefresh] = useState({})
 
 
 
-  function isRequiredField(fieldName: string) {
+  const isHidden = isHiddenField(fieldName)
 
+  // if (isHiddenField(fieldName)) {
+  //   return <></>
+  // }
 
-    if(fieldName == 'model_value_'){
-      let j = 0;
-    }
-
-    let required_params: string[] = []
-    if (parentPaths.includes('param_')) {
-      required_params = form.getValueIn("param_.required_params_");
-    } else {
-      required_params = form.getValueIn("required_params_");
-    }
-    if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
-      return true
-    }
-
-    return false
-
-  }
 
   if (fieldName == 'node_repository_') {
 
@@ -114,15 +155,15 @@ export function PropertyEdit(
           <div className="UIRow">
             <div className="UIName">
               <div>
-              <Input
-                value={fieldName}
-                required = {isRequiredField(fieldName)}
+                <Input
+                  value={fieldName}
+                  required={isRequiredField(fieldName)}
 
-                onChange={(value) => {
-                  //onEditProperty(_property.key!, _v);
-                  props.onFieldRename(value)
-                }} />
-                </div>
+                  onChange={(value) => {
+                    //onEditProperty(_property.key!, _v);
+                    props.onFieldRename(value)
+                  }} />
+              </div>
               {/* {fieldName}  */}
 
               {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
@@ -140,9 +181,10 @@ export function PropertyEdit(
                     let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
 
                     onAddProperty(property)
-                    setTimeout(() => {
-                      ports.updateDynamicPorts()
-                    }, 10)
+                   
+                    setPortsUpdateRefresh({})
+                     setShowPortsUpdate(true)
+
 
                   } else {
                     onAddProperty(fieldType.originValue[0])
@@ -200,13 +242,13 @@ export function PropertyEdit(
           <div className="UIName">
             <Input
               value={fieldName}
-              required = {isRequiredField(fieldName)}
+              required={isRequiredField(fieldName)}
 
               onChange={(value) => {
                 //onEditProperty(_property.key!, _v);
                 props.onFieldRename(value)
-              }} />  
-              {/* {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>} */}
+              }} />
+            {/* {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>} */}
           </div>
           <div className="UIActions">
             <IconButton
@@ -369,7 +411,7 @@ export function PropertyEdit(
 
 
   return <>
-    <div className={classNames("UIPropertyLeft", { showLine, isLast })}>
+    <div className={classNames("UIPropertyLeft", { showLine, isLast, isHidden })}>
       {
         showCollapse && (
           <div className="UICollapseTrigger" onClick={() => setCollapse((_collapse) => !_collapse)}>
@@ -378,8 +420,35 @@ export function PropertyEdit(
         )
       }
     </div>
-    <div className="UIPropertyRight">
+    <div className={classNames("UIPropertyRight", { isHidden })}>
+
       {children}
     </div>
+    {
+      showPortsUpdate ? <PortsUpdate depends={portsUpdateRefresh} /> : <></>
+
+    }
+
   </>
 }
+
+interface IPortsUpdateProps{
+  depends:any
+}
+
+const PortsUpdate: React.FC<IPortsUpdateProps> = (props) => {
+
+  
+  const { node } = useNodeRender();
+  const ports = node.getData(WorkflowNodePortsData)
+
+  useEffect(()=>{
+    setTimeout(()=>{
+       ports.updateDynamicPorts()
+    })
+
+  }, [props.depends])
+
+  return <></>
+}
+

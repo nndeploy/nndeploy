@@ -63,6 +63,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     "is_graph_",
     "is_inner_",
     "node_type_",
+
     'developer_',
     'source_',
     'version_',

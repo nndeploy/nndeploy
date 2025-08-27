@@ -76,6 +76,9 @@
     .UIPropertyLeft {
       grid-column: 1;
       position: relative;
+      &.isHidden{
+        display: none;
+      }
 
       &.showLine {
         &::before {
@@ -123,6 +126,10 @@
       grid-column: 2;
       margin-bottom: 10px;
 
+      &.isHidden{
+        display: none;
+      }
+
       &:last-child {
         margin-bottom: 0px;
       }
@@ -141,7 +148,7 @@
           .UIName {
             flex-basis: 140px;
             display: flex;
-            
+
           }
           .UIComponent{
             flex: 1;
