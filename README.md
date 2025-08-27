@@ -90,7 +90,7 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
-    <img alt="nndeploy" src="docs/image/quick_start.gif" width=80%>
+    <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
   </picture>
 </p>
 
@@ -173,7 +173,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="yolo_edit_param.gif">
-    <img alt="nndeploy" src="docs/image/yolo_edit_deploy.gif" width=80%>
+    <img alt="nndeploy" src="docs/image/yolo_edit_deploy.gif" width=100%>
   </picture>
 </p>
 
@@ -184,7 +184,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="seg_detect_class.gif">
-    <img alt="nndeploy" src="docs/image/seg_detect_class.gif" width=80%>
+    <img alt="nndeploy" src="docs/image/seg_detect_class.gif" width=100%>
   </picture>
 </p>
 
@@ -195,7 +195,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="face_swap_seg.gif">
-    <img alt="nndeploy" src="docs/image/face_swap_seg.gif" width=80%>
+    <img alt="nndeploy" src="docs/image/face_swap_seg.gif" width=100%>
   </picture>
 </p>
 
