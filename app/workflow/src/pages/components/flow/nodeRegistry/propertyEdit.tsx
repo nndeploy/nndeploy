@@ -173,37 +173,42 @@ export function PropertyEdit(
               {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
             </div>
             <div className="UIActions">
-              <IconButton
-                size="small"
-                theme="borderless"
-                icon={<IconAddChildren />}
-                onClick={() => {
-                  //onAddProperty(fieldType.originValue)
-                  if (fieldName == 'inputs_' || fieldName == 'outputs_') {
+              {
+                topField || parentPaths[parentPaths.length - 1] == 'param_' ?
+                  <></> : <>
+                    <IconButton
+                      size="small"
+                      theme="borderless"
+                      icon={<IconAddChildren />}
+                      onClick={() => {
+                        //onAddProperty(fieldType.originValue)
+                        if (fieldName == 'inputs_' || fieldName == 'outputs_') {
 
 
-                    let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
+                          let property = { id: 'port_' + Math.random().toString(36).substr(2, 9), ...fieldType.originValue[0] }
 
-                    onAddProperty(property)
+                          onAddProperty(property)
 
-                    setPortsUpdateRefresh({})
-                    setShowPortsUpdate(true)
+                          setPortsUpdateRefresh({})
+                          setShowPortsUpdate(true)
 
 
-                  } else {
-                    onAddProperty(fieldType.originValue[0])
-                  }
+                        } else {
+                          onAddProperty(fieldType.originValue[0])
+                        }
 
-                }}
-              />
-              {!topField &&
-                <IconButton
-                  size="small"
-                  theme="borderless"
-                  icon={<IconMinus size="small" />}
-                  onClick={onRemove}
-                />
+                      }}
+                    />
+
+                    <IconButton
+                      size="small"
+                      theme="borderless"
+                      icon={<IconMinus size="small" />}
+                      onClick={onRemove}
+                    />
+                  </>
               }
+
             </div>
           </div>
         </div>
@@ -257,53 +262,58 @@ export function PropertyEdit(
             {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
           </div>
           <div className="UIActions">
-            <IconButton
-              size="small"
-              theme="borderless"
-              icon={<IconAddChildren />}
-              onClick={() => {
-                //onAddProperty();
-                //onAddProperty(fieldType.originValue)
+            {
+              topField || parentPaths[parentPaths.length - 1] == 'param_' ? <></> :
+                <>
+                  <IconButton
+                    size="small"
+                    theme="borderless"
+                    icon={<IconAddChildren />}
+                    onClick={() => {
+                      //onAddProperty();
+                      //onAddProperty(fieldType.originValue)
 
 
-                let prefix = ''
+                      let prefix = ''
 
-                let max_number = 0;
-                let temp = value
-                const keys = Object.keys(fieldType.originValue);
+                      let max_number = 0;
+                      let temp = value
+                      const keys = Object.keys(fieldType.originValue);
 
-                let firstKey = keys[0]
+                      let firstKey = keys[0]
 
-                prefix = firstKey.split('_')[0]
+                      prefix = firstKey.split('_')[0]
 
-                keys.map(name => {
-                  let parts = name.split('_')
-
-
-                  if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
-                    let temp = new Number(parts[parts.length - 1]).valueOf()
-                    if (max_number < temp) {
-                      max_number = temp
-                    }
-                  }
-                })
-
-                let fieldName = prefix + '_' + (max_number + 1)
+                      keys.map(name => {
+                        let parts = name.split('_')
 
 
-                const firstValue = fieldType.originValue[firstKey];
-                onAddObjectProperty(fieldName, firstValue)
+                        if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
+                          let temp = new Number(parts[parts.length - 1]).valueOf()
+                          if (max_number < temp) {
+                            max_number = temp
+                          }
+                        }
+                      })
 
-              }}
-            />
-            {!topField &&
-              <IconButton
-                size="small"
-                theme="borderless"
-                icon={<IconMinus size="small" />}
-                onClick={onRemove}
-              />
+                      let fieldName = prefix + '_' + (max_number + 1)
+
+
+                      const firstValue = fieldType.originValue[firstKey];
+                      onAddObjectProperty(fieldName, firstValue)
+
+                    }}
+                  />
+
+                  <IconButton
+                    size="small"
+                    theme="borderless"
+                    icon={<IconMinus size="small" />}
+                    onClick={onRemove}
+                  />
+                </>
             }
+
           </div>
         </div>
       </div>
@@ -384,16 +394,16 @@ export function PropertyEdit(
       <div className="UIRow">
         <div className="UIName">
           {
-              topField ? fieldName : <Input
-                value={fieldName}
-                required={isRequiredField(fieldName)}
+            topField ? fieldName : <Input
+              value={fieldName}
+              required={isRequiredField(fieldName)}
 
-                onChange={(value) => {
-                  //onEditProperty(_property.key!, _v);
-                  props.onFieldRename(value)
-                }} />
-            }
-         {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>} 
+              onChange={(value) => {
+                //onEditProperty(_property.key!, _v);
+                props.onFieldRename(value)
+              }} />
+          }
+          {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
         </div>
         <div className="UIComponent">
           {component}
@@ -409,13 +419,17 @@ export function PropertyEdit(
 
               }}
             /> */}
-          {!topField &&
-            <IconButton
-              size="small"
-              theme="borderless"
-              icon={<IconMinus size="small" />}
-              onClick={onRemove}
-            />
+
+          {
+            topField || parentPaths[parentPaths.length - 1] == 'param_' ? <></>
+              : <>
+                <IconButton
+                  size="small"
+                  theme="borderless"
+                  icon={<IconMinus size="small" />}
+                  onClick={onRemove}
+                />
+              </>
           }
 
         </div>
