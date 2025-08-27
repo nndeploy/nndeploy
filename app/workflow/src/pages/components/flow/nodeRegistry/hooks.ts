@@ -88,11 +88,12 @@ export function usePropertiesEdit(
   };
 
   const onAddProperty = (value?: any) => {
-    updatePropertyList((_list) => [..._list, { key: genId(), name: '', value: value ?? '' }]);
+    updatePropertyList((_list) => [..._list, { key: genId(), name: '', value: value ?? '', isArrayItem: true }]);
   };
 
   const onAddObjectProperty = (name:string, value?: any) => {
-    updatePropertyList((_list) => [..._list, { key: genId(), name, value: value ?? '' }]);
+    updatePropertyList((_list) => [..._list, { key: genId(), name, value: value ?? '', isArrayItem: false }]);
+
   };
 
   const onRemoveProperty = (key: number) => {
