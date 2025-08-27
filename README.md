@@ -83,6 +83,18 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 
 启动成功后，打开 http://localhost:8000 即可访问工作流界面。
 
+#### 快速上手演示
+
+通过拖拽操作快速搭建AI工作流，直观易懂，几分钟即可上手。
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
+    <img alt="nndeploy" src="docs/image/quick_start.gif" width=80%>
+  </picture>
+</p>
+
+
 ### 保存工作流为JSON和执行工作流
 
 在可视化界面中配置好工作流后，可将其保存为JSON文件（例如workflow.json）。您可以使用以下命令执行该工作流：
@@ -153,6 +165,39 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 | **生成模型** | **Stable Diffusion 1.5** | 
 | **大语言模型** | **QWen-0.5B** | 
 | **换脸** | **deep-live-cam** | 
+
+### YOLO可视化调参与一键部署
+
+可视化界面实时调整检测参数，无需修改代码即可观察效果变化，支持一键切换到TensorRT等推理引擎实现高性能部署。
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="yolo_edit_param.gif">
+    <img alt="nndeploy" src="docs/image/yolo_edit_deploy.gif" width=80%>
+  </picture>
+</p>
+
+### 多模型工作流演示
+
+可视化搭建检测+分割+分类工作流，支持多推理框架切换和并行模式，实现一次搭建、多端部署。
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="seg_detect_class.gif">
+    <img alt="nndeploy" src="docs/image/seg_detect_class.gif" width=80%>
+  </picture>
+</p>
+
+### 零代码搭建换脸+分割工作流
+
+通过拖拽操作组合人脸检测、换脸算法、人像分割等AI功能，无需编写代码，参数调整1-2秒看到效果。让**产品经理、设计师、非AI开发者**快速将创意变成原型。
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="face_swap_seg.gif">
+    <img alt="nndeploy" src="docs/image/face_swap_seg.gif" width=80%>
+  </picture>
+</p>
 
 > 会持续开发的节点，如果你有需要的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
