@@ -55,9 +55,11 @@ class DiffusersPipeline(nndeploy.dag.Node):
         self.set_input_type(str)
         self.set_output_type(PIL.Image)
         # self.set_output_type(np.ndarray)
+        self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
         
         self.diffuser_model_id = "stable-diffusion-v1-5/stable-diffusion-v1-5"
         self.torch_dtype = torch.float16
+        self.cache_dir = "resources/models"
         
         self.pipeline = None
         
@@ -65,7 +67,8 @@ class DiffusersPipeline(nndeploy.dag.Node):
         print("init")
         self.pipeline = DiffusionPipeline.from_pretrained(
             self.diffuser_model_id, 
-            torch_dtype=self.torch_dtype
+            torch_dtype=self.torch_dtype,
+            cache_dir=self.cache_dir
         )
         print("init pipeline")
         device_type = self.get_device_type()
