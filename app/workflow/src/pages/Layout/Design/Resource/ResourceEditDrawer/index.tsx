@@ -28,6 +28,8 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
   const formRef = useRef<FormApi<any>>();
 
+  const fileLabelRef = useRef<any>()
+
   function isImageFile(filename: string) {
 
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
@@ -130,6 +132,8 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
     var i = 0;
     var files = fileRef.current.files
     setFile(files[0])
+    fileLabelRef.current.innerHTML = files[0].name
+
   }
 
   const data = [
@@ -222,7 +226,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
         {
           entity.id ? <>
-            {  isImageFile(entity.file_info?.saved_path!) ? (
+            {isImageFile(entity.file_info?.saved_path!) ? (
               <div className="image-preview">
                 <img src={`/api/preview?file_path=${entity.file_info?.saved_path}&time=${new Date().getTime()}`} />
 
@@ -262,13 +266,28 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
             >
 
               <div style={{ display: "flex", alignItems: "center" }}>
+                Choose file: 
+                <label ref={fileLabelRef} htmlFor="file-upload" style={{ cursor: 'pointer', marginLeft: 10 }} className="file-upload-label">
+
+                 select
+                </label>
+                
                 <Input
+                  id="file-upload"
                   type="file"
                   ref={fileRef}
+
                   ///@ts-ignore
                   onChange={(e) => onFileChange(e)}
-                  style={{ marginRight: 10 }}
+                  style={{ marginRight: 10, display: "none" }}
+
                 />
+                {/* <input type="file" ref={fileRef}
+                  onChange={(e) => onFileChange(e)}
+                  style={{ marginRight: 10 }}
+                /> */}
+
+
                 {/* <Button onClick={handleFileUpload}>Upload File</Button> */}
               </div>
             </Form>
