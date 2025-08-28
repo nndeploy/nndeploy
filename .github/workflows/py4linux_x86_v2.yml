@@ -151,15 +151,15 @@ jobs:
           twine upload dist/*.whl
 
       # Step 13: Upload to official PyPI (when publishing Release)
-      - name: Upload to PyPI
-        if: github.event_name == 'release' && github.event.action == 'published'
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
-        run: |
-          cd python
-          twine check dist/*
-          twine upload dist/*.whl
+      # - name: Upload to PyPI
+      #   if: github.event_name == 'release' && github.event.action == 'published'
+      #   env:
+      #     TWINE_USERNAME: __token__
+      #     TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+      #   run: |
+      #     cd python
+      #     twine check dist/*
+      #     twine upload dist/*.whl
 
       # Step 14: Upload build artifacts
       - name: Upload build artifacts
