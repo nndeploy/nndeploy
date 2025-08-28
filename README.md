@@ -215,7 +215,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- **加入开发者社区**：与工程师一起交流技术、获取支持、抢先体验新功能！微信：Always031856（请备注：名称 + 技术方向）
+- **微信技术交流群**: Always031856（和开发者一起探讨AI工作流技术，加我微信进群聊，请备注：姓名 + 技术方向，一起打造更强大的AI应用！）
   
   <img src="docs/image/wechat.jpg" width="225px">
 
