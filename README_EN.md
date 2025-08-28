@@ -31,125 +31,173 @@ nndeploy: Your Local AI Workflow
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
 </p>
 
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.png" width=100%>
+    <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
   </picture>
 </p>
 
+Write algorithm node logic in Python/C++ without frontend skills to quickly build your visual AI workflow.
+
+Provides out-of-the-box algorithm nodes for non-AI programmers, including large language models, Stable Diffusion, object detection, image segmentation, etc. Build AI applications quickly through drag-and-drop.
+
+Workflows can be exported as JSON configuration files, supporting direct loading and execution via Python/C++ APIs, deployable to cloud servers, desktop, mobile, and edge devices across multiple platforms.
+
+The framework features built-in mainstream high-performance inference engines and deep optimization strategies to help you transform workflows into enterprise-grade production applications.
+
 ---
-
-## Latest Updates
-- [2025/07/20] 🔥 **Visual Workflow**: Deploy AI algorithms through drag-and-drop interface
-- [2025/07/20] 🔥 **Python API**: convenient development ([Documentation](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html))
-- [2025/05/29] 🔥 **Collaboration with Huawei Ascend Inference Framework Course**: Official certification with professional guidance ([Link](https://www.hiascend.com/developer/courses/detail/1923211251905150977))
-
----
-
-## Deploy Models
-
-| Model Category | Supported Models |
-|---------|---------|
-| **Image Classification** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet |
-| **Object Detection** | YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx |
-| **Object Tracking** | FairMot |
-| **Image Segmentation** | RBMGv1.4, PPMatting |
-| **Generative Models** | Stable Diffusion 1.5 |
-| **Large Language Models** | QWen-0.5B |
-| **Face Swapping** | deep-live-cam |
-
-> [Detailed Model List](docs/zh_cn/quick_start/model_list.md)
-
-## Introduction
-
-nndeploy is a workflow-based multi-platform AI deployment tool with the following capabilities:
-
-### 1. Efficiency Tool for AI Deployment
-
-- **Visual Workflow**: Deploy AI algorithms through drag-and-drop interface
-
-- **Function Calls**: Export workflows as JSON configuration files, supporting Python/C++ API calls
-
-- **Multi-platform Inference**: One workflow, multi-platform deployment. Zero-abstraction cost integration with 13 mainstream inference frameworks, covering cloud, desktop, mobile, and edge platforms
-
-  | Framework | Support Status |
-  | :------- | :------ |
-  | [PyTorch](https://pytorch.org/) | ✅ |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT) | ✅ |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | ✅ |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | ✅ |
-  | [MNN](https://github.com/alibaba/MNN) | ✅ |
-  | [TNN](https://github.com/Tencent/TNN) | ✅ |
-  | [ncnn](https://github.com/Tencent/ncnn) | ✅ |
-  | [CoreML](https://github.com/apple/coremltools) | ✅ |
-  | [AscendCL](https://www.hiascend.com/zh/) | ✅ |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅ |
-  | [TVM](https://github.com/apache/tvm) | ✅ |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | ✅ |
-  | [Custom Inference Framework](docs/zh_cn/inference/README_INFERENCE.md) | ✅ |
-
-### 2. Performance Tool for AI Deployment
-
-- **Parallel Optimization**: Support for serial, pipeline parallel, and task parallel execution modes
-
-- **Memory Optimization**: Zero-copy, memory pools, memory reuse and other optimization strategies
-  
-- **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/SIMD implementations
-
-### 3. Creative Tool for AI Deployment
-
-- **Custom Nodes**: Support Python/C++ custom nodes with seamless integration into visual interface without frontend code
-
-- **Algorithm Composition**: Flexible combination of different algorithms to rapidly build innovative AI applications
-
-- **What You Tune Is What You See**: Frontend visual adjustment of all node parameters in AI algorithm deployment with quick preview of post-tuning effects
-
-  <img src="docs/image/workflow/face_swap_segment.png">
-
-  <img src="docs/image/workflow/qwen_sd.png">
-
-  <img src="docs/image/workflow/sd_yolo.png">
-
-
 
 ## Quick Start
 
-### Launch the Visual Workflow Interface
-
-Install the nndeploy package and start the visual workflow tool
+### Installation
 
 ```bash
-# Install nndeploy via pip
-pip install nndeploy
-# Launch the visual workflow application on port 8000
+pip install --upgrade nndeploy
+```
+
+### Launch Visual Workflow Interface
+
+```bash
+# Method 1: Use built-in nodes only
 nndeploy-app --port 8000
+
+# Method 2: Use custom nodes
+nndeploy-app --port 8000 --plugin plugin1.py plugin2.py 
 ```
 
-Open http://localhost:8000 to access the workflow interface.
+- Command parameter description
+  - `--port`: Specify web service port (default: 8000)
+  - `--plugin`: Load custom plugin files (optional parameter, if not provided, only built-in nodes are used)
+    - Python plugin: Refer to [Python Plugin Template](template/python/template.py)
+    - C++ plugin: Refer to [C++ Plugin Template](template/cpp/template.h)
+    - Multiple plugins can be loaded simultaneously: `--plugin plugin1.py plugin2.so`
 
-### Save and Execute Workflows via JSON
+After successful startup, open http://localhost:8000 to access the workflow interface.
 
-After configuring your workflow in the visual interface, save it as a JSON file (e.g., yolo.json). You can execute the workflow using the following command:
+#### Quick Tutorial Demo
+
+Build AI workflows through drag-and-drop operations, intuitive and easy to understand, get started in just a few minutes.
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
+    <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
+  </picture>
+</p>
+
+
+### Save Workflow as JSON and Execute Workflow
+
+After configuring your workflow in the visual interface, you can save it as a JSON file (e.g., workflow.json). You can execute the workflow using the following command:
 
 ```bash
-# Execute the workflow defined in the JSON file
-# -i: Specify input file (e.g., input.jpg)
-# -o: Specify output file (e.g., output.jpg)
-nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
+nndeploy-run-json --json-file workflow.json --plugin plugin.py
 ```
 
-> Note: Requires Python 3.10 or higher. Alternative installation/execution via [docker](docker/README.md) is supported. Use `nndeploy-clean` to clear expired backend resources.
+- API for loading and running JSON configuration files
+  - [Python API Example Code](python/nndeploy/dag/run_json.py)
+  - [C++ API Example Code](framework/include/nndeploy/dag/graph_runner.h)
 
-### Docs
+> Requires Python 3.10 or higher. Includes PyTorch and ONNXRuntime inference backends by default. For additional inference backends (such as TensorRT, OpenVINO, ncnn, MNN, etc.), please use developer mode.
+
+> Use `nndeploy-clean` to clear expired backend resources.
+
+### Documentation
 - [How to Build](docs/zh_cn/quick_start/build.md)
 - [How to Get Models](docs/zh_cn/quick_start/model.md)
 - [How to Execute](docs/zh_cn/quick_start/example.md)
 - [Python Quick Start](docs/zh_cn/quick_start/python.md)
 - [Visual Workflow Quick Start](docs/zh_cn/quick_start/workflow.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [C++ Plugin Development Manual](docs/zh_cn/quick_start/plugin.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+
+## Core Features
+
+### **Efficiency**
+- **Visual Workflow**: Build professional AI workflows quickly through drag-and-drop operations, supporting real-time parameter adjustment on the frontend and instant backend response, view execution time for each node
+- **Custom Nodes**: You only need to write algorithm node logic using familiar Python/C++, no frontend technology required, the framework automatically converts code into workflow nodes
+- **Algorithm Composition**: Flexibly combine different algorithms to rapidly build innovative AI applications
+- **One-Click Deployment**: Built workflows can be exported as JSON, directly callable by Python/C++, seamless transition from development to production environment
+
+### **Performance**
+- **13 Inference Engines Seamlessly Integrated**: One workflow, multi-platform deployment. Zero-abstraction cost integration with 13 mainstream inference frameworks, covering cloud, desktop, mobile, and edge platforms
+
+  | Inference Framework | Use Case | Status |
+  | :------- | :------ | :--- |
+  | [PyTorch](https://pytorch.org/) | R&D debugging, rapid prototyping | ✅ |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | Cross-platform inference | ✅ |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT) | NVIDIA GPU high-performance inference | ✅ |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | Intel CPU/GPU optimization | ✅ |
+  | [MNN](https://github.com/alibaba/MNN) | Alibaba's mobile inference engine | ✅ |
+  | [TNN](https://github.com/Tencent/TNN) | Tencent's mobile inference engine | ✅ |
+  | [ncnn](https://github.com/Tencent/ncnn) | Tencent's mobile inference engine | ✅ |
+  | [CoreML](https://github.com/apple/coremltools) | iOS/macOS native acceleration | ✅ |
+  | [AscendCL](https://www.hiascend.com/zh/) | Huawei Ascend AI chip inference framework | ✅ |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | Rockchip NPU inference framework | ✅ |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | Qualcomm Snapdragon NPU inference framework | ✅ |
+  | [TVM](https://github.com/apache/tvm) | Deep learning compilation stack | ✅ |
+  | [Custom Inference Framework](docs/zh_cn/inference/README_INFERENCE.md) | Custom inference requirements | ✅ |
+
+- **Parallel Optimization**: Support for serial, pipeline parallel, and task parallel execution modes
+- **Memory Optimization**: Zero-copy, memory pools, memory reuse optimization strategies
+- **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD implementations
+
+## Out-of-the-Box Nodes
+
+For the following algorithms, we have developed 40+ nodes and created [workflow templates](https://github.com/nndeploy/nndeploy-workflow) for you to immediately experience and use various AI functions:
+
+| Application Scenario | Available Models | 
+|---------|---------|
+| **Image Classification** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet |
+| **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | 
+| **Object Tracking** | FairMot | 
+| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything** |
+| **Generative Models** | **Stable Diffusion 1.5** | 
+| **Large Language Models** | **QWen-0.5B** | 
+| **Face Swapping** | **deep-live-cam** | 
+
+### YOLO Visual Parameter Tuning and One-Click Deployment
+
+Visually adjust detection parameters in real-time, observe effect changes without modifying code, support one-click switching to inference engines like TensorRT for high-performance deployment.
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="yolo_edit_param.gif">
+    <img alt="nndeploy" src="docs/image/yolo_edit_deploy.gif" width=100%>
+  </picture>
+</p>
+
+### Multi-Model Workflow Demo
+
+Visually build detection + segmentation + classification workflows, support multi-inference framework switching and parallel modes, achieving build once, deploy everywhere.
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="seg_detect_class.gif">
+    <img alt="nndeploy" src="docs/image/seg_detect_class.gif" width=100%>
+  </picture>
+</p>
+
+### Zero-Code Face Swapping + Segmentation Workflow
+
+Combine face detection, face swapping algorithms, portrait segmentation and other AI functions through drag-and-drop operations, no coding required, parameter adjustments show effects in 1-2 seconds. Let **product managers, designers, and non-AI developers** quickly turn ideas into prototypes.
+
+<p align="left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="face_swap_seg.gif">
+    <img alt="nndeploy" src="docs/image/face_swap_seg.gif" width=100%>
+  </picture>
+</p>
+
+> More nodes will be continuously developed. If you need specific algorithms, please let us know via [issue](https://github.com/nndeploy/nndeploy/issues)
+
+## Stay Ahead
+
+Star nndeploy on GitHub and get notified of new releases immediately.
+
+<img src="docs/image/star.gif">
 
 ## Roadmap
 
@@ -159,7 +207,7 @@ nndeploy-run-json --json-file yolo.json -i input.jpg -o output.jpg
 - [Architecture Optimization](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## Contact Us
-- Welcome to join our community! WeChat: Always031856 (Please provide brief personal information ^_^)
+- **Join Developer Community**: Communicate with engineers, get support, and experience new features first! WeChat: Always031856 (Please note: Name + Technical Direction)
   
   <img src="docs/image/wechat.jpg" width="225px">
 
