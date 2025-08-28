@@ -62,7 +62,7 @@ class PILImageEncodec(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         self.set_key("nndeploy.codec.PILImageEncodec")
         self.set_desc("PIL Image Encodec")
-        self.set_input_type(PIL.Image)
+        self.set_input_type(Image)
         self.path_ = "resources/images/output.jpg"
     
     def run(self) -> bool:
