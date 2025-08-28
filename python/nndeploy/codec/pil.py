@@ -7,7 +7,7 @@ import nndeploy.dag
 
 import json
 
-import PIL
+from PIL import Image
 import numpy as np
 
 class PILImage2Numpy(nndeploy.dag.Node):
@@ -15,7 +15,7 @@ class PILImage2Numpy(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         self.set_key("nndeploy.codec.PILImage2Numpy")
         self.set_desc("PIL Image to Numpy")
-        self.set_input_type(PIL.Image)
+        self.set_input_type(Image)
         self.set_output_type(np.ndarray)
         
     def run(self) -> bool:

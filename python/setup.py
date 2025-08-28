@@ -509,7 +509,7 @@ cmd_classes["install"] = InstallCommand
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="2.5.0",  # Fix version number format
+    version="2.5.1",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
     description="Your Local AI Workflow",  # Add short description
