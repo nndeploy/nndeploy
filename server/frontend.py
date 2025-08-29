@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 from typing import Optional, TypedDict
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 from typing_extensions import NotRequired
@@ -19,6 +20,10 @@ FRONTEND_ROOT = Path.cwd() / "frontend"
 
 DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.3.0")
 DEFAULT_VERSION_STRING = "!"
+
+GITHUB_HOST = "github.com"
+GITEE_HOST = "gitee.com"
+GITHUB_API_BASE = "https://api.github.com"
 
 class Asset(TypedDict):
     name: str
@@ -36,7 +41,8 @@ class FrontEndProvider:
 
     @property
     def _base(self) -> str:
-        return f"https://api.github.com/repos/{self.owner}/{self.repo}/releases"
+        # Get latest assets from Github API
+        return f"{GITHUB_API_BASE}/repos/{self.owner}/{self.repo}/releases"
 
     @cached_property
     def latest(self) -> Release:
@@ -63,6 +69,10 @@ class FrontEndProvider:
         r.raise_for_status()
         return r.json()
 
+def _swap_host(url: str, new_host: str) -> str:
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, new_host, parts.path, parts.query, parts.fragment))
+
 def _stream_download(url: str, dest_dir: Path) -> None:
     with tempfile.TemporaryFile() as tmp:
         r = requests.get(url, stream=True, timeout=REQUEST_TIMEOUT)
@@ -74,12 +84,30 @@ def _stream_download(url: str, dest_dir: Path) -> None:
         with zipfile.ZipFile(tmp) as zf:
             zf.extractall(dest_dir)
 
+def _download_with_fallbacks(urls: list[str], dest: Path) -> None:
+    last_err: Optional[Exception] = None
+    for u in urls:
+        try:
+            logging.info("download %s → %s", u, dest)
+            _stream_download(u, dest)
+            return
+        except Exception as e:
+            logging.warning("download failed: %s", e)
+            last_err = e
+    raise RuntimeError(f"all download attempts failed; last error: {last_err}")
 
 def _download_via_release(rel: Release, dest: Path) -> None:
     asset_url = next((a["browser_download_url"] for a in rel.get("assets", []) if a["name"] == "dist.zip"), None)
     if asset_url is None:
         raise RuntimeError("dist.zip asset missing in release")
-    _stream_download(asset_url, dest)
+
+    try_urls = []
+    try:
+        try_urls.append(_swap_host(asset_url, GITEE_HOST))
+    except Exception:
+        pass
+    try_urls.append(asset_url)
+    _download_with_fallbacks(try_urls, dest)
 
 class FrontendManager:
     VERSION_RE = re.compile(r"^([\w-]+)/([\w_.-]+)@(v?\d+\.\d+\.\d+|latest)$")
@@ -112,18 +140,19 @@ class FrontendManager:
                 logging.info("use cached front end: %s", dist_dir)
                 return str(dest)
 
-            direct_url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/dist.zip"
+            gitee_url = f"https://{GITEE_HOST}/{owner}/{repo}/releases/download/{tag}/dist.zip"
+            github_url = f"https://{GITHUB_HOST}/{owner}/{repo}/releases/download/{tag}/dist.zip"
+
+            dest.mkdir(parents=True, exist_ok=True)
             try:
-                logging.info("direct download %s → %s", direct_url, dest)
-                dest.mkdir(parents=True, exist_ok=True)
-                _stream_download(direct_url, dest)
+                _download_with_fallbacks([gitee_url, github_url], dest)
                 return str(dest)
             except Exception as err:
                 try:
                     dest.rmdir()
                 except Exception as e:
                     logging.debug("cleanup empty dir failed: %s", e)
-                logging.warning("download failed: %s, roll up to API", err)
+                logging.warning("direct download attempts failed: %s, rolling up to API", err)
 
         provider = FrontEndProvider(owner, repo)
         rel = provider.latest if tag == "latest" else provider.by_tag(tag)
