@@ -9,6 +9,7 @@ import re
 import time
 from functools import cached_property
 from dataclasses import dataclass
+from urllib.parse import urlsplit, urlunsplit
 
 # HTTP request timeout in seconds
 REQUEST_TIMEOUT = 60
@@ -22,6 +23,10 @@ DEFAULT_PROVIDER = ("nndeploy", "nndeploy-workflow", "v1.0.0")
 # Default version string, used for fallback
 DEFAULT_VERSION_STRING = "!"
 
+GITHUB_HOST = "github.com"
+GITEE_HOST = "gitee.com"
+GITHUB_API_BASE = "https://api.github.com"
+
 class Asset(dict):
     name: str
     browser_download_url: str
@@ -33,7 +38,7 @@ class TemplateProvider:
 
     @property
     def _base(self) -> str:
-        return f"https://api.github.com/repos/{self.owner}/{self.repo}/releases"
+        return f"{GITHUB_API_BASE}/repos/{self.owner}/{self.repo}/releases"
 
     @cached_property
     def latest(self) -> dict:
@@ -60,6 +65,10 @@ class TemplateProvider:
         r.raise_for_status()
         return r.json()
 
+def _swap_host(url: str, new_host: str) -> str:
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, new_host, parts.path, parts.query, parts.fragment))
+
 def _stream_download_with_retry(url: str, dest_dir: Path, retries: int = 3, delay: float = 2.0) -> None:
     for attempt in range(1, retries + 1):
         try:
@@ -83,11 +92,28 @@ def _stream_download_with_retry(url: str, dest_dir: Path, retries: int = 3, dela
                 logging.error(f"All {retries} download attempts failed for {url}")
                 raise
 
+def _download_with_fallbacks(urls: list[str], dest: Path, retries_each: int = 3, delay: float = 2.0) -> None:
+    last_err: Optional[Exception] = None
+    for u in urls:
+        try:
+            _stream_download_with_retry(u, dest, retries=retries_each, delay=delay)
+            return
+        except Exception as e:
+            last_err = e
+            logging.warning(f"Download attempt failed for {u}: {e}")
+    raise RuntimeError(f"All download attempts failed. Last error: {last_err}")
+
 def _download_via_release(rel: dict, dest: Path) -> None:
     asset_url = next((a["browser_download_url"] for a in rel.get("assets", []) if a["name"] == "nndeploy-workflow.zip"), None)
     if asset_url is None:
         raise RuntimeError("nndeploy-workflow.zip not found in release assets")
-    _stream_download_with_retry(asset_url, dest)
+    try_urls = []
+    try:
+        try_urls.append(_swap_host(asset_url, GITEE_HOST))
+    except Exception:
+        pass
+    try_urls.append(asset_url)
+    _download_with_fallbacks(try_urls, dest)
 
 class WorkflowTemplateManager:
     VERSION_RE = re.compile(r"^([\w-]+)/([\w_.-]+)@(v?\d+\.\d+\.\d+|latest)$")
@@ -111,7 +137,6 @@ class WorkflowTemplateManager:
                 raise ValueError(f"Invalid version string format: {ver_str}")
             owner, repo, tag = m.groups()
 
-        # If not latest, try cached directory first
         if tag != "latest":
             dest = TEMPLATE_ROOT
             dest_inner = dest / "nndeploy-workflow"
@@ -119,12 +144,13 @@ class WorkflowTemplateManager:
                 logging.info(f"use cached templates at {dest_inner}")
                 return str(dest)
 
-            # Try direct download from GitHub release asset URL
-            direct_url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/nndeploy-workflow.zip"
+            gitee_url = f"https://{GITEE_HOST}/{owner}/{repo}/releases/download/{tag}/nndeploy-workflow.zip"
+            github_url = f"https://{GITHUB_HOST}/{owner}/{repo}/releases/download/{tag}/nndeploy-workflow.zip"
+
             try:
-                logging.info(f"Attempting direct download: {direct_url} → {dest}")
+                logging.info(f"Attempting direct download (Gitee→GitHub): {gitee_url} / {github_url} → {dest}")
                 dest.mkdir(parents=True, exist_ok=True)
-                _stream_download_with_retry(direct_url, dest)
+                _download_with_fallbacks([gitee_url, github_url], dest)
                 return str(dest)
             except Exception as err:
                 try:
@@ -133,7 +159,6 @@ class WorkflowTemplateManager:
                     logging.debug(f"Failed to clean up failed directory: {e}")
                 logging.warning(f"Direct download failed. Falling back to GitHub API: {err}")
 
-        # Fallback to GitHub API to locate release and download
         provider = TemplateProvider(owner, repo)
         rel = provider.latest if tag == "latest" else provider.by_tag(tag)
         semver = rel["tag_name"].lstrip("v")
