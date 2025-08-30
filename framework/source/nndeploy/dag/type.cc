@@ -26,6 +26,91 @@ NodeType stringToNodeType(const std::string& node_type_str) {
   }
 }
 
+std::string ioTypeToString(IOType io_type) {
+  switch (io_type) {
+    case IOType::kIOTypeNone:
+      return "None";
+    case IOType::kIOTypeBool:
+      return "Bool";
+    case IOType::kIOTypeNum:
+      return "Num";
+    case IOType::kIOTypeString:
+      return "String";
+    case IOType::kIOTypeText:
+      return "Text";
+    case IOType::kIOTypeJson:
+      return "Json";
+    case IOType::kIOTypeXml:
+      return "Xml";
+    case IOType::kIOTypeCsv:
+      return "Csv";
+    case IOType::kIOTypeYaml:
+      return "Yaml";
+    case IOType::kIOTypeBinary:
+      return "Binary";
+    case IOType::kIOTypeImage:
+      return "Image";
+    case IOType::kIOTypeVideo:
+      return "Video";
+    case IOType::kIOTypeAudio:
+      return "Audio";
+    case IOType::kIOTypeCamera:
+      return "Camera";
+    case IOType::kIOTypeMicrophone:
+      return "Microphone";
+    case IOType::kIOTypeModel:
+      return "Model";
+    case IOType::kIOTypeDir:
+      return "Dir";
+    case IOType::kIOTypeAny:
+      return "Any";
+    default:
+      return "None";
+  }
+}
+
+IOType stringToIoType(const std::string& io_type_str) {
+  if (io_type_str == "None") {
+    return IOType::kIOTypeNone;
+  } else if (io_type_str == "Bool") {
+    return IOType::kIOTypeBool;
+  } else if (io_type_str == "Num") {
+    return IOType::kIOTypeNum;
+  } else if (io_type_str == "String") {
+    return IOType::kIOTypeString;
+  } else if (io_type_str == "Text") {
+    return IOType::kIOTypeText;
+  } else if (io_type_str == "Json") {
+    return IOType::kIOTypeJson;
+  } else if (io_type_str == "Xml") {
+    return IOType::kIOTypeXml;
+  } else if (io_type_str == "Csv") {
+    return IOType::kIOTypeCsv;
+  } else if (io_type_str == "Yaml") {
+    return IOType::kIOTypeYaml;
+  } else if (io_type_str == "Binary") {
+    return IOType::kIOTypeBinary;
+  } else if (io_type_str == "Image") {
+    return IOType::kIOTypeImage;
+  } else if (io_type_str == "Video") {
+    return IOType::kIOTypeVideo;
+  } else if (io_type_str == "Audio") {
+    return IOType::kIOTypeAudio;
+  } else if (io_type_str == "Camera") {
+    return IOType::kIOTypeCamera;
+  } else if (io_type_str == "Microphone") {
+    return IOType::kIOTypeMicrophone;
+  }else if (io_type_str == "Model") {
+    return IOType::kIOTypeModel;
+  } else if (io_type_str == "Dir") {
+    return IOType::kIOTypeDir;
+  } else if (io_type_str == "Any") {
+    return IOType::kIOTypeAny;
+  } else {
+    return IOType::kIOTypeNone;
+  }
+}
+
 // std::string edgeTypeToString(EdgeTypeFlag edge_type) {
 //   switch (edge_type) {
 //     case EdgeTypeFlag::kBuffer:

@@ -98,6 +98,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("remove_required_param", &Node::removeRequiredParam, py::arg("required_param"))
       .def("clear_required_params", &Node::clearRequiredParams)
       .def("get_required_params", &Node::getRequiredParams)
+      .def("set_ui_params", &Node::setUiParams, py::arg("ui_params"))
+      .def("add_ui_param", &Node::addUiParam, py::arg("ui_param"))
+      .def("remove_ui_param", &Node::removeUiParam, py::arg("ui_param"))
+      .def("clear_ui_params", &Node::clearUiParams)
+      .def("get_ui_params", &Node::getUiParams)
       .def("set_input", &Node::setInput, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output", &Node::setOutput, py::arg("output"),
@@ -150,6 +155,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_flag", &Node::getGraphFlag)
       .def("set_node_type", &Node::setNodeType, py::arg("node_type"))
       .def("get_node_type", &Node::getNodeType)
+      .def("set_io_type", &Node::setIoType, py::arg("io_type"))
+      .def("get_io_type", &Node::getIoType)
       .def("set_loop_count", &Node::setLoopCount, py::arg("loop_count"))
       .def("get_loop_count", &Node::getLoopCount)
       .def("set_stream", &Node::setStream, py::arg("stream"))

@@ -15,6 +15,8 @@ class InputStr(nndeploy.dag.Node):
         self.set_key("nndeploy.basic.InputStr")
         self.set_desc("Input Str on python")
         self.set_output_type(str)
+        self.set_node_type(nndeploy.dag.NodeType.Input)
+        self.set_io_type(nndeploy.dag.IOType.String)
         self.str_ = ""
     
     def run(self) -> bool:
