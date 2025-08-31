@@ -1,7 +1,7 @@
 import { IconDownload, IconExpand } from "@douyinfe/semi-icons"
 import { IconChangelog } from "@douyinfe/semi-icons-lab"
-import { Badge, IconButton, List, Popover, Tooltip } from "@douyinfe/semi-ui"
-import { useState } from "react";
+import { Badge, IconButton, List, Modal, Popover, Tooltip } from "@douyinfe/semi-ui"
+import { useEffect, useState } from "react";
 import './index.less'
 import { useFlowEnviromentContext } from "../../../context/flow-enviroment-context";
 import { getNodeForm, useClientContext } from "@flowgram.ai/free-layout-editor";
@@ -10,15 +10,23 @@ const Download: React.FC<any> = (props) => {
 
   const [isRunning, setRunning] = useState(false);
 
-  const [visible, setVisible] = useState(false);
 
   const clientContext = useClientContext();
 
 
   const flowEnviroment = useFlowEnviromentContext()
 
+  const { downloadModalList, downloadModalVisible, setDownloadModalVisible } = flowEnviroment
+
+
   async function onDownload() {
 
+    setDownloadModalVisible(true)
+
+
+  }
+
+  async function startDownload() {
     setRunning(true)
     const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
 
@@ -27,27 +35,55 @@ const Download: React.FC<any> = (props) => {
     const json = clientContext.document.toJSON()
     await flowEnviroment.onDownload?.(json as any)
     setRunning(false)
+    setDownloadModalVisible(false)
+
   }
 
-  return <Tooltip
-    content={'Download'}>
+  function handleCancel() {
+    setDownloadModalVisible(false)
+  }
 
 
-    <IconButton
-      icon={<IconDownload
-      // color={runResult ? 'red' : undefined}
-      //style={ runResult === 'error' ? {color: 'var(--semi-color-danger)'}: {}}
-      // style={{ color: runResult ? 'red' : undefined }}
-      />}
-      loading={isRunning}
-      type="tertiary"
-      theme="borderless"
-      //color={runResult ? 'red' : undefined}
-      onClick={() => {
-        onDownload()
-      }} />
 
-  </Tooltip>
+  return <>
+    <Tooltip
+      content={'Download'}>
+
+
+      <IconButton
+        icon={<IconDownload
+        // color={runResult ? 'red' : undefined}
+        //style={ runResult === 'error' ? {color: 'var(--semi-color-danger)'}: {}}
+        // style={{ color: runResult ? 'red' : undefined }}
+        />}
+        loading={isRunning}
+        type="tertiary"
+        theme="borderless"
+        //color={runResult ? 'red' : undefined}
+        onClick={() => {
+          onDownload()
+        }} />
+
+    </Tooltip>
+    <Modal
+      title="download models"
+      visible={downloadModalVisible}
+      okText="download"
+      onOk={startDownload}
+      onCancel={handleCancel}
+      maskClosable={false}
+      className="download-model"
+      width={700}
+    //okButtonProps={{ size: 'small', type: 'warning' }}
+    //cancelButtonProps={{ size: 'small', disabled: true }}
+    >
+      
+      <ol>
+      {downloadModalList.map(item => <li className="model-item" key={item}>{item}</li>)}
+      </ol>
+    </Modal>
+  </>
+
 
 }
 

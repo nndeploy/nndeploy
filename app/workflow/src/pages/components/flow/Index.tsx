@@ -54,6 +54,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   const { state, dispatch } = React.useContext(store);
 
   const { nodeRegistries, nodeList } = state
+  const [downloadModalVisible, setDownloadModalVisible] = useState(false)
+  const [downloadModalList, setDownloadModalList] = useState<string[]>([])
 
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
@@ -84,8 +86,6 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
-
-  //const tools = usePlaygroundTools();
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
@@ -137,36 +137,53 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
-  // const nodeList = useGetNodeList()
-
   const paramTypes = useGetParamTypes()
 
-  //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
   const fetchData = async (flowId: string, flowType: EnumFlowType) => {
-
-    //setLoading(true);
-
-    //const nodeRegistries = await getNodeRegistry();
-    // setNodeRegistries(nodeRegistries);
 
     if (!flowId) {
       setLoading(false);
       return;
     }
 
+    function getdownloadModals(businessNode: IBusinessNode) {
+
+      const modals: string[] = []
+      const fields = lodash.pick(businessNode, ['image_url_', 'video_url_', 'audio_url_', 'model_url_', 'other_url_'])
+      for (let field in fields) {
+        const urlArray: string[] = fields[field]
+        urlArray.map(url => {
+          if (url.startsWith('modelscope')) {
+            modals.push(url)
+          }
+        })
+
+      }
+      return modals
+
+    }
+
     let response: IResponse<IBusinessNode>
 
     if (flowType == EnumFlowType.template) {
       response = await apiGetTemeplateWorkFlow(flowId);
+      if (response.flag == "error") {
+        return;
+      }
+      const modals = getdownloadModals(response.result)
+      setDownloadModalList(modals)
+      setDownloadModalVisible(true)
+
     } else {
       response = await apiGetWorkFlow(flowId);
+      if (response.flag == "error") {
+        return;
+      }
     }
 
 
-    if (response.flag == "error") {
-      return;
-    }
+
 
     const designContent = transferBusinessContentToDesignContent(response.result, nodeRegistries)
 
@@ -178,10 +195,6 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
     ref?.current?.document.reload(designContent);
-
-    //ref?.current?.document.reload(response.result.content);
-
-    //setFlowDocumentJSON()
 
     setTimeout(() => {
       // 加载后触发画布的 fitview 让节点自动居中
@@ -195,7 +208,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     }, 100);
 
-    //setFlowData(response);
+
     setLoading(false);
   };
   useEffect(() => {
@@ -597,7 +610,10 @@ const Flow: React.FC<FlowProps> = (props) => {
             element: demoContainerRef, onSave, onRun, onDownload, downloading, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
 
             log: log,
-            runResult: runResult
+            runResult: runResult, 
+            downloadModalVisible, 
+            setDownloadModalVisible, 
+            downloadModalList
           }}
         >
           <FreeLayoutEditorProvider
@@ -650,6 +666,7 @@ const Flow: React.FC<FlowProps> = (props) => {
           > */}
 
           {/* </SideSheet> */}
+        
 
         </FlowEnviromentContext.Provider>
       )}
