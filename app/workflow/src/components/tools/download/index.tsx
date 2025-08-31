@@ -70,6 +70,7 @@ const Download: React.FC<any> = (props) => {
       visible={downloadModalVisible}
       onOk={startDownload}
       onCancel={handleCancel}
+      maskClosable={false}
     //okButtonProps={{ size: 'small', type: 'warning' }}
     //cancelButtonProps={{ size: 'small', disabled: true }}
     >
