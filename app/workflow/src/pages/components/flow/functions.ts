@@ -143,6 +143,9 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
     if(!item.data.name_){
       let j = 0;
     }
+    if(item.type == 'group'){
+      return
+    }
     var nameParts = item.data.name_.split('_')
     if (item.data.name_ && nameParts.length > 1) {
       var numberPart = parseInt(nameParts[nameParts.length - 1])
