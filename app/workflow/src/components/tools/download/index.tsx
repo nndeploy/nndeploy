@@ -66,16 +66,21 @@ const Download: React.FC<any> = (props) => {
 
     </Tooltip>
     <Modal
-      title="download modals"
+      title="download models"
       visible={downloadModalVisible}
+      okText="download"
       onOk={startDownload}
       onCancel={handleCancel}
       maskClosable={false}
+      className="download-model"
+      width={700}
     //okButtonProps={{ size: 'small', type: 'warning' }}
     //cancelButtonProps={{ size: 'small', disabled: true }}
     >
-      <div> modals list: </div>
-      {downloadModalList.map(item => item)}
+      
+      <ol>
+      {downloadModalList.map(item => <li className="model-item" key={item}>{item}</li>)}
+      </ol>
     </Modal>
   </>
 
