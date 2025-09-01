@@ -509,10 +509,10 @@ cmd_classes["install"] = InstallCommand
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="0.3.0",  # Fix version number format
+    version="2.5.2",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
-    description="Workflow-based Multi-platform AI Deployment Tool",  # Add short description
+    description="Your Local AI Workflow",  # Add short description
     long_description=read_long_description(),  # Add long description
     long_description_content_type="text/markdown",  # Specify content type as Markdown
     url="https://github.com/nndeploy/nndeploy",  # Add project URL
@@ -550,7 +550,7 @@ setup(
     # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode
     has_ext_modules=lambda: True,  # Added: Declare that it contains extension modules
-    keywords="deep-learning, neural-network, model-deployment, inference, ai",
+    keywords="deep-learning, visual-workflow, ai-agent, easy-to-use, high-performance",
     project_urls={
         "Bug Reports": "https://github.com/nndeploy/nndeploy/issues",
         "Source": "https://github.com/nndeploy/nndeploy",

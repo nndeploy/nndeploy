@@ -11,7 +11,7 @@ from diffusers import DiffusionPipeline
 
 from typing import Dict, Any, List, Optional
 import numpy as np
-import PIL.Image
+from PIL import Image
 
 from huggingface_hub import list_models
 
@@ -60,7 +60,7 @@ class DiffusersPipeline(nndeploy.dag.Node):
         self.set_key("nndeploy.diffusers.DiffusersPipeline")
         self.set_desc("Diffusers Pipeline")
         self.set_input_type(str)
-        self.set_output_type(PIL.Image)
+        self.set_output_type(Image)
         # self.set_output_type(np.ndarray)
         self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
         
