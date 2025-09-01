@@ -66,7 +66,7 @@ const Download: React.FC<any> = (props) => {
 
     </Tooltip>
     <Modal
-      title="download models"
+      title="download"
       visible={downloadModalVisible}
       okText="download"
       onOk={startDownload}
