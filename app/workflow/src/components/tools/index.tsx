@@ -87,7 +87,7 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
             onClick={() => history.redo()}
           />
         </Tooltip>
-        <Log />
+       
         <Download />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         {/* <AddNode disabled={playground.config.readonly} />
@@ -105,6 +105,7 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
         <Config />
         <Save disabled={playground.config.readonly} />
         <Run />
+         <Log />
       </ToolSection>
     </ToolContainer>
   );
