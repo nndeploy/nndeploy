@@ -26,18 +26,23 @@ const Log: React.FC<any> = (props) => {
 
 
   return <>
-    <Tooltip
-      content={'Log'}>
-      <Button
+    <Badge type='danger'
 
-        color={runResult ? 'red' : undefined}
-        style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
-        onClick={() => {
-          showLog()
-        }}
+      dot={runResult === 'error' }
+    >
+      <Tooltip
+        content={'Log'}>
+        <Button
 
-      >Log</Button>
-    </Tooltip>
+          color={runResult ? 'red' : undefined}
+          style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
+          onClick={() => {
+            showLog()
+          }}
+
+        >Log</Button>
+      </Tooltip>
+    </Badge>
     <SideSheet title="Log" visible={visible} onCancel={onClose} placement={'bottom'}
       getPopupContainer={getPopupContainer}
       height={300}
@@ -112,8 +117,7 @@ const Log: React.FC<any> = (props) => {
 
   >
     <Badge type='danger'
-      // count={runResult ? runResult : undefined}
-      //  position="leftTop" 
+
       dot={runResult === 'error'}
     >
       <Tooltip
