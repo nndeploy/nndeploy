@@ -1,6 +1,11 @@
-
-html{
+html {
   background-color: #f2f4f7;
+}
+
+body {
+  margin: 0px;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .semi-sidesheet-header {
@@ -35,4 +40,3 @@ html{
     gap: 6px;
   }
 }
-

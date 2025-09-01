@@ -102,7 +102,6 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
         def _exec():
             token = set_task_id_fallback(task_id)
             try:
-                executor.handle_urls(payload["graph_json"])
                 tp_map, results, status, msg = executor.execute(payload["graph_json"], task_id)
                 result_holder["tp_map"] = tp_map
                 result_holder["results"] = results
