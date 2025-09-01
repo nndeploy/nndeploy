@@ -88,6 +88,7 @@ else:
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DBUILD_ZLIB=OFF \
         -DBUILD_opencv_world=OFF \
         -DBUILD_opencv_core=ON \
         -DBUILD_opencv_imgproc=ON \
