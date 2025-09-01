@@ -12,6 +12,7 @@ add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
+# 1. Include utility and summary CMake files
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 

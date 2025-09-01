@@ -83,12 +83,43 @@ if platform.system() == "Windows":
         -DBUILD_PROTOBUF=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
-else:
+elif platform.system() == "Darwin":
     cmake_cmd = f"""cmake .. \
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
         -DBUILD_ZLIB=OFF \
+        -DBUILD_PNG=OFF \
+        -DBUILD_JPEG=OFF \
+        -DBUILD_TIFF=OFF \
+        -DBUILD_WEBP=OFF \
+        -DBUILD_opencv_world=OFF \
+        -DBUILD_opencv_core=ON \
+        -DBUILD_opencv_imgproc=ON \
+        -DBUILD_opencv_imgcodecs=ON \
+        -DBUILD_opencv_videoio=ON \
+        -DBUILD_opencv_highgui=ON \
+        -DBUILD_opencv_video=ON \
+        -DBUILD_opencv_dnn=ON \
+        -DBUILD_opencv_calib3d=ON \
+        -DBUILD_opencv_features2d=ON \
+        -DBUILD_opencv_flann=ON \
+        -DBUILD_opencv_apps=OFF \
+        -DBUILD_opencv_java=OFF \
+        -DBUILD_opencv_js=OFF \
+        -DBUILD_opencv_python2=OFF \
+        -DBUILD_opencv_python3=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_DOCS=OFF \
+        -DWITH_PROTOBUF=OFF \
+        -DBUILD_PROTOBUF=OFF \
+        -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
+    """
+else:
+    cmake_cmd = f"""cmake .. \
+        -DBUILD_TESTS=OFF \
+        -DBUILD_PERF_TESTS=OFF \
+        -DWITH_FFMPEG=ON \
         -DBUILD_opencv_world=OFF \
         -DBUILD_opencv_core=ON \
         -DBUILD_opencv_imgproc=ON \
