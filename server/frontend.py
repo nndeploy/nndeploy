@@ -18,7 +18,7 @@ from typing_extensions import NotRequired
 REQUEST_TIMEOUT = 60  # second
 FRONTEND_ROOT = Path.cwd() / "frontend"
 
-DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.3.0")
+DEFAULT_PROVIDER = ("nndeploy", "nndeploy_frontend", "v1.4.0")
 DEFAULT_VERSION_STRING = "!"
 
 GITHUB_HOST = "github.com"
