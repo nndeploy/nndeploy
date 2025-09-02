@@ -112,6 +112,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Plugin Development Manual](docs/zh_cn/quick_start/plugin.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python Plugin Development Manual](docs/zh_cn/quick_start/plugin_python.md)
 
 ## Core Features
 

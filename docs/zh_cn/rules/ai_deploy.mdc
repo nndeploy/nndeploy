@@ -9,13 +9,13 @@ alwaysApply: true
 ## 理解AI算法部署的全流程 
 - [参考文档](docs/zh_cn/quick_start/ai_deploy.md) 
 
-## 理解nndeploy插件节点机制
-- python的插件节点机制
+## 理解nndeploy插件机制
+- python的插件机制
  - [模板代码](template/python/template.py)
  - [文档](docs/zh_cn/quick_start/plugin.md)
  - 以gfpgan为例子
   - [gfpgan](python/nndeploy/gan/gfpgan.py)
-- cpp插件节点机制
+- cpp插件机制
  - [模板代码](template/python/template.py)
  - 文档(docs/zh_cn/quick_start/plugin_python.md)
  - 以Segment Anything为参考例子

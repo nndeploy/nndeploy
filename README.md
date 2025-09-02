@@ -118,9 +118,9 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [Python快速开始](docs/zh_cn/quick_start/python.md)
 - [可视化工作流快速开始](docs/zh_cn/quick_start/workflow.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [C++节点插件开发手册](docs/zh_cn/quick_start/plugin.md)
+- [C++插件开发手册](docs/zh_cn/quick_start/plugin.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-- [Python节点插件开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [Python插件开发手册](docs/zh_cn/quick_start/plugin_python.md)
 
 ## 核心特性
 
