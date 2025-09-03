@@ -412,6 +412,7 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.InsightFaceSwapperWithMap")
         super().set_desc("InsightFace Swapper: swap face from image")
+        self.set_dynamic_input(True)
         self.set_input_type(list[insightface.app.common.Face])
         self.set_input_type(list[insightface.app.common.Face])
         self.set_input_type(np.ndarray)
@@ -431,47 +432,77 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def run(self):
-        source_face = self.get_input(0).get(self)
-        target_face = self.get_input(1).get(self)
+        input_size = len(self.get_all_input())
+        source_faces = {}
+        target_faces = {}
+        count = (input_size - 2)//2
+        print(count)
+        
+        source_faces[0] = self.get_input(0).get(self)
+        
+        target_faces[0] = self.get_input(1).get(self)
+            
         temp_frame = self.get_input(2).get(self)
         map = self.get_input(3).get(self)
         
+        for i in range(count - 1):
+            source_faces[i+1] = self.get_input(i*2+4).get(self)
+            target_faces[i+1] = self.get_input(i*2+5).get(self)
+            
         swapped_frame = temp_frame.copy()
         
-        if len(target_face) == 0:
-            self.get_output(0).set(swapped_frame)
-            return nndeploy.base.Status.ok()
+        # if len(target_face) == 0:
+        #     self.get_output(0).set(swapped_frame)
+        #     return nndeploy.base.Status.ok()
         
-        detected_faces_centroids = []
-        for face in target_face:
-            detected_faces_centroids.append(face.normed_embedding)
+        # detected_faces_centroids = []
+        # for face in target_face:
+        #     detected_faces_centroids.append(face.normed_embedding)
         # print(map)
-        for i, target_embedding in enumerate(map['target_embeddings']):
-            closest_centroid_index, _ = find_closest_centroid(detected_faces_centroids, target_embedding)
-            # print(closest_centroid_index)
-            # print(type(target_face[closest_centroid_index]))
-            # print(type(source_face[0]))
-            if closest_centroid_index >= 0:
-                swapped_frame = self.swapper.get(swapped_frame, target_face[closest_centroid_index], source_face[0], paste_back=True)
-                    
-                if self.mouth_mask_:
-                    face_mask = create_face_mask(target_face[closest_centroid_index], temp_frame)
+        for i in range(count):
+            source_face = source_faces[i]
+            target_face = target_faces[i]
+            
+            print(type(source_face))
+            print(type(target_face))
+            # print(source_face)
+            # print(target_face)
+            
+            if len(target_face) == 0:
+                continue
+            
+            detected_faces_centroids = []
+            for face in target_face:
+                # print(f"face: {face}")
+                detected_faces_centroids.append(face.normed_embedding)
+                # detected_faces_centroids.append(face.embedding)
+                
+            for j, target_embedding in enumerate(map['target_embeddings']):
+                closest_centroid_index, _ = find_closest_centroid(detected_faces_centroids, target_embedding)
+                # print(closest_centroid_index)
+                # print(type(target_face[closest_centroid_index]))
+                # print(type(source_face[0]))
+                if closest_centroid_index >= 0:
+                    swapped_frame = self.swapper.get(swapped_frame, target_face[closest_centroid_index], source_face[0], paste_back=True)
 
-                     # Create the mouth mask
-                    mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon = (
-                        create_lower_mouth_mask(target_face[closest_centroid_index], temp_frame, self.mask_down_size_, self.mask_size_)
-                    )
+                    if self.mouth_mask_:
+                        face_mask = create_face_mask(target_face[closest_centroid_index], swapped_frame)
 
-                    # Apply the mouth area
-                    swapped_frame = apply_mouth_area(
-                        swapped_frame, mouth_cutout, mouth_box, face_mask, lower_lip_polygon, self.mask_feather_ratio_
-                    )
-
-                    if self.show_mouth_mask_box_:
-                        mouth_mask_data = (mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon)
-                        swapped_frame = draw_mouth_mask_visualization(
-                            swapped_frame, target_face[closest_centroid_index], mouth_mask_data, self.mask_feather_ratio_
+                         # Create the mouth mask
+                        mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon = (
+                            create_lower_mouth_mask(target_face[closest_centroid_index], swapped_frame, self.mask_down_size_, self.mask_size_)
                         )
+
+                        # Apply the mouth area
+                        swapped_frame = apply_mouth_area(
+                            swapped_frame, mouth_cutout, mouth_box, face_mask, lower_lip_polygon, self.mask_feather_ratio_
+                        )
+
+                        if self.show_mouth_mask_box_:
+                            mouth_mask_data = (mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon)
+                            swapped_frame = draw_mouth_mask_visualization(
+                                swapped_frame, target_face[closest_centroid_index], mouth_mask_data, self.mask_feather_ratio_
+                            )
         self.get_output(0).set(swapped_frame)
         return nndeploy.base.Status.ok()
     
