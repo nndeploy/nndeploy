@@ -62,7 +62,7 @@ class SPAStaticFiles(StaticFiles):
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, args, job_mp_queue, plugin_update_q):
+    def __init__(self, args, job_mp_queue, plugin_update_q, cancel_event_queue):
         NnDeployServer.instance = self
         self.loop: Optional[asyncio.AbstractEventLoop] = None # lazy loading
         self.args = args
@@ -85,6 +85,7 @@ class NnDeployServer:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db = DB(self.db_path).init_schema()
 
+        self.cancel_event_queue = cancel_event_queue
         self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
@@ -163,6 +164,10 @@ class NnDeployServer:
 
         return cover, req
 
+    def _cancel_task(self, task_id: str):
+        self.cancel_event_queue.put(task_id)
+        return True
+
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
 
@@ -195,6 +200,18 @@ class NnDeployServer:
             message = "success"
             result = {"task_id":task_id}
             return EnqueueResponse(flag=flag, message=message, result=result)
+
+        @api.post(
+            "/queue/cancel/{task_id}",
+            tags=["Task"],
+            summary="cancel task execution",
+        )
+        async def cancel_task(task_id: str):
+            try:
+                if self._cancel_task(task_id):
+                    return {"status": "success", "message": f"Task {task_id} has been cancelled"}
+            except HTTPException as e:
+                raise e
 
         @api.post(
             "/workflow/save",

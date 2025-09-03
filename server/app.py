@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Tuple
 from logging.handlers import QueueHandler, QueueListener
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
+
 from .task_queue import TaskQueue
 from .server import NnDeployServer
 from .worker import run as worker_run
@@ -68,11 +69,12 @@ def start_worker(
         progress_q: "mp.queues.Queue",
         log_q: "mp.queues.Queue",
         plugin_update_q: "mp.queues.Queue",
+        cancel_event_q: "mp.queues.Queue",
         resources) -> mp.Process:
     p = mp.Process(
         target=worker_run,
         name="WorkerProcess",
-        args=(task_q, result_q, progress_q, log_q, plugin_update_q, resources),
+        args=(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources),
         daemon=True,
     )
     p.start()
@@ -86,6 +88,7 @@ def monitor_worker(
     progress_q: "mp.queues.Queue",
     log_q: "mp.queues.Queue",
     plugin_update_q: "mp.queues.Queue",
+    cancel_event_q: "mp.queues.Queue",
     resources,
     stop_event: threading.Event,
 ) -> None:
@@ -95,7 +98,7 @@ def monitor_worker(
                 "Worker died (exitcode=%s). Restarting in 2 seconds...", worker.exitcode
             )
             time.sleep(2)
-            worker = start_worker(task_q, result_q, progress_q, log_q, plugin_update_q, resources)
+            worker = start_worker(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources)
         time.sleep(1)
 
 def start_scheduler(queue: TaskQueue, job_q: mp.Queue):
@@ -147,13 +150,7 @@ def main() -> None:
 
     install_taskid_logrecord_factory()
 
-    # load plugin 
-    ## add by always
-    # if args.plugin != []:
-    #     for plugin_path in args.plugin:
-    #         add_global_import_lib(plugin_path)
-    #     import_global_import_lib()
-        
+    # load plugin
     plugin_dir = Path(args.resources) / "plugin"
     plugin_dir.mkdir(parents=True, exist_ok=True)
     if args.plugin != []:
@@ -169,21 +166,22 @@ def main() -> None:
     progress_q: mp.Queue = mp.Queue(maxsize=1024)
     log_q: mp.Queue = mp.Queue(-1)                     # all ➜ logger
     plugin_update_q: mp.Queue = mp.Queue()
+    cancel_event_queue: mp.Queue = mp.Queue()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
     # server
-    server = NnDeployServer(args, job_mp_queue, plugin_update_q)
+    server = NnDeployServer(args, job_mp_queue, plugin_update_q, cancel_event_queue)
     start_scheduler(server.queue, job_mp_queue)
     start_finisher(server.queue, result_q)
 
     # worker and monitor
-    worker = start_worker(job_mp_queue, result_q, progress_q, log_q, plugin_update_q, args.resources)
+    worker = start_worker(job_mp_queue, result_q, progress_q, log_q, plugin_update_q, cancel_event_queue, args.resources)
     stop_event = threading.Event()
     monitor_t = threading.Thread(
         target=monitor_worker,
-        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, args.resources, stop_event),
+        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, cancel_event_queue, args.resources, stop_event),
         daemon=True,
     )
     monitor_t.start()

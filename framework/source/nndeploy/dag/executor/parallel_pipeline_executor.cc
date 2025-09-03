@@ -111,6 +111,15 @@ bool ParallelPipelineExecutor::synchronize() {
   return is_synchronize_;
 }
 
+bool ParallelPipelineExecutor::interrupt() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->interrupt() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void ParallelPipelineExecutor::commitThreadPool() {
   // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
   for (auto iter : topo_sort_node_) {
@@ -119,6 +128,12 @@ void ParallelPipelineExecutor::commitThreadPool() {
     auto func = [iter, this]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
+        if (iter->node_->checkInterruptStatus() == true) {
+          iter->node_->setRunningFlag(false);
+          status = base::kStatusCodeNodeInterrupt;
+          break;
+        }
+
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           // NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",

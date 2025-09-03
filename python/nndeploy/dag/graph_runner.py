@@ -36,6 +36,12 @@ class GraphRunner:
         status = self.graph.deserialize(graph_json_str)
         return self.graph, status
     
+    def cancel_running(self):
+        if self.graph is not None:
+            flag = self.graph.interrupt()
+            if not flag:
+                raise RuntimeError(f"interrupt failed")
+
     def get_run_status(self):
         if self.graph is None:
             return "{}"

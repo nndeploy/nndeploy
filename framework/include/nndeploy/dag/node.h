@@ -134,12 +134,14 @@ class NNDEPLOY_CC_API Node {
   virtual std::shared_ptr<base::Param> getExternalParam(const std::string &key);
   virtual base::Status setParam(const std::string &key, base::Any &any);
   virtual base::Status getParam(const std::string &key, base::Any &any);
-  virtual base::Status setParam(const std::string &key, const std::string &value);
+  virtual base::Status setParam(const std::string &key,
+                                const std::string &value);
 
   base::Status setVersion(const std::string &version);
   std::string getVersion();
 
-  base::Status setRequiredParams(const std::vector<std::string> &required_params);
+  base::Status setRequiredParams(
+      const std::vector<std::string> &required_params);
   base::Status addRequiredParam(const std::string &required_param);
   base::Status removeRequiredParam(const std::string &required_param);
   base::Status clearRequiredParams();
@@ -215,7 +217,8 @@ class NNDEPLOY_CC_API Node {
     input_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
   }
-  base::Status setInputTypeInfo(std::shared_ptr<EdgeTypeInfo> input_type_info, std::string desc = "");
+  base::Status setInputTypeInfo(std::shared_ptr<EdgeTypeInfo> input_type_info,
+                                std::string desc = "");
   std::vector<std::shared_ptr<EdgeTypeInfo>> getInputTypeInfo();
 
   template <typename T>
@@ -227,8 +230,8 @@ class NNDEPLOY_CC_API Node {
     output_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
   }
-  base::Status setOutputTypeInfo(
-      std::shared_ptr<EdgeTypeInfo> output_type_info, std::string desc = "");
+  base::Status setOutputTypeInfo(std::shared_ptr<EdgeTypeInfo> output_type_info,
+                                 std::string desc = "");
   std::vector<std::shared_ptr<EdgeTypeInfo>> getOutputTypeInfo();
 
   /**
@@ -247,6 +250,8 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status run() = 0;
   virtual bool synchronize();
+  virtual bool interrupt();
+  virtual bool checkInterruptStatus();
 
   /**
    * @brief 节点调用接口
@@ -263,8 +268,8 @@ class NNDEPLOY_CC_API Node {
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> forward();
   virtual std::vector<Edge *> operator()();
-  virtual std::vector<Edge *> forward(Edge * input);
-  virtual std::vector<Edge *> operator()(Edge * input);
+  virtual std::vector<Edge *> forward(Edge *input);
+  virtual std::vector<Edge *> operator()(Edge *input);
 
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
@@ -335,6 +340,7 @@ class NNDEPLOY_CC_API Node {
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
   int loop_count_ = -1;
+  bool stop_ = false;
 
   std::string version_ = "1.0.0";
   std::vector<std::string> required_params_;
@@ -383,7 +389,8 @@ class NNDEPLOY_CC_API NodeFactory {
     if (it != creators_.end()) {
       // NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
       // return;
-      NNDEPLOY_LOGW("Node name %s already exists, will be overwritten!\n", node_key.c_str());
+      NNDEPLOY_LOGW("Node name %s already exists, will be overwritten!\n",
+                    node_key.c_str());
     }
     creators_[node_key] = creator;
     // NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
@@ -414,7 +421,7 @@ class NNDEPLOY_CC_API NodeFactory {
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
-extern NNDEPLOY_CC_API NodeFactory* getGlobalNodeFactory();
+extern NNDEPLOY_CC_API NodeFactory *getGlobalNodeFactory();
 
 // #define REGISTER_NODE(node_key, node_class)                              \
 //   static auto register_node_creator_##node_class = []() {                \

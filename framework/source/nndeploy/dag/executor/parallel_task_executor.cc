@@ -2,9 +2,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelTaskExecutor::ParallelTaskExecutor() : Executor(){};
+ParallelTaskExecutor::ParallelTaskExecutor() : Executor() {};
 
-ParallelTaskExecutor::~ParallelTaskExecutor(){};
+ParallelTaskExecutor::~ParallelTaskExecutor() {};
 
 base::Status ParallelTaskExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
@@ -65,7 +65,8 @@ base::Status ParallelTaskExecutor::run() {
     if (iter->color_ != base::kNodeColorBlack) {
       std::string info{"exist node not finish!\n"};
       info.append(iter->name_);
-      // NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack, info.c_str());
+      // NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack,
+      // info.c_str());
       NNDEPLOY_LOGE("%s\n", info.c_str());
       return base::kStatusCodeErrorDag;
     }
@@ -78,6 +79,10 @@ base::Status ParallelTaskExecutor::run() {
 void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
   node_wrapper->color_ = base::kNodeColorGray;
   const auto& func = [this, node_wrapper] {
+    if (node_wrapper->node_->checkInterruptStatus() == true) {
+      node_wrapper->node_->setRunningFlag(false);
+      return;
+    }
     base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updateInput();
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       node_wrapper->node_->setRunningFlag(true);
@@ -160,6 +165,15 @@ void ParallelTaskExecutor::afterGraphRun() {
 bool ParallelTaskExecutor::synchronize() {
   for (auto iter : topo_sort_node_) {
     if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ParallelTaskExecutor::interrupt() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->interrupt() == false) {
       return false;
     }
   }

@@ -29,6 +29,8 @@ class ParallelPipelineExecutor : public Executor {
 
   virtual bool synchronize();
 
+  virtual bool interrupt();
+
   base::Status executeNode(NodeWrapper* iter);
 
  protected:

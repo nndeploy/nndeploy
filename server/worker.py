@@ -76,7 +76,7 @@ def poll_plugin_updates(plugin_update_q, resources):
         else:
             logging.warning("[Plugin] Plugin path not found: %s", plugin_path)
 
-def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None:
+def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources) -> None:
     install_taskid_logrecord_factory()
 
     configure_worker_logger(log_q)
@@ -120,6 +120,22 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
         t.start()
 
         while not done_evt.wait(timeout=PROGRESS_INTERVAL_SEC):
+            try:
+                cancelled_ids = []
+                while True:
+                    try:
+                        cancelled_task_id = cancel_event_q.get_nowait()
+                        cancelled_ids.append(cancelled_task_id)
+                    except Empty:
+                        break
+
+                if task_id in cancelled_ids:
+                    executor.interrupt_running()
+                    logging.info(f"task {task_id} has been cancelled")
+
+            except Exception as e:
+                logging.warning(f"check cancel signal failed: {e}")
+
             try:
                 status_dict = executor.runner.get_run_status()
             except Exception as e:

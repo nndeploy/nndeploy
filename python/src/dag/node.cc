@@ -93,9 +93,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_external_param", &Node::getExternalParam, py::arg("key"))
       .def("set_version", &Node::setVersion, py::arg("version"))
       .def("get_version", &Node::getVersion)
-      .def("set_required_params", &Node::setRequiredParams, py::arg("required_params"))
-      .def("add_required_param", &Node::addRequiredParam, py::arg("required_param"))
-      .def("remove_required_param", &Node::removeRequiredParam, py::arg("required_param"))
+      .def("set_required_params", &Node::setRequiredParams,
+           py::arg("required_params"))
+      .def("add_required_param", &Node::addRequiredParam,
+           py::arg("required_param"))
+      .def("remove_required_param", &Node::removeRequiredParam,
+           py::arg("required_param"))
       .def("clear_required_params", &Node::clearRequiredParams)
       .def("get_required_params", &Node::getRequiredParams)
       .def("set_input", &Node::setInput, py::arg("input"),
@@ -483,6 +486,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
       .def("synchronize", &Graph::synchronize,
+           py::call_guard<py::gil_scoped_release>())
+      .def("interrupt", &Graph::interrupt,
            py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),

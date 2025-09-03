@@ -218,7 +218,9 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
-void Node::setDeveloper(const std::string &developer) { developer_ = developer; }
+void Node::setDeveloper(const std::string &developer) {
+  developer_ = developer;
+}
 std::string Node::getDeveloper() { return developer_; }
 void Node::setDesc(const std::string &desc) { desc_ = desc; }
 std::string Node::getDesc() { return desc_; }
@@ -365,11 +367,10 @@ base::Status Node::setVersion(const std::string &version) {
   version_ = version;
   return base::kStatusCodeOk;
 }
-std::string Node::getVersion() { 
-  return version_; 
-}
+std::string Node::getVersion() { return version_; }
 
-base::Status Node::setRequiredParams(const std::vector<std::string> &required_params) {
+base::Status Node::setRequiredParams(
+    const std::vector<std::string> &required_params) {
   required_params_ = required_params;
   return base::kStatusCodeOk;
 }
@@ -378,7 +379,8 @@ base::Status Node::addRequiredParam(const std::string &required_param) {
   return base::kStatusCodeOk;
 }
 base::Status Node::removeRequiredParam(const std::string &required_param) {
-  auto it = std::find(required_params_.begin(), required_params_.end(), required_param);
+  auto it = std::find(required_params_.begin(), required_params_.end(),
+                      required_param);
   if (it != required_params_.end()) {
     required_params_.erase(it);
   }
@@ -388,9 +390,7 @@ base::Status Node::clearRequiredParams() {
   required_params_.clear();
   return base::kStatusCodeOk;
 }
-std::vector<std::string> Node::getRequiredParams() {
-  return required_params_;
-}
+std::vector<std::string> Node::getRequiredParams() { return required_params_; }
 
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
@@ -691,10 +691,12 @@ base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
+  stop_ = false;
   setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 base::Status Node::deinit() {
+  stop_ = false;
   setInitializedFlag(false);
   return base::kStatusCodeOk;
 }
@@ -723,7 +725,17 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 bool Node::synchronize() { return true; }
 
+bool Node::interrupt() {
+  stop_ = true;
+  return true;
+}
+
+bool Node::checkInterruptStatus() { return stop_; }
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
+  if (stop_ == true) {
+    return std::vector<Edge *>();
+  }
   // init
   if (initialized_ == false && is_trace_ == false) {
     // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
@@ -962,8 +974,8 @@ base::Status Node::serialize(rapidjson::Value &json,
                  allocator);
   rapidjson::Value required_params(rapidjson::kArrayType);
   for (auto &required_param : required_params_) {
-    required_params.PushBack(rapidjson::Value(required_param.c_str(), allocator),
-                             allocator);
+    required_params.PushBack(
+        rapidjson::Value(required_param.c_str(), allocator), allocator);
   }
   json.AddMember("required_params_", required_params, allocator);
 
@@ -1187,7 +1199,8 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     version_ = json["version_"].GetString();
   }
 
-  if (json.HasMember("required_params_") && json["required_params_"].IsArray()) {
+  if (json.HasMember("required_params_") &&
+      json["required_params_"].IsArray()) {
     required_params_.clear();
     auto &required_params_array = json["required_params_"];
     for (int i = 0; i < required_params_array.Size(); i++) {
