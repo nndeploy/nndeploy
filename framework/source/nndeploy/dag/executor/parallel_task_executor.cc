@@ -81,9 +81,16 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
   const auto& func = [this, node_wrapper] {
     if (node_wrapper->node_->checkInterruptStatus() == true) {
       node_wrapper->node_->setRunningFlag(false);
+      afterNodeEarlyExit(node_wrapper);
       return;
     }
     base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updateInput();
+    if (node_wrapper->node_->checkInterruptStatus() == true) {
+      node_wrapper->node_->setRunningFlag(false);
+      afterNodeEarlyExit(node_wrapper);
+      return;
+    }
+
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       node_wrapper->node_->setRunningFlag(true);
       // NNDEPLOY_LOGE("node[%s] execute start.\n",
@@ -107,6 +114,37 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
     }
   };
   thread_pool_->commit(func);
+}
+
+void ParallelTaskExecutor::afterNodeEarlyExit(NodeWrapper* node_wrapper) {
+  {
+    std::lock_guard<std::mutex> lock(main_lock_);
+    early_exit_task_count_++;
+  }
+  node_wrapper->color_ = base::kNodeColorBlack;
+
+  for (auto successor : node_wrapper->successors_) {
+    bool all_pre_done = true;
+    for (auto iter : successor->predecessors_) {
+      all_pre_done &= (iter->color_ == base::kNodeColorBlack);
+    }
+    if (all_pre_done && successor->color_ == base::kNodeColorWhite) {
+      if (successor->predecessors_.size() <= 1) {
+        process(successor);
+      } else {
+        submitTaskSynchronized(successor);
+      }
+    }
+  }
+
+  if (!node_wrapper->successors_.empty()) return;
+
+  {
+    std::lock_guard<std::mutex> lock(main_lock_);
+    if ((completed_task_count_ + early_exit_task_count_) >= all_task_count_) {
+      cv_.notify_one();
+    }
+  }
 }
 
 void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
@@ -152,12 +190,16 @@ void ParallelTaskExecutor::submitTaskSynchronized(NodeWrapper* node_wrapper) {
 
 void ParallelTaskExecutor::wait() {
   std::unique_lock<std::mutex> lock(main_lock_);
-  cv_.wait(lock, [this] { return completed_task_count_ >= all_task_count_; });
+  cv_.wait(lock, [this] {
+    return (completed_task_count_ + early_exit_task_count_) >= all_task_count_;
+  });
 }
 
 void ParallelTaskExecutor::afterGraphRun() {
   completed_task_count_ = 0;
+  early_exit_task_count_ = 0;
   for (auto iter : topo_sort_node_) {
+    iter->node_->clearInterrupt();
     iter->color_ = base::kNodeColorWhite;
   }
 }
@@ -172,12 +214,11 @@ bool ParallelTaskExecutor::synchronize() {
 }
 
 bool ParallelTaskExecutor::interrupt() {
-  for (auto iter : topo_sort_node_) {
-    if (iter->node_->interrupt() == false) {
-      return false;
-    }
-  }
-  return true;
+  for (auto e : edge_repository_) e->edge_->requestTerminate();
+  bool ok = true;
+  for (auto n : topo_sort_node_) ok &= n->node_->interrupt();
+  cv_.notify_one();
+  return ok;
 }
 
 }  // namespace dag

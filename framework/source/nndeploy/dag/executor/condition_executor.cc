@@ -57,7 +57,7 @@ base::Status ConditionExecutor::process() {
   Node *cur_node = this->node_repository_[index_]->node_;
   if (cur_node->checkInterruptStatus() == true) {
     cur_node->setRunningFlag(false);
-    return base::kStatusCodeNodeInterrupt;
+    return base::kStatusCodeOk;
   }
   // NNDEPLOY_LOGE("ConditionExecutor::process() index:%d\n", index_);
   // NNDEPLOY_LOGE("ConditionExecutor::process() cur_node:%s\n",

@@ -62,12 +62,10 @@ bool ParallelPipelineConditionExecutor::synchronize() {
 }
 
 bool ParallelPipelineConditionExecutor::interrupt() {
-  for (auto iter : node_repository_) {
-    if (iter->node_->interrupt() == false) {
-      return false;
-    }
-  }
-  return true;
+  for (auto e : edge_repository_) e->edge_->requestTerminate();
+  bool ok = true;
+  for (auto n : node_repository_) ok &= n->node_->interrupt();
+  return ok;
 }
 
 }  // namespace dag
