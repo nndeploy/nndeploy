@@ -250,8 +250,10 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status run() = 0;
   virtual bool synchronize();
+
   virtual bool interrupt();
   virtual bool checkInterruptStatus();
+  virtual void clearInterrupt();
 
   /**
    * @brief 节点调用接口
@@ -340,7 +342,7 @@ class NNDEPLOY_CC_API Node {
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
   int loop_count_ = -1;
-  bool stop_ = false;
+  std::atomic<bool> stop_{false};
 
   std::string version_ = "1.0.0";
   std::vector<std::string> required_params_;

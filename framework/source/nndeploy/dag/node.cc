@@ -725,12 +725,23 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 bool Node::synchronize() { return true; }
 
+// bool Node::interrupt() {
+//   stop_ = true;
+//   return true;
+// }
+
+// bool Node::checkInterruptStatus() { return stop_; }
+
 bool Node::interrupt() {
-  stop_ = true;
+  bool first = !stop_.exchange(true, std::memory_order_acq_rel);
   return true;
 }
 
-bool Node::checkInterruptStatus() { return stop_; }
+bool Node::checkInterruptStatus() {
+  return stop_.load(std::memory_order_acquire);
+}
+
+void Node::clearInterrupt() { stop_.store(false, std::memory_order_release); }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   if (stop_ == true) {

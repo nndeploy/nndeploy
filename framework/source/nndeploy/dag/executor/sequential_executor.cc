@@ -60,7 +60,7 @@ base::Status SequentialExecutor::run() {
 
     if (iter->node_->checkInterruptStatus() == true) {
       iter->node_->setRunningFlag(false);
-      return base::kStatusCodeNodeInterrupt;
+      return base::kStatusCodeOk;
     }
 
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
