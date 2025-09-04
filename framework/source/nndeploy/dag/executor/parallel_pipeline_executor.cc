@@ -231,7 +231,7 @@ base::Status ParallelPipelineExecutor::executeNode(NodeWrapper* iter) {
           pipeline_cv_.notify_all();
         }
       }
-      NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
+      NNDEPLOY_LOGI("node_ run i[%ld]: %s.\n", completed_size_,
                     iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
