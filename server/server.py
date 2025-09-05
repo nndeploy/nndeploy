@@ -214,6 +214,21 @@ class NnDeployServer:
                 raise e
 
         @api.post(
+            "/queue/flush",
+            tags=["Task"],
+            summary="clear pending tasks and drain job queue (running tasks not interrupted)"
+        )
+        async def flush_queue():
+            try:
+                res = self.queue.flush()
+                msg = f"pending cleared: {res['cleared_pending']}, job_q drained: {res['drained_job_q']}"
+                logging.info("[queue/flush] %s", msg)
+                return {"status": "success", "message": msg, "result": res}
+            except Exception as e:
+                logging.exception("[queue/flush] error")
+                raise HTTPException(status_code=500, detail=f"flush queue error: {e}")
+
+        @api.post(
             "/workflow/save",
             tags=["Workflow"],
             response_model=WorkFlowSaveResponse,

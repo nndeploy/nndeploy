@@ -4,14 +4,14 @@ import copy
 import heapq
 import time
 import threading
+import queue as _queue
 from typing import Any, Dict, List, Optional
 
 _MAX_HISTORY = 1000
 
 class ExecutionStatus:
-    """keep same with comfyui"""
-    def __init__(self, ok: bool, msg: str = ""):
-        self.str = "success" if ok else "failed"
+    def __init__(self, ok: bool, msg: str = "", label: str | None = None):
+        self.str = label or ("success" if ok else "failed")
         self.completed = ok
         self.messages = [msg] if msg else []
 
@@ -72,3 +72,46 @@ class TaskQueue:
                     return copy.deepcopy(task)
             record = self._hist.get(task_id)
             return copy.deepcopy(record) if record else None
+
+    def _push_hist_cancelled_unlocked(self, idx: int, payload: dict, reason: str):
+        self._running.pop(idx, None)
+        if len(self._hist) >= _MAX_HISTORY:
+            self._hist.pop(next(iter(self._hist)))
+        tid = payload.get("id")
+        status = ExecutionStatus(ok=False, msg=reason, label="cancelled")
+        self._hist[tid] = {
+            "task": payload,
+            "status": status.__dict__,
+        }
+
+    def clear_pending(self) -> int:
+        with self._mtx:
+            n = len(self._pq)
+            self._pq.clear()
+            return n
+
+    def drain_job_q(self) -> int:
+        drained = 0
+        while True:
+            try:
+                idx, payload = self._job_q.get_nowait()
+            except _queue.Empty:
+                break
+            except Exception:
+                break
+            else:
+                with self._mtx:
+                    drained += 1
+                    self._push_hist_cancelled_unlocked(idx, payload, reason="flushed from job_q")
+        return drained
+
+    def flush(self) -> dict:
+        cleared_pending = self.clear_pending()
+        drained_jobq = self.drain_job_q()
+
+        import time as _t
+        for _ in range(2):
+            _t.sleep(0.02)
+            drained_jobq += self.drain_job_q()
+
+        return {"cleared_pending": cleared_pending, "drained_job_q": drained_jobq}
