@@ -51,10 +51,11 @@ export function Run() {
     <Button
       onClick={onRunOrStop}
       disabled={downloading}
+      type= {isRunning ? 'danger': 'primary' }
       //loading={isRunning}
       style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
     >
       {isRunning ? 'Stop' : 'Run'}
     </Button>
   );
-}
+} 
