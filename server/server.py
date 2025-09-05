@@ -209,7 +209,7 @@ class NnDeployServer:
         async def cancel_task(task_id: str):
             try:
                 if self._cancel_task(task_id):
-                    return {"status": "success", "message": f"Task {task_id} has been cancelled"}
+                    return {"flag": "success", "message": f"Task {task_id} has been cancelled"}
             except HTTPException as e:
                 raise e
 
