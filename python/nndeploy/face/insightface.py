@@ -157,6 +157,9 @@ class InsightVideoFaceId(nndeploy.dag.Node):
 
         self.video_path_ = "video.mp4"
         self.faces_path_ = "resources/images/"
+        self.temp_path_ = "resources/images/temp/"
+        if not os.path.exists(self.temp_path_):
+            os.makedirs(self.temp_path_)
         
         self.set_output_type(list[Any])
         
@@ -188,14 +191,12 @@ class InsightVideoFaceId(nndeploy.dag.Node):
             self.graph.run()
             frame = self.graph.get_output(0).get_graph_output()
             faces = self.graph.get_output(1).get_graph_output()
-            if len(faces) == 0:
-                print("No face detected")
-                continue
             
             for face in faces:
                 face_embeddings.append(face.normed_embedding)
             
-            frame_face_embeddings.append({'frame': i, 'faces': faces, 'location': i})
+            cv2.imwrite(f"{self.temp_path_}/{i}.jpg", frame)
+            frame_face_embeddings.append({'frame': i, 'faces': faces, 'location': f"{self.temp_path_}/{i}.jpg"})
             i += 1
          
         
@@ -258,17 +259,19 @@ class InsightVideoFaceId(nndeploy.dag.Node):
             x_min, y_min, x_max, y_max = best_face['bbox']
 
             # 从视频中得到第i帧图片
-            cap = cv2.VideoCapture(self.video_path_)
-            cap.set(cv2.CAP_PROP_POS_FRAMES, best_frame['location'])
-            ret, target_frame = cap.read()
-            cap.release()
+            # cap = cv2.VideoCapture(self.video_path_)
+            # cap.set(cv2.CAP_PROP_POS_FRAMES, best_frame['location'])
+            # ret, target_frame = cap.read()
+            # cap.release()
+            target_frame = cv2.imread(best_frame['location'])
             map['target'] = {
                             'cv2' : target_frame[int(y_min):int(y_max), int(x_min):int(x_max)],
                             'face' : best_face
                             }
         
-        for map in face_id:
-            cv2.imwrite(f"resources/images/{map['id']}.jpg", map['target']['cv2'])
+        if self.faces_path_ != "":
+            for map in face_id:
+                cv2.imwrite(f"{self.faces_path_}/{map['id']}.jpg", map['target']['cv2'])
         self.get_output(0).set(face_id)
         
         return nndeploy.base.Status.ok()
@@ -320,16 +323,17 @@ class FaceIdMap(nndeploy.dag.Node):
             else:
                 source_face_id.append({'source': face[0], 'id': i})
         
-        source_target_face = []
+        # source_target_face = []
         for target in target_face_id:
             for source in source_face_id:
                 if target['id'] == source['id']:
                     # print(source['source'])
                     # print(target['face'])
-                    # target['source'] = source['source']
-                    source_target_face.append({"id": target['id'], 'source': source['source'], 'target': target['target']})
+                    target['source'] = source['source']
+                    # source_target_face.append({"id": target['id'], 'source': source['source'], 'target': target['target']})
                     break
-        print(source_target_face)
+        # print(source_target_face)
+        source_target_face = target_face_id
         self.get_output(0).set(source_target_face)
         
         # centroids = []
@@ -574,6 +578,7 @@ class InsightFaceSwapperWithMapCreator(nndeploy.dag.NodeCreator):
 insightface_swapper_with_map_node_creator = InsightFaceSwapperWithMapCreator()
 nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapperWithMap", insightface_swapper_with_map_node_creator)  
 
+
 class FaceSwapper(nndeploy.dag.Graph):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
@@ -608,6 +613,150 @@ face_swapper_node_creator = FaceSwapperCreator()
 nndeploy.dag.register_node("nndeploy.face.FaceSwapper", face_swapper_node_creator)   
       
       
+class VideoInsightFaceSwapperWithMap(nndeploy.dag.Node):
+    def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
+        super().__init__(name, inputs, outputs)
+        super().set_key("nndeploy.face.VideoInsightFaceSwapperWithMap")
+        super().set_desc("InsightFace Swapper: swap face from image")
+        self.set_input_type(list[Any])
+        
+        self.mouth_mask_ = False
+        self.show_mouth_mask_box_ = False
+        self.mask_down_size_ = 0.5
+        self.mask_feather_ratio_ = 8
+        self.mask_size_ = 1
+        self.model_path_ = "inswapper_128_fp16.onnx"
+        self.providers_ = ["CPUExecutionProvider"]
+        self.is_gfpgan_ = False
+        self.gfpgan_model_path_ = "gfpgan_1.4.pth"
+        self.gfpgan_upscale_ = 1
+        self.gfpgan = None
+        self.origin_video_path_ = "origin_video_path.mp4"
+        self.video_path_ = "video_path.mp4"
+        self.fourcc_ = "avc1"
+        
+    def init(self):
+        self.swapper = insightface.model_zoo.get_model(self.model_path_, providers=self.providers_)
+        if self.is_gfpgan_:
+            import gfpgan
+            self.device_, _ = nndeploy.device.get_available_device()
+            self.gfpgan = gfpgan.GFPGANer(self.gfpgan_model_path_, upscale=self.gfpgan_upscale_, device=self.device_)
+        return nndeploy.base.Status.ok()
+    
+    def run(self):            
+        source_target_face = self.get_input(0).get(self)
+        
+        for map in source_target_face:
+            # print(map)
+            target_frame = [
+                    f
+                    for f in map["target_faces_in_frame"]
+                ]
+            if "source" in map:
+                source_face = map['source']
+            else:
+                continue
+            
+            # image to video swap
+            for frame in target_frame:  
+                swapped_frame = cv2.imread(frame['location'])
+                for target_face in frame['faces']:
+                    swapped_frame = self.swapper.get(swapped_frame, target_face, source_face, paste_back=True)
+
+                    if self.mouth_mask_:
+                        face_mask = create_face_mask(target_face, swapped_frame)
+
+                        # Create the mouth mask
+                        mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon = (
+                            create_lower_mouth_mask(target_face, swapped_frame, self.mask_down_size_, self.mask_size_)
+                        )
+
+                        # Apply the mouth area
+                        swapped_frame = apply_mouth_area(
+                            swapped_frame, mouth_cutout, mouth_box, face_mask, lower_lip_polygon, self.mask_feather_ratio_
+                        )
+
+                        if self.show_mouth_mask_box_:
+                            mouth_mask_data = (mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon)
+                            swapped_frame = draw_mouth_mask_visualization(
+                                swapped_frame, target_face, mouth_mask_data, self.mask_feather_ratio_
+                            )
+                    cv2.imwrite(frame['location'], swapped_frame)
+        
+        # 获取视频参数
+        # 获取原始视频的信息
+        cap = cv2.VideoCapture(self.origin_video_path_)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+        
+        # 创建视频编码器
+        fourcc = cv2.VideoWriter_fourcc(self.fourcc_)
+        output_path = self.video_path_
+        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+           
+        for frame in source_target_face[0]:
+            swapped_frame = cv2.imread(frame['location'])
+            if self.is_gfpgan_:
+                _, _, enhance_frame = self.gfpgan.enhance(swapped_frame, paste_back=True)
+                swapped_frame = enhance_frame
+            
+            # 将所有帧写入视频文件
+            video_writer.write(swapped_frame)
+            
+        # 释放视频编码器资源
+        video_writer.release()
+                
+        return nndeploy.base.Status.ok()
+    
+    def serialize(self):
+        json_str = super().serialize()
+        json_obj = json.loads(json_str)
+        json_obj["mouth_mask_"] = self.mouth_mask_
+        json_obj["show_mouth_mask_box_"] = self.show_mouth_mask_box_
+        json_obj["mask_down_size_"] = self.mask_down_size_
+        json_obj["mask_feather_ratio_"] = self.mask_feather_ratio_
+        json_obj["mask_size_"] = self.mask_size_
+        json_obj["model_path_"] = self.model_path_
+        json_obj["providers_"] = self.providers_
+        json_obj["is_gfpgan_"] = self.is_gfpgan_
+        json_obj["gfpgan_model_path_"] = self.gfpgan_model_path_
+        json_obj["gfpgan_upscale_"] = self.gfpgan_upscale_
+        json_obj["origin_video_path_"] = self.origin_video_path_
+        json_obj["video_path_"] = self.video_path_
+        json_obj["fourcc_"] = self.fourcc_
+        return json.dumps(json_obj)
       
+    def deserialize(self, target: str):
+        json_obj = json.loads(target)
+        self.mouth_mask_ = json_obj["mouth_mask_"]
+        self.show_mouth_mask_box_ = json_obj["show_mouth_mask_box_"]
+        self.mask_down_size_ = json_obj["mask_down_size_"]
+        self.mask_feather_ratio_ = json_obj["mask_feather_ratio_"]
+        self.mask_size_ = json_obj["mask_size_"]
+        self.model_path_ = json_obj["model_path_"]
+        self.providers_ = json_obj["providers_"]
+        self.is_gfpgan_ = json_obj["is_gfpgan_"]
+        self.gfpgan_model_path_ = json_obj["gfpgan_model_path_"]
+        self.gfpgan_upscale_ = json_obj["gfpgan_upscale_"]
+        self.origin_video_path_ = json_obj["origin_video_path_"]
+        self.video_path_ = json_obj["video_path_"]
+        self.fourcc_ = json_obj["fourcc_"]
+        return super().deserialize(target)
+      
+class VideoInsightFaceSwapperWithMapCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = VideoInsightFaceSwapperWithMap(name, inputs, outputs)
+        return self.node
+      
+video_insightface_swapper_with_map_node_creator = VideoInsightFaceSwapperWithMapCreator()
+nndeploy.dag.register_node("nndeploy.face.VideoInsightFaceSwapperWithMap", video_insightface_swapper_with_map_node_creator)  
+
+
+
         
         
