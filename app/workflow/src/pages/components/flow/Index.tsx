@@ -70,6 +70,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [downloading, setDownloading] = useState(false)
 
+  const [isRunning, setRunning] = useState(false);
+
+  const [runningTaskId, setRunningTaskId] = useState<string>('')
+
   const [log, setLog] = useState<ILog>({
     items: [],
     time_profile: {
@@ -388,6 +392,8 @@ const Flow: React.FC<FlowProps> = (props) => {
         flowJson.nodes
       );
 
+      setRunning(true)
+
       const response = await apiWorkFlowRun(businessContent);
 
       if (response.flag == "error") {
@@ -395,6 +401,8 @@ const Flow: React.FC<FlowProps> = (props) => {
         return;
       }
       const taskId = response.result.task_id
+
+      setRunningTaskId(taskId)
 
       socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
 
@@ -436,6 +444,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         if (response.flag != "success") {
 
           if (response.result.type == 'task_run_info') {
+            setRunning(false)
             setFlowNodesRunningStatus({})
             setRunResult('error')
             Toast.error("run fail ");
@@ -475,6 +484,8 @@ const Flow: React.FC<FlowProps> = (props) => {
             }
             return newLog
           })
+
+          setRunning(false)
         }
 
 
@@ -613,7 +624,10 @@ const Flow: React.FC<FlowProps> = (props) => {
             runResult: runResult, 
             downloadModalVisible, 
             setDownloadModalVisible, 
-            downloadModalList
+            downloadModalList, 
+            isRunning, 
+            
+            runningTaskId
           }}
         >
           <FreeLayoutEditorProvider

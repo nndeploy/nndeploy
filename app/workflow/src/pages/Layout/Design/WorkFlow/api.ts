@@ -36,6 +36,12 @@ export async function apiWorkFlowRun(entity: IBusinessNode){
   return response;
 }
 
+export async function apiWorkFlowRunStop(taskId:string){
+ var response = await request.post<IWorkFlowRunResult>(`/api/queue/cancel/${taskId}`, {});
+
+  return response;
+}
+
 export async function apiModelsRunDownload(entity: IBusinessNode){
 
  var response = await request.post<IWorkFlowRunResult>('/api/models/download', entity);

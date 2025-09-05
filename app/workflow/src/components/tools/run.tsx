@@ -1,46 +1,60 @@
 import { useState } from 'react';
 
 import { getNodeForm, useClientContext, useService } from '@flowgram.ai/free-layout-editor';
-import { Button } from '@douyinfe/semi-ui';
+import { Button, Toast } from '@douyinfe/semi-ui';
 
 import { RunningService } from '../../services';
 import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
+import { apiWorkFlowRunStop } from '../../pages/Layout/Design/WorkFlow/api';
 
 /**
  * Run the simulation and highlight the lines
  */
 export function Run() {
-  const [isRunning, setRunning] = useState(false);
+  //const [isRunning, setRunning] = useState(false);
   const runningService = useService(RunningService);
 
-   const flowEnviroment = useFlowEnviromentContext()
+  const flowEnviroment = useFlowEnviromentContext()
 
-   const {downloading} = flowEnviroment
+  const { downloading, runningTaskId, isRunning } = flowEnviroment
+
+  //console.log('isRunning', isRunning)
 
 
-   const clientContext = useClientContext();
-   
-  const onRun = async () => {
-    setRunning(true);
-    //await runningService.startRun();
+  const clientContext = useClientContext();
 
-     const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
+  const onRunOrStop = async () => {
+
+    if (isRunning) {
+        let resonse = await apiWorkFlowRunStop(runningTaskId)
+        if(resonse.flag == 'success'){
+          Toast.success('stop success')
+        }
+        //setRunning(false)
+    } else {
+
+
+      //setRunning(true);
+      //await runningService.startRun();
+
+      const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
 
       await Promise.all(allForms.map(async (form) => form?.validate()));
 
       const json = clientContext.document.toJSON()
       flowEnviroment.onRun?.(json as any)
 
-    setRunning(false);
+      //setRunning(false);
+    }
   };
   return (
     <Button
-      onClick={onRun}
-      disabled = {downloading}
-      loading={isRunning}
+      onClick={onRunOrStop}
+      disabled={downloading}
+      //loading={isRunning}
       style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
     >
-      Run
+      {isRunning ? 'Stop' : 'Run'}
     </Button>
   );
 }
