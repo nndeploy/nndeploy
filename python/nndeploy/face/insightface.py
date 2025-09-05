@@ -692,15 +692,31 @@ class VideoInsightFaceSwapperWithMap(nndeploy.dag.Node):
         cap.release()
         
         # 创建视频编码器
-        fourcc = cv2.VideoWriter_fourcc(self.fourcc_)
+        fourcc = cv2.VideoWriter_fourcc(*self.fourcc_)
         output_path = self.video_path_
-        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        # 根据错误信息，codec_id=27对应的编码器未找到
+        # 这通常是因为指定的fourcc编码格式不被当前OpenCV版本支持
+        # 尝试使用更通用的编码格式，如果失败则回退到默认编码器
+        try:
+            video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+            # 测试写入器是否成功初始化
+            if not video_writer.isOpened():
+                raise Exception("VideoWriter初始化失败")
+        except Exception as e:
+            print(f"使用指定编码器 {self.fourcc_} 失败: {e}")
+            # 回退到更兼容的编码格式
+            fallback_fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 或者使用 'XVID'
+            video_writer = cv2.VideoWriter(output_path, fallback_fourcc, fps, (width, height))
+            if not video_writer.isOpened():
+                # 如果仍然失败，尝试不指定编码器让OpenCV自动选择
+                video_writer = cv2.VideoWriter(output_path, -1, fps, (width, height))
            
-        for frame in source_target_face[0]:
+        for frame in source_target_face[0]["target_faces_in_frame"]:
             swapped_frame = cv2.imread(frame['location'])
             if self.is_gfpgan_:
                 _, _, enhance_frame = self.gfpgan.enhance(swapped_frame, paste_back=True)
                 swapped_frame = enhance_frame
+                cv2.imwrite(frame['location'], swapped_frame)
             
             # 将所有帧写入视频文件
             video_writer.write(swapped_frame)
@@ -755,6 +771,133 @@ class VideoInsightFaceSwapperWithMapCreator(nndeploy.dag.NodeCreator):
       
 video_insightface_swapper_with_map_node_creator = VideoInsightFaceSwapperWithMapCreator()
 nndeploy.dag.register_node("nndeploy.face.VideoInsightFaceSwapperWithMap", video_insightface_swapper_with_map_node_creator)  
+
+
+      
+class CameraInsightFaceSwapperWithMap(nndeploy.dag.Node):
+    def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
+        super().__init__(name, inputs, outputs)
+        super().set_key("nndeploy.face.CameraInsightFaceSwapperWithMap")
+        super().set_desc("InsightFace Swapper: swap face from image")
+        self.set_input_type(np.ndarray)
+        self.set_input_type(list[insightface.app.common.Face])
+        self.set_input_type(list[Any])
+        self.set_output_type(np.ndarray)
+        
+        self.mouth_mask_ = False
+        self.show_mouth_mask_box_ = False
+        self.mask_down_size_ = 0.5
+        self.mask_feather_ratio_ = 8
+        self.mask_size_ = 1
+        self.model_path_ = "inswapper_128_fp16.onnx"
+        self.providers_ = ["CPUExecutionProvider"]
+        self.distance_threshold_ = 0.6
+        
+    def init(self):
+        self.swapper = insightface.model_zoo.get_model(self.model_path_, providers=self.providers_)
+        return nndeploy.base.Status.ok()
+    
+    def run(self):   
+        swapped_frame = self.get_input(0).get(self)
+        detected_faces = self.get_input(1).get(self)
+        source_target_face = self.get_input(2).get(self)
+        centroids = []
+        faces = []
+        for map in source_target_face:
+            if "source" in map and "target" in map:
+                centroids.append(map['target']['face'].normed_embedding)
+                faces.append(map['source'])
+
+        simple_map = {'source_faces': faces, 'target_embeddings': centroids}
+        for face in detected_faces:
+            # 判断face是否在source_target_face中
+            # 通过计算人脸嵌入向量的相似度来判断当前检测到的人脸是否匹配目标人脸
+            # 使用余弦相似度或欧几里得距离来衡量人脸特征的相似程度
+            face_matched = False
+            min_distance = float('inf')
+            matched_source_index = -1
+            
+            # 遍历所有目标人脸嵌入向量，寻找最相似的匹配
+            for idx, target_embedding in enumerate(simple_map['target_embeddings']):
+                # 计算当前人脸与目标人脸的欧几里得距离
+                distance = np.linalg.norm(face.normed_embedding - target_embedding)
+                # print(idx, distance)
+                
+                # 如果距离小于阈值，认为是匹配的人脸
+                if distance < self.distance_threshold_ and distance < min_distance:  # 0.6是经验阈值，可根据实际情况调整
+                    face_matched = True
+                    min_distance = distance
+                    matched_source_index = idx
+                    break
+            
+            # 只有匹配到目标人脸时才进行换脸操作
+            if not face_matched:
+                continue
+            
+            closest_centroid_index, _ = find_closest_centroid(
+                            simple_map['target_embeddings'],
+                            face.normed_embedding,
+                        )
+            if closest_centroid_index is not None:
+                swapped_frame = self.swapper.get(swapped_frame, face, simple_map['source_faces'][closest_centroid_index], paste_back=True)
+                if self.mouth_mask_:
+                    face_mask = create_face_mask(face, swapped_frame)
+
+                     # Create the mouth mask
+                    mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon = (
+                        create_lower_mouth_mask(face, swapped_frame, self.mask_down_size_, self.mask_size_)
+                    )
+
+                    # Apply the mouth area
+                    swapped_frame = apply_mouth_area(
+                        swapped_frame, mouth_cutout, mouth_box, face_mask, lower_lip_polygon, self.mask_feather_ratio_
+                    )
+
+                    if self.show_mouth_mask_box_:
+                        mouth_mask_data = (mouth_mask, mouth_cutout, mouth_box, lower_lip_polygon)
+                        swapped_frame = draw_mouth_mask_visualization(
+                            swapped_frame, face, mouth_mask_data, self.mask_feather_ratio_
+                        )
+
+        self.get_output(0).set(swapped_frame)
+                
+        return nndeploy.base.Status.ok()
+    
+    def serialize(self):
+        json_str = super().serialize()
+        json_obj = json.loads(json_str)
+        json_obj["mouth_mask_"] = self.mouth_mask_
+        json_obj["show_mouth_mask_box_"] = self.show_mouth_mask_box_
+        json_obj["mask_down_size_"] = self.mask_down_size_
+        json_obj["mask_feather_ratio_"] = self.mask_feather_ratio_
+        json_obj["mask_size_"] = self.mask_size_
+        json_obj["model_path_"] = self.model_path_
+        json_obj["providers_"] = self.providers_
+        json_obj["distance_threshold_"] = self.distance_threshold_
+        return json.dumps(json_obj)
+      
+    def deserialize(self, target: str):
+        json_obj = json.loads(target)
+        self.mouth_mask_ = json_obj["mouth_mask_"]
+        self.show_mouth_mask_box_ = json_obj["show_mouth_mask_box_"]
+        self.mask_down_size_ = json_obj["mask_down_size_"]
+        self.mask_feather_ratio_ = json_obj["mask_feather_ratio_"]
+        self.mask_size_ = json_obj["mask_size_"]
+        self.model_path_ = json_obj["model_path_"]
+        self.providers_ = json_obj["providers_"]
+        self.distance_threshold_ = json_obj["distance_threshold_"]
+        return super().deserialize(target)
+      
+class CameraInsightFaceSwapperWithMapCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = CameraInsightFaceSwapperWithMap(name, inputs, outputs)
+        return self.node
+      
+camera_insightface_swapper_with_map_node_creator = CameraInsightFaceSwapperWithMapCreator()
+nndeploy.dag.register_node("nndeploy.face.CameraInsightFaceSwapperWithMap", camera_insightface_swapper_with_map_node_creator)  
 
 
 
