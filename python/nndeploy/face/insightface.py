@@ -152,19 +152,19 @@ class InsightVideoFaceId(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.InsightVideoFaceId")
-        super().set_desc("InsightFace Id: get face id from image")
+        super().set_desc("Video InsightFace Id: get face id from image")
         super().set_node_type(nndeploy.dag.NodeType.Input)
+        super().set_io_type(nndeploy.dag.IOType.Video)
 
         self.video_path_ = "video.mp4"
         self.faces_path_ = "resources/images/"
-        self.temp_path_ = "resources/images/temp/"
-        if not os.path.exists(self.temp_path_):
-            os.makedirs(self.temp_path_)
         
         self.set_output_type(list[Any])
-        
-      
+          
     def init(self):
+        self.temp_path_ = os.path.join(self.faces_path_, "temp")
+        if not os.path.exists(self.temp_path_):
+            os.makedirs(self.temp_path_)
         import nndeploy.codec as codec
         self.codec_output = nndeploy.dag.Edge("codec_output")
         self.analysis_output = nndeploy.dag.Edge("analysis_output")
@@ -277,6 +277,7 @@ class InsightVideoFaceId(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        super().add_required_param("video_path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["video_path_"] = self.video_path_
@@ -305,7 +306,7 @@ class FaceIdMap(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.FaceIdMap")
-        super().set_desc("FaceIdMap: map face id from image")
+        super().set_desc("FaceIdMap: map face id")
         self.set_dynamic_input(True)
         self.set_input_type(list[Any])
         self.set_input_type(list[insightface.app.common.Face])
@@ -490,9 +491,6 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.InsightFaceSwapperWithMap")
         super().set_desc("InsightFace Swapper: swap face from image")
-        # self.set_dynamic_input(True)
-        # self.set_input_type(list[insightface.app.common.Face])
-        # self.set_input_type(list[insightface.app.common.Face])
         self.set_input_type(np.ndarray)
         self.set_input_type(list[Any])
         self.set_output_type(np.ndarray)
@@ -516,8 +514,11 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         swapped_frame = temp_frame.copy()
         
         for i in range(len(source_target_face)):
-            source_face = source_target_face[i]['source']
-            target_face = source_target_face[i]['target']
+            if "source" in source_target_face[i] and "target" in source_target_face[i]:
+                source_face = source_target_face[i]['source']
+                target_face = source_target_face[i]['target']
+            else:
+                continue
               
             # image to image swap             
             swapped_frame = self.swapper.get(swapped_frame, target_face['face'], source_face, paste_back=True)
@@ -545,6 +546,7 @@ class InsightFaceSwapperWithMap(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        super().add_required_param("model_path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["mouth_mask_"] = self.mouth_mask_
@@ -617,7 +619,9 @@ class VideoInsightFaceSwapperWithMap(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.VideoInsightFaceSwapperWithMap")
-        super().set_desc("InsightFace Swapper: swap face from image")
+        super().set_desc("Video InsightFace Swapper: swap face from video")
+        super().set_node_type(nndeploy.dag.NodeType.Output)
+        super().set_io_type(nndeploy.dag.IOType.Video)
         self.set_input_type(list[Any])
         
         self.mouth_mask_ = False
@@ -727,6 +731,10 @@ class VideoInsightFaceSwapperWithMap(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        super().add_required_param("video_path_")
+        super().add_required_param("origin_video_path_")
+        super().add_required_param("model_path_")
+        super().add_required_param("is_gfpgan_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["mouth_mask_"] = self.mouth_mask_
@@ -773,12 +781,11 @@ video_insightface_swapper_with_map_node_creator = VideoInsightFaceSwapperWithMap
 nndeploy.dag.register_node("nndeploy.face.VideoInsightFaceSwapperWithMap", video_insightface_swapper_with_map_node_creator)  
 
 
-      
 class CameraInsightFaceSwapperWithMap(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.face.CameraInsightFaceSwapperWithMap")
-        super().set_desc("InsightFace Swapper: swap face from image")
+        super().set_desc("InsightFace Swapper: swap face from Camera")
         self.set_input_type(np.ndarray)
         self.set_input_type(list[insightface.app.common.Face])
         self.set_input_type(list[Any])
@@ -864,6 +871,7 @@ class CameraInsightFaceSwapperWithMap(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        super().add_required_param("model_path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["mouth_mask_"] = self.mouth_mask_
