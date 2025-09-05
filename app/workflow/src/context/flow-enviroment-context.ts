@@ -22,7 +22,9 @@ export const FlowEnviromentContext = React.createContext<
     runResult: string; 
     downloadModalVisible:boolean, 
     setDownloadModalVisible:React.Dispatch<React.SetStateAction<boolean>>,
-    downloadModalList:string[]
+    downloadModalList:string[], 
+    isRunning: boolean, 
+    runningTaskId: string
   }
 
 >({
@@ -39,7 +41,9 @@ export const FlowEnviromentContext = React.createContext<
   },
   runResult: '',
   downloadModalVisible: false, 
-  setDownloadModalList: []
+  setDownloadModalList: [], 
+  isRunning:false, 
+  runningTaskId: ''
 
 } as any);
 
