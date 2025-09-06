@@ -5,6 +5,8 @@ import heapq
 import time
 import threading
 import queue as _queue
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from typing import Any, Dict, List, Optional
 
 _MAX_HISTORY = 1000
@@ -15,6 +17,25 @@ class ExecutionStatus:
         self.completed = ok
         self.messages = [msg] if msg else []
 
+class TaskState(Enum):
+    PENDING = auto()         # in pq_
+    DISPATCHED = auto()      # in job_mp_queue, not running
+    RUNNING = auto()         # running
+    SUCCEEDED = auto()
+    FAILED = auto()
+    CANCELLED = auto()
+
+@dataclass
+class TaskRecord:
+    idx: int
+    payload: Dict[str, Any]
+    state: TaskState = TaskState.PENDING
+    ts_submit: float = field(default_factory=time.time)
+    ts_dispatch: Optional[float] = None
+    ts_start: Optional[float] = None
+    ts_finish: Optional[float] = None
+    worker_pid: Optional[int] = None
+
 class TaskQueue:
     """thread safe queue"""
     def __init__(self, server: "NnDeployServer", job_mp_q: "mp.Queue"):
@@ -23,14 +44,13 @@ class TaskQueue:
         self._not_empty = threading.Condition(self._mtx)
         self._counter = 0
         self._pq: List[Any] = []
-        self._running: Dict[int, Any] = {}
+        self._active: Dict[int, TaskRecord] = {}
         self._hist: Dict[str, Any] = {}
         self._job_q  = job_mp_q
     
     def put(self, payload, prio: int = 0):
         with self._mtx:
             heapq.heappush(self._pq, (prio, time.time(), payload))
-            # self.server.queue_updated()
             self._not_empty.notify()
     
     def get(self, timeout: Optional[float] = None):
@@ -40,26 +60,87 @@ class TaskQueue:
                     return None
             prio, ts, payload = heapq.heappop(self._pq)
             idx = self._counter
-            self._running[idx] = copy.deepcopy(payload)
+            rec = TaskRecord(idx=idx, payload=copy.deepcopy(payload), state=TaskState.PENDING, ts_submit=ts)
+            self._active[idx] = rec
             self._counter += 1
 
             return idx, payload
 
+    def mark_dispatched(self, idx: int):
+        with self._mtx:
+            rec = self._active.get(idx)
+            if not rec:
+                return
+            rec.state = TaskState.DISPATCHED
+            rec.ts_dispatch = time.time()
+
+    def mark_started(self, task_id: str, worker_pid: Optional[int] = None):
+        with self._mtx:
+            target: Optional[TaskRecord] = None
+            for rec in self._active.values():
+                if rec.payload.get("id") == task_id:
+                    target = rec
+                    break
+            if not target:
+                return
+            target.state = TaskState.RUNNING
+            target.ts_start = time.time()
+            if worker_pid:
+                target.worker_pid = worker_pid
+
     def task_done(self, idx: int, status: ExecutionStatus, time_profile_map: Dict):
         with self._mtx:
-            task = self._running.pop(idx)
+            rec = self._active.pop(idx, None)
+            if rec is None:
+                return
+            rec.ts_finish = time.time()
+            final_state = TaskState.SUCCEEDED if status.completed else (
+                TaskState.CANCELLED if status.str == "cancelled" else TaskState.FAILED
+            )
             if len(self._hist) >= _MAX_HISTORY:
                 self._hist.pop(next(iter(self._hist)))
-            self._hist[task["id"]] = {
-                "task": task,
-                "status": status.__dict__
+            task_id = rec.payload.get("id")
+            self._hist[task_id] = {
+                "task": rec.payload,
+                "status": status.__dict__,
+                "state": final_state.name,
+                "ts_submit": rec.ts_submit,
+                "ts_dispatch": rec.ts_dispatch,
+                "ts_start": rec.ts_start,
+                "ts_finish": rec.ts_finish,
+                "worker_pid": rec.worker_pid,
+                "time_profile": time_profile_map,
             }
-            self.server.notify_task_done(task["id"], status, time_profile_map)
+            self.server.notify_task_done(task_id, status, time_profile_map)
 
     def get_current_queue(self):
         with self._mtx:
-            return copy.deepcopy(self._running), copy.deepcopy(self._pq)
-    
+            running = []
+            dispatched = []
+            pending = []
+            for rec in self._active.values():
+                data = {
+                    "idx": rec.idx,
+                    "task": copy.deepcopy(rec.payload),
+                    "state": rec.state.name,
+                    "ts_submit": rec.ts_submit,
+                    "ts_dispatch": rec.ts_dispatch,
+                    "ts_start": rec.ts_start,
+                    "worker_pid": rec.worker_pid,
+                }
+                if rec.state == TaskState.RUNNING:
+                    running.append(data)
+                elif rec.state == TaskState.DISPATCHED:
+                    dispatched.append(data)
+                else:
+                    pending.append(data)
+            pq_snapshot = [ (p, ts, copy.deepcopy(pl)) for (p, ts, pl) in self._pq ]
+            return {
+                "RUNNING": running,
+                "DISPATCHED": dispatched,
+                "PENDING": pq_snapshot
+            }
+
     def get_history(self, max_items: int | None = None):
         with self._mtx:
             items = list(self._hist.items())[-max_items:] if max_items else self._hist.items()
@@ -67,14 +148,21 @@ class TaskQueue:
 
     def get_task_by_id(self, task_id: str) -> Optional[dict]:
         with self._mtx:
-            for task in self._running.values():
-                if task.get("id") == task_id:
-                    return copy.deepcopy(task)
+            for rec in self._active.values():
+                if rec.payload.get("id") == task_id:
+                    return {
+                        "task": copy.deepcopy(rec.payload),
+                        "state": rec.state.name,
+                        "ts_submit": rec.ts_submit,
+                        "ts_dispatch": rec.ts_dispatch,
+                        "ts_start": rec.ts_start,
+                        "worker_pid": rec.worker_pid,
+                    }
             record = self._hist.get(task_id)
             return copy.deepcopy(record) if record else None
 
     def _push_hist_cancelled_unlocked(self, idx: int, payload: dict, reason: str):
-        self._running.pop(idx, None)
+        rec = self._active.pop(idx, None)
         if len(self._hist) >= _MAX_HISTORY:
             self._hist.pop(next(iter(self._hist)))
         tid = payload.get("id")
@@ -82,6 +170,12 @@ class TaskQueue:
         self._hist[tid] = {
             "task": payload,
             "status": status.__dict__,
+            "state": TaskState.CANCELLED.name,
+            "ts_submit": rec.ts_submit if rec else None,
+            "ts_dispatch": rec.ts_dispatch if rec else None,
+            "ts_start": rec.ts_start if rec else None,
+            "ts_finish": time.time(),
+            "worker_pid": rec.worker_pid if rec else None,
         }
 
     def clear_pending(self) -> int:

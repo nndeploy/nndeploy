@@ -33,8 +33,10 @@ from .task_queue import ExecutionStatus
 from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
+    QueueStateResult,
     QueueStateResponse,
     HistoryItem,
+    HistoryResponse,
     UploadResponse,
     NodeListResponse,
     WorkFlowSaveResponse,
@@ -171,19 +173,28 @@ class NnDeployServer:
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
 
-        # loop
         @api.get(
-            "/queue",
+            "/queue/info",
+            tags=["Task"],
             response_model=QueueStateResponse,
             summary="check running / wait task",
         )
         async def queue_state():
-            running, pending = self.queue.get_current_queue()
-            return QueueStateResponse(running=running, pending=pending)
+            state = self.queue.get_current_queue()
+            return QueueStateResponse(
+                flag="success",
+                message="queue state fetched",
+                result=QueueStateResult(
+                    running=state["RUNNING"],
+                    pending=state["PENDING"],
+                    dispatched=state["DISPATCHED"],
+                ),
+            )
 
         # commit task
         @api.post(
             "/queue",
+            tags=["Task"],
             response_model=EnqueueResponse,
             status_code=status.HTTP_202_ACCEPTED,
             summary="enqueue nndeploy graph task",
@@ -600,12 +611,49 @@ class NnDeployServer:
 
         # history
         @api.get(
-            "/history",
-            response_model=Dict[str, HistoryItem],
+            "/queue/history",
+            tags=["Task"],
+            response_model=HistoryResponse,
             summary="check history",
         )
-        async def history(max_items: Optional[int] = None):
-            return self.queue.get_history(max_items)
+        async def history(max_items: Optional[int] = Query(None, ge=1, le=1000)):
+            try:
+                hist_map: Dict[str, Dict[str, Any]] = self.queue.get_history(max_items=max_items)
+
+                items: List[Dict[str, Any]] = []
+                for task_id, rec in hist_map.items():
+                    item = {
+                        "task_id": task_id,
+                        "task": rec.get("task"),
+                        "status": rec.get("status"),
+                        "state": rec.get("state"),
+                        "ts_submit": rec.get("ts_submit"),
+                        "ts_dispatch": rec.get("ts_dispatch"),
+                        "ts_start": rec.get("ts_start"),
+                        "ts_finish": rec.get("ts_finish"),
+                        "worker_pid": rec.get("worker_pid"),
+                        "time_profile": rec.get("time_profile", {}),
+                    }
+                    items.append(item)
+
+                def _key(x: Dict[str, Any]):
+                    return x.get("ts_finish") or x.get("ts_start") or x.get("ts_submit") or 0.0
+
+                items.sort(key=_key, reverse=True)
+
+                return HistoryResponse(
+                    flag="success",
+                    message="history fetched",
+                    result={"items": items, "total": len(items)},
+                )
+            except Exception as e:
+                logging.exception("Get history failed")
+                return HistoryResponse(
+                    flag="fail",
+                    message=str(e),
+                    result={"items": [], "total": 0},
+                )
+
 
         # index
         # @self.app.get("/", tags=["Root"])

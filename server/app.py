@@ -109,6 +109,7 @@ def start_scheduler(queue: TaskQueue, job_q: mp.Queue):
                 continue  # shouldn't happen with timeout=None
             idx, payload = item
             job_q.put((idx, payload))
+            queue.mark_dispatched(idx)
 
     th = threading.Thread(name="SchedulerThread", target=_loop, daemon=True)
     th.start()
@@ -123,14 +124,36 @@ def start_finisher(queue: TaskQueue, result_q: mp.Queue):
     th.start()
 
 def start_progress_listener(server: NnDeployServer, progress_q: mp.Queue):
+    def _on_started(task_id: str, d: dict):
+        server.queue.mark_started(task_id, worker_pid=d.get("pid"))
+    def _on_progress(task_id: str, d: dict):
+        server.notify_task_progress(task_id, d.get("status"))
+    def _on_finished(task_id: str, d: dict):
+        server.notify_task_progress(task_id, d.get("status"))
+
+    handlers = {
+        "started": _on_started,
+        "progress": _on_progress,
+        "finished": _on_finished
+    }
+
     def _loop():
         while True:
             try:
-                idx, task_id, status_dict = progress_q.get()
+                idx, task_id, result = progress_q.get()
             except Exception as err:
                 logging.error("[ProgressThread] get failed: %s", err)
                 continue
-            server.notify_task_progress(task_id, status_dict)
+            d = result or {}
+            evt = d.get("event")
+            handler = handlers.get(evt)
+            if handler:
+                try:
+                    handler(task_id, d)
+                except Exception:
+                    logging.exception("[ProgressThread] handler failed: evt=%s task_id=%s", evt, task_id)
+            else:
+                logging.debug("[ProgressThread] ignore unknown event: %s for task %s", evt, task_id)
     th = threading.Thread(name="ProgressThread", target=_loop, daemon=True)
     th.start()
 
