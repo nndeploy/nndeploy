@@ -2,7 +2,7 @@
 [English](README_EN.md) | 简体中文
 
 <h3 align="center">
-nndeploy：你本地的AI工作流
+nndeploy：一款基于工作流的多端AI部署工具
 </h3>
 
 <p align="center">
@@ -23,14 +23,14 @@ nndeploy：你本地的AI工作流
 </a>
 </p>
 
-<p align="center">
+<!-- <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
 | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
 | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-</p>
+</p> -->
 
 <p align="center">
   <picture>
@@ -39,9 +39,9 @@ nndeploy：你本地的AI工作流
   </picture>
 </p>
 
-只需用Python/C++编写算法节点逻辑，无需前端技术，即可快速构建你的可视化AI工作流。
+框架提供了丰富的开箱即用AI算法节点，涵盖目标检测、图像分割、大语言模型、换脸、图像生成等等，用户只需通过直观的拖拽操作即可完成复杂AI算法的部署。
 
-为非AI领域程序员提供开箱即用的算法节点，包括大语言模型、Stable Diffusion、目标检测、图像分割等，通过拖拽快速搭建AI应用。
+支持Python/C++编写自定义算法节点，无需掌握前端技术即可将算法无缝集成到可视化工作流中。
 
 工作流可导出为JSON配置文件，支持Python/C++ API直接加载运行，部署至云服务器、桌面端、移动端、边缘设备等多平台。
 
@@ -124,13 +124,13 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ## 核心特性
 
-### **效率**
-- **可视化工作流**：通过拖拉拽操作就能快速搭建专业的AI工作流，支持前端实时调参、后端立即响应，查看每个节点的执行时间
-- **自定义节点**：你只需使用熟悉的Python/C++编写算法节点逻辑，无需掌握任何前端技术，框架自动将代码转化为工作流中节点
+### **AI部署的效率工具**
+- **可视化工作流**：通过拖拉拽操作就能部署AI算法，前端可视化调节AI算法部署的所有节点参数，快速预览算法调参后的效果
+- **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
 - **算法组合**：灵活组合不同算法，快速构建创新AI应用
 - **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
 
-### **性能**
+### **AI部署的性能工具**
 - **13种推理引擎无缝集成**：一套工作流，多端部署。通过零抽象成本接入了13种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
 
   | 推理框架 | 适用场景 | 状态 |
@@ -155,7 +155,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ## 开箱即用的节点
 
-针对以下算法，开发了40+节点，并制作了[工作流模板](https://github.com/nndeploy/nndeploy-workflow)，让你能够立即体验和使用各种AI功能：
+针对以下AI算法，开发了40+节点，并制作了[工作流模板](https://github.com/nndeploy/nndeploy-workflow)，让你能够立即体验和使用各种AI功能：
 
 | 应用场景 | 可用模型 | 
 |---------|---------|
@@ -200,7 +200,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
   </picture>
 </p>
 
-> 会持续开发的节点，如果你有需要的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
+> 会持续开发的节点，如果你有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
 ## 保持领先
 
@@ -216,7 +216,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- **微信技术交流群**: Always031856（和开发者一起探讨AI工作流技术，加我微信进群聊，请备注：姓名 + 技术方向，一起打造更强大的AI应用！）
+- 欢迎加入技术交流群！微信：Always031856（请简单备注个人信息^_^）
   
   <img src="docs/image/wechat.jpg" width="225px">
 
