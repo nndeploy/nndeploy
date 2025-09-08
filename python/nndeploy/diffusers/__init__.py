@@ -1,5 +1,5 @@
 
 try:
-    from .diffusers_pipeline import DiffusersPipeline
+    from .pipeline import DiffusersPipeline
 except:
     pass
