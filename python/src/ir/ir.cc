@@ -85,19 +85,25 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
           py::overload_cast<rapidjson::Value &, const std::vector<ValueDesc> &>(
               &ir::ModelDesc::deserializeStructureFromJson))
       .def("deserialize_structure_from_json_str",
-           py::overload_cast<const std::string &, const std::vector<ValueDesc> &>(
+           py::overload_cast<const std::string &,
+                             const std::vector<ValueDesc> &>(
                &ir::ModelDesc::deserializeStructureFromJsonStr))
       .def("deserialize_structure_from_json",
-           py::overload_cast<const std::string &, const std::vector<ValueDesc> &>(
+           py::overload_cast<const std::string &,
+                             const std::vector<ValueDesc> &>(
                &ir::ModelDesc::deserializeStructureFromJson))
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
       .def("serialize_weights_to_safetensors",
            py::overload_cast<std::shared_ptr<safetensors::safetensors_t> &>(
                &ir::ModelDesc::serializeWeightsToSafetensors))
+
       .def("serialize_weights_to_safetensors",
            py::overload_cast<const std::string &>(
                &ir::ModelDesc::serializeWeightsToSafetensors))
       .def("deserialize_weights_from_safetensors",
-           &ir::ModelDesc::deserializeWeightsFromSafetensors);
+           &ir::ModelDesc::deserializeWeightsFromSafetensors)
+#endif
+      ;
 }
 
 }  // namespace ir

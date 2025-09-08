@@ -12,7 +12,7 @@
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
-#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
 #endif
 
@@ -115,7 +115,7 @@ class NNDEPLOY_CC_API Tensor {
   // 序列化模型权重为二进制文件
   base::Status serialize(std::string &bin_str);
 
-#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeToSafetensors(safetensors::safetensors_t &st,
                                       bool serialize_buffer = false);
 #endif
@@ -123,7 +123,7 @@ class NNDEPLOY_CC_API Tensor {
   // 从二进制文件反序列化模型权重
   base::Status deserialize(const std::string &bin_str);
 
-#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeFromSafetensors(const safetensors::safetensors_t &st);
 #endif
 
@@ -200,7 +200,7 @@ class NNDEPLOY_CC_API Tensor {
     return reinterpret_cast<T *>(ptr + offset);
   }
 
-#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   static base::Status dtype2SafetensorsDtype(
       const base::DataType &data_type,
       safetensors::dtype &safetensors_data_type);
