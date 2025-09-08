@@ -16,17 +16,6 @@ from nndeploy.base import Status
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Provider presets for quick switching
-# ──────────────────────────────────────────────────────────────────────────────
-
-PROVIDERS = {
-    "openai":   {"api_base": "https://api.openai.com",  "model": "gpt-4o-mini",    "env": "OPENAI_API_KEY"},
-    "deepseek": {"api_base": "https://api.deepseek.com", "model": "deepseek-chat",  "env": "DEEPSEEK_API_KEY"},
-    "moonshot": {"api_base": "https://api.moonshot.cn",  "model": "moonshot-v1-8k", "env": "MOONSHOT_API_KEY"},
-}
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 # Parameter structure
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -106,6 +95,15 @@ def _should_stop(node) -> bool:
         return False
 
 
+def _mask_key(key: str) -> str:
+    """Return a masked preview like 'sk-****abcd' (no real key leakage)."""
+    if not key:
+        return ""
+    tail = key[-4:]
+    prefix = "sk-" if key.startswith("sk-") else ""
+    return f"{prefix}****{tail}"
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Core HTTP caller
 # ──────────────────────────────────────────────────────────────────────────────
@@ -149,16 +147,16 @@ def call_llm(
             # Some providers may ignore 'json_schema'; keep best-effort
             payload["response_format"]["json_schema"] = params.json_schema
 
-    # Proxies & TLS verification
+    # Proxies & TLS verification (when not provided by caller)
     if proxies is None:
         proxies = {
             "http": os.getenv("HTTP_PROXY") or os.getenv("http_proxy"),
             "https": os.getenv("HTTPS_PROXY") or os.getenv("https_proxy"),
         }
     if verify is None:
-        verify = os.getenv("REQUESTS_CA_BUNDLE", True)  # custom CA or bool
+        verify = os.getenv("REQUESTS_CA_BUNDLE", True)  # custom CA bundle path or bool
 
-    # Small helper to check interrupt between retries/stream chunks
+    # Helper to check interrupt between retries/stream chunks
     def _interrupted() -> bool:
         return _should_stop(node_for_interrupt)
 
@@ -229,9 +227,8 @@ def call_llm(
                             delta = json.loads(data_line)
                             choice0 = (delta.get("choices") or [{}])[0]
                             piece = (choice0.get("delta") or {}).get("content")
-                            # DeepSeek-reasoner probing (best-effort)
+                            # Some providers may stream full 'message' frames (rare)
                             if piece is None:
-                                # Some providers may stream 'message' frames (rare)
                                 piece = (choice0.get("message") or {}).get("content")
                             if piece:
                                 chunks.append(piece)
@@ -241,7 +238,7 @@ def call_llm(
                             # Ignore malformed lines
                             continue
 
-                # No usage is guaranteed in streaming mode, but some providers send final usage frames.
+                # No usage is guaranteed in streaming mode
                 return "".join(chunks)
 
         except (requests.Timeout, requests.ConnectionError) as e:
@@ -276,11 +273,10 @@ class LLMChatNode(nndeploy.dag.Node):
     """
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
-        super().set_key("nndeploy.llm_py.LLMChatNode")
+        super().set_key("nndeploy.api_llm.LLMChatNode")
         super().set_desc("LLM chat node (OpenAI-compatible)")
 
         # Frontend editable parameters (exposed via serialize/deserialize)
-        self.provider = "openai"             # provider preset key
         self.api_base = "https://api.openai.com"
         self.api_key_env = "OPENAI_API_KEY"  # environment variable to read Key (optional)
         self.api_key = ""                    # allow frontend to provide Key inline (priority if allowed)
@@ -302,16 +298,19 @@ class LLMChatNode(nndeploy.dag.Node):
         self.emit_usage_to_log = True        # log token usage if present
         self.verify_tls: T.Union[bool, str] = True  # True/False or CA bundle path
 
+        # NEW: Proxies as frontend parameters
+        self.http_proxy: str = ""            # e.g. "http://user:pass@host:port"
+        self.https_proxy: str = ""           # e.g. "https://user:pass@host:port"
+
         # I/O type declarations
         self.set_input_type(str)
         self.set_output_type(str)
 
         # Aggregate into a dict for frontend rendering/editing
         self.frontend_params = {
-            "provider": self.provider,
             "api_base": self.api_base,
             "api_key_env": self.api_key_env,
-            "api_key": self.api_key,
+            "api_key": self.api_key,                     # UI should render this field; value won't be persisted
             "allow_inline_api_key": self.allow_inline_api_key,
             "model": self.model,
             "temperature": self.temperature,
@@ -326,27 +325,17 @@ class LLMChatNode(nndeploy.dag.Node):
             "json_schema": self.json_schema,
             "emit_usage_to_log": self.emit_usage_to_log,
             "verify_tls": self.verify_tls,
+            # NEW: proxies exposed to UI
+            "http_proxy": self.http_proxy,
+            "https_proxy": self.https_proxy,
         }
-
-    # Apply provider defaults if fields are empty
-    def _apply_provider_preset(self):
-        p = PROVIDERS.get(self.provider)
-        if not p:
-            return
-        if not self.frontend_params.get("api_base"):
-            self.frontend_params["api_base"] = p["api_base"]
-        if not self.frontend_params.get("model"):
-            self.frontend_params["model"] = p["model"]
-        if not self.frontend_params.get("api_key_env"):
-            self.frontend_params["api_key_env"] = p["env"]
 
     # Sync frontend parameters back to instance variables
     def _sync_params_from_frontend(self):
         fp = self.frontend_params or {}
-        self.provider = str(fp.get("provider", self.provider))
         self.api_base = str(fp.get("api_base", self.api_base))
         self.api_key_env = str(fp.get("api_key_env", self.api_key_env))
-        self.api_key = str(fp.get("api_key", self.api_key))
+        self.api_key = str(fp.get("api_key", self.api_key))  # UI can set it each time
         self.allow_inline_api_key = bool(fp.get("allow_inline_api_key", self.allow_inline_api_key))
 
         self.model = str(fp.get("model", self.model))
@@ -364,6 +353,10 @@ class LLMChatNode(nndeploy.dag.Node):
         self.emit_usage_to_log = bool(fp.get("emit_usage_to_log", self.emit_usage_to_log))
         self.verify_tls = fp.get("verify_tls", self.verify_tls)
 
+        # NEW: proxies
+        self.http_proxy = str(fp.get("http_proxy", self.http_proxy))
+        self.https_proxy = str(fp.get("https_proxy", self.https_proxy))
+
     def run(self):
         # 0) Interrupt guard
         if _should_stop(self):
@@ -373,9 +366,8 @@ class LLMChatNode(nndeploy.dag.Node):
         input_edge = self.get_input(0)
         user_input = input_edge.get(self)  # May be str / list / dict
 
-        # 2) Sync parameters and apply provider preset
+        # 2) Sync parameters
         self._sync_params_from_frontend()
-        self._apply_provider_preset()
 
         # 3) API key selection (priority: inline key if allowed > environment variable)
         api_key = ""
@@ -408,11 +400,17 @@ class LLMChatNode(nndeploy.dag.Node):
         )
         messages = _normalize_messages(user_input, params.system_prompt)
 
-        # 5) Provider/model label for logs (mask scheme)
+        # 5) Log target (mask scheme)
         safe_base = (self.api_base or "").replace("https://", "").replace("http://", "")
-        logging.info(f"[LLMChatNode] provider={self.provider} base={safe_base} model={self.model} stream={self.stream}")
+        logging.info(f"[LLMChatNode] base={safe_base} model={self.model} stream={self.stream}")
 
-        # 6) Call LLM
+        # 6) Build proxies from frontend or environment
+        proxies = {
+            "http": self.http_proxy or os.getenv("HTTP_PROXY") or os.getenv("http_proxy"),
+            "https": self.https_proxy or os.getenv("HTTPS_PROXY") or os.getenv("https_proxy"),
+        }
+
+        # 7) Call LLM
         try:
             text = call_llm(
                 params,
@@ -421,17 +419,14 @@ class LLMChatNode(nndeploy.dag.Node):
                 node_for_interrupt=self,
                 emit_usage_to_log=self.emit_usage_to_log,
                 stream_print=self.stream_print,
-                proxies={
-                    "http": os.getenv("HTTP_PROXY") or os.getenv("http_proxy"),
-                    "https": os.getenv("HTTPS_PROXY") or os.getenv("https_proxy"),
-                },
+                proxies=proxies,
                 verify=self.verify_tls
             )
         except Exception as e:
             logging.exception("[LLMChatNode] LLM call failed")
             text = f"[LLMChatNode ERROR] {e}"
 
-        # 7) Write output to edge 0
+        # 8) Write output to edge 0
         output_edge = self.get_output(0)
         output_edge.set(text)
         return Status.ok()
@@ -440,8 +435,19 @@ class LLMChatNode(nndeploy.dag.Node):
     def serialize(self):
         base = json.loads(super().serialize())
         fp = dict(self.frontend_params)
-        # Security: do not persist inline api_key
-        fp.pop("api_key", None)
+
+        # Always include the api_key field for UI rendering, but NEVER return the real value
+        fp["api_key"] = ""
+
+        # Provide status & masked preview so UI can show "configured" state
+        has_key = bool(self.api_key)
+        fp["has_inline_api_key"] = has_key
+        if has_key:
+            fp["api_key_preview"] = _mask_key(self.api_key)
+
+        # Proxies are returned as-is so UI can render & persist them
+        # (If you don't want to persist proxies with credentials, mask or drop them here.)
+
         base["frontend_params"] = fp
         return json.dumps(base, ensure_ascii=False)
 
@@ -469,4 +475,4 @@ class LLMChatNodeCreator(nndeploy.dag.NodeCreator):
 
 # Register into NNDeploy
 llm_chat_node_creator = LLMChatNodeCreator()
-nndeploy.dag.register_node("nndeploy.llm_py.LLMChatNode", llm_chat_node_creator)
+nndeploy.dag.register_node("nndeploy.api_llm.LLMChatNode", llm_chat_node_creator)
