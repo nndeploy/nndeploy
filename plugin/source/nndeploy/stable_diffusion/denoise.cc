@@ -25,6 +25,7 @@ class NNDEPLOY_CC_API InitLatents : public dag::Node {
     param_ = std::make_shared<DDIMSchedulerParam>();
     this->setOutputTypeInfo<device::Tensor>();
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
 
   virtual ~InitLatents() {}
