@@ -352,7 +352,7 @@ class NNDEPLOY_CC_API Node {
 
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
   IOType io_type_ = IOType::kIOTypeNone;
-  
+
   int loop_count_ = -1;
   std::atomic<bool> stop_{false};
 
