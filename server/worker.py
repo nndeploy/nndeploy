@@ -187,13 +187,15 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, re
             if status_code != nndeploy.base.StatusCode.Ok:
                 time_profiler_map = {}
                 msg = result_holder["msg"]
+                results = {}
                 status = ExecutionStatus(False, f"Run failed {msg}")
             else:
                 time_profiler_map = result_holder["tp_map"]
                 total = time_profiler_map.get("run_time", 0.0)
                 msg = result_holder["msg"]
+                results = result_holder["results"]
                 status = ExecutionStatus(True, f"Run success {total:.2f} ms, {msg}")
 
         result_holder.pop("results", None)
         gc.collect()
-        result_q.put((idx, status, time_profiler_map))
+        result_q.put((idx, status, results, time_profiler_map))

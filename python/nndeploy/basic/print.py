@@ -21,10 +21,11 @@ class ConsolePrintNode(nndeploy.dag.Node):
         outputs: list[nndeploy.dag.Edge] = None
     ):
         super().__init__(name, inputs, outputs)
-        super().set_key("nndeploy.basic.ConsolePrintNode")
-        super().set_desc("将输入内容打印到屏幕，可选日志/落盘")
-
+        self.set_key("nndeploy.basic.ConsolePrintNode")
+        self.set_desc("将输入内容打印到屏幕，可选日志/落盘")
         self.set_input_type(str)
+        self.set_node_type(nndeploy.dag.NodeType.Output)
+        self.set_io_type(nndeploy.dag.IOType.String)
 
         self.prefix: str = ""               # print prefix
         self.echo_to_stdout: bool = True    # stdout

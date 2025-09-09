@@ -275,6 +275,9 @@ class LLMChatNode(nndeploy.dag.Node):
         super().__init__(name, inputs, outputs)
         super().set_key("nndeploy.api_llm.LLMChatNode")
         super().set_desc("LLM chat node (OpenAI-compatible)")
+        self.set_input_type(str)
+        self.set_output_type(str)
+        self.set_node_type(nndeploy.dag.NodeType.Intermediate)
 
         # Frontend editable parameters (exposed via serialize/deserialize)
         self.api_base = "https://api.openai.com"
@@ -301,10 +304,6 @@ class LLMChatNode(nndeploy.dag.Node):
         # NEW: Proxies as frontend parameters
         self.http_proxy: str = ""            # e.g. "http://user:pass@host:port"
         self.https_proxy: str = ""           # e.g. "https://user:pass@host:port"
-
-        # I/O type declarations
-        self.set_input_type(str)
-        self.set_output_type(str)
 
         # Aggregate into a dict for frontend rendering/editing
         self.frontend_params = {
