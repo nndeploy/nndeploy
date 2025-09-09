@@ -10,6 +10,11 @@ import {
   IconFile,
   IconPlus,
   IconApps,
+  IconInherit,
+  IconArticle,
+  IconPuzzle,
+  IconAppCenter,
+  IconCopyAdd,
 } from "@douyinfe/semi-icons";
 
 
@@ -31,6 +36,9 @@ import store, { initialState, reducer } from "./store/store";
 import { initDagGraphInfo } from "./store/actionType";
 import { EnumFlowType } from "../../../enum";
 import Header from "./header";
+import TemplateDrawer from "./TemplateDrawer";
+import { IWorkFlowShortEntity } from "../../../entity";
+import { set } from "lodash";
 
 var tabId = 2;
 
@@ -43,12 +51,16 @@ const Design: React.FC = () => {
   // const search = window.location.search; // "?foo=bar&baz=qux"
   // const params = new URLSearchParams(search);
 
-  const [tabs, setTabs] = useState<Array<{ id: string, tabId: string, name: string; 
+  const [tabs, setTabs] = useState<Array<{
+    id: string, tabId: string, name: string;
     //newName: string, 
-    flowType: EnumFlowType }>>([
+    flowType: EnumFlowType
+  }>>([
 
     // { newName: "Unsaved Workflow 1", id: '1', name: '', tabId: '1' },
   ]);
+
+  const [templateDrawerVisible, setTemplateDrawerVisible] = useState(false);
 
   function getQueryObject(url?: string) {
     const search = url ? url.split('?')[1] : window.location.search.slice(1);
@@ -67,20 +79,37 @@ const Design: React.FC = () => {
 
     if (params.id && params.flowType) {
 
-      setTabs([...tabs, { 
+      setTabs([...tabs, {
         //newName: params.name, 
-        name: params.name, id: params.id, tabId: newTabId, flowType: params.flowType as EnumFlowType }]);
+        name: params.name, id: params.id, tabId: newTabId, flowType: params.flowType as EnumFlowType
+      }]);
       setActiveKey(newTabId);
     } else {
 
-      setTabs([{ 
+      setTabs([{
         //newName: "Unsaved Workflow 1", 
-        id: '', name: 'Unsaved Workflow 1', tabId: '1', flowType: EnumFlowType.workspace }])
+        id: '', name: 'Unsaved Workflow 1', tabId: '1', flowType: EnumFlowType.workspace
+      }])
 
 
     }
 
   }, [])
+
+
+  function onAddTemplate(item: IWorkFlowShortEntity) {
+
+    setTemplateDrawerVisible(false)
+    setSelectedFirstLevel('')
+
+    const newTabId = `${tabId++}`
+
+    setTabs([...tabs, {
+      //newName: params.name, 
+      name: item.name_, id: item.id, tabId: newTabId, flowType: EnumFlowType.template
+    }]);
+    setActiveKey(newTabId);
+  }
 
 
 
@@ -129,7 +158,8 @@ const Design: React.FC = () => {
     const newTabId = `${tabId++}`
     setTabs([...tabs, {
       // newName: `Unsaved Workflow ${newTabId}`, 
-       name: `Unsaved Workflow ${newTabId}`, id: '', tabId: newTabId, flowType: EnumFlowType.workspace }]);
+      name: `Unsaved Workflow ${newTabId}`, id: '', tabId: newTabId, flowType: EnumFlowType.workspace
+    }]);
 
     setActiveKey(newTabId);
   };
@@ -153,23 +183,29 @@ const Design: React.FC = () => {
 
   function onShowFlow(node: TreeNodeData) {
 
-    if (tabs.find(item => item.id == node.key as string)) {
+    const findTab = tabs.find(item => item.id == node.key as string) 
+    if(findTab){
+      setActiveKey(findTab.tabId)
       return
     }
+  
     const newTabId = `${tabId++}`
-    setTabs([...tabs, { name: node.label as string, id: node.key as string, tabId: newTabId, 
-     // newName: '',
-       flowType: EnumFlowType.workspace }]);
+    setTabs([...tabs, {
+      name: node.label as string, id: node.key as string, tabId: newTabId,
+      // newName: '',
+      flowType: EnumFlowType.workspace
+    }]);
     setActiveKey(newTabId);
   }
 
   function onFlowSave(flow: IWorkFlowEntity) {
     const newTabs = tabs.map((tab) => {
       if (tab.tabId === activeKey) {
-        return { ...tab, name: flow.businessContent.name_, id: flow.id,flowType: EnumFlowType.workspace
+        return {
+          ...tab, name: flow.businessContent.name_, id: flow.id, flowType: EnumFlowType.workspace
 
           //newName: '' 
-          }
+        }
       }
       return tab;
     })
@@ -223,78 +259,13 @@ const Design: React.FC = () => {
     }
   };
 
+
+  const rightContentRef = useRef<HTMLDivElement>(null)
+
   return (
     <div className="container design-page">
       <store.Provider value={{ state, dispatch }} >
-        {/* <Nav mode="horizontal" className="topNav" >
-          <Nav.Header>
-            <img
-              src={companyLogo}
-              width="100"
-              alt="Logo"
-              className="companyLogo"
-            />
-          </Nav.Header>
-          <Nav.Footer>
-            <a href="https://github.com/nndeploy/nndeploy" target="_blank">
-              <Button icon={<IconGithubLogo />} theme="borderless" size='large' />
-            </a>
 
-            <a
-              href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"
-              target="_blank"
-            >
-              <Button icon={<IconHelpCircle />} size='large' theme="borderless" />
-            </a>
-            <a
-              href="https://www.zhihu.com/column/c_1690464325314240512"
-              target="_blank"
-            >
-              <Button
-                icon={<FontAwesomeIcon icon={faZhihu} size="1x" />}
-                size='large'
-                theme="borderless"
-              />
-            </a>
-            <a href="https://discord.gg/9rUwfAaMbr" target="_blank">
-              <Button
-                icon={<FontAwesomeIcon icon={faDiscord} size="1x" />}
-                size='large'
-                theme="borderless"
-              />
-            </a>
-            <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"
-              target="_blank">
-              <Button
-                icon={<FontAwesomeIcon icon={faBilibili} size="1x" />}
-                size='large'
-                theme="borderless"
-              />
-            </a>
-            <a
-              href="https://github.com/nndeploy/nndeploy/blob/main/docs/zh_cn/knowledge_shared/wechat.md"
-              target="_blank"
-            >
-              <Button
-                icon={<FontAwesomeIcon icon={faWeixin} size="1x" />}
-                theme="borderless"
-                size='large'
-              />
-            </a>
-            <Dropdown
-              render={
-                <Dropdown.Menu>
-                  <Dropdown.Item>Profile</Dropdown.Item>
-                  <Dropdown.Item>Logout</Dropdown.Item>
-                </Dropdown.Menu>
-              }
-            >
-              <Avatar color="blue" size="small">
-                <IconUser size="small" />
-              </Avatar>
-            </Dropdown>
-          </Nav.Footer>
-        </Nav> */}
         <Header />
         <div className="main">
           <div className="leftNav">
@@ -306,7 +277,7 @@ const Design: React.FC = () => {
               <Tooltip content="Resources" position="right">
                 <Nav.Item
                   itemKey="resources"
-                  icon={<IconFile />}
+                  icon={<IconArticle />}
 
                   onClick={() => handleFirstLevelClick("resources")}
                 />
@@ -315,7 +286,7 @@ const Design: React.FC = () => {
               <Tooltip content="Nodes" position="right">
                 <Nav.Item
                   itemKey="nodes"
-                  icon={<IconBranch />}
+                  icon={<IconPuzzle />}
 
                   onClick={() => handleFirstLevelClick("nodes")}
                 />
@@ -323,11 +294,23 @@ const Design: React.FC = () => {
               <Tooltip content="Workspace" position="right">
                 <Nav.Item
                   itemKey="workflow"
-                  icon={<IconApps />}
+                  icon={<IconAppCenter />}
 
                   onClick={() => handleFirstLevelClick("workflow")}
                 />
               </Tooltip>
+              <Tooltip content="Template" position="right">
+                <Nav.Item
+                  itemKey="template"
+                  icon={<IconCopyAdd />}
+
+                  onClick={() => {
+                    setTemplateDrawerVisible(true)
+                  }}
+                />
+              </Tooltip>
+
+
             </Nav>
             {
 
@@ -351,7 +334,7 @@ const Design: React.FC = () => {
 
 
           </div>
-          <div className="rightContent">
+          <div className="rightContent" ref={rightContentRef}>
             <Tabs
               tabPosition="top"
               activeKey={activeKey}
@@ -374,7 +357,7 @@ const Design: React.FC = () => {
             >
               {tabs.map((tab) => (
                 <TabPane
-                  tab={tab.name }
+                  tab={tab.name}
                   itemKey={tab.tabId}
                   key={tab.tabId}
                   closable={true}
@@ -389,6 +372,10 @@ const Design: React.FC = () => {
             </Tabs>
           </div>
         </div>
+        <TemplateDrawer visible={templateDrawerVisible} onCancel={() => setTemplateDrawerVisible(false)} rightContentRef={rightContentRef}
+
+          onAddTemplate={onAddTemplate}
+        />
       </store.Provider>
     </div >
   );
