@@ -147,6 +147,12 @@ class NNDEPLOY_CC_API Node {
   base::Status clearRequiredParams();
   std::vector<std::string> getRequiredParams();
 
+  base::Status setUiParams(const std::vector<std::string> &ui_params);
+  base::Status addUiParam(const std::string &ui_param);
+  base::Status removeUiParam(const std::string &ui_param);
+  base::Status clearUiParams();
+  std::vector<std::string> getUiParams();
+
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
 
@@ -201,6 +207,9 @@ class NNDEPLOY_CC_API Node {
 
   void setNodeType(NodeType node_type);
   NodeType getNodeType();
+
+  void setIoType(IOType io_type);
+  IOType getIoType();
 
   virtual void setLoopCount(int loop_count);
   virtual int getLoopCount();
@@ -340,12 +349,16 @@ class NNDEPLOY_CC_API Node {
   bool is_trace_ = false;  // 序列为json时，一定是静态图
   bool traced_ = false;
   bool is_graph_ = false;
+
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
+  IOType io_type_ = IOType::kIOTypeNone;
+  
   int loop_count_ = -1;
   std::atomic<bool> stop_{false};
 
   std::string version_ = "1.0.0";
   std::vector<std::string> required_params_;
+  std::vector<std::string> ui_params_;
 };
 
 /**

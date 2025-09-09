@@ -6,7 +6,9 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/tensor.h"
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 
 namespace nndeploy {
 namespace ir {
@@ -559,6 +561,7 @@ base::Status ModelDesc::deserializeStructureFromJson(
   return status;
 }
 
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 // 序列化模型权重为二进制文件
 base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
     safetensors::safetensors_t &st, bool serialize_buffer) {
@@ -572,6 +575,7 @@ base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
   }
   return base::kStatusCodeOk;
 }
+
 /**
  * @brief 序列化模型权重为safetensors
  *
@@ -683,6 +687,7 @@ base::Status ModelDesc::deserializeWeightsFromSafetensors(
   }
   return status;
 }
+#endif
 
 }  // namespace ir
 }  // namespace nndeploy

@@ -392,6 +392,27 @@ base::Status Node::clearRequiredParams() {
 }
 std::vector<std::string> Node::getRequiredParams() { return required_params_; }
 
+base::Status Node::setUiParams(const std::vector<std::string> &ui_params) {
+  ui_params_ = ui_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addUiParam(const std::string &ui_param) {
+  ui_params_.emplace_back(ui_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeUiParam(const std::string &ui_param) {
+  auto it = std::find(ui_params_.begin(), ui_params_.end(), ui_param);
+  if (it != ui_params_.end()) {
+    ui_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearUiParams() {
+  ui_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getUiParams() { return ui_params_; }
+
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");
@@ -598,6 +619,9 @@ bool Node::getGraphFlag() { return is_graph_; }
 
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
+
+void Node::setIoType(IOType io_type) { io_type_ = io_type; }
+IOType Node::getIoType() { return io_type_; }
 
 void Node::setLoopCount(int loop_count) {
   if (loop_count > 0) {
@@ -989,6 +1013,12 @@ base::Status Node::serialize(rapidjson::Value &json,
         rapidjson::Value(required_param.c_str(), allocator), allocator);
   }
   json.AddMember("required_params_", required_params, allocator);
+  rapidjson::Value ui_params(rapidjson::kArrayType);
+  for (auto &ui_param : ui_params_) {
+    ui_params.PushBack(rapidjson::Value(ui_param.c_str(), allocator),
+                       allocator);
+  }
+  json.AddMember("ui_params_", ui_params, allocator);
 
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
@@ -1121,6 +1151,12 @@ base::Status Node::serialize(rapidjson::Value &json,
   std::string node_type_str = nodeTypeToString(node_type_);
   json.AddMember("node_type_",
                  rapidjson::Value(node_type_str.c_str(), allocator), allocator);
+  if (node_type_ == NodeType::kNodeTypeInput ||
+      node_type_ == NodeType::kNodeTypeOutput) {
+    std::string io_type_str = ioTypeToString(io_type_);
+    json.AddMember("io_type_", rapidjson::Value(io_type_str.c_str(), allocator),
+                   allocator);
+  }
 
   // 写入参数
   if (param_ != nullptr) {
@@ -1220,6 +1256,15 @@ base::Status Node::deserialize(rapidjson::Value &json) {
       }
     }
   }
+  if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
+    ui_params_.clear();
+    auto &ui_params_array = json["ui_params_"];
+    for (int i = 0; i < ui_params_array.Size(); i++) {
+      if (ui_params_array[i].IsString()) {
+        ui_params_.emplace_back(ui_params_array[i].GetString());
+      }
+    }
+  }
 
   if (json.HasMember("is_external_stream_") &&
       json["is_external_stream_"].IsBool()) {
@@ -1252,6 +1297,9 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // 读取节点类型
   if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
     node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
+  if (json.HasMember("io_type_") && json["io_type_"].IsString()) {
+    io_type_ = stringToIoType(json["io_type_"].GetString());
   }
   // 读取动态输入和输出
   if (json.HasMember("is_dynamic_input_") &&

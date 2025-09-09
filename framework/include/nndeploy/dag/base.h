@@ -24,9 +24,42 @@ namespace nndeploy {
 namespace dag {
 
 enum class NodeType {
-  kNodeTypeInput = 1,         // 输入节点，无输出
-  kNodeTypeOutput = 2,        // 输出节点，无输入
-  kNodeTypeIntermediate = 3,  // 中间节点，既有输入也有输出
+  kNodeTypeInput = 1,         // Input node with no outputs
+  kNodeTypeOutput = 2,        // Output node with no inputs
+  kNodeTypeIntermediate = 3,  // Intermediate node with both inputs and outputs
+};
+
+enum class IOType {
+  kIOTypeNone = 0,  // No type
+
+  // Basic data types
+  kIOTypeBool = 1,    // Boolean type
+  kIOTypeNum = 2,     // Integer type
+  kIOTypeString = 3,  // String type
+
+  // File types
+  kIOTypeText = 10,    // Text file type
+  kIOTypeJson = 11,    // JSON file type
+  kIOTypeXml = 12,     // XML file type
+  kIOTypeCsv = 13,     // CSV file type
+  kIOTypeYaml = 14,    // YAML file type
+  kIOTypeBinary = 15,  // Binary file type
+
+  // Media file types
+  kIOTypeImage = 20,  // Image file type
+  kIOTypeVideo = 21,  // Video file type
+  kIOTypeAudio = 22,  // Audio file type
+  kIOTypeCamera = 23,  // Camera type
+  kIOTypeMicrophone = 24,  // Microphone type
+
+  // Model
+  kIOTypeModel = 30,  // Model file type
+
+  // Directory type
+  kIOTypeDir = 31,  // Directory type
+
+  // Special types
+  kIOTypeAny = 100,  // Any object type
 };
 
 enum class EdgeTypeFlag {
@@ -217,6 +250,9 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 extern NNDEPLOY_CC_API std::string nodeTypeToString(NodeType node_type);
 extern NNDEPLOY_CC_API NodeType
 stringToNodeType(const std::string& node_type_str);
+extern NNDEPLOY_CC_API std::string ioTypeToString(IOType io_type);
+extern NNDEPLOY_CC_API IOType
+stringToIoType(const std::string& io_type_str);
 
 // extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeTypeFlag edge_type);
 // extern NNDEPLOY_CC_API EdgeTypeFlag

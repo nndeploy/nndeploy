@@ -38,12 +38,14 @@ class NNDEPLOY_CC_API DefaultInterpret : public Interpret {
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>());
 
  private:
-  /**
-   * @brief 模型权重
-   *
-   * 用于存储模型权重信息
-   */
+/**
+ * @brief 模型权重
+ *
+ * 用于存储模型权重信息
+ */
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   std::vector<std::shared_ptr<safetensors::safetensors_t>> st_ptr_;
+#endif
 };
 
 }  // namespace ir

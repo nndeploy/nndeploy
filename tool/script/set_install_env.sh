@@ -19,8 +19,17 @@ LIB_PATHS=""
 
 # Traverse all directories under third_party
 for lib_dir in "${THIRDPARTY_DIR}"/*; do
+    echo "lib_dir: $lib_dir"
     if [ -d "$lib_dir" ]; then
-        lib_path="${lib_dir}/lib"
+        # lib_path="${lib_dir}/lib"
+        # echo "lib_path: $lib_path"
+        if [ -n "$ANDROID_DATA" ] || [ -n "$ANDROID_ROOT" ]; then
+            lib_path="${lib_dir}/arm64-v8a"
+            echo "lib_path: $lib_path"
+        else
+            lib_path="${lib_dir}/lib"
+            echo "lib_path: $lib_path"
+        fi
         if [ -d "$lib_path" ]; then
             if [ -z "$LIB_PATHS" ]; then
                 LIB_PATHS="$lib_path"

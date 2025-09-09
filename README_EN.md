@@ -1,7 +1,7 @@
 [简体中文](README.md) | English
 
 <h3 align="center">
-nndeploy: Your Local AI Workflow
+nndeploy: A Workflow-based Multi-platform AI Deployment Tool
 </h3>
 
 <p align="center">
@@ -22,14 +22,14 @@ nndeploy: Your Local AI Workflow
 </a>
 </p>
 
-<p align="center">
+<!-- <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>Documentation</b></a> 
 | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> 
 | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>Bilibili</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-</p>
+</p> -->
 
 <p align="center">
   <picture>
@@ -38,11 +38,11 @@ nndeploy: Your Local AI Workflow
   </picture>
 </p>
 
-Write algorithm node logic in Python/C++ without frontend skills to quickly build your visual AI workflow.
+The framework provides rich out-of-the-box AI algorithm nodes, covering object detection, image segmentation, large language models, face swapping, image generation, and more. Users can complete complex AI algorithm deployment through intuitive drag-and-drop operations.
 
-Provides out-of-the-box algorithm nodes for non-AI programmers, including large language models, Stable Diffusion, object detection, image segmentation, etc. Build AI applications quickly through drag-and-drop.
+Supports writing custom algorithm nodes in Python/C++, allowing seamless integration of algorithms into visual workflows without needing to master frontend technologies.
 
-Workflows can be exported as JSON configuration files, supporting direct loading and execution via Python/C++ APIs, deployable to cloud servers, desktop, mobile, and edge devices across multiple platforms.
+Workflows can be exported as JSON configuration files, supporting direct loading and execution via Python/C++ APIs, deployable to cloud servers, desktop, mobile, edge devices, and other multi-platform environments.
 
 The framework features built-in mainstream high-performance inference engines and deep optimization strategies to help you transform workflows into enterprise-grade production applications.
 
@@ -112,6 +112,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Plugin Development Manual](docs/zh_cn/quick_start/plugin.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python Plugin Development Manual](docs/zh_cn/quick_start/plugin_python.md)
 
 ## Core Features
 

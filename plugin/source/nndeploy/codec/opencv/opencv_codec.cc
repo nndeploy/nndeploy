@@ -555,12 +555,12 @@ base::Status OpenCvCameraEncode::setPath(const std::string &path) {
 base::Status OpenCvCameraEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   if (mat != nullptr) {
-    // #if NNDEPLOY_OS_WINDOWS
-    //     cv::imshow(path_, *mat);
-    // #else
-    //     ;
-    // #endif
+#if NNDEPLOY_OS_WINDOWS || NNDEPLOY_OS_MACOS
     cv::imshow(path_, *mat);
+#else
+    ;
+#endif
+    // cv::imshow(path_, *mat);
   }
   return base::kStatusCodeOk;
 }

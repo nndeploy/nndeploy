@@ -74,7 +74,7 @@ nndeploy-app --port 8000
 | `--log`                | `./logs/nndeploy_server.log` | 指定日志输出文件路径                                                |
 | `--front-end-version`  | `!`                          | 指定前端版本，格式为 `owner/repo@tag`，如 `nndeploy/nndeploy-ui@v1.0.0` |
 <!-- | `--debug / --no-debug` | `False`                      | 是否启用调试模式，启用后将禁用前端静态文件挂载                           | -->
-| `--plugin`             | `[]`                         | 支持传入多个python文件路径或者动态库路径，用于加载用户写好的自定义节点插件，默认为空 |
+| `--plugin`             | `[]`                         | 支持传入多个python文件路径或者动态库路径，用于加载用户写好的自定义插件，默认为空 |
 
 ### 常见问题
 

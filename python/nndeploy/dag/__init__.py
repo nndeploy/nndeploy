@@ -2,7 +2,7 @@
 from nndeploy._nndeploy_internal.dag import Node, NodeDesc
 from nndeploy._nndeploy_internal.dag import Graph
 
-from .base import NodeType
+from .base import NodeType, name_to_node_type, node_type_to_name, IOType, name_to_io_type, io_type_to_name
 from .base import name_to_edge_type_flag, edge_type_flag_to_name, EdgeTypeFlag
 from .base import EdgeTypeInfo
 
