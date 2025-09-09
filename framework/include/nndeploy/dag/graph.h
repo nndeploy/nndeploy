@@ -349,6 +349,16 @@ class NNDEPLOY_CC_API Graph : public Node {
       external_param_repository_;
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
+  /*
+   * @brief 是否保存io节点
+   * @details
+   * 如果为true，则会在序列化时保存io节点，默认为true
+   * 如果为false
+   *  + 则会把input节点的输出，当作整个图的输入保存
+   *  + 则会把output节点的输入，当作整个图的输出保存(construct就需要做这个操作)
+   * 注：只有最外层的Graph才会起效果
+   */
+  bool is_save_io_node_ = true;
 };
 
 template <typename T, typename... Args,
