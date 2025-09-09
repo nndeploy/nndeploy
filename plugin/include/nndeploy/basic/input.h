@@ -7,26 +7,26 @@
 namespace nndeploy {
 namespace basic {
 
-class NNDEPLOY_CC_API InputString : public dag::Node {
+class NNDEPLOY_CC_API InputCppStr : public dag::Node {
  public:
-  InputString(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::basic::InputString";
+  InputCppStr(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::basic::InputCppStr";
     desc_ = "Input String Node";
     this->setOutputTypeInfo<std::string>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeString);
   }
-  InputString(const std::string &name, std::vector<dag::Edge *> inputs,
+  InputCppStr(const std::string &name, std::vector<dag::Edge *> inputs,
               std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::basic::InputString";
+    key_ = "nndeploy::basic::InputCppStr";
     desc_ = "Input String Node";
     this->setOutputTypeInfo<std::string>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeString);
   }
 
-  virtual ~InputString() {}
+  virtual ~InputCppStr() {}
 
   virtual base::Status run() {
     auto output_edge = this->getOutput(0);
@@ -60,26 +60,26 @@ class NNDEPLOY_CC_API InputString : public dag::Node {
   std::string str_ = "";
 };
 
-class NNDEPLOY_CC_API InputBool : public dag::Node {
+class NNDEPLOY_CC_API InputCppBool : public dag::Node {
  public:
-  InputBool(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::basic::InputBool";
+  InputCppBool(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::basic::InputCppBool";
     desc_ = "Input Bool Node";
     this->setOutputTypeInfo<bool>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeBool);
   }
-  InputBool(const std::string &name, std::vector<dag::Edge *> inputs,
+  InputCppBool(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::basic::InputBool";
+    key_ = "nndeploy::basic::InputCppBool";
     desc_ = "Input Bool Node";
     this->setOutputTypeInfo<bool>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeBool);
   }
 
-  virtual ~InputBool() {}
+  virtual ~InputCppBool() {}
 
   virtual base::Status run() {
     auto output_edge = this->getOutput(0);
@@ -112,26 +112,26 @@ class NNDEPLOY_CC_API InputBool : public dag::Node {
   bool flag_ = false;
 };
 
-class NNDEPLOY_CC_API InputNum : public dag::Node {
+class NNDEPLOY_CC_API InputCppNum : public dag::Node {
  public:
-  InputNum(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::basic::InputNum";
+  InputCppNum(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::basic::InputCppNum";
     desc_ = "Input Number Node";
     this->setOutputTypeInfo<double>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeNum);
   }
-  InputNum(const std::string &name, std::vector<dag::Edge *> inputs,
+  InputCppNum(const std::string &name, std::vector<dag::Edge *> inputs,
            std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::basic::InputNum";
+    key_ = "nndeploy::basic::InputCppNum";
     desc_ = "Input Number Node";
     this->setOutputTypeInfo<double>();
     this->setNodeType(dag::NodeType::kNodeTypeInput);
     this->setIoType(dag::IOType::kIOTypeNum);
   }
 
-  virtual ~InputNum() {}
+  virtual ~InputCppNum() {}
 
   virtual base::Status run() {
     auto output_edge = this->getOutput(0);
