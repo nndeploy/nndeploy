@@ -25,7 +25,7 @@
 nndeploy
 </h1>
 
-nndeploy is a **workflow-based multi-device AI deployment framework** that makes AI algorithm deployment as simple as building with blocks!  
+nndeploy is a **workflow-based multi-platform AI deployment framework** that makes AI algorithm deployment as simple as building with blocks!  
 
 It adopts a visual workflow design with a rich set of built-in algorithm nodes. Users can quickly construct professional AI applications through drag-and-drop operations, eliminating the need to write complex code.  
 
