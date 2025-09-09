@@ -1,11 +1,41 @@
 
 [English](README_EN.md) | 简体中文
 
-<h3 align="center">
-nndeploy：一款基于工作流的多端AI部署工具
-</h3>
+<p align="left">
+<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux" style="height: 16px;">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows" style="height: 16px;">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml/badge.svg" alt="Android" style="height: 16px;">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS" style="height: 16px;">
+</a>
+ <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
+  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS" style="height: 16px;">
+</a>
+ <a href="https://pepy.tech/projects/nndeploy">
+  <img src="https://static.pepy.tech/personalized-badge/nndeploy?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads" style="height: 16px;">
+</a>
+</p>
 
-<p align="center">
+<h1 align="center">
+nndeploy
+</h1>
+
+nndeploy是一款基于工作流的多端AI部署框架，让AI算法部署变得像搭积木一样简单！
+
+采用可视化工作流设计，内置丰富的算法节点，用户只需拖拽操作即可快速构建专业AI应用，无需编写复杂代码。
+
+支持Python/C++自定义节点开发，无需前端代码，自动集成到可视化界面
+
+构建的工作流可一键导出JSON配置文件，支持Python/C++ API加载运行。集成主流推理引擎和深度优化策略，确保最佳性能，支持一次开发多端部署，覆盖Linux、Windows、macOS、Android、iOS全平台。
+
+
+<!-- <p align="center">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
 </a>
@@ -21,7 +51,7 @@ nndeploy：一款基于工作流的多端AI部署工具
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS">
 </a>
-</p>
+</p> -->
 
 <!-- <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
@@ -38,14 +68,6 @@ nndeploy：一款基于工作流的多端AI部署工具
     <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
   </picture>
 </p>
-
-框架提供了丰富的开箱即用AI算法节点，涵盖目标检测、图像分割、大语言模型、换脸、图像生成等等，用户只需通过直观的拖拽操作即可完成复杂AI算法的部署。
-
-支持Python/C++编写自定义算法节点，无需掌握前端技术即可将算法无缝集成到可视化工作流中。
-
-工作流可导出为JSON配置文件，支持Python/C++ API直接加载运行，部署至云服务器、桌面端、移动端、边缘设备等多平台。
-
-框架内置主流高性能推理引擎和深度优化策略，助你将工作流转化为企业级生产应用。
 
 ---
 
@@ -64,7 +86,7 @@ nndeploy：一款基于工作流的多端AI部署工具
 pip install --upgrade nndeploy
 ```
 
-### 启动可视化工作流界面
+### 启动可视化工作流
 
 ```bash
 # 方法一：仅使用内置节点
@@ -83,10 +105,6 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 
 启动成功后，打开 http://localhost:8000 即可访问工作流界面。
 
-#### 快速上手演示
-
-通过拖拽操作快速搭建AI工作流，直观易懂，几分钟即可上手。
-
 <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
@@ -95,9 +113,9 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 </p>
 
 
-### 保存工作流为JSON和执行工作流
+### 导出工作流并执行
 
-在可视化界面中配置好工作流后，可将其保存为JSON文件（例如workflow.json）。您可以使用以下命令执行该工作流：
+在可视化界面中完成工作流的搭建后，可将其保存为JSON文件（例如workflow.json），然后可以使用以下命令执行该工作流：
 
 ```bash
 nndeploy-run-json --json-file workflow.json --plugin plugin.py
@@ -107,7 +125,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
   - [Python API示例代码](python/nndeploy/dag/run_json.py)
   - [C++ API示例代码](framework/include/nndeploy/dag/graph_runner.h)
 
-> 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端。如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
+> 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端，如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
 
 > 使用`nndeploy-clean`可清理过期的后端资源。
 
@@ -125,7 +143,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 ## 核心特性
 
 ### **AI部署的效率工具**
-- **可视化工作流**：通过拖拉拽操作就能部署AI算法，前端可视化调节AI算法部署的所有节点参数，快速预览算法调参后的效果
+- **可视化工作流**：通过拖拉拽操作就能部署AI算法，前端可视化调节AI算法的所有节点参数，快速预览算法调参后的效果
 - **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
 - **算法组合**：灵活组合不同算法，快速构建创新AI应用
 - **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
