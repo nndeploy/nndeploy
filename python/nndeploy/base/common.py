@@ -290,6 +290,42 @@ def get_data_type_enum_json():
 
 all_type_enum.append(get_data_type_enum_json)
 
+def get_api_base_json():
+    enum_list = [
+        "https://api.openai.com",
+        "https://api.deepseek.com",
+        "https://api.moonshot.cn"
+    ]
+    api_base_enum = {}
+    for single_enum in enum_list:
+        api_base_enum[f"{single_enum}"] = enum_list
+    return api_base_enum
+all_type_enum.append(get_api_base_json)
+
+
+def get_api_key_env_json():
+    enum_list = [
+        "OPENAI_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "MOONSHOT_API_KEY"
+    ]
+    api_key_env_enum = {}
+    for single_enum in enum_list:
+        api_key_env_enum[f"{single_enum}"] = enum_list
+    return api_key_env_enum
+all_type_enum.append(get_api_key_env_json)
+
+def get_api_model_json():
+    enum_list = [
+        "gpt-4o-mini",
+        "deepseek-chat",
+        "moonshot-v1-8k"
+    ]
+    api_model_enum = {}
+    for single_enum in enum_list:
+        api_model_enum[f"{single_enum}"] = enum_list
+    return api_model_enum
+all_type_enum.append(get_api_model_json)
 
 name_to_device_type_code = {
     "cpu": _C.base.DeviceTypeCode.cpu,
