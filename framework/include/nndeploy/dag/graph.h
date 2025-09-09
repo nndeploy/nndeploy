@@ -323,6 +323,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deserialize(rapidjson::Value &json);
   virtual base::Status deserialize(const std::string &json_str);
 
+  virtual base::Status setSaveIoNodeFlag(bool is_save_io_node);
+  virtual bool getSaveIoNodeFlag();
+
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
@@ -358,7 +361,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    *  + 则会把output节点的输入，当作整个图的输出保存(construct就需要做这个操作)
    * 注：只有最外层的Graph才会起效果
    */
-  bool is_save_io_node_ = true;
+  bool save_io_node_flag_ = true;
 };
 
 template <typename T, typename... Args,

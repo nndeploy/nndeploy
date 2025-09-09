@@ -2305,6 +2305,14 @@ base::Status Graph::deserialize(const std::string &json_str) {
 //   return Node::serialize(path);
 // }
 
+base::Status Graph::setSaveIoNodeFlag(bool is_save_io_node) {
+  save_io_node_flag_ = is_save_io_node;
+  return base::kStatusCodeOk;
+}
+base::Status Graph::getSaveIoNodeFlag() {
+  return save_io_node_flag_;
+}
+
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
