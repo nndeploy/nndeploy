@@ -3,12 +3,15 @@ from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
+
 import os
 import json
 import asyncio
@@ -16,11 +19,10 @@ import uuid
 import logging
 import sqlite3
 import shutil
-
 import requests
-from urllib.parse import urlparse
-
+import contextvars
 import nndeploy.dag
+
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from nndeploy import get_type_enum_json
 from .utils import extract_encode_output_paths, _handle_urls
@@ -31,8 +33,10 @@ from .task_queue import ExecutionStatus
 from .schemas import (
     EnqueueRequest,
     EnqueueResponse,
+    QueueStateResult,
     QueueStateResponse,
     HistoryItem,
+    HistoryResponse,
     UploadResponse,
     NodeListResponse,
     WorkFlowSaveResponse,
@@ -45,9 +49,8 @@ from .schemas import (
 )
 from .files import router as files_router
 from .files import get_workdir
-
 from .logging_taskid import set_task_id, reset_task_id, run_func_in_copied_context, scoped_stdio_to_logging
-import contextvars
+from .db import DB
 
 class SPAStaticFiles(StaticFiles):
     async def get_response(self, path, scope):
@@ -61,7 +64,7 @@ class SPAStaticFiles(StaticFiles):
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, args, job_mp_queue, plugin_update_q):
+    def __init__(self, args, job_mp_queue, plugin_update_q, cancel_event_queue):
         NnDeployServer.instance = self
         self.loop: Optional[asyncio.AbstractEventLoop] = None # lazy loading
         self.args = args
@@ -82,10 +85,9 @@ class NnDeployServer:
         self.db_path = Path(self.args.resources) / "db" / "nndeploy.db"
         self.workflow_dir.mkdir(parents=True, exist_ok=True)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
-        self._init_db()
+        self.db = DB(self.db_path).init_schema()
 
+        self.cancel_event_queue = cancel_event_queue
         self.plugin_update_q = plugin_update_q
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
@@ -95,41 +97,6 @@ class NnDeployServer:
 
         template_parent = WorkflowTemplateManager.init_templates()
         self.template_path = Path(template_parent) / "nndeploy-workflow"
-
-    def _init_db(self):
-        cursor = self.conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS workflows (
-            id TEXT PRIMARY KEY,
-            path TEXT NOT NULL UNIQUE,
-            name TEXT,
-            ext TEXT,
-            size INTEGER,
-            cover TEXT,
-            requirements TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-        cursor.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_workflows_path ON workflows(path)""")
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS templates (
-            id TEXT PRIMARY KEY,
-            path TEXT NOT NULL UNIQUE,
-            name TEXT,
-            ext TEXT,
-            size INTEGER,
-            cover TEXT,
-            requirements TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-        cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_templates_path
-        ON templates(path)
-        """)
-
-        self.conn.commit()
 
     def _write_json_replace(self, dst: Path, data: dict | bytes) -> None:
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -158,41 +125,6 @@ class NnDeployServer:
             if not cand.exists():
                 return cand
             i += 1
-
-    def _insert_workflow_row(self, file_path: Path) -> str | None:
-        try:
-            wid = str(uuid.uuid4())
-            abs_path = str(file_path.resolve())
-            name = file_path.name
-            ext = file_path.suffix.lower()
-            size = file_path.stat().st_size if file_path.exists() else None
-            cover, req = self._find_cover_and_requirements(file_path)
-            cur = self.conn.cursor()
-            cur.execute("""
-                INSERT INTO workflows (id, path, name, ext, size, cover, requirements)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (wid, abs_path, name, ext, size, cover, req))
-            self.conn.commit()
-            return wid
-        except Exception as e:
-            logging.warning(f"[_insert_workflow_row] failed for {file_path}: {e}")
-            return None
-
-    def _update_workflow_row_metadata(self, id_: str, file_path: Path) -> None:
-        try:
-            name = file_path.name
-            ext = file_path.suffix.lower()
-            size = file_path.stat().st_size if file_path.exists() else None
-            cover, req = self._find_cover_and_requirements(file_path)
-            cur = self.conn.cursor()
-            cur.execute("""
-                UPDATE workflows
-                SET name = ?, ext = ?, size = ?, cover = ?, requirements = ?
-                WHERE id = ?
-            """, (name, ext, size, cover, req, id_))
-            self.conn.commit()
-        except Exception as e:
-            logging.warning(f"[_update_workflow_row_metadata] failed for id={id_}: {e}")
 
     def _get_workdir(self) -> Path:
         return Path(self.args.resources)
@@ -234,81 +166,35 @@ class NnDeployServer:
 
         return cover, req
 
-    def _record_workflow_file(self, file_path: Path) -> Optional[str]:
-        try:
-            abs_path = str(file_path.resolve())
-            name = file_path.name
-            ext = file_path.suffix.lower()
-            size = file_path.stat().st_size if file_path.exists() else None
-            cover = None
-            req = None
-
-            cursor = self.conn.cursor()
-            row = cursor.execute("SELECT id FROM workflows WHERE path = ?", (abs_path,)).fetchone()
-
-            if row:
-                wid = row["id"]
-                cursor.execute("""
-                    UPDATE workflows
-                    SET name = ?,
-                        ext = ?,
-                        size = ?,
-                        cover = ?,
-                        requirements = ?
-                    WHERE id = ?
-                """, (name, ext, size, cover, req, wid))
-                self.conn.commit()
-                return wid
-            else:
-                wid = str(uuid.uuid4())
-                cursor.execute("""
-                    INSERT INTO workflows (id, path, name, ext, size, cover, requirements)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (wid, abs_path, name, ext, size, cover, req))
-                self.conn.commit()
-                return wid
-        except Exception as e:
-            logging.warning(f"[_upsert_workflow_by_path] failed for {file_path}: {e}")
-            return None
-
-    def _record_template_file(self, file_path: Path) -> None:
-        try:
-            abs_path = str(file_path.resolve())
-            name = file_path.name
-            ext = file_path.suffix.lower()
-            size = file_path.stat().st_size if file_path.exists() else None
-
-            cover, req = self._find_cover_and_requirements(file_path)
-
-            cursor = self.conn.cursor()
-            wid = str(uuid.uuid4())
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO templates (id, path, name, ext, size, cover, requirements)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (wid, abs_path, name, ext, size, cover, req)
-            )
-            self.conn.commit()
-        except Exception as e:
-            logging.warning(f"[_record_template_file] failed for {file_path}: {e}")
+    def _cancel_task(self, task_id: str):
+        self.cancel_event_queue.put(task_id)
+        return True
 
     def _register_routes(self, args):
         api = APIRouter(prefix="/api")
 
-        # loop
         @api.get(
-            "/queue",
+            "/queue/info",
+            tags=["Task"],
             response_model=QueueStateResponse,
             summary="check running / wait task",
         )
         async def queue_state():
-            running, pending = self.queue.get_current_queue()
-            return QueueStateResponse(running=running, pending=pending)
+            state = self.queue.get_current_queue()
+            return QueueStateResponse(
+                flag="success",
+                message="queue state fetched",
+                result=QueueStateResult(
+                    running=state["RUNNING"],
+                    pending=state["PENDING"],
+                    dispatched=state["DISPATCHED"],
+                ),
+            )
 
         # commit task
         @api.post(
             "/queue",
+            tags=["Task"],
             response_model=EnqueueResponse,
             status_code=status.HTTP_202_ACCEPTED,
             summary="enqueue nndeploy graph task",
@@ -325,6 +211,33 @@ class NnDeployServer:
             message = "success"
             result = {"task_id":task_id}
             return EnqueueResponse(flag=flag, message=message, result=result)
+
+        @api.post(
+            "/queue/cancel/{task_id}",
+            tags=["Task"],
+            summary="cancel task execution",
+        )
+        async def cancel_task(task_id: str):
+            try:
+                if self._cancel_task(task_id):
+                    return {"flag": "success", "message": f"Task {task_id} has been cancelled"}
+            except HTTPException as e:
+                raise e
+
+        @api.post(
+            "/queue/flush",
+            tags=["Task"],
+            summary="clear pending tasks and drain job queue (running tasks not interrupted)"
+        )
+        async def flush_queue():
+            try:
+                res = self.queue.flush()
+                msg = f"pending cleared: {res['cleared_pending']}, job_q drained: {res['drained_job_q']}"
+                logging.info("[queue/flush] %s", msg)
+                return {"status": "success", "message": msg, "result": res}
+            except Exception as e:
+                logging.exception("[queue/flush] error")
+                raise HTTPException(status_code=500, detail=f"flush queue error: {e}")
 
         @api.post(
             "/workflow/save",
@@ -348,16 +261,14 @@ class NnDeployServer:
                     raise HTTPException(status_code=400, detail="businessContent must be a JSON object or JSON string")
 
                 id = self._norm_id(root.get("id"))
-                print(id)
 
                 if id:
-                    cur = self.conn.cursor()
-                    row = cur.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
-                    if not row:
+                    dst = self.db.get_workflow_path(id)
+                    if not dst:
                         raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
-                    dst = Path(row["path"])
                     self._write_json_replace(dst, data)
-                    self._update_workflow_row_metadata(id, dst)
+                    cover, req = self._find_cover_and_requirements(dst)
+                    self.db.update_workflow_metadata(id, dst, cover, req)
 
                     return WorkFlowSaveResponse(
                         flag="success",
@@ -374,8 +285,8 @@ class NnDeployServer:
                     dst = self._generate_unique_path(desired)
 
                     self._write_json_replace(dst, data)
-                    wid = self._insert_workflow_row(dst)
-                    print(wid)
+                    cover, req = self._find_cover_and_requirements(dst)
+                    wid = self.db.insert_workflow(dst, cover, req)
 
                     return WorkFlowSaveResponse(
                         flag="success",
@@ -410,7 +321,8 @@ class NnDeployServer:
             try:
                 content = await file.read()
                 self._write_json_replace(dst, content)
-                wid = self._insert_workflow_row(dst)
+                cover, req = self._find_cover_and_requirements(dst)
+                wid = self.db.insert_workflow(dst, cover, req)
 
                 return UploadResponse(
                     flag="success",
@@ -437,12 +349,10 @@ class NnDeployServer:
             """
             download workflow file by id (UUID)
             """
-            cursor = self.conn.cursor()
-            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
-            if not row:
+            f = self.db.get_workflow_path(id)
+            if not f:
                 raise HTTPException(status_code=404, detail=f"workflow id {id} not found in DB")
-
-            f = Path(row["path"])
+            f = Path(f)
             if not f.exists():
                 raise HTTPException(status_code=404, detail=f"workflow file not found: {f}")
 
@@ -472,29 +382,26 @@ class NnDeployServer:
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
             results = []
-            cursor = self.conn.cursor()
 
             try:
                 for jf in self.workflow_dir.rglob("*.json"):
                     try:
-                        wid = self._record_workflow_file(jf)
-                        abs_path = str(jf.resolve())
-                        row = cursor.execute(
-                            "SELECT id, cover FROM workflows WHERE path = ?",
-                            (abs_path,)
-                        ).fetchone()
-                        if not row:
-                            logging.warning(f"[workflow->db] missing id for {abs_path}")
+                        wid = self.db.upsert_workflow_by_path(jf)
+
+                        id_cover = self.db.get_workflow_id_and_cover_by_path(jf)
+                        if not id_cover:
+                            logging.warning(f"[workflow->db] missing id for {jf}")
                             continue
+                        wid, _cover = id_cover
 
                         with jf.open("r", encoding="utf-8") as f:
                             content = json.load(f)
 
                         results.append({
-                            "id": row["id"],
+                            "id": wid,
                             "name_": content.get("name_"),
                             "developer_": content.get("developer_"),
-                            "desc_": content.get("desc_")
+                            "desc_": content.get("desc_"),
                         })
                     except Exception as fe:
                         logging.warning(f"[workflow->scan] failed for {jf}: {fe}")
@@ -514,23 +421,18 @@ class NnDeployServer:
             summary="delete workflow by id",
         )
         async def delete_workflow_json(id: str):
-            cursor = self.conn.cursor()
-            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
-
-            if not row:
+            file_path = self.db.get_workflow_path(id)
+            if not file_path:
                 raise HTTPException(status_code=404, detail=f"workflow id {id} not found in DB")
 
-            file_path = Path(row["path"])
+            file_path = Path(file_path)
             if not file_path.exists():
-                cursor.execute("DELETE FROM workflows WHERE id = ?", (id,))
-                self.conn.commit()
+                self.db.delete_workflow(id)
                 raise HTTPException(status_code=404, detail=f"workflow file not found: {file_path}")
 
             try:
                 file_path.unlink(missing_ok=False)
-                cursor.execute("DELETE FROM workflows WHERE id = ?", (id,))
-                self.conn.commit()
-
+                self.db.delete_workflow(id)
                 return WorkFlowDeleteResponse(flag="success", message=f"workflow id {id} has been deleted")
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"delete error: {e}")
@@ -542,12 +444,10 @@ class NnDeployServer:
             summary="get workflow json by id",
         )
         async def get_workflow_by_id(id: str):
-            cursor = self.conn.cursor()
-            row = cursor.execute("SELECT path FROM workflows WHERE id = ?", (id,)).fetchone()
-            if not row:
+            file_path = self.db.get_workflow_path(id)
+            if not file_path:
                 raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
-
-            file_path = Path(row["path"])
+            file_path = Path(file_path)
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail=f"workflow file not found: {file_path}")
             if file_path.suffix.lower() != ".json":
@@ -574,24 +474,18 @@ class NnDeployServer:
 
             results = []
             new_count = 0
-            cursor = self.conn.cursor()
 
             try:
                 for jf in self.template_path.rglob("*.json"):
                     try:
-                        self._record_template_file(jf)
+                        cover, req = self._find_cover_and_requirements(jf)
+                        self.db.insert_or_ignore_template(jf, cover, req)
 
-                        abs_path = str(jf.resolve())
-                        row = cursor.execute(
-                            "SELECT id, cover, requirements FROM templates WHERE path = ?",
-                            (abs_path,)
-                        ).fetchone()
-                        if row is None:
-                            logging.warning(f"[template->db] missing id for {abs_path}")
+                        meta = self.db.get_template_meta_by_path(jf)
+                        if meta is None:
+                            logging.warning(f"[template->db] missing id for {jf}")
                             continue
-                        tid = row["id"]
-                        cover = row["cover"]
-                        requirements = row["requirements"]
+                        tid, cover, requirements = meta
 
                         with jf.open("r", encoding="utf-8") as f:
                             content = json.load(f)
@@ -627,16 +521,10 @@ class NnDeployServer:
         )
         async def get_template_json(id: str):
             try:
-                cursor = self.conn.cursor()
-                row = cursor.execute(
-                    "SELECT path FROM templates WHERE id = ?",
-                    (id,)
-                ).fetchone()
-
-                if row is None:
+                file_path = self.db.get_template_path(id)
+                if file_path is None:
                     raise HTTPException(status_code=404, detail=f"template id {id} not found")
-
-                file_path = Path(row["path"])
+                file_path = Path(file_path)
 
                 if not file_path.exists():
                     raise HTTPException(status_code=404, detail=f"template file not found: {file_path}")
@@ -723,12 +611,49 @@ class NnDeployServer:
 
         # history
         @api.get(
-            "/history",
-            response_model=Dict[str, HistoryItem],
+            "/queue/history",
+            tags=["Task"],
+            response_model=HistoryResponse,
             summary="check history",
         )
-        async def history(max_items: Optional[int] = None):
-            return self.queue.get_history(max_items)
+        async def history(max_items: Optional[int] = Query(None, ge=1, le=1000)):
+            try:
+                hist_map: Dict[str, Dict[str, Any]] = self.queue.get_history(max_items=max_items)
+
+                items: List[Dict[str, Any]] = []
+                for task_id, rec in hist_map.items():
+                    item = {
+                        "task_id": task_id,
+                        "task": rec.get("task"),
+                        "status": rec.get("status"),
+                        "state": rec.get("state"),
+                        "ts_submit": rec.get("ts_submit"),
+                        "ts_dispatch": rec.get("ts_dispatch"),
+                        "ts_start": rec.get("ts_start"),
+                        "ts_finish": rec.get("ts_finish"),
+                        "worker_pid": rec.get("worker_pid"),
+                        "time_profile": rec.get("time_profile", {}),
+                    }
+                    items.append(item)
+
+                def _key(x: Dict[str, Any]):
+                    return x.get("ts_finish") or x.get("ts_start") or x.get("ts_submit") or 0.0
+
+                items.sort(key=_key, reverse=True)
+
+                return HistoryResponse(
+                    flag="success",
+                    message="history fetched",
+                    result={"items": items, "total": len(items)},
+                )
+            except Exception as e:
+                logging.exception("Get history failed")
+                return HistoryResponse(
+                    flag="fail",
+                    message=str(e),
+                    result={"items": [], "total": 0},
+                )
+
 
         # index
         # @self.app.get("/", tags=["Root"])
@@ -833,6 +758,14 @@ class NnDeployServer:
         @self.app.on_event("startup")
         async def _on_startup():
             self.loop = asyncio.get_running_loop()
+
+        @self.app.on_event("shutdown")
+        async def _on_shutdown():
+            try:
+                self.db.close()
+                logging.info("[DB] closed")
+            except Exception:
+                pass
 
         @api.websocket("/ws/progress")
         async def ws_progress(ws: WebSocket):

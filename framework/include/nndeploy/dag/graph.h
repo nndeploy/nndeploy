@@ -166,6 +166,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
@@ -331,7 +332,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status executor();
 
  protected:
-  // 
+  //
   std::vector<std::string> image_url_;
   std::vector<std::string> video_url_;
   std::vector<std::string> audio_url_;

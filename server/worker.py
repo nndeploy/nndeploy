@@ -67,16 +67,22 @@ def poll_plugin_updates(plugin_update_q, resources):
     plugin_dir = Path(resources) / "plugin"
     if plugin_dir.exists():
         load_existing_plugins(plugin_dir)
-    while not plugin_update_q.empty():
-        plugin_path = plugin_update_q.get()
-        if os.path.exists(plugin_path):
-            add_global_import_lib(plugin_path)
-            import_global_import_lib()
-            logging.info("[Plugin] Imported plugin: %s", plugin_path)
-        else:
-            logging.warning("[Plugin] Plugin path not found: %s", plugin_path)
+    while True:
+        try:
+            plugin_path = plugin_update_q.get_nowait()
+        except Empty:
+            break
+        try:
+            if os.path.exists(plugin_path):
+                add_global_import_lib(plugin_path)
+                import_global_import_lib()
+                logging.info("[Plugin] Imported plugin: %s", plugin_path)
+            else:
+                logging.warning("[Plugin] Plugin path not found: %s", plugin_path)
+        except Exception:
+            logging.exception("[Plugin] Import failed for: %s", plugin_path)
 
-def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None:
+def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources) -> None:
     install_taskid_logrecord_factory()
 
     configure_worker_logger(log_q)
@@ -84,6 +90,8 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
 
     executor = GraphExecutor(resources)
     logging.info("Worker PID=%s started", os.getpid())
+
+    pid = os.getpid()
 
     while True:
         try:
@@ -96,8 +104,14 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
         idx, payload = item
         task_id = payload["id"]
 
+        try:
+            progress_q.put_nowait((idx, task_id, {"event": "started", "pid": pid}))
+        except Exception:
+            pass
+
         result_holder = {}
         done_evt = threading.Event()
+        cancel_requested = False
 
         def _exec():
             token = set_task_id_fallback(task_id)
@@ -121,11 +135,26 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
 
         while not done_evt.wait(timeout=PROGRESS_INTERVAL_SEC):
             try:
+                while True:
+                    try:
+                        cancelled_task_id = cancel_event_q.get_nowait()
+                        if cancelled_task_id == task_id:
+                            if not cancel_requested:
+                                cancel_requested = True
+                                executor.interrupt_running()
+                                logging.info("[Worker] task %s: cancel requested", task_id)
+                    except Empty:
+                        break
+            except Exception as e:
+                logging.warning(f"check cancel signal failed: {e}")
+
+            try:
                 status_dict = executor.runner.get_run_status()
             except Exception as e:
                 status_dict = {"error": str(e)}
+
             try:
-                progress_q.put_nowait((idx, task_id, status_dict))
+                progress_q.put_nowait((idx, task_id, {"event": "progress", "pid": pid, "status": status_dict}))
             except Exception:
                 pass
 
@@ -135,8 +164,9 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
             status_dict = executor.runner.get_run_status()
         except Exception as e:
             status_dict = {"error": str(e)}
+
         try:
-            progress_q.put_nowait((idx, task_id, status_dict))
+            progress_q.put_nowait((idx, task_id, {"event": "finished", "pid": pid, "status": status_dict}))
         except Exception:
             pass
 
@@ -165,6 +195,5 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, resources) -> None
                 status = ExecutionStatus(True, f"Run success {total:.2f} ms, {msg}")
 
         result_holder.pop("results", None)
-
         gc.collect()
         result_q.put((idx, status, time_profiler_map))

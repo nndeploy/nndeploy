@@ -149,25 +149,15 @@ base::Status Graph::removeOtherUrl(const std::string &url) {
   }
   return base::kStatusCodeErrorNullParam;
 }
-std::vector<std::string> Graph::getImageUrl() const {
-  return image_url_;
-}
+std::vector<std::string> Graph::getImageUrl() const { return image_url_; }
 
-std::vector<std::string> Graph::getVideoUrl() const {
-  return video_url_;
-}
+std::vector<std::string> Graph::getVideoUrl() const { return video_url_; }
 
-std::vector<std::string> Graph::getAudioUrl() const {
-  return audio_url_;
-}
+std::vector<std::string> Graph::getAudioUrl() const { return audio_url_; }
 
-std::vector<std::string> Graph::getModelUrl() const {
-  return model_url_;
-}
+std::vector<std::string> Graph::getModelUrl() const { return model_url_; }
 
-std::vector<std::string> Graph::getOtherUrl() const {
-  return other_url_;
-}
+std::vector<std::string> Graph::getOtherUrl() const { return other_url_; }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
@@ -815,9 +805,8 @@ Graph::getNodesRunStatusRecursive() {
 }
 
 base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
-  std::vector<Edge *> inputs,
-  std::vector<Edge *> outputs){
-
+                                          std::vector<Edge *> inputs,
+                                          std::vector<Edge *> outputs) {
   for (auto input : inputs) {
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
@@ -826,7 +815,6 @@ base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
       // input_wrapper->consumers_.emplace_back(node_wrapper);
       insertUnique(input_wrapper->consumers_, node_wrapper);
     }
-    
   }
   for (auto output : outputs) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
@@ -1130,6 +1118,14 @@ bool Graph::synchronize() {
     NNDEPLOY_LOGE("executor synchronize failed!");
   }
   return is_synchronize;
+}
+
+bool Graph::interrupt() {
+  bool is_interrupt = executor_->interrupt();
+  if (!is_interrupt) {
+    NNDEPLOY_LOGE("executor interrupt failed.\n");
+  }
+  return is_interrupt;
 }
 
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
@@ -1974,70 +1970,80 @@ base::Status Graph::serialize(rapidjson::Value &json,
   // 序列化URL映射
   if (!image_url_.empty()) {
     rapidjson::Value image_url_array(rapidjson::kArrayType);
-    for (const auto& url : image_url_) {
+    for (const auto &url : image_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       image_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("image_url_", image_url_array, allocator);
   } else {
     rapidjson::Value image_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.jpg", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.jpg",
+        allocator);
     image_url_array.PushBack(url_value, allocator);
     json.AddMember("image_url_", image_url_array, allocator);
   }
 
   if (!video_url_.empty()) {
     rapidjson::Value video_url_array(rapidjson::kArrayType);
-    for (const auto& url : video_url_) {
+    for (const auto &url : video_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       video_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("video_url_", video_url_array, allocator);
   } else {
     rapidjson::Value video_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.mp4", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.mp4",
+        allocator);
     video_url_array.PushBack(url_value, allocator);
     json.AddMember("video_url_", video_url_array, allocator);
   }
 
   if (!audio_url_.empty()) {
     rapidjson::Value audio_url_array(rapidjson::kArrayType);
-    for (const auto& url : audio_url_) {
+    for (const auto &url : audio_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       audio_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("audio_url_", audio_url_array, allocator);
   } else {
     rapidjson::Value audio_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.mp3", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.mp3",
+        allocator);
     audio_url_array.PushBack(url_value, allocator);
     json.AddMember("audio_url_", audio_url_array, allocator);
   }
 
   if (!model_url_.empty()) {
     rapidjson::Value model_url_array(rapidjson::kArrayType);
-    for (const auto& url : model_url_) {
+    for (const auto &url : model_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       model_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("model_url_", model_url_array, allocator);
   } else {
     rapidjson::Value model_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.onnx", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.onnx",
+        allocator);
     model_url_array.PushBack(url_value, allocator);
     json.AddMember("model_url_", model_url_array, allocator);
   }
 
   if (!other_url_.empty()) {
     rapidjson::Value other_url_array(rapidjson::kArrayType);
-    for (const auto& url : other_url_) {
+    for (const auto &url : other_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       other_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("other_url_", other_url_array, allocator);
   } else {
     rapidjson::Value other_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.txt", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.txt",
+        allocator);
     other_url_array.PushBack(url_value, allocator);
     json.AddMember("other_url_", other_url_array, allocator);
   }
@@ -2260,11 +2266,12 @@ base::Status Graph::deserialize(const std::string &json_str) {
           node = node_repository_[i]->node_;
           base::Status status = this->setNodeDesc(node, node_desc);
           if (status != base::kStatusCodeOk) {
-            NNDEPLOY_LOGE("set node desc failed - node: %s (key: %s), desc key: %s, desc name: %s\n", 
-                         node ? node->getName().c_str() : "null", 
-                         node ? node->getKey().c_str() : "null", 
-                         node_desc.getKey().c_str(), 
-                         node_desc.getName().c_str());
+            NNDEPLOY_LOGE(
+                "set node desc failed - node: %s (key: %s), desc key: %s, desc "
+                "name: %s\n",
+                node ? node->getName().c_str() : "null",
+                node ? node->getKey().c_str() : "null",
+                node_desc.getKey().c_str(), node_desc.getName().c_str());
             return status;
           }
         } else {

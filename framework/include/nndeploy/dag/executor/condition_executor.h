@@ -20,6 +20,7 @@ class ConditionExecutor : public Executor {
   void select(int index);
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
   virtual base::Status process();
 

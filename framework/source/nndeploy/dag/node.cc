@@ -715,10 +715,12 @@ base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
+  stop_ = false;
   setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 base::Status Node::deinit() {
+  stop_ = false;
   setInitializedFlag(false);
   return base::kStatusCodeOk;
 }
@@ -747,7 +749,28 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 bool Node::synchronize() { return true; }
 
+// bool Node::interrupt() {
+//   stop_ = true;
+//   return true;
+// }
+
+// bool Node::checkInterruptStatus() { return stop_; }
+
+bool Node::interrupt() {
+  bool first = !stop_.exchange(true, std::memory_order_acq_rel);
+  return true;
+}
+
+bool Node::checkInterruptStatus() {
+  return stop_.load(std::memory_order_acquire);
+}
+
+void Node::clearInterrupt() { stop_.store(false, std::memory_order_release); }
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
+  if (stop_ == true) {
+    return std::vector<Edge *>();
+  }
   // init
   if (initialized_ == false && is_trace_ == false) {
     // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
@@ -992,7 +1015,8 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("required_params_", required_params, allocator);
   rapidjson::Value ui_params(rapidjson::kArrayType);
   for (auto &ui_param : ui_params_) {
-    ui_params.PushBack(rapidjson::Value(ui_param.c_str(), allocator), allocator);
+    ui_params.PushBack(rapidjson::Value(ui_param.c_str(), allocator),
+                       allocator);
   }
   json.AddMember("ui_params_", ui_params, allocator);
 
@@ -1127,7 +1151,8 @@ base::Status Node::serialize(rapidjson::Value &json,
   std::string node_type_str = nodeTypeToString(node_type_);
   json.AddMember("node_type_",
                  rapidjson::Value(node_type_str.c_str(), allocator), allocator);
-  if (node_type_ == NodeType::kNodeTypeInput || node_type_ == NodeType::kNodeTypeOutput) {
+  if (node_type_ == NodeType::kNodeTypeInput ||
+      node_type_ == NodeType::kNodeTypeOutput) {
     std::string io_type_str = ioTypeToString(io_type_);
     json.AddMember("io_type_", rapidjson::Value(io_type_str.c_str(), allocator),
                    allocator);
@@ -1231,8 +1256,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
       }
     }
   }
-  if (json.HasMember("ui_params_") &&
-      json["ui_params_"].IsArray()) {
+  if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
     ui_params_.clear();
     auto &ui_params_array = json["ui_params_"];
     for (int i = 0; i < ui_params_array.Size(); i++) {
