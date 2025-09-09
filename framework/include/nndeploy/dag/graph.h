@@ -324,8 +324,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deserialize(rapidjson::Value &json);
   virtual base::Status deserialize(const std::string &json_str);
 
-  virtual base::Status setSaveIoNodeFlag(bool is_save_io_node);
-  virtual bool getSaveIoNodeFlag();
+  virtual base::Status setRunIoNodeFlag(bool is_run_io_node);
+  virtual bool getRunIoNodeFlag();
 
  protected:
   virtual base::Status construct();
@@ -354,15 +354,13 @@ class NNDEPLOY_CC_API Graph : public Node {
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
   /*
-   * @brief 是否保存io节点
+   * @brief 是否运行io节点
    * @details
-   * 如果为true，则会在序列化时保存io节点，默认为true
-   * 如果为false
-   *  + 则会把input节点的输出，当作整个图的输入保存
-   *  + 则会把output节点的输入，当作整个图的输出保存(construct就需要做这个操作)
+   * 如果为true，运行，默认为true
+   * 如果为false，不运行
    * 注：只有最外层的Graph才会起效果
    */
-  bool save_io_node_flag_ = true;
+  bool run_io_node_flag_ = true;
 };
 
 template <typename T, typename... Args,

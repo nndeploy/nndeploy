@@ -177,6 +177,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status increaseProducers(std::vector<Node *> &producers);
   base::Status increaseConsumers(std::vector<Node *> &consumers);
+  std::vector<Node *> getProducers();
+  std::vector<Node *> getConsumers();
 
   bool requestTerminate();
 

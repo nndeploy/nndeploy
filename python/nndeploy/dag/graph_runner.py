@@ -15,6 +15,7 @@ from .graph import Graph
 from .node import Node, add_global_import_lib, import_global_import_lib
 from .edge import Edge
 from .base import EdgeTypeInfo
+from .base import io_type_to_name
 
 class NnDeployGraphRuntimeError(RuntimeError):
     def __init__(self, status, msg):
@@ -61,6 +62,16 @@ class GraphRunner:
         if self.graph is not None:
             self.graph = None
         import gc; gc.collect()
+        
+    def get_loop_count(self):
+        if self.graph is not None:
+            return self.graph.get_loop_count()
+        return 0
+    
+    def get_parallel_type(self):
+        if self.graph is not None:
+            return self.graph.get_parallel_type()
+        return nndeploy.base.ParallelType.Pipeline
 
     def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
         try:           
@@ -163,7 +174,7 @@ class GraphRunner:
             nndeploy.base.time_point_end("init_" + name)
 
             parallel_type = self.graph.get_parallel_type()
-            results = []
+            results = {}
 
             if args is not None and args.dump:
                 self.graph.dump()
@@ -181,18 +192,42 @@ class GraphRunner:
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            # copy_result = copy.deepcopy(result)
-                            copy_result = result
-                            results.append(copy_result)
+                            # 判断对象是否可以拷贝，如果可以拷贝，采用拷贝的方式
+                            try:
+                                copy_result = copy.deepcopy(result)
+                            except (TypeError, AttributeError, RecursionError) as e:
+                                # 如果无法深拷贝，则直接使用原对象
+                                copy_result = result
+                            comsumers = output.get_consumers()
+                            for consumer in comsumers:
+                                consumer_name = consumer.get_name()
+                                io_type = io_type_to_name[consumer.get_io_type()]
+                                if consumer_name not in results:
+                                    results[consumer_name] = {}
+                                if io_type not in results[consumer_name]:
+                                    results[consumer_name][io_type] = []
+                                results[consumer_name][io_type].append(copy_result)
             if parallel_type == nndeploy.base.ParallelType.Pipeline:
                 for i in range(count):
                     outputs = self.graph.get_all_output()
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            # copy_result = copy.deepcopy(result)
-                            copy_result = result
-                            results.append(copy_result)
+                            # 判断对象是否可以拷贝，如果可以拷贝，采用拷贝的方式
+                            try:
+                                copy_result = copy.deepcopy(result)
+                            except (TypeError, AttributeError, RecursionError) as e:
+                                # 如果无法深拷贝，则直接使用原对象
+                                copy_result = result
+                            comsumers = output.get_consumers()
+                            for consumer in comsumers:
+                                consumer_name = consumer.get_name()
+                                io_type = io_type_to_name[consumer.get_io_type()]
+                                if consumer_name not in results:
+                                    results[consumer_name] = {}
+                                if io_type not in results[consumer_name]:
+                                    results[consumer_name][io_type] = []
+                                results[consumer_name][io_type].append(copy_result)
             flag = self.graph.synchronize()
             if not flag:
                 raise RuntimeError(f"synchronize failed")
@@ -234,6 +269,7 @@ class GraphRunner:
             time_profiler_map["init_time"] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
             time_profiler_map["run_time"] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
 
+            # print(results)
             return time_profiler_map, results, status, status.get_desc()
         
         except NnDeployGraphRuntimeError as e:

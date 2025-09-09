@@ -255,6 +255,26 @@ base::Status Edge::increaseProducers(std::vector<Node *> &producers) {
 base::Status Edge::increaseConsumers(std::vector<Node *> &consumers) {
   return abstact_edge_->increaseConsumers(consumers);
 }
+std::vector<Node *> Edge::getProducers() {
+  return abstact_edge_->getProducers();
+}
+std::vector<Node *> Edge::getConsumers() {
+  if (abstact_edge_ == nullptr) {
+    return std::vector<Node *>();
+  }
+  
+  std::vector<Node *> consumers = abstact_edge_->getConsumers();
+  std::vector<Node *> result;
+  for (auto consumer : consumers) {
+    if (consumer == nullptr) {
+      NNDEPLOY_LOGE("consumer is nullptr\n");
+      continue;
+    }
+    result.push_back(consumer);
+  } 
+
+  return result;
+}
 
 bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
 

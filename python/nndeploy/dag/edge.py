@@ -114,6 +114,12 @@ class Edge(_C.dag.Edge):
         
     def increase_consumers(self, consumers: list[_C.dag.Node]):
         return super().increase_consumers(consumers)
+    
+    def get_producers(self) -> list[_C.dag.Node]:
+        return super().get_producers()
+    
+    def get_consumers(self) -> list[_C.dag.Node]:
+        return super().get_consumers()
         
     def request_terminate(self) -> bool:
         return super().request_terminate()
