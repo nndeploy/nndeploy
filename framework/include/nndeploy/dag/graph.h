@@ -324,6 +324,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deserialize(rapidjson::Value &json);
   virtual base::Status deserialize(const std::string &json_str);
 
+  virtual base::Status setRunIoNodeFlag(bool is_run_io_node);
+  virtual bool getRunIoNodeFlag();
+
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
@@ -350,6 +353,14 @@ class NNDEPLOY_CC_API Graph : public Node {
       external_param_repository_;
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
+  /*
+   * @brief 是否运行io节点
+   * @details
+   * 如果为true，运行，默认为true
+   * 如果为false，不运行
+   * 注：只有最外层的Graph才会起效果
+   */
+  bool run_io_node_flag_ = true;
 };
 
 template <typename T, typename... Args,

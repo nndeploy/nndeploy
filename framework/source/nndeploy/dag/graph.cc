@@ -1735,7 +1735,40 @@ base::Status Graph::construct() {
     }
   }
 
+  // 找到运行节点
+  std::vector<NodeWrapper *> run_node_repository;
+  for (auto node_wrapper : node_repository_) {
+    bool has_input_or_output = false;
+    for (auto edge_wrapper : edge_repository_) {
+      if (std::find(edge_wrapper->producers_.begin(),
+                    edge_wrapper->producers_.end(),
+                    node_wrapper) != edge_wrapper->producers_.end() ||
+          std::find(edge_wrapper->consumers_.begin(),
+                    edge_wrapper->consumers_.end(),
+                    node_wrapper) != edge_wrapper->consumers_.end()) {
+        has_input_or_output = true;
+        break;
+      }
+    }
+    if (has_input_or_output) {
+      run_node_repository.emplace_back(node_wrapper);
+    }
+  }
+  run_node_repository_ = run_node_repository;
+
   if (!is_inner_) {
+    for (auto node_wrapper : run_node_repository_) {
+      if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+        // NNDEPLOY_LOGI("graph[%s] output node[%s] found!\n", name_.c_str(),
+        //               node_wrapper->node_->getName().c_str());
+        auto inputs = node_wrapper->node_->getAllInput();
+        for (auto input : inputs) {
+          // NNDEPLOY_LOGI("graph[%s] output[%s] found!\n", name_.c_str(),
+          //               input->getName().c_str());
+          insertUnique(outputs_, input);
+        }
+      }
+    }
     for (auto iter : outputs_) {
       // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
       iter->markGraphOutput();
@@ -1818,25 +1851,25 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   // TODO
-  std::vector<NodeWrapper *> run_node_repository;
-  for (auto node_wrapper : node_repository_) {
-    bool has_input_or_output = false;
-    for (auto edge_wrapper : edge_repository_) {
-      if (std::find(edge_wrapper->producers_.begin(),
-                    edge_wrapper->producers_.end(),
-                    node_wrapper) != edge_wrapper->producers_.end() ||
-          std::find(edge_wrapper->consumers_.begin(),
-                    edge_wrapper->consumers_.end(),
-                    node_wrapper) != edge_wrapper->consumers_.end()) {
-        has_input_or_output = true;
-        break;
-      }
-    }
-    if (has_input_or_output) {
-      run_node_repository.emplace_back(node_wrapper);
-    }
-  }
-  run_node_repository_ = run_node_repository;
+  // std::vector<NodeWrapper *> run_node_repository;
+  // for (auto node_wrapper : node_repository_) {
+  //   bool has_input_or_output = false;
+  //   for (auto edge_wrapper : edge_repository_) {
+  //     if (std::find(edge_wrapper->producers_.begin(),
+  //                   edge_wrapper->producers_.end(),
+  //                   node_wrapper) != edge_wrapper->producers_.end() ||
+  //         std::find(edge_wrapper->consumers_.begin(),
+  //                   edge_wrapper->consumers_.end(),
+  //                   node_wrapper) != edge_wrapper->consumers_.end()) {
+  //       has_input_or_output = true;
+  //       break;
+  //     }
+  //   }
+  //   if (has_input_or_output) {
+  //     run_node_repository.emplace_back(node_wrapper);
+  //   }
+  // }
+  // run_node_repository_ = run_node_repository;
   status = executor_->init(edge_repository_, run_node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
@@ -2311,6 +2344,14 @@ base::Status Graph::deserialize(const std::string &json_str) {
 // base::Status Graph::saveJson(const std::string &path) {
 //   return Node::serialize(path);
 // }
+
+base::Status Graph::setRunIoNodeFlag(bool is_run_io_node) {
+  run_io_node_flag_ = is_run_io_node;
+  return base::kStatusCodeOk;
+}
+bool Graph::getRunIoNodeFlag() {
+  return run_io_node_flag_;
+}
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
