@@ -847,7 +847,7 @@ class NnDeployServer:
                 logging.warning("[notify_task_progress] Event loop not ready or not running")
 
     # task done notify
-    def notify_task_done(self, task_id: str, status: ExecutionStatus, time_profile_map: Dict):
+    def notify_task_done(self, task_id: str, status: ExecutionStatus, results: Dict, time_profile_map: Dict):
         task_info = self.queue.get_task_by_id(task_id)
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
@@ -868,6 +868,33 @@ class NnDeployServer:
                 )
             else:
                 logging.warning("[notify_task_done] Event loop not ready or not running")
+
+        # send graph output
+        show_items = []
+        try:
+            for node_name, out_map in (results or {}).items():
+                if not isinstance(out_map, dict):
+                    continue
+                if "String" not in out_map:
+                    continue
+                img_val = out_map.get("String")
+                img_list = img_val if isinstance(img_val, list) else [img_val]
+                text_list = [str(x) for x in img_list]
+                show_items.append({"name": node_name, "text": text_list})
+        except Exception as e:
+            logging.exception("[notify_task_done] build show_items failed: %s", e)
+
+        if show_items:
+            payload = {
+                "flag": status.str,
+                "message": status.messages,
+                "result": {"task_id": task_id, "type": "show", "string": show_items},
+            }
+            for ws in ws_set.copy():
+                if self.loop and self.loop.is_running():
+                    asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+                else:
+                    logging.warning("[notify_task_done] Event loop not ready or not running")
 
         # send graph run info
         flag = status.str

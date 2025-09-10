@@ -277,6 +277,7 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
     param_ = std::make_shared<PromptParam>();
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
   virtual ~PromptNode() {}
   virtual base::Status run();
@@ -319,6 +320,7 @@ class NNDEPLOY_CC_API PrintNode : public dag::Node {
     desc_ = "Print TokenizerText content and save to temporary output file.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
   virtual ~PrintNode() {}
   virtual base::Status run();

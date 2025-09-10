@@ -26,6 +26,7 @@ class NnDeployGraphRuntimeError(RuntimeError):
 class GraphRunner:
     def __init__(self):
         self.graph = None
+        self.is_cancel = False
 
     def _check_status(self, status):
         if status != nndeploy.base.StatusCode.Ok:
@@ -40,6 +41,7 @@ class GraphRunner:
     def cancel_running(self):
         if self.graph is not None:
             flag = self.graph.interrupt()
+            self.is_cancel = True
             if not flag:
                 raise RuntimeError(f"interrupt failed")
 
@@ -74,9 +76,12 @@ class GraphRunner:
         return nndeploy.base.ParallelType.Pipeline
 
     def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
+        self.is_cancel = False
+        did_deinit = False
         try:           
             nndeploy.base.time_profiler_reset()
-            
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
             # Update graph_json_str
             if args is not None and args.node_param != []:
                 graph_json_obj = json.loads(graph_json_str)
@@ -125,6 +130,9 @@ class GraphRunner:
                 
                 graph_json_str = json.dumps(graph_json_obj)
 
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nndeploy.base.time_point_start("deserialize_" + name)
             self.graph, status = self._build_graph(graph_json_str, name)
             self._check_status(status)
@@ -134,6 +142,9 @@ class GraphRunner:
             self.graph.set_debug_flag(False)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
             
             if args is not None:
                 if args.parallel_type != "":
@@ -168,6 +179,9 @@ class GraphRunner:
                                 print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
                         i += 1
 
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nndeploy.base.time_point_start("init_" + name)
             status = self.graph.init()
             self._check_status(status)
@@ -178,6 +192,9 @@ class GraphRunner:
 
             if args is not None and args.dump:
                 self.graph.dump()
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
 
             nndeploy.base.time_point_start("sum_" + name)
             count = self.graph.get_loop_count()
@@ -232,7 +249,10 @@ class GraphRunner:
             if not flag:
                 raise RuntimeError(f"synchronize failed")
             nndeploy.base.time_point_end("sum_" + name)
-            
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nodes_name = self.graph.get_nodes_name_recursive()
             
             # print(time_profiler_map)
@@ -242,9 +262,13 @@ class GraphRunner:
             # run_status_map = self.get_run_status()
             # print(run_status_map)
 
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nndeploy.base.time_point_start("deinit_" + name)
             status = self.graph.deinit()
             self._check_status(status)
+            did_deinit = True
 
             is_release_cuda_cache = True
             if is_release_cuda_cache:
@@ -274,3 +298,19 @@ class GraphRunner:
         
         except NnDeployGraphRuntimeError as e:
             return {}, {}, e.status, e.msg
+
+        finally:
+            try:
+                if self.graph is not None:
+                    if not did_deinit:
+                        try:
+                            self.graph.deinit()
+                        except Exception:
+                            pass
+                    try:
+                        import torch
+                        torch.cuda.empty_cache()
+                    except Exception:
+                        pass
+            finally:
+                pass

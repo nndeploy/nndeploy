@@ -31,7 +31,7 @@ class Edge(_C.dag.Edge):
         
     def construct(self):
         return super().construct()
-        
+
     def set(self, data: any):
         # 检查传入的数据是否为nndeploy框架中的Buffer或Tensor类型
         # isinstance()函数用于判断对象是否为指定类型的实例

@@ -88,7 +88,7 @@ class TaskQueue:
             if worker_pid:
                 target.worker_pid = worker_pid
 
-    def task_done(self, idx: int, status: ExecutionStatus, time_profile_map: Dict):
+    def task_done(self, idx: int, status: ExecutionStatus, results: Dict, time_profile_map: Dict):
         with self._mtx:
             rec = self._active.pop(idx, None)
             if rec is None:
@@ -111,7 +111,7 @@ class TaskQueue:
                 "worker_pid": rec.worker_pid,
                 "time_profile": time_profile_map,
             }
-            self.server.notify_task_done(task_id, status, time_profile_map)
+            self.server.notify_task_done(task_id, status, results, time_profile_map)
 
     def get_current_queue(self):
         with self._mtx:

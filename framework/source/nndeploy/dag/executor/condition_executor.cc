@@ -16,6 +16,10 @@ base::Status ConditionExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
@@ -57,7 +61,7 @@ base::Status ConditionExecutor::process() {
   Node *cur_node = this->node_repository_[index_]->node_;
   if (cur_node->checkInterruptStatus() == true) {
     cur_node->setRunningFlag(false);
-    return base::kStatusCodeOk;
+    return base::kStatusCodeNodeInterrupt;
   }
   // NNDEPLOY_LOGE("ConditionExecutor::process() index:%d\n", index_);
   // NNDEPLOY_LOGE("ConditionExecutor::process() cur_node:%s\n",

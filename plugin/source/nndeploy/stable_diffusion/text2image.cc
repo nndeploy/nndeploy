@@ -23,6 +23,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     desc_ = "Create TokenizerText from input prompt string.";
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
 
   virtual ~InitTokenText() {}

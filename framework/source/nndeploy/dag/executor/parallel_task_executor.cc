@@ -26,6 +26,10 @@ base::Status ParallelTaskExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
