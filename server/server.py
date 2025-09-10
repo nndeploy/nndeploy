@@ -21,6 +21,7 @@ import sqlite3
 import shutil
 import requests
 import contextvars
+import unicodedata
 import nndeploy.dag
 
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
@@ -114,6 +115,14 @@ class NnDeployServer:
             s = val.strip()
             return s or None
         s = str(val).strip()
+
+    def _norm_str(self, s: str | None) -> str | None:
+        if s is None:
+            return None
+        s = str(s)
+        s = unicodedata.normalize("NFC", s)
+        s = s.strip()
+        return s
 
     def _generate_unique_path(self, desired: Path) -> Path:
         if not desired.exists():
@@ -264,18 +273,38 @@ class NnDeployServer:
 
                 if id:
                     dst = self.db.get_workflow_path(id)
+                    name = self.db.get_workflow_name(id)
                     if not dst:
                         raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
-                    self._write_json_replace(dst, data)
-                    cover, req = self._find_cover_and_requirements(dst)
-                    self.db.update_workflow_metadata(id, dst, cover, req)
+                    save_name = data.get("name_")
+                    name = self._norm_str(name)
+                    save_name = self._norm_str(save_name)
+                    if name == save_name:
+                        self._write_json_replace(dst, data)
+                        cover, req = self._find_cover_and_requirements(dst)
+                        self.db.update_workflow_metadata(id, save_name, dst, cover, req)
 
-                    return WorkFlowSaveResponse(
-                        flag="success",
-                        message="updated",
-                        result={"id": id}
-                    )
+                        return WorkFlowSaveResponse(
+                            flag="success",
+                            message="updated",
+                            result={"id": id}
+                        )
+                    else:
+                        base_name = save_name if save_name else f"{uuid.uuid4()}.json"
+                        if not base_name.endswith((".json", ".yml", ".yaml")):
+                            base_name = f"{base_name}.json"
+                        desired = self.workflow_dir / base_name
+                        dst = self._generate_unique_path(desired)
 
+                        self._write_json_replace(dst, data)
+                        cover, req = self._find_cover_and_requirements(dst)
+                        wid = self.db.insert_workflow(save_name, dst, cover, req)
+
+                        return WorkFlowSaveResponse(
+                            flag="success",
+                            message="created",
+                            result={"id": wid}
+                        )
                 else:
                     name_from_json = data.get("name_")
                     base_name = name_from_json if name_from_json else f"{uuid.uuid4()}.json"
@@ -286,7 +315,7 @@ class NnDeployServer:
 
                     self._write_json_replace(dst, data)
                     cover, req = self._find_cover_and_requirements(dst)
-                    wid = self.db.insert_workflow(dst, cover, req)
+                    wid = self.db.insert_workflow(name_from_json, dst, cover, req)
 
                     return WorkFlowSaveResponse(
                         flag="success",
@@ -320,9 +349,11 @@ class NnDeployServer:
             dst = self._generate_unique_path(desired)
             try:
                 content = await file.read()
+                data = json.loads(content.decode())
+                name = data["name_"]
                 self._write_json_replace(dst, content)
                 cover, req = self._find_cover_and_requirements(dst)
-                wid = self.db.insert_workflow(dst, cover, req)
+                wid = self.db.insert_workflow(name, dst, cover, req)
 
                 return UploadResponse(
                     flag="success",
@@ -386,16 +417,15 @@ class NnDeployServer:
             try:
                 for jf in self.workflow_dir.rglob("*.json"):
                     try:
-                        wid = self.db.upsert_workflow_by_path(jf)
+                        with jf.open("r", encoding="utf-8") as f:
+                            content = json.load(f)
+                        wid = self.db.upsert_workflow_by_path(jf, content.get("name_"))
 
                         id_cover = self.db.get_workflow_id_and_cover_by_path(jf)
                         if not id_cover:
                             logging.warning(f"[workflow->db] missing id for {jf}")
                             continue
                         wid, _cover = id_cover
-
-                        with jf.open("r", encoding="utf-8") as f:
-                            content = json.load(f)
 
                         results.append({
                             "id": wid,

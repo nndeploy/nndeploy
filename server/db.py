@@ -81,14 +81,16 @@ class DB:
         return name, ext, size
 
     # ---------- workflows ----------
-    def insert_workflow(self, file_path: Path,
+    def insert_workflow(self,
+                        name: str,
+                        file_path: Path,
                         cover: Optional[str] = None,
                         requirements: Optional[str] = None) -> str:
         """
         Insert workflow row for a *new* file. Returns id (uuid).
         """
         wid = str(uuid.uuid4())
-        name, ext, size = self._stat(file_path)
+        _, ext, size = self._stat(file_path)
         abs_path = str(file_path.resolve())
 
         cur = self.conn.cursor()
@@ -102,13 +104,13 @@ class DB:
         self.conn.commit()
         return wid
 
-    def update_workflow_metadata(self, id_: str, file_path: Path,
+    def update_workflow_metadata(self, id: str, name: str, file_path: Path,
                                  cover: Optional[str] = None,
                                  requirements: Optional[str] = None) -> None:
         """
         Update metadata (name/ext/size/cover/requirements) of a workflow row by id.
         """
-        name, ext, size = self._stat(file_path)
+        _, ext, size = self._stat(file_path)
         cur = self.conn.cursor()
         cur.execute(
             """
@@ -116,11 +118,11 @@ class DB:
             SET name = ?, ext = ?, size = ?, cover = ?, requirements = ?
             WHERE id = ?
             """,
-            (name, ext, size, cover, requirements, id_)
+            (name, ext, size, cover, requirements, id)
         )
         self.conn.commit()
 
-    def upsert_workflow_by_path(self, file_path: Path,
+    def upsert_workflow_by_path(self, file_path: Path, name: str,
                                 cover: Optional[str] = None,
                                 requirements: Optional[str] = None) -> str:
         """
@@ -128,18 +130,19 @@ class DB:
         if not, insert a new row. Returns id.
         """
         abs_path = str(file_path.resolve())
+
         cur = self.conn.cursor()
         row = cur.execute("SELECT id FROM workflows WHERE path = ?", (abs_path,)).fetchone()
         if row:
             wid = row["id"]
             try:
-                self.update_workflow_metadata(wid, file_path, cover, requirements)
+                self.update_workflow_metadata(wid, name, file_path, cover, requirements)
             except Exception as e:
                 logging.warning(f"[DB.upsert_workflow_by_path] update failed for {abs_path}: {e}")
             return wid
         else:
             try:
-                return self.insert_workflow(file_path, cover, requirements)
+                return self.insert_workflow(name, file_path, cover, requirements)
             except Exception as e:
                 logging.warning(f"[DB.upsert_workflow_by_path] insert failed for {abs_path}: {e}")
                 raise
@@ -148,6 +151,11 @@ class DB:
         cur = self.conn.cursor()
         row = cur.execute("SELECT path FROM workflows WHERE id = ?", (id_,)).fetchone()
         return Path(row["path"]) if row else None
+
+    def get_workflow_name(self, id_: str) -> Optional[Path]:
+        cur = self.conn.cursor()
+        row = cur.execute("SELECT name FROM workflows WHERE id = ?", (id_,)).fetchone()
+        return Path(row["name"]) if row else None
 
     def get_workflow_id_and_cover_by_path(self, file_path: Path) -> Optional[Tuple[str, Optional[str]]]:
         abs_path = str(file_path.resolve())
