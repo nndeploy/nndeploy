@@ -327,6 +327,10 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status setRunIoNodeFlag(bool is_run_io_node);
   virtual bool getRunIoNodeFlag();
 
+  virtual void setNodeValue(const std::string &node_name, const std::string &key, const std::string &value);
+  virtual void setNodeValue(std::map<std::string, std::map<std::string, std::string>> node_value_map);
+  virtual std::map<std::string, std::map<std::string, std::string>> getNodeValue();
+
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
@@ -361,6 +365,16 @@ class NNDEPLOY_CC_API Graph : public Node {
    * 注：只有最外层的Graph才会起效果
    */
   bool run_io_node_flag_ = true;
+  /*
+   * @brief 节点值
+   * @details
+   * 用于存储节点值
+   * 格式为：{node_name: {key: value}}
+   * 注：node_name为节点名称
+   * 注：key为节点值的key
+   * 注：value为节点值的value
+  */
+  std::map<std::string, std::map<std::string, std::string>> node_value_map_;
 };
 
 template <typename T, typename... Args,

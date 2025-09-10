@@ -100,7 +100,7 @@ IOType stringToIoType(const std::string& io_type_str) {
     return IOType::kIOTypeCamera;
   } else if (io_type_str == "Microphone") {
     return IOType::kIOTypeMicrophone;
-  }else if (io_type_str == "Model") {
+  } else if (io_type_str == "Model") {
     return IOType::kIOTypeModel;
   } else if (io_type_str == "Dir") {
     return IOType::kIOTypeDir;
@@ -150,7 +150,7 @@ IOType stringToIoType(const std::string& io_type_str) {
 
 std::string removeNamespace(const std::string& type_name_with_namespace) {
   std::string name = type_name_with_namespace;
-  
+
   // 安全的字符串替换函数，检查find()的返回值
   auto safe_replace = [&](const std::string& from, const std::string& to) {
     size_t pos = name.find(from);
@@ -158,7 +158,7 @@ std::string removeNamespace(const std::string& type_name_with_namespace) {
       name.replace(pos, from.length(), to);
     }
   };
-  
+
   // 替换C++类型为Python对应类型
   safe_replace("cv::Mat", "numpy.ndarray");
   safe_replace("std::vector", "list");

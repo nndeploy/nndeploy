@@ -127,3 +127,5 @@ dist-storybook/
 # 不忽略json文件
 !*.json
 
+android/
+

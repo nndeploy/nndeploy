@@ -50,6 +50,8 @@ class NNDEPLOY_CC_API GraphRunner {
   void set_debug(bool is_debug);
   void set_parallel_type(base::ParallelType parallel_type);
   void set_loop_max_flag(bool is_loop_max_flag);
+  void set_node_value(const std::string& node_name, const std::string& key,
+                      const std::string& value);
 
  protected:
   /**
@@ -77,6 +79,7 @@ class NNDEPLOY_CC_API GraphRunner {
   bool is_debug_ = false;
   base::ParallelType parallel_type_ = base::ParallelType::kParallelTypeNone;
   bool is_loop_max_flag_ = true;
+  std::map<std::string, std::map<std::string, std::string>> node_value_map_;
 };
 
 }  // namespace dag
