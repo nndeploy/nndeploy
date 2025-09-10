@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -662,7 +662,7 @@ class NnDeployServer:
 
         # preview
         @api.get("/preview", tags=["Files"],
-                summary="preview images/videos")
+                summary="preview images/videos/txt")
         async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
             file_path = Path(file_path)
             # unsafe process for relative path
@@ -694,6 +694,9 @@ class NnDeployServer:
                 ".avi": "video/x-msvideo",
                 ".mkv": "video/x-matroska",
                 ".webm": "video/webm",
+
+                # ---- text ----
+                ".txt": "text/plain",
             }
 
             mime = MIME_MAP.get(f.suffix.lower())
@@ -702,11 +705,14 @@ class NnDeployServer:
                     status_code=400,
                     detail="Unsupported preview type"
                 )
-            return FileResponse(f, media_type=mime, filename=None)
+            if mime == "text/plain":
+                return PlainTextResponse(f.read_text(encoding="utf-8"))
+            else:
+                return FileResponse(f, media_type=mime, filename=None)
 
         # download
         @api.get("/download", tags=["Files"],
-                summary="download images/videos/models")
+                summary="download images/videos/models/txt")
         async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
             f = Path(file_path)
             if not f.exists():
@@ -729,7 +735,10 @@ class NnDeployServer:
                 ".webm": "video/webm",
 
                 # ---- model ----
-                ".onnx": "application/octet-stream"
+                ".onnx": "application/octet-stream",
+
+                # ---- text ----
+                ".txt": "text/plain"
             }
 
             mime = MIME_MAP.get(f.suffix.lower())
