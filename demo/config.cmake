@@ -58,6 +58,10 @@ if(ENABLE_NNDEPLOY_DAG)
   include(${ROOT_PATH}/demo/run_json/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_LOOP)
+  include(${ROOT_PATH}/demo/loop/config.cmake)
+endif()
+
 ################################################################################
 
 # plugin
