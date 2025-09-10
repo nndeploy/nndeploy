@@ -79,5 +79,10 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/matting/config.cmake)
 endif()
 
+# # dag loop
+if(ENABLE_NNDEPLOY_PLUGIN_DAG_LOOP)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/loop/config.cmake)
+endif()
+
 # appedn list
 # message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")
