@@ -329,6 +329,7 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
 
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
+    setRunningFlag(true);
 
     auto schedule_param_ =
         dynamic_cast<DDIMSchedulerParam *>(ddim_schedule_->getParam());
