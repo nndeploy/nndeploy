@@ -5,7 +5,7 @@ import {
   Field,
   FieldArray,
 } from "@flowgram.ai/free-layout-editor";
-import { Button, IconButton, Input, InputNumber, Popover, Select, SideSheet, Switch, TextArea, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { Button, IconButton, Input, InputNumber, Popover, Select, SideSheet, Switch, TextArea, Tooltip, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -55,9 +55,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     "id",
     "key_",
     // "param_",
-   // "inputs_",
-   // "outputs_",
-   // "node_repository_",
+    // "inputs_",
+    // "outputs_",
+    // "node_repository_",
     'is_dynamic_input_',
     'is_dynamic_output_',
     "is_graph_",
@@ -196,15 +196,43 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                               console.log('inputs_ childField.value.id', childField.value.id)
                               return (
-                                <FormItem
-                                  name={`${childField.value.type_}`}///${childField.value.desc_}
-                                  type="boolean"
-                                  description={<> <p>type: {childField.value.type_}</p>
-                                    <p>desc: {childField.value.desc_}</p></>}
-                                  required={false}
-                                //labelWidth={40}
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    marginBottom: 6,
+                                    width: '100%',
+                                    position: 'relative',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                  }}
                                 >
-                                  <Popover content={childField.value.desc_} position="right">
+                                  <div
+                                    style={{
+                                      justifyContent: 'start',
+                                      alignItems: 'center',
+                                      color: 'var(--semi-color-text-0)',
+                                      width: 118,
+                                      position: 'relative',
+                                      display: 'flex',
+                                      columnGap: 4,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+
+                                    <Tooltip content={<>
+                                      <p>type: {childField.value.type_}</p>
+                                      <p>desc: {childField.value.desc_}</p>
+                                    </>}>{childField.value.type_}</Tooltip>
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      flexGrow: 1,
+                                      minWidth: 0,
+                                    }}
+                                  >
                                     <div
                                       className="connection-point connection-point-left"
                                       data-port-id={childField.value.id}
@@ -212,8 +240,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                       data-port-desc={childField.value.desc_}
                                     //data-port-wangba={childField.value.desc_}
                                     ></div>
-                                  </Popover>
-                                </FormItem>
+                                  </div>
+                                </div>
                               );
                             }}
                           </Field>
@@ -233,24 +261,70 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                         <Field<any> key={child.name} name={child.name}>
                           {({ field: childField, fieldState: childState }) => {
 
-                            console.log('outputs_ childField.value.id', childField.value.id)
-                            return <FormItem
+                            //console.log('outputs_ childField.value.id', childField.value.id)
+                            return <>
+
+                              {/* <FormItem
                               name={`${childField.value.type_}`}///${childField.value.desc_}
                               description={<> <p>type: {childField.value.type_}</p>
                                 <p>desc: {childField.value.desc_}</p></>}
                               type="boolean"
                               required={false}
 
-                            >
+                            > */}
 
                               <div
-                                className="connection-point connection-point-right"
-                                data-port-id={childField.value.id}
-                                data-port-type="output"
-                                data-port-desc={childField.value.desc_}
-                              ></div>
+                                style={{
+                                  fontSize: 12,
+                                  marginBottom: 6,
+                                  width: '100%',
+                                  position: 'relative',
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    justifyContent: 'end',
+                                    alignItems: 'center',
+                                    color: 'var(--semi-color-text-0)',
+                                    width: 118,
+                                    position: 'relative',
+                                    display: 'flex',
+                                    columnGap: 4,
+                                    flexShrink: 0,
+                                  }}
+                                >
 
-                            </FormItem>
+                                  <Tooltip content={<>
+                                    <p>type: {childField.value.type_}</p>
+                                    <p>desc: {childField.value.desc_}</p>
+                                  </>}>{childField.value.type_}</Tooltip>
+                                </div>
+
+                                <div
+                                  style={{
+                                    flexGrow: 1,
+                                    minWidth: 0,
+                                  }}
+                                >
+
+                                  <div
+                                    className="connection-point connection-point-right"
+                                    data-port-id={childField.value.id}
+                                    data-port-type="output"
+                                    data-port-desc={childField.value.desc_}
+                                  >
+
+                                  </div>
+                                </div>
+                              </div>
+
+
+                              {/* </FormItem> */}
+                            </>
                           }}
                         </Field>
                       ))}
@@ -331,7 +405,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                             field.onChange(value)
                           }}
                           onRemove={() => { }}
-                          onFieldRename={()=>{
+                          onFieldRename={() => {
 
                           }}
 
@@ -341,7 +415,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                           nodeList={nodeList}
                           paramTypes={paramTypes}
                           isLast={index == basicFields.length - 1}
-                          topField = {true}
+                          topField={true}
 
                         />
                       }}

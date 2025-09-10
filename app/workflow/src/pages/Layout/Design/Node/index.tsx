@@ -74,7 +74,7 @@ const NodeTree: React.FC = () => {
         onDragStart={(dragEvent) => onDragStart(item.nodeEntity, dragEvent)}
       >
         <Typography.Text
-          ellipsis={{ showTooltip: true }}
+          ellipsis={{ showTooltip: false }}
           style={{ width: "calc(100% - 48px)" }}
           className="label"
         >

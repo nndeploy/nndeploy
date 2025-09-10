@@ -1,0 +1,142 @@
+.templateDrawer {
+  z-index: 100;
+
+  .area-template {
+
+    width: 1230px;
+    margin: 2.5em auto 0;
+
+    .items {
+
+      margin-top: 1em;
+      display: flex;
+      flex-wrap: wrap;
+      //justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+
+      .item {
+
+        width: 300px;
+        height: 180px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+
+        .title {
+          line-height: 1.25rem;
+          font-weight: 600;
+          color: #354052
+        }
+
+        .developer {
+          color: #676f83;
+          line-height: 18px;
+          font-weight: 500;
+          margin: .2em 0;
+          font-size: 12px;
+        }
+
+        .source {
+          margin: 5px 0;
+
+        }
+
+        background-color: white;
+
+        border-width: .5px;
+        border-radius: .5rem;
+
+        .image-cover {
+          // width: 100%;
+          // height: 100%;
+          width: 320px;
+          height: 180px;
+
+          img {
+            border-radius: .5rem;
+          }
+
+        }
+
+        .item-content {
+          visibility: hidden;
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+
+          .desc {
+            flex: 1;
+          }
+
+        }
+
+        &.noCover {
+          .image-cover {
+            display: none;
+          }
+
+          .item-content {
+            visibility: visible;
+          }
+
+          .bottom {
+
+            display: block;
+
+          }
+
+        }
+
+        &:hover {
+          .image-cover {
+            //visibility: visible;
+            display: none;
+          }
+
+          .item-content {
+            visibility: visible;
+          }
+
+        }
+
+
+
+        .desc {
+          font-weight: 600;
+          color: #676f83;
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 16px;
+
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 3;
+
+        }
+
+        .bottom {
+
+          display: none;
+          margin-top: .2em;
+        }
+
+        &:hover {
+
+          .bottom {
+            display: block;
+          }
+
+          .desc {
+            //-webkit-line-clamp: 2;
+          }
+
+        }
+
+      }
+
+    }
+  }
+}

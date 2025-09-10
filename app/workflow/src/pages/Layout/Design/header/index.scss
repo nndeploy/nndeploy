@@ -6,6 +6,10 @@
    justify-content: space-between;
    padding: 0 8px 0 0;
 
+   .helpMenu {
+    margin-bottom: 0px;
+   }
+
    .semi-avatar-small {
      width: 16px;
      height: 16px;
@@ -24,4 +28,17 @@
      height: 40px;
      margin-right: 16px;
    }
+ }
+
+ .helpItem {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   text-decoration: none;
+   color: inherit; 
+  //  &:hover {
+  //   color: #1890ff;
+  //  }
+
+
  }

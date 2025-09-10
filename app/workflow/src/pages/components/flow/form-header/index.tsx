@@ -33,7 +33,7 @@ export function FormHeader() {
          <Field name="name_">
           {({ field: { value, onChange }, fieldState }: FieldRenderProps<string>) => (
             <div style={{ height: 24 }}>
-              <Text ellipsis={{ showTooltip: true }}>{value}</Text>
+              <Text ellipsis={{ showTooltip: false }}>{value}</Text>
               <Feedback errors={fieldState?.errors} />
             </div>
           )}
