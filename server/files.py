@@ -195,7 +195,7 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
 
 @router.get("", response_model=FileListResponse, summary="list upload dir files")
 async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dict[str, str]]]:
-    allowed_dirs = ["images", "videos", "models"]
+    allowed_dirs = ["images", "videos", "models", "audios", "others"]
     file_info_list: List[Dict[str, str]] = []
 
     def traverse_directory(path: Path, parent_id: str = "") -> None:
@@ -327,7 +327,7 @@ async def delete_file(file_path: str
     "/upload",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="upload images/videos/models",
+    summary="upload images/videos/models/audios/others",
 )
 async def upload_file(
     file_path: str,
