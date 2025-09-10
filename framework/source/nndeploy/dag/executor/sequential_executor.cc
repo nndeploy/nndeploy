@@ -19,6 +19,10 @@ base::Status SequentialExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
     iter->node_->setInitializedFlag(false);
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->init();
@@ -60,7 +64,7 @@ base::Status SequentialExecutor::run() {
 
     if (iter->node_->checkInterruptStatus() == true) {
       iter->node_->setRunningFlag(false);
-      return base::kStatusCodeOk;
+      return base::kStatusCodeNodeInterrupt;
     }
 
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {

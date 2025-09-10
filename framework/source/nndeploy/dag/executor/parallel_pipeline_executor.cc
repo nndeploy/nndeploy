@@ -17,6 +17,10 @@ base::Status ParallelPipelineExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
@@ -157,7 +161,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
           pipeline_cv_.notify_all();
           NNDEPLOY_LOGW("[%s] interrupted after init()",
                         iter->node_->getName().c_str());
-          return base::kStatusCodeOk;
+          return base::kStatusCodeNodeInterrupt;
         }
 
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
@@ -166,7 +170,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
           pipeline_cv_.notify_all();
           NNDEPLOY_LOGW("[%s] interrupted after updateInput()\n",
                         iter->node_->getName().c_str());
-          return base::kStatusCodeOk;
+          return base::kStatusCodeNodeInterrupt;
         }
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           // NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
@@ -192,7 +196,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
             pipeline_cv_.notify_all();
             NNDEPLOY_LOGW("[%s] interrupted after run()",
                           iter->node_->getName().c_str());
-            return base::kStatusCodeOk;
+            return base::kStatusCodeNodeInterrupt;
           }
           // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());

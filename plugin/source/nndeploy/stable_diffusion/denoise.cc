@@ -360,7 +360,7 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
       if (checkInterruptStatus() == true) {
         setRunningFlag(false);
         NNDEPLOY_LOGI("node has been interrupted.\n");
-        return base::kStatusCodeOk;
+        return base::kStatusCodeNodeInterrupt;
       }
       if (do_classifier_free_guidance_) {
         std::shared_ptr<ir::ConcatParam> param =
