@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from typing import Set, Dict, Any, Optional
+from typing import Set, Dict, Any, Optional, Literal
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -691,9 +691,63 @@ class NnDeployServer:
         #     return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
         # preview
-        @api.get("/preview", tags=["Files"],
-                summary="preview images/videos/txt")
-        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
+        # @api.get("/preview", tags=["Files"],
+        #         summary="preview images/videos/txt")
+        # async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
+        #     file_path = Path(file_path)
+        #     # unsafe process for relative path
+        #     if file_path.is_absolute():
+        #         f = file_path
+        #     else:
+        #         resource_root = Path(self.args.resources).resolve()
+        #         first_part = file_path.parts[0] if file_path.parts else ""
+        #         if first_part == resource_root.name:
+        #             f = file_path
+        #         else:
+        #             f = resource_root / file_path
+
+        #     if not f.exists():
+        #         raise HTTPException(status_code=404, detail="Not found")
+
+        #     MIME_MAP: dict[str, str] = {
+        #         # ---- image ----
+        #         ".jpg":  "image/jpeg",
+        #         ".jpeg": "image/jpeg",
+        #         ".png":  "image/png",
+        #         ".webp": "image/webp",
+        #         ".gif":  "image/gif",
+        #         ".svg":  "image/svg+xml",
+
+        #         # ---- video ----
+        #         ".mp4": "video/mp4",
+        #         ".mov": "video/quicktime",
+        #         ".avi": "video/x-msvideo",
+        #         ".mkv": "video/x-matroska",
+        #         ".webm": "video/webm",
+
+        #         # ---- text ----
+        #         ".txt": "text/plain",
+        #     }
+
+        #     mime = MIME_MAP.get(f.suffix.lower())
+        #     if mime is None:
+        #         raise HTTPException(
+        #             status_code=400,
+        #             detail="Unsupported preview type"
+        #         )
+        #     if mime == "text/plain":
+        #         return PlainTextResponse(f.read_text(encoding="utf-8"))
+        #     else:
+        #         return FileResponse(f, media_type=mime, filename=None)
+
+        @api.get("/preview", tags=["Files"], summary="preview images/videos/txt/binary")
+        async def preview_file(
+            file_path: str = Query(..., description="absolute_path or relative path"),
+            time: Optional[str] = None,
+            return_mime_type: Literal["video", "image", "text", "binary"] = Query(
+                "binary", alias="returnMimeType"
+            ),
+        ):
             file_path = Path(file_path)
             # unsafe process for relative path
             if file_path.is_absolute():
@@ -709,75 +763,144 @@ class NnDeployServer:
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
-            MIME_MAP: dict[str, str] = {
-                # ---- image ----
+            # ---- mime maps ----
+            IMAGE_MIME_MAP: dict[str, str] = {
                 ".jpg":  "image/jpeg",
                 ".jpeg": "image/jpeg",
                 ".png":  "image/png",
                 ".webp": "image/webp",
                 ".gif":  "image/gif",
                 ".svg":  "image/svg+xml",
-
-                # ---- video ----
+            }
+            VIDEO_MIME_MAP: dict[str, str] = {
                 ".mp4": "video/mp4",
                 ".mov": "video/quicktime",
                 ".avi": "video/x-msvideo",
                 ".mkv": "video/x-matroska",
                 ".webm": "video/webm",
-
-                # ---- text ----
-                ".txt": "text/plain",
             }
 
-            mime = MIME_MAP.get(f.suffix.lower())
-            if mime is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Unsupported preview type"
-                )
-            if mime == "text/plain":
-                return PlainTextResponse(f.read_text(encoding="utf-8"))
-            else:
+            suffix = f.suffix.lower()
+
+            # ---- route by requested returnMimeType ----
+            if return_mime_type == "image":
+                mime = IMAGE_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Unsupported image type: {suffix}",
+                    )
                 return FileResponse(f, media_type=mime, filename=None)
 
+            if return_mime_type == "video":
+                mime = VIDEO_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Unsupported video type: {suffix}",
+                    )
+                return FileResponse(f, media_type=mime, filename=None)
+
+            if return_mime_type == "text":
+                try:
+                    return PlainTextResponse(f.read_text(encoding="utf-8"))
+                except UnicodeDecodeError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="File is not valid UTF-8 text. Use returnMimeType='binary' instead.",
+                    )
+
+            return FileResponse(f, media_type="application/octet-stream", filename=None)
+
         # download
-        @api.get("/download", tags=["Files"],
-                summary="download images/videos/models/txt")
-        async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
+        # @api.get("/download", tags=["Files"],
+        #         summary="download images/videos/models/txt")
+        # async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
+        #     f = Path(file_path)
+        #     if not f.exists():
+        #         raise HTTPException(status_code=404, detail="Not found")
+
+        #     MIME_MAP: dict[str, str] = {
+        #         # ---- image ----
+        #         ".jpg":  "image/jpeg",
+        #         ".jpeg": "image/jpeg",
+        #         ".png":  "image/png",
+        #         ".webp": "image/webp",
+        #         ".gif":  "image/gif",
+        #         ".svg":  "image/svg+xml",
+
+        #         # ---- video ----
+        #         ".mp4": "video/mp4",
+        #         ".mov": "video/quicktime",
+        #         ".avi": "video/x-msvideo",
+        #         ".mkv": "video/x-matroska",
+        #         ".webm": "video/webm",
+
+        #         # ---- model ----
+        #         ".onnx": "application/octet-stream",
+
+        #         # ---- text ----
+        #         ".txt": "text/plain"
+        #     }
+
+        #     mime = MIME_MAP.get(f.suffix.lower())
+        #     if mime is None:
+        #         raise HTTPException(
+        #             status_code=400,
+        #             detail="Unsupported download type"
+        #         )
+        #     return FileResponse(f, media_type=mime, filename=f.name)
+
+        @api.get("/download", tags=["Files"], summary="download images/videos/models/txt/binary")
+        async def download_file(
+            file_path: str = Query(..., description="absolute_path or relative path"),
+            return_mime_type: Literal["video", "image", "text", "binary"] = Query(
+                "binary", alias="returnMimeType"
+            ),
+        ):
             f = Path(file_path)
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
-            MIME_MAP: dict[str, str] = {
-                # ---- image ----
+            IMAGE_MIME_MAP: dict[str, str] = {
                 ".jpg":  "image/jpeg",
                 ".jpeg": "image/jpeg",
                 ".png":  "image/png",
                 ".webp": "image/webp",
                 ".gif":  "image/gif",
                 ".svg":  "image/svg+xml",
-
-                # ---- video ----
+            }
+            VIDEO_MIME_MAP: dict[str, str] = {
                 ".mp4": "video/mp4",
                 ".mov": "video/quicktime",
                 ".avi": "video/x-msvideo",
                 ".mkv": "video/x-matroska",
                 ".webm": "video/webm",
-
-                # ---- model ----
-                ".onnx": "application/octet-stream",
-
-                # ---- text ----
-                ".txt": "text/plain"
             }
 
-            mime = MIME_MAP.get(f.suffix.lower())
-            if mime is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Unsupported download type"
-                )
-            return FileResponse(f, media_type=mime, filename=f.name)
+            suffix = f.suffix.lower()
+
+            if return_mime_type == "image":
+                mime = IMAGE_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(status_code=400, detail=f"Unsupported image type: {suffix}")
+                return FileResponse(f, media_type=mime, filename=f.name)
+
+            if return_mime_type == "video":
+                mime = VIDEO_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(status_code=400, detail=f"Unsupported video type: {suffix}")
+                return FileResponse(f, media_type=mime, filename=f.name)
+
+            if return_mime_type == "text":
+                try:
+                    return PlainTextResponse(f.read_text(encoding="utf-8"))
+                except UnicodeDecodeError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="File is not valid UTF-8 text. Use returnMimeType='binary' instead."
+                    )
+            return FileResponse(f, media_type="application/octet-stream", filename=f.name)
 
         @api.post(
             "/models/download",
