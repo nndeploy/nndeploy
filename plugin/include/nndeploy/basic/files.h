@@ -39,7 +39,7 @@ class NNDEPLOY_CC_API InputCppTextFile : public dag::Node {
       }
       file.close();
     }
-    output_edge->set(content, flase);
+    output_edge->set(content, false);
     return base::Status::Ok();
   }
 
@@ -105,12 +105,14 @@ class NNDEPLOY_CC_API InputCppBinaryFile : public dag::Node {
       if (!file.read(&(*content)[0], size)) {
         file.close();
         delete content;
-        return base::Status(base::kStatusCodeErrorIO, "Failed to read binary file");
+        NNDEPLOY_LOGE("Failed to read binary file");
+        return base::kStatusCodeErrorIO;
       }
       file.close();
     } else {
       delete content;
-      return base::Status(base::kStatusCodeErrorIO, "Unable to open binary file");
+      NNDEPLOY_LOGE("Unable to open binary file");
+      return base::kStatusCodeErrorIO;;
     }
     output_edge->set(content, false);
     return base::Status::Ok();
