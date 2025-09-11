@@ -2278,6 +2278,8 @@ base::Status Graph::deserialize(const std::string &json_str) {
   }
   rapidjson::Value &json = document;
 
+  replaceGraphJsonStr(node_value_map_, json_str);
+
   if (json.HasMember("node_repository_") &&
       json["node_repository_"].IsArray()) {
     const rapidjson::Value &nodes = json["node_repository_"];
@@ -2349,8 +2351,19 @@ base::Status Graph::setRunIoNodeFlag(bool is_run_io_node) {
   run_io_node_flag_ = is_run_io_node;
   return base::kStatusCodeOk;
 }
-bool Graph::getRunIoNodeFlag() {
-  return run_io_node_flag_;
+bool Graph::getRunIoNodeFlag() { return run_io_node_flag_; }
+
+void Graph::setNodeValue(const std::string &node_name, const std::string &key,
+                         const std::string &value) {
+  node_value_map_[node_name][key] = value;
+}
+void Graph::setNodeValue(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map) {
+  node_value_map_ = node_value_map;
+}
+std::map<std::string, std::map<std::string, std::string>>
+Graph::getNodeValue() {
+  return node_value_map_;
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

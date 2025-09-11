@@ -253,20 +253,20 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
   }
 
   // 记录每个节点的入度
-  std::unordered_map<NodeWrapper*, int> in_degree;
+  std::unordered_map<NodeWrapper *, int> in_degree;
   for (auto node : node_repository) {
     in_degree[node] = node->predecessors_.size();
   }
 
   // 将所有入度为0的节点加入队列
-  std::queue<NodeWrapper*> q;
+  std::queue<NodeWrapper *> q;
   for (auto node : start_nodes) {
     q.push(node);
   }
 
   // BFS遍历
   while (!q.empty()) {
-    NodeWrapper* cur = q.front();
+    NodeWrapper *cur = q.front();
     cur->color_ = base::kNodeColorBlack;
     q.pop();
     topo_sort_node.push_back(cur);
@@ -283,7 +283,7 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
 
   // 检查是否存在环
   if (topo_sort_node.size() != node_repository.size()) {
-    NNDEPLOY_LOGE("Cycle detected in graph!\n"); 
+    NNDEPLOY_LOGE("Cycle detected in graph!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
 
@@ -424,6 +424,65 @@ void findProducerNode(EdgeWrapper *edge_wrapper,
                        inner_producers.end());
     } else {
       producers.emplace_back(producer_node);
+    }
+  }
+  return;
+}
+
+// 辅助函数：根据路径替换JSON值
+void replaceJsonValue(rapidjson::Value &json, const std::string &key,
+                      const std::string &new_value) {
+  if (!json.IsObject()) return;
+
+  if (json.HasMember(key.c_str()) && json[key.c_str()].IsString()) {
+    // 需要传入Document的Allocator，而不是Value的GetAllocator
+    // 这里需要修改函数签名来接收Document的allocator
+    // 暂时使用临时解决方案：重新创建字符串值
+    rapidjson::Value new_val;
+    new_val.SetString(new_value.c_str(), new_value.length());
+    json[key.c_str()] = new_val;
+    return;
+  }
+
+  if (json.HasMember("params_") && json["params_"].IsObject()) {
+    replaceJsonValue(json["params_"], key, new_value);
+    return;
+  }
+}
+
+std::string replaceGraphJsonStr(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map,
+    const std::string &json_str) {
+  rapidjson::Document document;
+  if (document.Parse(json_str.c_str()).HasParseError()) {
+    NNDEPLOY_LOGE("parse json string failed\n");
+    return json_str;
+  }
+  rapidjson::Value &json = document;
+  replaceGraphJsonObj(node_value_map, json);
+  return json.GetString();
+}
+
+void replaceGraphJsonObj(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map,
+    rapidjson::Value &json) {
+  if (json.IsObject()) {
+    if (json.HasMember("name_") && json["name_"].IsString()) {
+      std::string name = json["name_"].GetString();
+      auto node_iter = node_value_map.find(name);
+      if (node_iter != node_value_map.end()) {
+        for (const auto &param_pair : node_iter->second) {
+          const std::string &key = param_pair.first;
+          const std::string &new_value = param_pair.second;
+          replaceJsonValue(json, key, new_value);
+        }
+      }
+    }
+  
+    if (json.HasMember("node_repository_") && json["node_repository_"].IsArray()) {
+      for (auto &node : json["node_repository_"].GetArray()) {
+        replaceGraphJsonObj(node_value_map, node);
+      }
     }
   }
   return;

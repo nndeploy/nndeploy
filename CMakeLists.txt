@@ -87,6 +87,14 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
 nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
+# # JAVA bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_JAVA "Build Java bindings" OFF)
+# # Swift bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_SWIFT "Build Swift bindings" OFF)
+# # Go bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_GO "Build Go bindings" OFF)
+# # C# bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_CSHARP "Build C# bindings" OFF)
 
 # 3. **Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)**: Such as CUDA, OpenCL, various NPU hardware acceleration support
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "Enable NVIDIA CUDA GPU support" OFF)
@@ -1068,6 +1076,26 @@ endif()
 # python
 if(ENABLE_NNDEPLOY_PYTHON)
   include(${ROOT_PATH}/python/config.cmake)
+endif()
+
+# java
+if(ENABLE_NNDEPLOY_FFI_JAVA)
+  include(${ROOT_PATH}/ffi/java/config.cmake)
+endif()
+
+# swift
+if(ENABLE_NNDEPLOY_FFI_SWIFT)
+  include(${ROOT_PATH}/ffi/swift/config.cmake)
+endif()
+
+# go
+if(ENABLE_NNDEPLOY_FFI_GO)
+  include(${ROOT_PATH}/ffi/go/config.cmake)
+endif()
+
+# csharp
+if(ENABLE_NNDEPLOY_FFI_CSHARP)
+  include(${ROOT_PATH}/ffi/csharp/config.cmake)
 endif()
 
 # cpack

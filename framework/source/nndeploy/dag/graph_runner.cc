@@ -172,12 +172,18 @@ void GraphRunner::set_loop_max_flag(bool is_loop_max_flag) {
   is_loop_max_flag_ = is_loop_max_flag;
 }
 
+void GraphRunner::set_node_value(const std::string& node_name, const std::string& key, const std::string& value) {
+  node_value_map_[node_name][key] = value;
+}
+
 base::Status GraphRunner::buildGraph(const std::string& graph_json_str,
                                      const std::string& name) {
   graph_ = std::make_shared<Graph>(name);
   if (!graph_) {
     return base::kStatusCodeErrorOutOfMemory;
   }
+  
+  graph_->setNodeValue(node_value_map_);
 
   base::Status status;
   if (is_json_file_) {
