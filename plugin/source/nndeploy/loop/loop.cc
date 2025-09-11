@@ -51,18 +51,14 @@ base::Status AddMulNode::run() {
   setRunningFlag(true);
   ValParam *input = (ValParam *)(inputs_[0]->getParam(this));
 
-  std::cout << "1" << std::endl;
   add_->getInput(0)->set(input, true);
-  std::cout << "2" << std::endl;
   add_->run();
-  std::cout << "3" << std::endl;
   ValParam *add_output = (ValParam *)(add_->getOutput(0)->getParam(add_));
-  std::cout << "4" << std::endl;
 
-  // ValParam *output = new ValParam();
-  // output->val = (add_output->val + 1) * 2;
-  this->getOutput(0)->set(add_output, true);
-  this->getOutput(0)->notifyWritten(add_output);
+  ValParam *output = new ValParam();
+  output->val = add_output->val * 2;
+  this->getOutput(0)->set(output, true);
+  this->getOutput(0)->notifyWritten(output);
   setRunningFlag(false);
   return status;
 }
