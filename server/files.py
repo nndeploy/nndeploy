@@ -14,7 +14,7 @@ from uuid import NAMESPACE_URL, uuid5
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from .schemas import (UploadResponse, DeleteResponse, FileListResponse)
+from .schemas import (UploadResponse, DeleteResponse, FileListResponse, FileInfoResponse)
 
 # ──────────────────────────────────────────────
 # Router
@@ -334,3 +334,38 @@ async def upload_file(
     file: UploadFile = File(...)
 ):
     return _save(file, file_path)
+
+# ──────────────────────────────────────────────
+# node: get file info by path (no workdir)
+# ──────────────────────────────────────────────
+@router.get(
+    "/info",
+    response_model=FileInfoResponse,
+    summary="get single file/dir info by path",
+)
+async def get_file_info(
+    file_path: str,
+):
+    p = Path(file_path).resolve()
+
+    if not p.exists():
+        return FileInfoResponse(
+            flag="failed",
+            message=f"path {p} does not exist",
+            result={}
+        )
+
+    try:
+        parent_id = parent_path_to_id(p)
+        info = _file_info(p, parent_id=parent_id)
+        return FileInfoResponse(
+            flag="success",
+            message="ok",
+            result=info["file_info"]
+        )
+    except Exception as e:
+        return FileInfoResponse(
+            flag="failed",
+            message=f"failed to get file info for {p}: {e}",
+            result={}
+        )

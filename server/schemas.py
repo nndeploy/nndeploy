@@ -101,6 +101,11 @@ class FileListResponse(BaseModel):
     message: str
     result: list[Dict]
 
+class FileInfoResponse(BaseModel):
+    flag: str
+    message: str
+    result: dict
+
 class PreviewPayload(BaseModel):
     type: Literal["preview"]
     data: Dict[str, Any]
