@@ -349,61 +349,61 @@ else()
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
 endif()
 
-# java
-# Java 包构建配置
-find_package(Java REQUIRED)
-find_package(JNI REQUIRED)
-include(UseJava)
+# # java
+# # Java 包构建配置
+# find_package(Java REQUIRED)
+# find_package(JNI REQUIRED)
+# include(UseJava)
 
-# 设置 Java 项目名称和版本
-set(PROJECT_NAME javanndeploy_package)
-set(JAVA_PACKAGE_VERSION ${NNDEPLOY_VERSION})
+# # 设置 Java 项目名称和版本
+# set(PROJECT_NAME javanndeploy_package)
+# set(JAVA_PACKAGE_VERSION ${NNDEPLOY_VERSION})
 
-# 收集所有 Java 源文件
-file(GLOB_RECURSE PURE_JAVA_SOURCE
-  "${ROOT_PATH}/ffi/java/nndeploy/*.java"
-)
+# # 收集所有 Java 源文件
+# file(GLOB_RECURSE PURE_JAVA_SOURCE
+#   "${ROOT_PATH}/ffi/java/nndeploy/*.java"
+# )
 
-# 检查是否找到 Java 源文件
-if(NOT PURE_JAVA_SOURCE)
-  message(WARNING "No Java source files found in ${ROOT_PATH}/ffi/java/nndeploy/")
-endif()
+# # 检查是否找到 Java 源文件
+# if(NOT PURE_JAVA_SOURCE)
+#   message(WARNING "No Java source files found in ${ROOT_PATH}/ffi/java/nndeploy/")
+# endif()
 
-# 创建 Java JAR 包
-add_jar(${PROJECT_NAME} 
-  SOURCES ${PURE_JAVA_SOURCE}
-  OUTPUT_NAME nndeploy
-  OUTPUT_DIR ${NNDEPLOY_INSTALL_PATH}
-  VERSION ${JAVA_PACKAGE_VERSION}
-  # MANIFEST ${ROOT_PATH}/ffi/java/MANIFEST.MF
-)
+# # 创建 Java JAR 包
+# add_jar(${PROJECT_NAME} 
+#   SOURCES ${PURE_JAVA_SOURCE}
+#   OUTPUT_NAME nndeploy
+#   OUTPUT_DIR ${NNDEPLOY_INSTALL_PATH}
+#   VERSION ${JAVA_PACKAGE_VERSION}
+#   # MANIFEST ${ROOT_PATH}/ffi/java/MANIFEST.MF
+# )
 
-# 设置 JAR 包属性
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  JAR_FILE "${NNDEPLOY_INSTALL_PATH}/nndeploy-${JAVA_PACKAGE_VERSION}.jar"
-)
+# # 设置 JAR 包属性
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#   JAR_FILE "${NNDEPLOY_INSTALL_PATH}/nndeploy-${JAVA_PACKAGE_VERSION}.jar"
+# )
 
-# 安装 JAR 包
-install_jar(${PROJECT_NAME} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+# # 安装 JAR 包
+# install_jar(${PROJECT_NAME} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 
-# 生成 Java 文档（可选）
-if(BUILD_JAVA_DOCS)
-  find_package(Java COMPONENTS Development)
-  if(Java_JAVADOC_EXECUTABLE)
-    add_custom_target(java_docs
-      COMMAND ${Java_JAVADOC_EXECUTABLE} 
-        -d ${CMAKE_BINARY_DIR}/java_docs
-        -sourcepath ${ROOT_PATH}/ffi/java
-        -subpackages nndeploy
-      COMMENT "Generating Java documentation"
-    )
-  endif()
-endif()
+# # 生成 Java 文档（可选）
+# if(BUILD_JAVA_DOCS)
+#   find_package(Java COMPONENTS Development)
+#   if(Java_JAVADOC_EXECUTABLE)
+#     add_custom_target(java_docs
+#       COMMAND ${Java_JAVADOC_EXECUTABLE} 
+#         -d ${CMAKE_BINARY_DIR}/java_docs
+#         -sourcepath ${ROOT_PATH}/ffi/java
+#         -subpackages nndeploy
+#       COMMENT "Generating Java documentation"
+#     )
+#   endif()
+# endif()
 
-# 添加依赖关系，确保 JNI 库先构建完成
-add_dependencies(${PROJECT_NAME} ${BINARY})
+# # 添加依赖关系，确保 JNI 库先构建完成
+# add_dependencies(${PROJECT_NAME} ${BINARY})
 
-message(STATUS "Java package configuration completed: ${PROJECT_NAME}")
+# message(STATUS "Java package configuration completed: ${PROJECT_NAME}")
 
 # unset
 unset(SOURCE)

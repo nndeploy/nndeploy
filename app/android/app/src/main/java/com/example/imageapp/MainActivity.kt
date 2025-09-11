@@ -39,6 +39,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.imageapp.ui.theme.AppTheme
+import com.nndeploy.dag.GraphRunner
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import android.widget.Toast
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,6 +152,7 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
     val uri = vm.pickedImage
     val context = LocalContext.current
     var selected by remember { mutableStateOf("分割") }
+    val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).padding(16.dp)) {
             Card(
@@ -178,9 +183,33 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             onClick = {
-                // Simulate processing: here we simply keep the same image URI.
-                vm.processedImage = uri
-                nav.navigate("result")
+                scope.launch {
+                    try {
+                        val runner = GraphRunner()
+                        // runner.setJsonFile(false)
+                        runner.setTimeProfile(true)
+                        // runner.setDebug(false)
+
+                        // // TODO: 替换为真实分割图 JSON
+                        // val graphJson = "{" +
+                        //         "\"name_\":\"seg_demo\"," +
+                        //         "\"node_repository_\":[]" +
+                        //         "}"
+                        // val ok = runner.run(graphJson, "seg_demo", "task_${'$'}{System.currentTimeMillis()}")
+                        runner.close()
+
+                        // if (ok) {
+                        //     Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
+                        // } else {
+                        //     Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
+                        // }
+                    } catch (e: Throwable) {
+                        Toast.makeText(context, "JNI 异常: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
+                    } finally {
+                        vm.processedImage = uri
+                        nav.navigate("result")
+                    }
+                }
             }
         ) {
             Text("开始处理", fontSize = 18.sp)
