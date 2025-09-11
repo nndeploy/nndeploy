@@ -1026,49 +1026,89 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path, text = extract_encode_output_paths(graph_json)
 
+        # path, text = extract_encode_output_paths(graph_json)
         # send result
-        flag = status.str
-        message = status.messages
-        result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
-        payload = {"flag": flag, "message": message, "result": result}
-        ws_set = self.task_ws_map.get(task_id, set())
-        for ws in ws_set.copy():
-            if self.loop and self.loop.is_running():
-                asyncio.run_coroutine_threadsafe(
-                    self._broadcast(payload, ws),
-                    self.loop
-                )
-            else:
-                logging.warning("[notify_task_done] Event loop not ready or not running")
+        # flag = status.str
+        # message = status.messages
+        # result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
+        # payload = {"flag": flag, "message": message, "result": result}
+        # ws_set = self.task_ws_map.get(task_id, set())
+        # for ws in ws_set.copy():
+        #     if self.loop and self.loop.is_running():
+        #         asyncio.run_coroutine_threadsafe(
+        #             self._broadcast(payload, ws),
+        #             self.loop
+        #         )
+        #     else:
+        #         logging.warning("[notify_task_done] Event loop not ready or not running")
 
         # send graph output
-        show_items = []
+        # show_items = []
+        # try:
+        #     for node_name, out_map in (results or {}).items():
+        #         if not isinstance(out_map, dict):
+        #             continue
+        #         if "String" not in out_map:
+        #             continue
+        #         img_val = out_map.get("String")
+        #         img_list = img_val if isinstance(img_val, list) else [img_val]
+        #         text_list = [str(x) for x in img_list]
+        #         show_items.append({"name": node_name, "text": text_list})
+        # except Exception as e:
+        #     logging.exception("[notify_task_done] build show_items failed: %s", e)
+
+        # if show_items:
+        #     payload = {
+        #         "flag": status.str,
+        #         "message": status.messages,
+        #         "result": {"task_id": task_id, "type": "show", "string": show_items},
+        #     }
+        #     for ws in ws_set.copy():
+        #         if self.loop and self.loop.is_running():
+        #             asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+        #         else:
+        #             logging.warning("[notify_task_done] Event loop not ready or not running")
+
+        # —— send memory (collect String/Bool/Num/Text) ——
+        content = {}
         try:
             for node_name, out_map in (results or {}).items():
                 if not isinstance(out_map, dict):
                     continue
-                if "String" not in out_map:
-                    continue
-                img_val = out_map.get("String")
-                img_list = img_val if isinstance(img_val, list) else [img_val]
-                text_list = [str(x) for x in img_list]
-                show_items.append({"name": node_name, "text": text_list})
-        except Exception as e:
-            logging.exception("[notify_task_done] build show_items failed: %s", e)
 
-        if show_items:
-            payload = {
-                "flag": status.str,
-                "message": status.messages,
-                "result": {"task_id": task_id, "type": "show", "string": show_items},
-            }
-            for ws in ws_set.copy():
-                if self.loop and self.loop.is_running():
-                    asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
-                else:
-                    logging.warning("[notify_task_done] Event loop not ready or not running")
+                vals = []
+                for k in ("String", "Text", "Bool", "Num"):
+                    if k in out_map:
+                        v = out_map[k]
+                        if isinstance(v, list):
+                            vals.extend(v)
+                        else:
+                            vals.append(v)
+
+                if not vals:
+                    continue
+
+                s = " ".join(str(x) for x in vals)
+                content[node_name] = s
+        except Exception as e:
+            logging.exception("[notify_task_done] build memory content failed: %s", e)
+
+        payload = {
+            "flag": status.str,
+            "message": status.messages,
+            "result": {
+                "type": "memory",
+                "content": content,
+            },
+        }
+        ws_set = self.task_ws_map.get(task_id, set())
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+                logging.warning("[notify_task_done] Event loop ready or running")
+            else:
+                logging.warning("[notify_task_done] Event loop not ready or not running")
 
         # send graph run info
         flag = status.str
