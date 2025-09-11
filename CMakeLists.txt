@@ -88,7 +88,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
 nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
 # # JAVA bindings
-nndeploy_option(ENABLE_NNDEPLOY_FFI_JAVA "Build Java bindings" ON)
+nndeploy_option(ENABLE_NNDEPLOY_FFI_JAVA "Build Java bindings" OFF)
 # # Swift bindings
 nndeploy_option(ENABLE_NNDEPLOY_FFI_SWIFT "Build Swift bindings" OFF)
 # # Go bindings

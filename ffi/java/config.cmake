@@ -3,7 +3,7 @@ message(STATUS "Building nndeploy java")
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY javanndeploy)
+set(BINARY nndeploy_jni)
 set(DIRECTORY java)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
