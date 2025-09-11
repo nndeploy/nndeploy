@@ -48,8 +48,10 @@ class GraphRunner : AutoCloseable {
 
     fun setTimeProfile(isTimeProfile: Boolean) {
         checkInitialized()
+        println("GraphRunner: 设置时间性能分析 - isTimeProfile: $isTimeProfile")
         this.isTimeProfile = isTimeProfile
         setTimeProfile(nativeHandle, isTimeProfile)
+        println("GraphRunner: 时间性能分析设置完成")
     }
 
     fun setDebug(isDebug: Boolean) {

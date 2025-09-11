@@ -88,7 +88,15 @@ JNIEXPORT void JNICALL Java_com_nndeploy_dag_GraphRunner_setTimeProfile(
   if (handle != 0) {
     nndeploy::dag::GraphRunner* runner =
         reinterpret_cast<nndeploy::dag::GraphRunner*>(handle);
+    
+    // 使用Android Log打印设置时间性能分析的信息
+    __android_log_print(ANDROID_LOG_INFO, "GraphRunner", "设置时间性能分析: %s", 
+                       is_time_profile ? "启用" : "禁用");
+    
     runner->set_time_profile(static_cast<bool>(is_time_profile));
+  } else {
+    __android_log_print(ANDROID_LOG_ERROR, "GraphRunner", 
+                       "错误: GraphRunner句柄为空，无法设置时间性能分析");
   }
 }
 

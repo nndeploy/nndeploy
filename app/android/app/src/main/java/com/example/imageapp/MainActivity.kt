@@ -195,14 +195,18 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                         //         "\"name_\":\"seg_demo\"," +
                         //         "\"node_repository_\":[]" +
                         //         "}"
-                        // val ok = runner.run(graphJson, "seg_demo", "task_${'$'}{System.currentTimeMillis()}")
+                        val workflowPath = "resources/workflow/ClassificationResNetMnn.json"
+                        val graphJson = context.assets.open(workflowPath).bufferedReader().use { it.readText() }
+                        val ok = runner.run(workflowPath, "seg_demo", "task_${'$'}{System.currentTimeMillis()}")
+//                        val filePath = File(context.filesDir, "resources/workflow/ClassificationResNetMnn.json").absolutePath
+                        // val ok = runner.run(filePath, "seg_demo", "task_${System.currentTimeMillis()}")
                         runner.close()
 
-                        // if (ok) {
-                        //     Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
-                        // } else {
-                        //     Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
-                        // }
+                        if (ok) {
+                            Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
+                        }
                     } catch (e: Throwable) {
                         Toast.makeText(context, "JNI 异常: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
                     } finally {
