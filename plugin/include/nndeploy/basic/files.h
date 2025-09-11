@@ -17,7 +17,7 @@ class NNDEPLOY_CC_API InputCppTextFile : public dag::Node {
     this->setIoType(dag::IOType::kIOTypeText);
   }
   InputCppTextFile(const std::string &name, std::vector<dag::Edge *> inputs,
-              std::vector<dag::Edge *> outputs)
+                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::basic::InputCppTextFile";
     desc_ = "Txt File input Node";
@@ -30,16 +30,89 @@ class NNDEPLOY_CC_API InputCppTextFile : public dag::Node {
 
   virtual base::Status run() {
     auto output_edge = this->getOutput(0);
-    std::string content = "";
+    std::string *content = new std::string();
     std::ifstream file(path_);
     if (file.is_open()) {
       std::string line;
       while (getline(file, line)) {
-        content += line + "\n";
+        *content += line + "\n";
       }
       file.close();
     }
-    output_edge->set(content);
+    output_edge->set(content, flase);
+    return base::Status::Ok();
+  }
+
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    this->addRequiredParam("path_");
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::Status::Ok()) {
+      return status;
+    }
+    json.AddMember("path_", rapidjson::Value(path_.c_str(), allocator),
+                   allocator);
+    return base::Status::Ok();
+  }
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("path_") && json["path_"].IsString()) {
+      path_ = json["path_"].GetString();
+    }
+    return base::Status::Ok();
+  }
+
+ private:
+  std::string path_ = "";
+};
+
+class NNDEPLOY_CC_API InputCppBinaryFile : public dag::Node {
+ public:
+  InputCppBinaryFile(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::basic::InputCppBinaryFile";
+    desc_ = "Txt File input Node";
+    this->setOutputTypeInfo<std::string>();
+    this->setNodeType(dag::NodeType::kNodeTypeInput);
+    this->setIoType(dag::IOType::kIOTypeBinary);
+  }
+  InputCppBinaryFile(const std::string &name, std::vector<dag::Edge *> inputs,
+                   std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::basic::InputCppBinaryFile";
+    desc_ = "Txt File input Node";
+    this->setOutputTypeInfo<std::string>();
+    this->setNodeType(dag::NodeType::kNodeTypeInput);
+    this->setIoType(dag::IOType::kIOTypeBinary);
+  }
+
+  virtual ~InputCppBinaryFile() {}
+
+  virtual base::Status run() {
+    auto output_edge = this->getOutput(0);
+    std::string *content = new std::string();
+    std::ifstream file(path_, std::ios::binary);
+    if (file.is_open()) {
+      // Get file size
+      file.seekg(0, std::ios::end);
+      std::streamsize size = file.tellg();
+      file.seekg(0, std::ios::beg);
+      
+      // Read binary data
+      content->resize(size);
+      if (!file.read(&(*content)[0], size)) {
+        file.close();
+        delete content;
+        return base::Status(base::kStatusCodeErrorIO, "Failed to read binary file");
+      }
+      file.close();
+    } else {
+      delete content;
+      return base::Status(base::kStatusCodeErrorIO, "Unable to open binary file");
+    }
+    output_edge->set(content, false);
     return base::Status::Ok();
   }
 
