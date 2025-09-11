@@ -22,6 +22,7 @@ import shutil
 import requests
 import contextvars
 import unicodedata
+import chardet
 import nndeploy.dag
 
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
@@ -802,13 +803,24 @@ class NnDeployServer:
                 return FileResponse(f, media_type=mime, filename=None)
 
             if return_mime_type == "text":
+                raw_bytes = f.read_bytes()
+                detect_result = chardet.detect(raw_bytes)
+                encoding = detect_result.get("encoding") or "utf-8"
+                confidence = detect_result.get("confidence", 0)
+
                 try:
-                    return PlainTextResponse(f.read_text(encoding="utf-8"))
+                    content = raw_bytes.decode(encoding, errors="strict")
+                    return {
+                        "flag": "success",
+                        "message": f"success (detected encoding={encoding}, confidence={confidence:.2f})",
+                        "result": content,
+                    }
                 except UnicodeDecodeError:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="File is not valid UTF-8 text. Use returnMimeType='binary' instead.",
-                    )
+                    return {
+                        "flag": "error",
+                        "message": f"Cannot decode file as {encoding}. Consider using returnMimeType='binary' or specify correct encoding.",
+                        "result": None,
+                    }
 
             return FileResponse(f, media_type="application/octet-stream", filename=None)
 
