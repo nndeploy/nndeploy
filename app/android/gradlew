@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Gradle wrapper launcher
+DIR="$(cd "$(dirname "$0")" && pwd)"
+GRADLE_WRAPPER="$DIR/gradle/wrapper/gradle-wrapper.jar"
+JAVA_EXEC="${JAVA_HOME:-}/bin/java"
+if [ -x "$JAVA_EXEC" ]; then
+  :
+else
+  JAVA_EXEC="java"
+fi
+exec "$JAVA_EXEC" -Xmx64m -cp "$GRADLE_WRAPPER" org.gradle.wrapper.GradleWrapperMain "$@"
