@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
   AddMulNode *add_mul_node = (AddMulNode *)graph->createNode<AddMulNode>(
       "add_mul_node", std::vector<dag::Edge *>{add_out},
       std::vector<dag::Edge *>{add_mul_out});
+  add_mul_node->defaultParam();
 
   PrintNode *node = (PrintNode *)graph->createNode<PrintNode>(
       "print_node", std::vector<dag::Edge *>{add_mul_out},
