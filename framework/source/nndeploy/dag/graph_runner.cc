@@ -159,6 +159,13 @@ void GraphRunner::set_json_file(bool is_json_file) {
 void GraphRunner::set_dump(bool is_dump) { is_dump_ = is_dump; }
 
 void GraphRunner::set_time_profile(bool is_time_profile) {
+  // 测试手机app是否调用这个函数
+  // 在/data/local/tmp下创建一个test_app.txt文件，并写入当前时间
+  std::ofstream out("/data/local/tmp/test_app.txt");
+  out << "set_time_profile: " << is_time_profile << std::endl;
+  out.close();
+
+  NNDEPLOY_LOGE("set_time_profile: %s", is_time_profile ? "true" : "false");
   is_time_profile_ = is_time_profile;
 }
 

@@ -43,10 +43,15 @@ import com.nndeploy.dag.GraphRunner
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import android.widget.Toast
+import android.util.Log
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.w("MainActivity", "onCreate called")
         setContent {
             AppTheme { App() }
         }
@@ -62,6 +67,7 @@ class AppVM: ViewModel() {
 fun App() {
     val nav = rememberNavController()
     val vm: AppVM = viewModel()
+    Log.w("App", "App composable initialized")
     Scaffold(
         bottomBar = { BottomBar(nav) }
     ) { inner ->
@@ -82,15 +88,24 @@ fun App() {
 fun BottomBar(nav: NavHostController) {
     NavigationBar {
         NavigationBarItem(
-            selected = false, onClick = { nav.navigate("home") },
+            selected = false, onClick = { 
+                Log.w("BottomBar", "Navigate to home")
+                nav.navigate("home") 
+            },
             icon = { Icon(Icons.Default.Description, contentDescription = "首页") }, label = { Text("首页") }
         )
         NavigationBarItem(
-            selected = false, onClick = { nav.navigate("process") },
+            selected = false, onClick = { 
+                Log.w("BottomBar", "Navigate to process")
+                nav.navigate("process") 
+            },
             icon = { Icon(Icons.Default.History, contentDescription = "处理") }, label = { Text("处理") }
         )
         NavigationBarItem(
-            selected = false, onClick = { nav.navigate("history") },
+            selected = false, onClick = { 
+                Log.w("BottomBar", "Navigate to history")
+                nav.navigate("history") 
+            },
             icon = { Icon(Icons.Default.History, contentDescription = "历史") }, label = { Text("历史") }
         )
     }
@@ -99,8 +114,12 @@ fun BottomBar(nav: NavHostController) {
 @Composable
 fun UploadScreen(nav: NavHostController, vm: AppVM) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        Log.w("UploadScreen", "Image picked: $uri")
         vm.pickedImage = uri
-        if (uri != null) nav.navigate("process")
+        if (uri != null) {
+            Log.w("UploadScreen", "Navigating to process screen")
+            nav.navigate("process")
+        }
     }
     Column(
         modifier = Modifier
@@ -139,7 +158,10 @@ fun UploadScreen(nav: NavHostController, vm: AppVM) {
                 Spacer(Modifier.height(8.dp))
                 Text("支持JPG/PNG格式，最大10MB", color = Color.Gray)
                 Spacer(Modifier.height(24.dp))
-                Button(onClick = { launcher.launch("image/*") }) {
+                Button(onClick = { 
+                    Log.w("UploadScreen", "Select image button clicked")
+                    launcher.launch("image/*") 
+                }) {
                     Text("选择图片")
                 }
             }
@@ -153,6 +175,9 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
     val context = LocalContext.current
     var selected by remember { mutableStateOf("分割") }
     val scope = rememberCoroutineScope()
+    
+    Log.w("ProcessScreen", "ProcessScreen loaded with image: $uri")
+    
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).padding(16.dp)) {
             Card(
@@ -171,9 +196,20 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
         }
         Text("处理方式", modifier = Modifier.padding(16.dp), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Row(Modifier.padding(horizontal = 16.dp)) {
-            FilterChip(label = "分割", selected = selected == "分割") { selected = "分割" }
+            FilterChip(label = "分割", selected = selected == "分割") { 
+                Log.w("ProcessScreen", "Selected processing type: 分割")
+                selected = "分割" 
+            }
             Spacer(Modifier.width(12.dp))
-            FilterChip(label = "抠脸", selected = selected == "抠脸") { selected = "抠脸" }
+            FilterChip(label = "抠脸", selected = selected == "抠脸") { 
+                Log.w("ProcessScreen", "Selected processing type: 抠脸")
+                selected = "抠脸" 
+            }
+            Spacer(Modifier.width(12.dp))
+            FilterChip(label = "灰度图", selected = selected == "灰度图") { 
+                Log.w("ProcessScreen", "Selected processing type: 灰度图")
+                selected = "灰度图" 
+            }
         }
         Spacer(Modifier.height(12.dp))
         Button(
@@ -183,34 +219,69 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
             onClick = {
+                Log.w("ProcessScreen", "Start processing button clicked")
                 scope.launch {
                     try {
-                        val runner = GraphRunner()
-                        // runner.setJsonFile(false)
-                        runner.setTimeProfile(true)
-                        // runner.setDebug(false)
-
-                        // // TODO: 替换为真实分割图 JSON
-                        // val graphJson = "{" +
-                        //         "\"name_\":\"seg_demo\"," +
-                        //         "\"node_repository_\":[]" +
-                        //         "}"
-                        val workflowPath = "resources/workflow/ClassificationResNetMnn.json"
-                        val graphJson = context.assets.open(workflowPath).bufferedReader().use { it.readText() }
-                        val ok = runner.run(workflowPath, "seg_demo", "task_${'$'}{System.currentTimeMillis()}")
-//                        val filePath = File(context.filesDir, "resources/workflow/ClassificationResNetMnn.json").absolutePath
-                        // val ok = runner.run(filePath, "seg_demo", "task_${System.currentTimeMillis()}")
-                        runner.close()
-
-                        if (ok) {
-                            Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
+                        if (selected == "灰度图" && uri != null) {
+                            Log.w("ProcessScreen", "Starting grayscale conversion")
+                            val processedUri = convertToGrayscale(context, uri)
+                            if (processedUri != null) {
+                                vm.processedImage = processedUri
+                                Log.w("ProcessScreen", "Grayscale conversion successful")
+                                Toast.makeText(context, "灰度图转换成功", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Log.e("ProcessScreen", "Grayscale conversion failed")
+                                Toast.makeText(context, "灰度图转换失败", Toast.LENGTH_SHORT).show()
+                                vm.processedImage = uri
+                            }
                         } else {
-                            Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
+                            Log.w("ProcessScreen", "Initializing GraphRunner")
+                            // 在/data/local/tmp下创建一个test_app.txt文件，并写入当前时间
+                            // context.filesDir 指向应用的私有内部存储目录
+                            // 通常位于: /data/data/com.example.imageapp/files/
+                            // 这个目录只有当前应用可以访问，系统会在应用卸载时自动清理
+                            val testFile = File(context.filesDir, "test_app.txt")
+                            testFile.writeText("Initializing GraphRunner: ${System.currentTimeMillis()}\nFilesDir path: ${context.filesDir.absolutePath}")
+                            Log.w("ProcessScreen", "Test file created at: ${testFile.absolutePath}")
+
+                            val runner = GraphRunner()
+                            runner.setJsonFile(false)
+                            runner.setTimeProfile(true)
+                            // runner.setDebug(false)
+
+                            // val workflowPath = "resources/workflow/ClassificationResNetMnn.json"
+                            val workflowPath = "class_mnn_test.json"
+                            val absolutePath = File(context.filesDir, workflowPath).absolutePath
+                            Log.w("ProcessScreen", "Loading workflow from: $workflowPath")
+                            Log.w("ProcessScreen", "Absolute path: $absolutePath")
+                            val graphJson: String = context.assets.open(workflowPath).bufferedReader().use { it.readText() }
+                            Log.w("ProcessScreen", "Workflow JSON loaded, length: ${graphJson.length}")
+                            Log.w("ProcessScreen", "GraphJSON content: $graphJson")
+                            
+                            val taskId = "task_${System.currentTimeMillis()}"
+                            Log.w("ProcessScreen", "Running task: $taskId")
+                            // val ok = runner.run(absolutePath, "seg_demo", taskId)
+                            val ok = runner.run(graphJson, "seg_demo", taskId)
+//                        val filePath = File(context.filesDir, "resources/workflow/ClassificationResNetMnn.json").absolutePath
+                            // val ok = runner.run(filePath, "seg_demo", "task_${System.currentTimeMillis()}")
+//                        runner.close()
+                            Log.w("ProcessScreen", "GraphRunner closed")
+
+//                        if (ok) {
+//                            Log.w("ProcessScreen", "Processing completed successfully")
+//                            Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
+//                        } else {
+//                            Log.e("ProcessScreen", "Processing failed")
+//                            Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
+//                        }
+                            vm.processedImage = uri
                         }
                     } catch (e: Throwable) {
-                        Toast.makeText(context, "JNI 异常: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
-                    } finally {
+                        Log.e("ProcessScreen", "JNI exception occurred", e)
+                        Toast.makeText(context, "JNI 异常: ${e.message}", Toast.LENGTH_SHORT).show()
                         vm.processedImage = uri
+                    } finally {
+                        Log.w("ProcessScreen", "Navigating to result screen")
                         nav.navigate("result")
                     }
                 }
@@ -237,6 +308,9 @@ private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
 fun ResultScreen(nav: NavHostController, vm: AppVM) {
     val context = LocalContext.current
     val resultUri = vm.processedImage
+    
+    Log.w("ResultScreen", "ResultScreen loaded with image: $resultUri")
+    
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxWidth().weight(1f).padding(16.dp)) {
             Card(
@@ -261,15 +335,21 @@ fun ResultScreen(nav: NavHostController, vm: AppVM) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = {
-                    resultUri?.let { saveCopyToDownloads(context, it) }
+                    Log.w("ResultScreen", "Download button clicked")
+                    resultUri?.let { 
+                        Log.w("ResultScreen", "Saving image to downloads: $it")
+                        saveCopyToDownloads(context, it) 
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF183D8C)),
                 modifier = Modifier.weight(1f).height(52.dp)
             ) { Text("下载图片") }
             Button(
                 onClick = {
+                    Log.w("ResultScreen", "Share button clicked")
                     // Share
                     resultUri?.let {
+                        Log.w("ResultScreen", "Sharing image: $it")
                         val share = android.content.Intent().apply {
                             action = android.content.Intent.ACTION_SEND
                             type = "image/*"
@@ -284,7 +364,10 @@ fun ResultScreen(nav: NavHostController, vm: AppVM) {
             ) { Text("分享图片") }
         }
         Button(
-            onClick = { nav.navigate("process") },
+            onClick = { 
+                Log.w("ResultScreen", "Continue processing button clicked")
+                nav.navigate("process") 
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -297,28 +380,130 @@ fun ResultScreen(nav: NavHostController, vm: AppVM) {
 
 @Composable
 fun HistoryScreen() {
+    Log.w("HistoryScreen", "HistoryScreen loaded")
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("历史（占位）")
     }
 }
 
+private fun convertToGrayscale(context: android.content.Context, uri: Uri): Uri? {
+    return try {
+        Log.w("convertToGrayscale", "Starting grayscale conversion for URI: $uri")
+        
+        // 读取原始图片
+        val resolver = context.contentResolver
+        val inputStream = resolver.openInputStream(uri)
+        val originalBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(resolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            @Suppress("DEPRECATION")
+            MediaStore.Images.Media.getBitmap(resolver, uri)
+        }
+        inputStream?.close()
+        
+        Log.w("convertToGrayscale", "Original bitmap size: ${originalBitmap.width}x${originalBitmap.height}")
+        
+        // 创建灰度图bitmap
+        val width = originalBitmap.width
+        val height = originalBitmap.height
+        val grayscaleBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        
+        // 逐像素转换为灰度
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val pixel = originalBitmap.getPixel(x, y)
+                
+                // 提取RGB分量
+                val red = (pixel shr 16) and 0xFF
+                val green = (pixel shr 8) and 0xFF
+                val blue = pixel and 0xFF
+                
+                // 使用加权平均法计算灰度值 (0.299*R + 0.587*G + 0.114*B)
+                val gray = (0.299 * red + 0.587 * green + 0.114 * blue).toInt()
+                
+                // 设置灰度像素 (保持alpha通道)
+                val alpha = (pixel shr 24) and 0xFF
+                val grayPixel = (alpha shl 24) or (gray shl 16) or (gray shl 8) or gray
+                grayscaleBitmap.setPixel(x, y, grayPixel)
+            }
+        }
+        
+        Log.w("convertToGrayscale", "Grayscale conversion completed")
+        
+        // 保存灰度图到临时文件
+        val tempFile = File(context.cacheDir, "grayscale_${System.currentTimeMillis()}.jpg")
+        val outputStream = FileOutputStream(tempFile)
+        grayscaleBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+        outputStream.close()
+        
+        // 释放bitmap资源
+        originalBitmap.recycle()
+        grayscaleBitmap.recycle()
+        
+        Log.w("convertToGrayscale", "Grayscale image saved to: ${tempFile.absolutePath}")
+        
+        // 返回文件URI
+        android.net.Uri.fromFile(tempFile)
+        
+    } catch (e: Exception) {
+        Log.e("convertToGrayscale", "Error converting to grayscale", e)
+        null
+    }
+}
+
 private fun saveCopyToDownloads(context: android.content.Context, uri: Uri) {
     try {
+        Log.w("saveCopyToDownloads", "Starting to save image to downloads")
         val resolver = context.contentResolver
         val name = "processed_${System.currentTimeMillis()}.jpg"
+        Log.w("saveCopyToDownloads", "Generated filename: $name")
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
             put(MediaStore.Images.Media.RELATIVE_PATH, "Download/")
         }
         val outUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        Log.w("saveCopyToDownloads", "Created output URI: $outUri")
         val input = resolver.openInputStream(uri)
         val output = outUri?.let { resolver.openOutputStream(it) }
         if (input != null && output != null) {
+            Log.w("saveCopyToDownloads", "Copying file data")
             input.copyTo(output)
             input.close(); output.close()
+            Log.w("saveCopyToDownloads", "File saved successfully")
+        } else {
+            Log.e("saveCopyToDownloads", "Failed to open input or output stream")
         }
     } catch (e: Exception) {
+        Log.e("saveCopyToDownloads", "Error saving file", e)
         e.printStackTrace()
+    }
+}
+
+fun copyAssetDirToFiles(context: android.content.Context, assetDir: String, outDir: java.io.File) {
+    val am = context.assets
+    val list = am.list(assetDir) ?: return
+    if (!outDir.exists()) outDir.mkdirs()
+    for (name in list) {
+        val assetPath = if (assetDir.isEmpty()) name else "$assetDir/$name"
+        val out = java.io.File(outDir, name)
+        val children = am.list(assetPath)
+        if (children != null && children.isNotEmpty()) {
+            copyAssetDirToFiles(context, assetPath, out)
+        } else {
+            am.open(assetPath).use { input ->
+                java.io.FileOutputStream(out).use { output -> input.copyTo(output) }
+            }
+        }
+    }
+}
+
+fun ensureResourcesReady(context: android.content.Context) {
+    val marker = java.io.File(context.filesDir, "resources/.installed")
+    if (!marker.exists()) {
+        copyAssetDirToFiles(context, "resources", java.io.File(context.filesDir, "resources"))
+        marker.parentFile?.mkdirs()
+        marker.writeText(System.currentTimeMillis().toString())
     }
 }
