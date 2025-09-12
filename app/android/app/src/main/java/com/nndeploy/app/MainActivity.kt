@@ -1,4 +1,4 @@
-package com.example.imageapp
+package com.nndeploy.app
 
 import android.content.ContentValues
 import android.graphics.Bitmap
@@ -38,7 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.imageapp.ui.theme.AppTheme
+import com.nndeploy.app.ui.theme.AppTheme
 import com.nndeploy.dag.GraphRunner
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -565,7 +565,7 @@ fun copyAssetDirToFiles(context: android.content.Context, assetDir: String, outD
  * 
  * 拷贝路径详解：
  * 源：assets/resources/ （APK中的只读资源目录）
- * 目标：/data/data/com.example.imageapp/files/resources/ （应用可写的内部存储）
+ * 目标：/data/data/com.nndeploy.app/files/resources/ （应用可写的内部存储）
  * 
  * 为什么需要拷贝：
  * 1. assets中的文件是只读的，nndeploy等底层库可能需要可写权限
@@ -576,7 +576,7 @@ fun copyAssetDirToFiles(context: android.content.Context, assetDir: String, outD
  */
 fun ensureResourcesReady(context: android.content.Context) {
     // 创建标记文件，用于检查资源是否已经拷贝过
-    // 路径：/data/data/com.example.imageapp/files/resources/.installed
+    // 路径：/data/data/com.nndeploy.app/files/resources/.installed
     val marker = java.io.File(context.filesDir, "resources/.installed")
     
     if (!marker.exists()) {

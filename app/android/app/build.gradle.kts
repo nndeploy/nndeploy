@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.imageapp"
+    namespace = "com.nndeploy.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.imageapp"
+        applicationId = "com.nndeploy.app"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

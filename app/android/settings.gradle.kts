@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "ImageProcessorApp"
+rootProject.name = "NNDeployApp"
 include(":app")
