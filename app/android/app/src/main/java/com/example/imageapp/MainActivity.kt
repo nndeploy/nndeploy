@@ -250,7 +250,8 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                             // runner.setDebug(false)
 
                             // val workflowPath = "resources/workflow/ClassificationResNetMnn.json"
-                            val workflowPath = "class_mnn_test.json"
+                            // val workflowPath = "class_mnn_test.json"
+                            val workflowPath = "demo.json"
                             val absolutePath = File(context.filesDir, workflowPath).absolutePath
                             Log.w("ProcessScreen", "Loading workflow from: $workflowPath")
                             Log.w("ProcessScreen", "Absolute path: $absolutePath")
@@ -262,18 +263,7 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                             Log.w("ProcessScreen", "Running task: $taskId")
                             // val ok = runner.run(absolutePath, "seg_demo", taskId)
                             val ok = runner.run(graphJson, "seg_demo", taskId)
-//                        val filePath = File(context.filesDir, "resources/workflow/ClassificationResNetMnn.json").absolutePath
-                            // val ok = runner.run(filePath, "seg_demo", "task_${System.currentTimeMillis()}")
-//                        runner.close()
                             Log.w("ProcessScreen", "GraphRunner closed")
-
-//                        if (ok) {
-//                            Log.w("ProcessScreen", "Processing completed successfully")
-//                            Toast.makeText(context, "分割执行成功", Toast.LENGTH_SHORT).show()
-//                        } else {
-//                            Log.e("ProcessScreen", "Processing failed")
-//                            Toast.makeText(context, "分割执行失败", Toast.LENGTH_SHORT).show()
-//                        }
                             vm.processedImage = uri
                         }
                     } catch (e: Throwable) {

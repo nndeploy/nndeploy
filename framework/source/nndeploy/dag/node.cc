@@ -1454,7 +1454,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
-  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  NNDEPLOY_LOGE("Failed to createNode [key: %s, name: %s]\n", node_key.c_str(),
+                node_name.c_str());
   return nullptr;
 }
 
