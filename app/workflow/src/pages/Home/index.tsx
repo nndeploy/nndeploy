@@ -119,7 +119,7 @@ export default function Home() {
 
                   <div className={classNames("item-content")}>
                    
-                      <div className="title">{item.name_}xx</div>
+                      <div className="title">{item.name_}</div>
                   
                     <div className="developer">{item.developer_ ?? 'unknown developer'}</div>
 

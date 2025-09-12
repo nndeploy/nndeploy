@@ -260,6 +260,11 @@ export class AxiosRequest implements IRequest {
     //   var fileName:string = headers['content-disposition'].replace(/\w+;filename=(.*)/, '$1')
     //   var filename2 = decodeURI(fileName);
 
+    const temp1 =  response.headers['content-disposition'].split(';')[1]
+     const temp2 = temp1.split('=')
+      const temp3 = temp2[1]
+
+
     fileName = fileName ?? response.headers['content-disposition'].split(';')[1].split('=')[1]
 
     //fileName = fileName.substring("utf-8''".length);

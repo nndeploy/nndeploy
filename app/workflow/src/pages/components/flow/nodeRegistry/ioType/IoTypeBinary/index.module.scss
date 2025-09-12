@@ -1,0 +1,58 @@
+.io-type-container {
+
+  .io-type-input-container {}
+
+  .preview {
+    margin-top: .5em;
+
+    .file-item-info {
+      border-radius: var(--semi-border-radius-medium);
+      display: flex;
+
+      padding: 8px 12px;
+      gap: 8px;
+
+      align-items: center;
+      justify-content: space-between;
+
+      background-color: rgba(46, 50, 56, .05);
+      cursor: pointer;
+
+      .fileName {
+        flex: 1;
+      }
+
+      .iconDelete {
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--semi-color-danger)
+        }
+      }
+
+      .iconDelete {
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--semi-color-danger)
+        }
+      }
+
+      .download {
+        flex-shrink: 0;
+      }
+
+      // .iconDownload {
+      //   flex-shrink: 0;
+
+      //   &:hover {
+      //     color: var(--semi-color-primary)
+      //   }
+      // }
+
+
+    }
+
+    //word-break: break-all;
+  }
+}

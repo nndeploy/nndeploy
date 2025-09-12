@@ -16,7 +16,9 @@ export function Run() {
 
   const flowEnviroment = useFlowEnviromentContext()
 
-  const { downloading, runningTaskId, isRunning } = flowEnviroment
+  const { downloading,  runInfo } = flowEnviroment
+
+  const {runningTaskId, isRunning} = runInfo
 
   //console.log('isRunning', isRunning)
 

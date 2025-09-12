@@ -2,7 +2,7 @@ import React from 'react';
 import { FlowDocumentJSON } from '../typings';
 import { INodeEntity } from '../pages/Node/entity';
 import { IBusinessNode, IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
-import { IFlowNodesRunningStatus, ILog, IOutputResource } from '../pages/components/flow/entity';
+import { IFlowNodesRunningStatus, ILog, IOutputResource, IRunInfo } from '../pages/components/flow/entity';
 import { run } from 'node:test';
 
 export const FlowEnviromentContext = React.createContext<
@@ -12,38 +12,66 @@ export const FlowEnviromentContext = React.createContext<
     onSave?: (flowJson: FlowDocumentJSON) => void;
     onRun?: (flowJson: FlowDocumentJSON) => void;
     onDownload?: (flowJson: FlowDocumentJSON) => void;
-    downloading: boolean, 
-    onConfig: ()=>void; 
+    downloading: boolean,
+    onConfig: () => void;
     graphTopNode: IBusinessNode;
     paramTypes: IParamTypes;
-    outputResource: IOutputResource;
-    flowNodesRunningStatus: IFlowNodesRunningStatus, 
-    log: ILog, 
-    runResult: string; 
-    downloadModalVisible:boolean, 
-    setDownloadModalVisible:React.Dispatch<React.SetStateAction<boolean>>,
-    downloadModalList:string[], 
-    isRunning: boolean, 
-    runningTaskId: string
+
+
+    // isRunning: boolean, 
+    // runResult: string; 
+    // runningTaskId: string, 
+    // outputResource: IOutputResource;
+    // flowNodesRunningStatus: IFlowNodesRunningStatus, 
+    // log: ILog, 
+    runInfo: IRunInfo
+
+    downloadModalVisible: boolean,
+    setDownloadModalVisible: React.Dispatch<React.SetStateAction<boolean>>,
+    downloadModalList: string[],
   }
 
+
 >({
-  outputResources: {path: [], text: []}, 
-  flowNodesRunningStatus: {}, 
-  downloading: false, 
+
+  flowNodesRunningStatus: {},
+  downloading: false,
   graphTopNode: {},
-  log: {
-    items: [],
-    time_profile: {
-      init_time: undefined,
-      run_time: undefined
-    }
-  },
-  runResult: '',
-  downloadModalVisible: false, 
-  setDownloadModalList: [], 
-  isRunning:false, 
-  runningTaskId: ''
+
+  // isRunning:false, 
+  // runningTaskId: '', 
+  // runResult: '',
+  // outputResources: {path: [], text: []}, 
+  // log: {
+  //   items: [],
+  //   time_profile: {
+  //     init_time: undefined,
+  //     run_time: undefined
+  //   }
+  // },
+  runInfo: {
+    isRunning: false,
+    result: '',
+    runningTaskId: '',
+    log: {
+      items: [],
+      time_profile: {
+        init_time: undefined,
+        run_time: undefined
+
+      }
+    },
+    outputResource: {
+      type: 'memory',
+      content: {},
+      time: Date.now()
+    },
+    flowNodesRunningStatus: {}
+  }, 
+
+  downloadModalVisible: false,
+  setDownloadModalList: [],
+
 
 } as any);
 
