@@ -1,6 +1,8 @@
+import { WorkflowNodeStatus } from "../../../../components/base-node/node-status-bar/type";
+
 export interface IFlowNodeItemRunningStatus {
   time: number;
-  status: "IDLE" | "INITING" | "INITED" | "RUNNING" | "DONE" |"ERROR"
+  status: WorkflowNodeStatus // "IDLE" | "INITING" | "INITED" | "RUNNING" | "DONE" |"ERROR"
 }
 
 export interface IFlowNodesRunningStatus {
@@ -9,8 +11,14 @@ export interface IFlowNodesRunningStatus {
 
 
 export interface IOutputResource {
-  path: { name: string, path: string }[],
-  text: { name: string, text: string }[]
+  // path: { name: string, path: string }[],
+  // text: { name: string, text: string }[]
+  type: 'memory', 
+  content: {
+    [nodeName:string]:string
+  }
+  time: number
+
 }
 
 
@@ -20,4 +28,17 @@ export interface ILog {
     init_time?: number,
     run_time?: number
   }
+
+}
+
+
+export interface IRunInfo{
+  isRunning: boolean
+  result :  ''| 'error'| 'success', 
+  runningTaskId: string; 
+  log: ILog; 
+  outputResource: IOutputResource, 
+  flowNodesRunningStatus: IFlowNodesRunningStatus, 
+  time: number,
+
 }

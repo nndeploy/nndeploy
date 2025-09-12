@@ -53,6 +53,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-router-dom": "^6.15.0",
+    "react-syntax-highlighter": "^15.6.6",
     "styled-components": "^5"
   },
   "devDependencies": {
@@ -68,6 +69,7 @@
     "@types/qs": "^6.14.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/styled-components": "^5",
     "cross-env": "~7.0.3",
     "eslint": "^8.54.0"

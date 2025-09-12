@@ -1,0 +1,53 @@
+// .image-upload {
+//   .semi-upload-picture-file-card{
+//     width: 100%; 
+//     height: auto;
+//   }
+
+//   img {
+
+//     width: 180px;
+//     height: auto;
+
+//   }
+// }
+// .iotype-image-preview-modal{
+//   width: 100%;
+//   height: 100%;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// }
+
+
+// .upload-area {
+//   width: 300px;
+//   height: 200px;
+//   border: 2px dashed #ccc;
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: center;
+
+//   min-height: 30px;
+//   transition: border 0.3s;
+// }
+
+// .upload-area.dragover {
+//   border-color: #0066ff;
+// }
+
+.iotypeTextFile {
+  color: red;
+}
+
+.preview {
+  max-height: 300px;
+  overflow: auto;
+  margin-top: 0.5em; 
+  padding: 0.5em;
+  border: 1px solid #eeeeee;
+  background-color: #eee4;
+  border-radius: 5px;
+  //word-break: break-all;
+}

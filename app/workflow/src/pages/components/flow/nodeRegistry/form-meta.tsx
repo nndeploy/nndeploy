@@ -5,33 +5,22 @@ import {
   Field,
   FieldArray,
 } from "@flowgram.ai/free-layout-editor";
-import { Button, IconButton, Input, InputNumber, Popover, Select, SideSheet, Switch, TextArea, Tooltip, Typography, VideoPlayer } from "@douyinfe/semi-ui";
+import { SideSheet, TextArea, Tooltip, Typography } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
-import { Feedback, FormContent } from "../../../../form-components";
+import { FormContent } from "../../../../form-components";
 import { useIsSidebar } from "../../../../hooks";
 
 import "./index.scss";
 import { FormHeader } from "../form-header";
-import { FormItem } from "../form-item";
-import { FormParams } from "../form-params";
-import { FxExpression } from "../../../../form-components/fx-expression";
-import Section from "@douyinfe/semi-ui/lib/es/form/section";
 import lodash, { uniqueId } from "lodash";
-import { FormDynamicPorts } from "../form-dynamic-ports";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
-import { getFieldType } from "../functions";
-import { INodeEntity } from "../../../Node/entity";
 import { useRef, useState } from "react";
-import NodeRepositoryEditor from "../NodeRepositoryEditor";
-import { IResourceTreeNodeEntity, IServerResourceFileEntity } from "../../../Layout/Design/Resource/entity";
+import { IResourceTreeNodeEntity } from "../../../Layout/Design/Resource/entity";
 import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDrawer";
-import { IconChevronDown, IconChevronRight, IconCrossCircleStroked, IconMinus, IconPlus } from "@douyinfe/semi-icons";
-import { IconAddChildren } from "../../json-schema-editor/styles";
 
-import classNames from 'classnames';
-import { usePropertiesEdit } from "./hooks";
 import { PropertyEdit } from "./propertyEdit";
+import IoType from "./ioType";
 
 const { Text } = Typography;
 
@@ -42,7 +31,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   // const { node } = useNodeRender();
 
-  const { nodeList = [], paramTypes, element: flowElementRef, outputResource } = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes, element: flowElementRef,  runInfo} = useFlowEnviromentContext()
+
+  const {outputResource} = runInfo
 
   const is_dynamic_input_ = form.getValueIn("is_dynamic_input_");
   const is_dynamic_output_ = form.getValueIn("is_dynamic_output_");
@@ -50,6 +41,32 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const key_ = form.getValueIn("key_");
 
   const name_ = form.getValueIn('name_')
+
+  const ioType = form.getValueIn('io_type_')
+
+  function getIoTypeFieldName() {
+    const required_params = form.getValueIn('required_params_')
+    if (required_params && required_params.length > 0) {
+      return required_params[0]
+    }
+    return "empty-field"
+  }
+
+  function getIoTypeFieldValue() {
+    const fieldName = getIoTypeFieldName()
+    if (fieldName) {
+      return form.getValueIn(fieldName)
+    }
+    return ""
+  }
+
+  function handleIoTypeValueChange(value: string) {
+    form.setValueIn(getIoTypeFieldName(), value)
+  }
+
+
+
+
 
   const excludeFields = [
     "id",
@@ -67,6 +84,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'developer_',
     'source_',
     'version_',
+
+    'io_type_', 
     //'required_params_'
 
   ];
@@ -86,29 +105,41 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     return false
   }
 
-  function needShowTextContent() {
+  // function needShowTextContent() {
 
-    const nodeNames = outputResource.text.map(item => item.name)
+  //   const nodeNames = outputResource.text.map(item => item.name)
 
-    const needShow = isTextNode() && nodeNames.includes(form.getValueIn('name_')) //path_.includes('&time=')
+  //   const needShow = isTextNode() && nodeNames.includes(form.getValueIn('name_')) //path_.includes('&time=')
 
-    return needShow
-  }
+  //   return needShow
+  // }
 
   function isInputMediaNode() {
-    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvVideoDecode']
-    if (imageNodes.includes(key_)) {
-      return true
-    }
-    return false
+    // const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvVideoDecode']
+    // if (imageNodes.includes(key_)) {
+    //   return true
+    // }
+    // return false
+
+     const nodeType = form.getValueIn('node_type_')
+     return nodeType == 'Input'
+
+    // if (ioType) {
+    //   return true
+    // } else {
+    //   return false
+    // }
   }
 
   function isOutputMediaNode() {
-    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageEncode', 'nndeploy::codec::OpenCvVideoEncode']
-    if (imageNodes.includes(key_)) {
-      return true
-    }
-    return false
+    // const imageNodes: string[] = ['nndeploy::codec::OpenCvImageEncode', 'nndeploy::codec::OpenCvVideoEncode']
+    // if (imageNodes.includes(key_)) {
+    //   return true
+    // }
+    // return false
+
+     const nodeType = form.getValueIn('node_type_')
+     return nodeType == 'Output'
   }
 
 
@@ -162,19 +193,13 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     }
     return container
   }
-  function needShowMedia() {
+  // function needShowMedia() {
 
-    const nodeNames = outputResource.path.map(item => item.name)
-    const needShow = isInputMediaNode() || (isOutputMediaNode() && nodeNames.includes(form.getValueIn('name_')))  //path_.includes('&time=')
+  //   const nodeNames = outputResource.path.map(item => item.name)
+  //   const needShow = isInputMediaNode() || (isOutputMediaNode() && nodeNames.includes(form.getValueIn('name_')))  //path_.includes('&time=')
 
-    return needShow
-  }
-
-
-
-
-
-
+  //   return needShow
+  // }
 
   return (
     <div className="drawer-render-form" ref={renderFormRef}>
@@ -334,7 +359,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </div>
             </div>
 
-            <Field key={'path_'} name={'path_'}>
+            {/* <Field key={'path_'} name={'path_'}>
               {({ field, fieldState }) => {
 
                 if (needShowMedia() && field.value && isImageFile(field.value as string)) {
@@ -342,7 +367,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                   const filePath = outputResource.path.find(item => item.name == name_)?.path ?? field.value
 
                   const url = `/api/preview?file_path=${filePath}` //${field.value}&time=${Date.now()}
-                  return <div className="resource-preview">
+                  return <div className="resource-preview zhang">
                     <img src={url} onClick={((event) => onShowMediaFile(event, field.value as string))}
 
                     />
@@ -372,13 +397,32 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 }
               }}
 
-            </Field>
+            </Field> */}
+
             {
+              (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
+
+              <Field key={getIoTypeFieldName()} name={getIoTypeFieldName()} >
+                {({ field, fieldState }) => {
+                  return <IoType
+                    direction = {isInputMediaNode() ? 'input' : 'output'}
+                    ioDataType={ioType}
+
+                   // value={getIoTypeFieldValue()}
+                    value = {field.value as string}
+                    //onChange={handleIoTypeValueChange}
+                    onChange = {field.onChange}
+                  />
+                }}
+              </Field>
+            }
+            
+            {/* {
               isTextNode() && needShowTextContent() &&
               <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
-            }
+            } */}
 
           </>
         )}
@@ -387,7 +431,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             <div className="property-container">
               <div className="UIProperties">
 
-                {basicFields.slice(0, 20).map((fieldName, index) => {
+                {basicFields.map((fieldName, index) => {
 
                   return (
                     <Field key={fieldName} name={fieldName} >
