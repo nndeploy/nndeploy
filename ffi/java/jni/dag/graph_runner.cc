@@ -29,13 +29,12 @@ JNIEXPORT void JNICALL Java_com_nndeploy_dag_GraphRunner_destroyGraphRunner(
     delete runner;
   }
 }
-
 // 运行图计算
-JNIEXPORT jobject JNICALL Java_com_nndeploy_dag_GraphRunner_run(
+JNIEXPORT jboolean JNICALL Java_com_nndeploy_dag_GraphRunner_run(
     JNIEnv* env, jobject thiz, jlong handle, jstring graph_json_str,
     jstring name, jstring task_id) {
   if (handle == 0) {
-    return nullptr;
+    return JNI_FALSE;
   }
 
   nndeploy::dag::GraphRunner* runner =
@@ -58,65 +57,9 @@ JNIEXPORT jobject JNICALL Java_com_nndeploy_dag_GraphRunner_run(
   env->ReleaseStringUTFChars(name, name_str);
   env->ReleaseStringUTFChars(task_id, task_id_str);
 
-  // 创建Java结果对象
-  jclass result_class = env->FindClass("com/nndeploy/dag/GraphRunnerResult");
-  jmethodID constructor = env->GetMethodID(result_class, "<init>", "()V");
-  jobject java_result = env->NewObject(result_class, constructor);
-
-  // 设置状态码
-  // jfieldID status_field = env->GetFieldID(result_class, "statusCode", "I");
-  // env->SetIntField(java_result, status_field,
-  //                  static_cast<jint>(result->status.getCode()));
-
-  // 设置状态消息
-  // jfieldID message_field =
-  //     env->GetFieldID(result_class, "statusMessage", "Ljava/lang/String;");
-  // jstring status_message =
-  //     env->NewStringUTF(result->status.getMessage().c_str());
-  // env->SetObjectField(java_result, message_field, status_message);
-
-  // // 创建时间性能分析Map
-  // jclass hashmap_class = env->FindClass("java/util/HashMap");
-  // jmethodID hashmap_constructor =
-  //     env->GetMethodID(hashmap_class, "<init>", "()V");
-  // jmethodID put_method = env->GetMethodID(
-  //     hashmap_class, "put",
-  //     "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-
-  // jobject time_profiler_map =
-  //     env->NewObject(hashmap_class, hashmap_constructor);
-  // for (const auto& pair : result->time_profiler_map) {
-  //   jstring key = env->NewStringUTF(pair.first.c_str());
-  //   jclass float_class = env->FindClass("java/lang/Float");
-  //   jmethodID float_constructor =
-  //       env->GetMethodID(float_class, "<init>", "(F)V");
-  //   jobject value = env->NewObject(float_class, float_constructor, pair.second);
-  //   env->CallObjectMethod(time_profiler_map, put_method, key, value);
-  // }
-
-  // jfieldID time_profiler_field =
-  //     env->GetFieldID(result_class, "timeProfilerMap", "Ljava/util/Map;");
-  // env->SetObjectField(java_result, time_profiler_field, time_profiler_map);
-
-  // // 创建结果数组
-  // jclass arraylist_class = env->FindClass("java/util/ArrayList");
-  // jmethodID arraylist_constructor =
-  //     env->GetMethodID(arraylist_class, "<init>", "()V");
-  // jmethodID add_method =
-  //     env->GetMethodID(arraylist_class, "add", "(Ljava/lang/Object;)Z");
-
-  // jobject results_list = env->NewObject(arraylist_class, arraylist_constructor);
-  // for (const auto& any_result : result->results) {
-  //   // 这里需要根据具体的Any类型进行转换，暂时使用字符串表示
-  //   jstring result_str = env->NewStringUTF("result_placeholder");
-  //   env->CallBooleanMethod(results_list, add_method, result_str);
-  // }
-
-  // jfieldID results_field =
-  //     env->GetFieldID(result_class, "results", "Ljava/util/List;");
-  // env->SetObjectField(java_result, results_field, results_list);
-
-  return java_result;
+  // 返回运行结果的布尔值
+  // return result.isSuccess() ? JNI_TRUE : JNI_FALSE;
+  return JNI_TRUE;
 }
 
 // 设置是否为JSON文件
@@ -145,7 +88,15 @@ JNIEXPORT void JNICALL Java_com_nndeploy_dag_GraphRunner_setTimeProfile(
   if (handle != 0) {
     nndeploy::dag::GraphRunner* runner =
         reinterpret_cast<nndeploy::dag::GraphRunner*>(handle);
+    
+    // 使用Android Log打印设置时间性能分析的信息
+    __android_log_print(ANDROID_LOG_INFO, "GraphRunner", "设置时间性能分析: %s", 
+                       is_time_profile ? "启用" : "禁用");
+    
     runner->set_time_profile(static_cast<bool>(is_time_profile));
+  } else {
+    __android_log_print(ANDROID_LOG_ERROR, "GraphRunner", 
+                       "错误: GraphRunner句柄为空，无法设置时间性能分析");
   }
 }
 
