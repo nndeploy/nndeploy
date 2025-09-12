@@ -235,36 +235,69 @@ fun ProcessScreen(nav: NavHostController, vm: AppVM) {
                                 vm.processedImage = uri
                             }
                         } else {
-                            Log.w("ProcessScreen", "Initializing GraphRunner")
-                            // 在/data/local/tmp下创建一个test_app.txt文件，并写入当前时间
-                            // context.filesDir 指向应用的私有内部存储目录
-                            // 通常位于: /data/data/com.example.imageapp/files/
-                            // 这个目录只有当前应用可以访问，系统会在应用卸载时自动清理
-                            val testFile = File(context.filesDir, "test_app.txt")
-                            testFile.writeText("Initializing GraphRunner: ${System.currentTimeMillis()}\nFilesDir path: ${context.filesDir.absolutePath}")
-                            Log.w("ProcessScreen", "Test file created at: ${testFile.absolutePath}")
+                            // 内部私有目录
+                            // Log.w("ProcessScreen", "Initializing GraphRunner")
+                            // // 1) 确保资源就绪
+                            // ensureResourcesReady(context)
+                            // val baseDir = File(context.filesDir, "resources").absolutePath
 
+                            // // 2) 读取 assets 中的 workflow，并替换占位符
+                            // val workflowAsset = "resources/workflow/ClassificationResNetMnn.json" // 或你的实际路径
+                            // val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
+                            // val resolvedJson = rawJson.replace("resources/", "$baseDir/".replace("\\", "/"))
+                            // Log.w("ProcessScreen", "Resolved JSON: $resolvedJson")
+                                
+                            // // 3) 写入 filesDir，得到真实文件路径
+                            // val workflowOut = File(context.filesDir, "workflow/ClassificationResNetMnn_resolved.json")
+                            // workflowOut.parentFile?.mkdirs()
+                            // workflowOut.writeText(resolvedJson)
+
+                            // // 4) 调用底层（以文件路径）
+                            // val runner = GraphRunner()
+                            // runner.setJsonFile(true)
+                            // runner.setTimeProfile(true)
+                            // runner.setDebug(true)
+                            // // 可选：把基准目录传下去，便于底层解析相对路径
+                            // // runner.setNodeValue("__global__", "base_dir", baseDir)
+
+                            // val ok = runner.run(workflowOut.absolutePath, "seg_demo", "task_${System.currentTimeMillis()}")
+                            // runner.close()
+                            // vm.processedImage = uri
+
+                            // 1) 确保外部资源就绪
+                            val extResDir = ensureExternalResourcesReady(context)
+                            val extRoot = getExternalRoot(context)
+                            val extWorkflowDir = java.io.File(extRoot, "workflow").apply { mkdirs() }
+
+                            // 2) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
+                            val workflowAsset = "resources/workflow/ClassificationResNetMnn.json"
+                            val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
+                            val resolvedJson = rawJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
+                            Log.w("ProcessScreen", "Resolved JSON: $resolvedJson")
+
+                            // 3) 写到外部私有目录，得到真实文件路径
+                            val workflowOut = java.io.File(extWorkflowDir, "ClassificationResNetMnn_resolved.json").apply {
+                                writeText(resolvedJson)
+                            }
+
+                            // 4) 以文件路径运行底层
                             val runner = GraphRunner()
-                            runner.setJsonFile(false)
+                            runner.setJsonFile(true)
                             runner.setTimeProfile(true)
-                            // runner.setDebug(false)
-
-                            // val workflowPath = "resources/workflow/ClassificationResNetMnn.json"
-                            // val workflowPath = "class_mnn_test.json"
-                            val workflowPath = "demo.json"
-                            val absolutePath = File(context.filesDir, workflowPath).absolutePath
-                            Log.w("ProcessScreen", "Loading workflow from: $workflowPath")
-                            Log.w("ProcessScreen", "Absolute path: $absolutePath")
-                            val graphJson: String = context.assets.open(workflowPath).bufferedReader().use { it.readText() }
-                            Log.w("ProcessScreen", "Workflow JSON loaded, length: ${graphJson.length}")
-                            Log.w("ProcessScreen", "GraphJSON content: $graphJson")
+                            runner.setDebug(true)
+                            // runner.setNodeValue("__global__", "base_dir", extResDir.absolutePath) // 如需下发基准目录
+                            val ok = runner.run(workflowOut.absolutePath, "seg_demo", "task_${System.currentTimeMillis()}")
+                            runner.close()
                             
-                            val taskId = "task_${System.currentTimeMillis()}"
-                            Log.w("ProcessScreen", "Running task: $taskId")
-                            // val ok = runner.run(absolutePath, "seg_demo", taskId)
-                            val ok = runner.run(graphJson, "seg_demo", taskId)
-                            Log.w("ProcessScreen", "GraphRunner closed")
-                            vm.processedImage = uri
+                            
+                            // 获取结果图片路径
+                            val resultImagePath = java.io.File(extResDir, "images/result.resnet.jpg")
+                            if (resultImagePath.exists()) {
+                                vm.processedImage = Uri.fromFile(resultImagePath)
+                            } else {
+                                Log.w("ProcessScreen", "Result image not found at: ${resultImagePath.absolutePath}")
+                                vm.processedImage = uri // 使用原图作为备选
+                            }
                         }
                     } catch (e: Throwable) {
                         Log.e("ProcessScreen", "JNI exception occurred", e)
@@ -471,17 +504,55 @@ private fun saveCopyToDownloads(context: android.content.Context, uri: Uri) {
     }
 }
 
+/**
+ * 递归拷贝Assets目录到应用内部存储
+ * 
+ * 源目录：Android应用的assets目录
+ * - 位置：app/src/main/assets/
+ * - 特点：只读，打包在APK中，无法修改
+ * - 访问方式：通过AssetManager访问
+ * 
+ * 目标目录：应用内部存储的files目录
+ * - 位置：/data/data/包名/files/
+ * - 特点：可读写，应用私有，卸载时会删除
+ * - 访问方式：通过Context.filesDir获取
+ * 
+ * @param context Android上下文，用于获取AssetManager和filesDir
+ * @param assetDir assets中的源目录路径（相对路径，如"resources"）
+ * @param outDir 目标目录的File对象（绝对路径，如/data/data/包名/files/resources）
+ */
 fun copyAssetDirToFiles(context: android.content.Context, assetDir: String, outDir: java.io.File) {
+    // 获取AssetManager，用于访问assets目录中的资源
     val am = context.assets
+    
+    // 列出assets中指定目录下的所有文件和子目录
+    // 如果目录不存在或为空，直接返回
     val list = am.list(assetDir) ?: return
+    
+    // 确保目标目录存在，如果不存在则创建
     if (!outDir.exists()) outDir.mkdirs()
+    
+    // 遍历assets目录中的每个文件/子目录
     for (name in list) {
+        // 构建assets中的完整路径
+        // 例如：assetDir="resources", name="models" -> assetPath="resources/models"
         val assetPath = if (assetDir.isEmpty()) name else "$assetDir/$name"
+        
+        // 构建目标文件/目录的完整路径
+        // 例如：outDir="/data/data/包名/files/resources", name="models" 
+        // -> out="/data/data/包名/files/resources/models"
         val out = java.io.File(outDir, name)
+        
+        // 检查当前项是否为目录（通过尝试列出其子项来判断）
         val children = am.list(assetPath)
+        
         if (children != null && children.isNotEmpty()) {
+            // 如果是目录且非空，递归拷贝子目录
+            // 例如：拷贝assets/resources/models/到/data/data/包名/files/resources/models/
             copyAssetDirToFiles(context, assetPath, out)
         } else {
+            // 如果是文件，直接拷贝文件内容
+            // 从assets中打开输入流，创建目标文件的输出流，然后拷贝数据
             am.open(assetPath).use { input ->
                 java.io.FileOutputStream(out).use { output -> input.copyTo(output) }
             }
@@ -489,11 +560,54 @@ fun copyAssetDirToFiles(context: android.content.Context, assetDir: String, outD
     }
 }
 
+/**
+ * 确保资源文件已从assets拷贝到内部存储
+ * 
+ * 拷贝路径详解：
+ * 源：assets/resources/ （APK中的只读资源目录）
+ * 目标：/data/data/com.example.imageapp/files/resources/ （应用可写的内部存储）
+ * 
+ * 为什么需要拷贝：
+ * 1. assets中的文件是只读的，nndeploy等底层库可能需要可写权限
+ * 2. 某些库需要真实的文件路径，而不是assets的虚拟路径
+ * 3. 提高访问性能，避免每次都从APK中解压读取
+ * 
+ * @param context Android上下文
+ */
 fun ensureResourcesReady(context: android.content.Context) {
+    // 创建标记文件，用于检查资源是否已经拷贝过
+    // 路径：/data/data/com.example.imageapp/files/resources/.installed
     val marker = java.io.File(context.filesDir, "resources/.installed")
+    
     if (!marker.exists()) {
+        // 如果标记文件不存在，说明还未拷贝过资源
+        // 执行拷贝：从assets/resources/拷贝到/data/data/包名/files/resources/
         copyAssetDirToFiles(context, "resources", java.io.File(context.filesDir, "resources"))
+        
+        // 确保标记文件的父目录存在
+        marker.parentFile?.mkdirs()
+        
+        // 创建标记文件，写入当前时间戳作为拷贝完成的标记
+        marker.writeText(System.currentTimeMillis().toString())
+    }
+    // 如果标记文件存在，说明资源已经拷贝过，直接跳过
+}
+
+fun getExternalRoot(context: android.content.Context): java.io.File {
+    // getExternalFilesDir(null) 会自动创建目录如果不存在
+    // 返回路径：/sdcard/Android/data/<pkg>/files
+    // 如果外部存储不可用（如SD卡被移除），会返回null
+    return requireNotNull(context.getExternalFilesDir(null)) // /sdcard/Android/data/<pkg>/files
+}
+
+fun ensureExternalResourcesReady(context: android.content.Context): java.io.File {
+    val root = getExternalRoot(context)
+    val resDir = java.io.File(root, "resources")
+    val marker = java.io.File(resDir, ".installed")
+    if (!marker.exists()) {
+        copyAssetDirToFiles(context, "resources", resDir) // 复用你已有的拷贝函数
         marker.parentFile?.mkdirs()
         marker.writeText(System.currentTimeMillis().toString())
     }
+    return resDir
 }
