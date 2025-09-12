@@ -990,6 +990,7 @@ class NnDeployServer:
         }
         ws_set = self.task_ws_map.get(task_id, set())
         if not ws_set:
+            logging.warning("[notify_download_done] Ws_set is empty, timeout")
             return
         for ws in ws_set.copy():
             if self.loop and self.loop.is_running():
@@ -1135,9 +1136,19 @@ class NnDeployServer:
                 logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
 
+    async def _wait_ws_binding(self, task_id: str, timeout: float = 60.0, poll: float = 0.05) -> bool:
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+        while loop.time() < deadline:
+            if self.task_ws_map.get(task_id):
+                return True
+            await asyncio.sleep(poll)
+        return False
+
     async def _download_models_task(self, task_id: str, graph_json: dict):
         token = set_task_id(task_id)
         try:
+            await self._wait_ws_binding(task_id, timeout=10.0)
             with scoped_stdio_to_logging("model-download"):
                 logging.info("model download task started")
 
@@ -1146,7 +1157,7 @@ class NnDeployServer:
                     _handle_urls, graph_json, self.args.resources
                 )
                 logging.info("model download task finished: %s", result)
-            self.notify_download_done(task_id, success=True, result=result, error=None)
+                self.notify_download_done(task_id, success=True, result=result, error=None)
         except Exception as e:
             logging.exception("model download task failed")
             self.notify_download_done(task_id, success=False, result=None, error=str(e))
