@@ -2278,7 +2278,7 @@ base::Status Graph::deserialize(const std::string &json_str) {
   }
   rapidjson::Value &json = document;
 
-  replaceGraphJsonStr(node_value_map_, json_str);
+  // replaceGraphJsonStr(node_value_map_, json_str);
 
   if (json.HasMember("node_repository_") &&
       json["node_repository_"].IsArray()) {

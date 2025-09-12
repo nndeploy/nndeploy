@@ -62,12 +62,13 @@ if __name__ == "__main__":
     import sys
     
     if len(sys.argv) != 3:
-        print("使用方法: python android_install.py <source_dir> <target_dir>")
-        print("示例: python android_install.py nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang nndeploy/app/android/app/src/main/jniLibs/arm64-v8a")
+        print("使用方法: python android_install_so.py <source_dir> <target_dir>")
+        print("示例: python android_install_so.py nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang nndeploy/app/android/app/src/main/jniLibs/arm64-v8a")
         sys.exit(1)
     
     source_dir = sys.argv[1]
     target_dir = sys.argv[2]
     copy_dynamic_libraries(source_dir, target_dir)
     
-# python3 tool/script/android_install.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a
+# python3 tool/script/android_install_so.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a
+# python3 ../tool/script/android_install_so.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a
