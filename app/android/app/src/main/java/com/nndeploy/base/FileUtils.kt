@@ -98,4 +98,64 @@ object FileUtils {
         }
         return resDir
     }
+    
+    /**
+     * 创建临时图片文件
+     */
+    fun createTempImageFile(context: Context): File {
+        val fileName = "temp_image_${System.currentTimeMillis()}.jpg"
+        return File(context.cacheDir, fileName)
+    }
+    
+    /**
+     * 创建临时视频文件
+     */
+    fun createTempVideoFile(context: Context): File {
+        val fileName = "temp_video_${System.currentTimeMillis()}.mp4"
+        return File(context.cacheDir, fileName)
+    }
+    
+    /**
+     * 获取文件大小
+     */
+    fun getFileSize(context: Context, uri: Uri): Long {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { 
+                it.available().toLong() 
+            } ?: 0L
+        } catch (e: Exception) {
+            Log.e("FileUtils", "Failed to get file size", e)
+            0L
+        }
+    }
+    
+    /**
+     * 检查文件是否存在
+     */
+    fun fileExists(context: Context, uri: Uri): Boolean {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { true } ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    /**
+     * 删除临时文件
+     */
+    fun deleteTempFiles(context: Context) {
+        try {
+            val cacheDir = context.cacheDir
+            cacheDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("temp_") || 
+                    file.name.startsWith("processed_") ||
+                    file.name.startsWith("photo_") ||
+                    file.name.startsWith("video_")) {
+                    file.delete()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FileUtils", "Failed to delete temp files", e)
+        }
+    }
 }
