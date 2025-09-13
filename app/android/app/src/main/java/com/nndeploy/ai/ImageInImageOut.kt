@@ -25,9 +25,15 @@ object ImageInImageOut {
             // 1) 确保外部资源就绪
             val extResDir = FileUtils.ensureExternalResourcesReady(context)
             val extRoot = FileUtils.getExternalRoot(context)
-            val extWorkflowDir = File(extRoot, "workflow").apply { mkdirs() }
+            val extWorkflowDir = File(extResDir, "workflow").apply { mkdirs() }
+            
+            // 打印三个变量
+            Log.d("ImageInImageOut", "extResDir: ${extResDir.absolutePath}")
+            Log.d("ImageInImageOut", "extRoot: ${extRoot.absolutePath}")
+            Log.d("ImageInImageOut", "extWorkflowDir: ${extWorkflowDir.absolutePath}")
 
-            val workflowAsset = "image_segmentation.json"
+            // val workflowAsset = extWorkflowDir.absolutePath + "/ClassificationResNetMnn.json"
+            val workflowAsset = "resources/workflow/ClassificationResNetMnn.json"
             
             // 3) 预处理输入数据
             val processedInputUri = ImageUtils.preprocessImage(context, inputUri)
@@ -35,6 +41,8 @@ object ImageInImageOut {
             // 4) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
             val resolvedJson = rawJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
+            // 打印解析后的JSON内容
+            Log.d("ImageInImageOut", "Resolved JSON content: $resolvedJson")
             
             // 5) 写到外部私有目录，得到真实文件路径
             val workflowOut = File(extWorkflowDir, "Segmentation_${inputType.name}_resolved.json").apply {
@@ -48,16 +56,20 @@ object ImageInImageOut {
             runner.setDebug(true)
             
             // 设置输入文件路径
-            runner.setNodeValue("input_node", "input_path", processedInputUri.path ?: "")
+            // runner.setNodeValue("input_node", "input_path", processedInputUri.path ?: "")
             
             val ok = runner.run(workflowOut.absolutePath, "seg_demo", "task_${System.currentTimeMillis()}")
             runner.close()
             
             // 7) 获取结果路径
-            val resultPath = getResultPath(extResDir, inputType, "segment")
+            // val resultPath = getResultPath(extResDir, inputType, "segment")
+            val resultPath = File(extResDir, "images/result.resnet.jpg")
+            Log.d("ImageInImageOut", "resultPath: ${resultPath.absolutePath}")
             if (resultPath.exists()) {
+                Log.d("ImageInImageOut", "resultPath exists")
                 ProcessResult.Success(Uri.fromFile(resultPath))
             } else {
+                Log.d("ImageInImageOut", "resultPath not exists")
                 ProcessResult.Error("分割结果文件未找到: ${resultPath.absolutePath}")
             }
             
