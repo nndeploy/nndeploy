@@ -421,15 +421,19 @@ const Flow: React.FC<FlowProps> = (props) => {
       //   }
       // })
 
-      setRunInfo({
-        ...runInfo,
-        isRunning: true,
-        result: '',
-        log: {
-          items: [],
-          time_profile: {
-            init_time: undefined,
-            run_time: undefined
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          isRunning: true,
+          result: '',
+          log: {
+            items: [],
+            time_profile: {
+              init_time: undefined,
+              run_time: undefined
+            }
           }
         }
 
@@ -451,15 +455,19 @@ const Flow: React.FC<FlowProps> = (props) => {
       const taskId = response.result.task_id
 
       //setRunningTaskId(taskId)
-      setRunInfo({
-        ...runInfo,
-        runningTaskId: taskId,
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          runningTaskId: taskId,
+        }
       })
 
       socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
 
       socket!.onclose = () => {
-
+        let j = 0
       };
 
       socket!.onmessage = (event) => {
@@ -500,16 +508,24 @@ const Flow: React.FC<FlowProps> = (props) => {
 
             setRunInfo(oldRunInfo => {
 
-              return {
+
+              if (response.result.task_id == oldRunInfo.runningTaskId) {
+                return {
 
 
-                ...oldRunInfo,
-                isRunning: false,
-                result: 'error',
-                flowNodesRunningStatus: {},
+                  ...oldRunInfo,
+                  isRunning: false,
+                  result: 'error',
+                  flowNodesRunningStatus: {},
+                }
+
+              } else {
+                return {
+                  ...oldRunInfo
+                }
               }
-            })
 
+            })
 
             Toast.error("run fail ");
           }
@@ -535,9 +551,14 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         } else if (response.result.type == 'progress') {
           //setFlowNodesRunningStatus(response.result.detail)
-          setRunInfo({
-            ...runInfo,
-            flowNodesRunningStatus: response.result.detail,
+          setRunInfo(oldRunInfo => {
+
+            return {
+
+
+              ...oldRunInfo,
+              flowNodesRunningStatus: response.result.detail
+            }
           })
         } else if (response.result.type == 'log') {
 
@@ -728,6 +749,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             setDownloadModalVisible,
             downloadModalList,
             runInfo,
+            setRunInfo
 
 
             // log: log,

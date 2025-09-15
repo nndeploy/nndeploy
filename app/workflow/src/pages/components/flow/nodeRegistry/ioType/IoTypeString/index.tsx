@@ -17,12 +17,23 @@ interface IoTypeStringProps {
 const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
   const { value, onChange, direction, ioDataType } = props;
 
-  const { node } = useNodeRender();
-  const form = getNodeForm(node)!
-  const nodeName = form.getValueIn('name_')
-
   const { runInfo } = useFlowEnviromentContext()
   const { outputResource } = runInfo
+
+  const { node } = useNodeRender();
+  const form = getNodeForm(node)!
+
+  if (!form) {
+    console.log('form', form)
+    let j = 0
+    return <></>
+  } else {
+    // console.log('form', form)
+  }
+
+  const nodeName = form.getValueIn('name_')
+
+
 
   function checkOutputNeedShow() {
 
@@ -49,7 +60,7 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
               onClick={(event) => {
                 event.stopPropagation();
               }} />
-              {/* <CodeEditor value={value} onChange={onChange} ioDataType={ioDataType} direction={"input"} /> */}
+            {/* <CodeEditor value={value} onChange={onChange} ioDataType={ioDataType} direction={"input"} /> */}
           </div>
           :
           <div className={classNames(styles['io-type-output-container'], { [styles.show]: isOutputNeedShow })}>
@@ -58,7 +69,7 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
                 event.stopPropagation();
               }} />
 
-              {/* <CodeEditor value={value} onChange={onChange} ioDataType={ioDataType} direction={"output"} /> */}
+            {/* <CodeEditor value={value} onChange={onChange} ioDataType={ioDataType} direction={"output"} /> */}
 
           </div>
       }

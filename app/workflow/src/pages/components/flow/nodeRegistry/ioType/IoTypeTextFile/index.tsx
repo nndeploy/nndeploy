@@ -87,7 +87,7 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
 
 
     // }
-     fileInputRef.current?.addEventListener('change', handleFiles);
+    fileInputRef.current?.addEventListener('change', handleFiles);
   }, [fileInputRef.current])
 
 
@@ -105,11 +105,11 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
   return (
     <>
       <div onClick={event => {
-            event.stopPropagation();
-            event.nativeEvent.stopImmediatePropagation();
+        event.stopPropagation();
+        event.nativeEvent.stopImmediatePropagation();
 
-          
-          }}>
+
+      }}>
         {/* <IconPlus size="extra-large"
 
           onClick={event => {
@@ -130,12 +130,12 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
               fileInputRef.current.click();
             }
           }} />}
-          style={{cursor: 'default!important'}}
-           onFocus={(e) =>  e.target.style.caretColor = 'transparent'}
+          style={{ cursor: 'default!important' }}
+          onFocus={(e) => e.target.style.caretColor = 'transparent'}
 
-           value = {fileName}
+          value={fileName}
 
-          showClear = {false}
+          showClear={false}
           onClick={event => {
             event.stopPropagation();
 

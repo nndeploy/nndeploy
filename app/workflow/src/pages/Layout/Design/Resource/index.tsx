@@ -127,10 +127,13 @@ const Resource: React.FC = () => {
     return (
       <Dropdown
         closeOnEsc={true}
-        trigger={"click"}
+        trigger={"hover"}
         position="right"
+       
         render={
-          <Dropdown.Menu>
+          <Dropdown.Menu
+           style={{alignItems: 'center'}}
+          >
             {/* {resource.type == "branch" && (
               <Dropdown.Item onClick={() => onBranchEdit(resource)}>
                 edit

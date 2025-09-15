@@ -14,12 +14,24 @@ interface IoTypeStringProps {
 const IoTypeBoolean: React.FC<IoTypeStringProps> = (props) => {
   const { value, onChange, direction } = props;
 
-  const { node } = useNodeRender();
-  const form = getNodeForm(node)!
-  const nodeName = form.getValueIn('name_')
+
 
   const { runInfo } = useFlowEnviromentContext()
   const { outputResource } = runInfo
+
+  const { node } = useNodeRender();
+  const form = getNodeForm(node)!
+
+  if (!form) {
+    console.log('form', form)
+    let j = 0
+    return <></>
+  } else {
+    // console.log('form', form)
+  }
+
+
+  const nodeName = form.getValueIn('name_')
 
   function checkOutputNeedShow() {
 
@@ -37,24 +49,25 @@ const IoTypeBoolean: React.FC<IoTypeStringProps> = (props) => {
         direction === 'input' ?
 
           <div className={classNames(styles['io-type-input-container'])}>
-            <Switch  checked={!!value}
-              
+            <Switch checked={!!value}
 
-              onChange={ (checked, event) => {
+
+              onChange={(checked, event) => {
                 event.stopPropagation();
-                onChange(checked)}
+                onChange(checked)
+              }
               }
 
 
-              // onClick={(event) => {
-              //   event.stopPropagation();
-              // }} 
-              />
+            // onClick={(event) => {
+            //   event.stopPropagation();
+            // }} 
+            />
           </div>
           :
           <div className={classNames(styles['io-type-output-container'], { [styles.show]: isOutputNeedShow })}>
-            <Switch  checked={!!value}  disabled={true}
-              
+            <Switch checked={!!value} disabled={true}
+
             />
 
           </div>

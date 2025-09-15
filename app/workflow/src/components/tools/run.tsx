@@ -16,7 +16,7 @@ export function Run() {
 
   const flowEnviroment = useFlowEnviromentContext()
 
-  const { downloading,  runInfo } = flowEnviroment
+  const { downloading,  runInfo, setRunInfo } = flowEnviroment
 
   const {runningTaskId, isRunning} = runInfo
 
@@ -30,6 +30,13 @@ export function Run() {
     if (isRunning) {
         let resonse = await apiWorkFlowRunStop(runningTaskId)
         if(resonse.flag == 'success'){
+          setRunInfo(oldRunInfo=>{
+            return {
+              ...oldRunInfo, 
+              isRunning: false, 
+              result: '', 
+            }
+          })
           Toast.success('stop success')
         }
         //setRunning(false)
