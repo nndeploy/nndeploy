@@ -34,6 +34,7 @@ object ImageInImageOut {
 
             // val workflowAsset = extWorkflowDir.absolutePath + "/ClassificationResNetMnn.json"
             val workflowAsset = "resources/workflow/ClassificationResNetMnn.json"
+            // val workflowAsset = "resources/workflow/SegmentRMBGMNN.json"
             
             // 3) 预处理输入数据
             val processedInputUri = ImageUtils.preprocessImage(context, inputUri)
@@ -64,6 +65,7 @@ object ImageInImageOut {
             // 7) 获取结果路径
             // val resultPath = getResultPath(extResDir, inputType, "segment")
             val resultPath = File(extResDir, "images/result.resnet.jpg")
+            // val resultPath = File(extResDir, "images/result.rmbg.png")
             Log.d("ImageInImageOut", "resultPath: ${resultPath.absolutePath}")
             if (resultPath.exists()) {
                 Log.d("ImageInImageOut", "resultPath exists")

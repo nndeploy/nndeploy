@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nndeploy.app.ui.theme.AppTheme
 import android.util.Log
+import android.net.Uri
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +43,8 @@ class AppVM: ViewModel() {
 fun App() {
     val nav = rememberNavController()
     val vm: AppVM = viewModel()
+    val sharedAIViewModel: AIViewModel = viewModel() // 创建共享的AI ViewModel
+    
     Log.w("App", "App composable initialized")
     Scaffold(
         bottomBar = { BottomBar(nav) }
@@ -51,13 +54,17 @@ fun App() {
             startDestination = "ai",
             modifier = Modifier.padding(inner)
         ) {
-            // AI工具页面
-            composable("ai") { AIScreen(nav) }
+            // AI算法页面 - 传递共享ViewModel
+            composable("ai") { 
+                AIScreen(nav, sharedAIViewModel) 
+            }
             composable("ai_process/{algorithmId}") { backStackEntry ->
                 val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
-                AIProcessScreen(nav, algorithmId)
+                AIProcessScreen(nav, algorithmId, sharedAIViewModel)
             }
-            composable("ai_result") { AIResultScreen(nav) }
+            composable("ai_result") { 
+                AIResultScreen(nav, sharedAIViewModel) 
+            }
             
             // 我的页面
             composable("mine") { MineScreen(nav) }

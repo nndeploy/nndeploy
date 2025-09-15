@@ -105,8 +105,8 @@ class AIViewModel : ViewModel() {
  * AI算法首页
  */
 @Composable
-fun AIScreen(nav: NavHostController) {
-    val vm: AIViewModel = viewModel()
+fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
+    val vm: AIViewModel = sharedViewModel
     
     Column(
         modifier = Modifier
@@ -277,9 +277,10 @@ fun InputTypeChip(inputType: InOutType) {
 @Composable
 fun AIProcessScreen(
     nav: NavHostController,
-    algorithmId: String
+    algorithmId: String,
+    sharedViewModel: AIViewModel = viewModel()
 ) {
-    val vm: AIViewModel = viewModel()
+    val vm: AIViewModel = sharedViewModel
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -503,8 +504,8 @@ fun InputSelectionButtons(
  * AI处理结果页面
  */
 @Composable
-fun AIResultScreen(nav: NavHostController) {
-    val vm: AIViewModel = viewModel()
+fun AIResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
+    val vm: AIViewModel = sharedViewModel
     val context = LocalContext.current
     
     Column(
