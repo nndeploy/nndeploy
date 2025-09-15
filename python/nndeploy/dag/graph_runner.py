@@ -35,6 +35,8 @@ class GraphRunner:
 
     def _build_graph(self, graph_json_str: str, name: str):
         self.graph = Graph(name)
+        for item in self.args.node_param:
+            self.graph.set_node_value(item)
         status = self.graph.deserialize(graph_json_str)
         return self.graph, status
     
@@ -78,58 +80,9 @@ class GraphRunner:
     def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
         self.is_cancel = False
         did_deinit = False
+        self.args = args
         try:           
             nndeploy.base.time_profiler_reset()
-            if self.is_cancel:
-                raise RuntimeError(f"graph interrupted!")
-            # Update graph_json_str
-            if args is not None and args.node_param != []:
-                graph_json_obj = json.loads(graph_json_str)
-                for node_param in args.node_param:
-                    params = node_param.split(":")
-                    node_name = params[0]
-                    node_keys = params[1:-1]
-                    node_value = params[-1]
-                    # 递归查找节点，因为node_repository_可能存在嵌套
-                    def find_node_in_repository(repository, target_name):
-                        for node in repository:
-                            if node.get("name_") == target_name:
-                                return node
-                            # 递归查找嵌套的node_repository_
-                            if "node_repository_" in node and node["node_repository_"]:
-                                found = find_node_in_repository(node["node_repository_"], target_name)
-                                if found:
-                                    return found
-                        return None
-                    
-                    node_json_obj = find_node_in_repository(graph_json_obj["node_repository_"], node_name)
-                    if node_json_obj is None:
-                        print(f"Warning: not found {node_name}")
-                        continue
-                
-                # 处理多级嵌套的node_keys
-                current_obj = node_json_obj
-                for key in node_keys:
-                    if key in current_obj:
-                        current_obj = current_obj[key]
-                    else:
-                        print(f"Warning: key {key} not found in node {node_name}")
-                        current_obj = None
-                        break
-                
-                # 如果所有keys都找到了，设置最终的值
-                if current_obj is not None:
-                    # 获取父对象和最后一个key
-                    parent_obj = node_json_obj
-                    for key in node_keys[:-1]:
-                        parent_obj = parent_obj[key]
-                    parent_obj[node_keys[-1]] = node_value
-                else:
-                    print(f"Warning: no keys provided for node {node_name}")
-                    
-                
-                graph_json_str = json.dumps(graph_json_obj)
-
             if self.is_cancel:
                 raise RuntimeError(f"graph interrupted!")
 
@@ -142,42 +95,6 @@ class GraphRunner:
             self.graph.set_debug_flag(False)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
-
-            if self.is_cancel:
-                raise RuntimeError(f"graph interrupted!")
-            
-            if args is not None:
-                if args.parallel_type != "":
-                    parallel_type = nndeploy.base.name_to_parallel_type(args.parallel_type)
-                    self.graph.set_parallel_type(parallel_type)
-                if args.input_path != {}:
-                    i = 0
-                    for key, value in args.input_path.items():
-                        node = None
-                        if key.isdigit():
-                            node = self.graph.get_input_node(i)
-                        else:
-                            node = self.graph.get_node(key)
-                        if node is not None:
-                            if hasattr(node, 'set_path'):
-                                node.set_path(value)
-                            else:
-                                print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
-                        i += 1
-                if args.output_path != {}:
-                    i = 0
-                    for key, value in args.output_path.items():
-                        node = None
-                        if key.isdigit():
-                            node = self.graph.get_output_node(i)
-                        else:
-                            node = self.graph.get_node(key)
-                        if node is not None:
-                            if hasattr(node, 'set_path'):
-                                node.set_path(value)
-                            else:
-                                print(f"Warning: node {node.getName() if hasattr(node, 'getName') else 'unknown'} not support set_path method")
-                        i += 1
 
             if self.is_cancel:
                 raise RuntimeError(f"graph interrupted!")

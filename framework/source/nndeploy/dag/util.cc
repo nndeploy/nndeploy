@@ -500,7 +500,12 @@ std::string replaceGraphJsonStr(
   }
   rapidjson::Value &json = document;
   replaceGraphJsonObj(node_value_map, json, document.GetAllocator());
-  return json.GetString();
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  json.Accept(writer);
+  std::string json_result = buffer.GetString();
+  NNDEPLOY_LOGI("replaceGraphJsonStr: %s\n", json_result.c_str());
+  return json_result;
 }
 
 void replaceGraphJsonObj(
@@ -515,6 +520,7 @@ void replaceGraphJsonObj(
         for (const auto &param_pair : node_iter->second) {
           const std::string &key = param_pair.first;
           const std::string &new_value = param_pair.second;
+          NNDEPLOY_LOGI("replaceGraphJsonObj: %s, %s, %s\n", name.c_str(), key.c_str(), new_value.c_str());
           replaceJsonValue(json, key, new_value, allocator);
         }
       }

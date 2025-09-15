@@ -15,11 +15,7 @@
 # python run_json.py --json_file graph.json                           # Run graph with default configuration
 # python run_json.py --json_file graph.json --name my_graph           # Specify graph name
 # python run_json.py --json_file graph.json --task_id task001         # Specify task ID
-# python run_json.py --json_file graph.json -i input.jpg              # Specify input path
-# python run_json.py --json_file graph.json -o output.jpg             # Specify output path
-# python run_json.py --json_file graph.json -i decoder1:input.jpg     # Specify input path with decoder
-# python run_json.py --json_file graph.json -i encoder1:output.jpg    # Specify input path with encoder
-# python run_json.py --json_file graph.json -np node1:param1:value1   # Set node parameters
+# python run_json.py --json_file graph.json --node_param node_name1:key1:value1   # Set node parameters
 # python run_json.py --json_file graph.json --parallel_type sequential # Set parallel type
 # python run_json.py --json_file graph.json --dump                    # Enable dump mode
 # python run_json.py --json_file graph.json --plugin plugin1.py       # Load specified plugin
