@@ -1,7 +1,7 @@
 .io-type-container {
 
   .io-type-input-container {
-  
+
     .upload-area {
       //width: 300px;
       //height: 200px;
@@ -19,72 +19,14 @@
       min-height: 60px;
       transition: border 0.3s;
 
-      .image-container {
-        position: relative;
 
-        &:before {
-          visibility: hidden;
-          background-color: var(--semi-color-overlay-bg);
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          bottom: 0;
-
-        }
-
-        &:hover {
-          &:before {
-            visibility: visible;
-          }
-
-          .icon-view {
-            visibility: visible;
-          }
-
-          .icon-delete {
-            visibility: visible;
-          }
-        }
-
-        .icon-view {
-          visibility: hidden;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-
-          color: rgba(255, 255, 255, 0.7);
-          cursor: pointer;
-          z-index: 10;
-
-          &:hover {
-            color: white;
-          }
-        }
-
-        .icon-delete {
-          visibility: hidden;
-          position: absolute;
-          top: 10px;
-          right: 10%;
-
-          color: rgba(255, 255, 255, 0.7);
-          cursor: pointer;
-          z-index: 10;
-
-          &:hover {
-            color: white;
-          }
-        }
-
-      }
     }
 
     .upload-area.dragover {
       border-color: #0066ff;
     }
+
+
   }
 
   .io-type-output-container {
@@ -93,6 +35,68 @@
     &.show {
       display: block;
     }
+  }
+
+  .image-container {
+    position: relative;
+
+    &:before {
+      visibility: hidden;
+      background-color: var(--semi-color-overlay-bg);
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+
+    }
+
+    &:hover {
+      &:before {
+        visibility: visible;
+      }
+
+      .icon-view {
+        visibility: visible;
+      }
+
+      .icon-delete {
+        visibility: visible;
+      }
+    }
+
+    .icon-view {
+      visibility: hidden;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+    .icon-delete {
+      visibility: hidden;
+      position: absolute;
+      top: 10px;
+      right: 10%;
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
   }
 }
 

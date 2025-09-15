@@ -4,6 +4,7 @@ import IoTypeImage from "./IoTypeImage";
 import IoTypeNumber from "./IoTypeNumber";
 import IoTypeString from "./IoTypeString";
 import IoTypeTextFile from "./IoTypeTextFile";
+import IoTypeVideo from "./IoTypeVideo";
 
 export enum EnumIODataType {
   Bool = 'Bool',
@@ -49,6 +50,8 @@ const IoType: React.FC<IoTypeProps> = (props) => {
 
     [EnumIODataType.Text]: IoTypeTextFile,
     [EnumIODataType.Image]: IoTypeImage,
+
+    [EnumIODataType.Video]: IoTypeVideo,
     [EnumIODataType.Binary]: IoTypeBinary,
     [EnumIODataType.Model]: IoTypeBinary,
 

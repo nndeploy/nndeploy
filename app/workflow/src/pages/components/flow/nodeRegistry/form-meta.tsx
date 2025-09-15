@@ -86,7 +86,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'version_',
 
     'io_type_', 
-    //'required_params_'
+    'required_params_'
 
   ];
 

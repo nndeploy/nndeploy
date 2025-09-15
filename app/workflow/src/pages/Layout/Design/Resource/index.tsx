@@ -200,7 +200,7 @@ const Resource: React.FC = () => {
 
   const renderLabel = (label: ReactNode, item: ResourceTreeNodeData) => (
     <div
-      style={{ display: "flex", height: "24px" }}
+      style={{ display: "flex", height: "24px", alignItems: 'center' }}
       draggable
       ///@ts-ignore
       //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}

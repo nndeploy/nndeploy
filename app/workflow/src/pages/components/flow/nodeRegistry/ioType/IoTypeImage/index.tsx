@@ -60,7 +60,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
     }
   }, [])
 
- // const { node } = useNodeRender();
+  // const { node } = useNodeRender();
   // const form = getNodeForm(node)!
   // if (!form) {
   //   console.log('form', form)
@@ -69,7 +69,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
   // } else[
   //   console.log('form', form)
   // ]
-//  const nodeName = form.getValueIn('name_')
+  //  const nodeName = form.getValueIn('name_')
 
 
 
@@ -139,6 +139,11 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
             :
             <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
               <div className={styles["image-container"]}>
+                <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
+                  debugger
+                  event.stopPropagation();
+                  setPreviewVisible(true)
+                }} />
                 <img src={previewUrl} style={{ maxWidth: '100%' }} />
               </div>
             </div>
