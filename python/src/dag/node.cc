@@ -563,16 +563,34 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("deserialize",
            py::overload_cast<const std::string &>(&Graph::deserialize),
            py::arg("json_str"))
-      .def("set_run_io_node_flag", &Graph::setRunIoNodeFlag, py::arg("is_run_io_node"))
-      .def("get_run_io_node_flag", &Graph::getRunIoNodeFlag)
-      .def("set_keep_io_node_names", py::overload_cast<const std::string &>(&Graph::setKeepIoNodeNames), py::arg("node_name"))
-      .def("set_keep_io_node_names", py::overload_cast<const std::set<std::string> &>(&Graph::setKeepIoNodeNames), py::arg("node_names"))
-      .def("remove_keep_io_node_names", py::overload_cast<const std::string &>(&Graph::removeKeepIoNodeNames), py::arg("node_name"))
-      .def("remove_keep_io_node_names", py::overload_cast<const std::set<std::string> &>(&Graph::removeKeepIoNodeNames), py::arg("node_names"))
-      .def("get_keep_io_node_names", &Graph::getKeepIoNodeNames)
-      .def("set_node_value", py::overload_cast<const std::string &>(&Graph::setNodeValue), py::arg("node_value_str"))
-      .def("set_node_value", py::overload_cast<const std::string &, const std::string &, const std::string &>(&Graph::setNodeValue), py::arg("node_name"), py::arg("key"), py::arg("value"))
-      .def("set_node_value", py::overload_cast<std::map<std::string, std::map<std::string, std::string>>>(&Graph::setNodeValue), py::arg("node_value_map"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::string &>(&Graph::setUnusedNodeNames),
+           py::arg("node_name"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::setUnusedNodeNames),
+           py::arg("node_names"))
+      .def(
+          "remove_unused_node_names",
+          py::overload_cast<const std::string &>(&Graph::removeUnusedNodeNames),
+          py::arg("node_name"))
+      .def("remove_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::removeUnusedNodeNames),
+           py::arg("node_names"))
+      .def("get_unused_node_names", &Graph::getUnusedNodeNames)
+      .def("set_node_value",
+           py::overload_cast<const std::string &>(&Graph::setNodeValue),
+           py::arg("node_value_str"))
+      .def("set_node_value",
+           py::overload_cast<const std::string &, const std::string &,
+                             const std::string &>(&Graph::setNodeValue),
+           py::arg("node_name"), py::arg("key"), py::arg("value"))
+      .def("set_node_value",
+           py::overload_cast<
+               std::map<std::string, std::map<std::string, std::string>>>(
+               &Graph::setNodeValue),
+           py::arg("node_value_map"))
       .def("get_node_value", &Graph::getNodeValue);
 
   //   m.def("serialize", py::overload_cast<Graph *>(&serialize),

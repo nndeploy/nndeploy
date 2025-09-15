@@ -1578,15 +1578,99 @@ base::Status Graph::toStaticGraph() {
   return status;
 }
 
+base::Status Graph::removeUnusedNodeAndEdge() {
+  base::Status status = base::kStatusCodeOk;
+  if (!unused_node_names_.empty()) {
+    // #. 更新边的信息
+    for (auto edge_wrapper : edge_repository_) {
+      std::vector<NodeWrapper *> producers_to_delete;
+      std::vector<NodeWrapper *> consumers_to_delete;
+      for (auto producer : edge_wrapper->producers_) {
+        if (unused_node_names_.find(producer->name_) !=
+            unused_node_names_.end()) {
+          producers_to_delete.emplace_back(producer);
+        }
+      }
+      for (auto consumer : edge_wrapper->consumers_) {
+        if (unused_node_names_.find(consumer->name_) !=
+            unused_node_names_.end()) {
+          consumers_to_delete.emplace_back(consumer);
+        }
+      }
+      for (auto producer : producers_to_delete) {
+        edge_wrapper->producers_.erase(
+            std::find(edge_wrapper->producers_.begin(),
+                      edge_wrapper->producers_.end(), producer));
+      }
+      for (auto consumer : consumers_to_delete) {
+        edge_wrapper->consumers_.erase(
+            std::find(edge_wrapper->consumers_.begin(),
+                      edge_wrapper->consumers_.end(), consumer));
+      }
+    }
+
+    // #. 删除节点 - node_repository_, shared_node_repository_, used_node_names_
+    std::vector<NodeWrapper *> nodes_to_delete;
+    for (auto node_wrapper : node_repository_) {
+      if (unused_node_names_.find(node_wrapper->name_) !=
+          unused_node_names_.end()) {
+        nodes_to_delete.emplace_back(node_wrapper);
+      }
+    }
+    for (auto node_wrapper : nodes_to_delete) {
+      node_repository_.erase(std::find(node_repository_.begin(),
+                                       node_repository_.end(), node_wrapper));
+      used_node_names_.erase(node_wrapper->name_);
+      // 按照名称查找并删除
+      auto shared_it = std::find_if(
+          shared_node_repository_.begin(), shared_node_repository_.end(),
+          [&node_wrapper](std::shared_ptr<Node> wrapper) {
+            return wrapper->getName() == node_wrapper->name_;
+          });
+      if (shared_it != shared_node_repository_.end()) {
+        shared_node_repository_.erase(shared_it);
+      }
+      delete node_wrapper;
+    }
+
+    // #. 删除边，如果边的生产者或消费者为空，则删除边
+    std::vector<EdgeWrapper *> edges_to_delete;
+    for (auto edge_wrapper : edge_repository_) {
+      if (edge_wrapper->producers_.empty() ||
+          edge_wrapper->consumers_.empty()) {
+        edges_to_delete.emplace_back(edge_wrapper);
+      }
+    }
+    for (auto edge_wrapper : edges_to_delete) {
+      edge_repository_.erase(std::find(edge_repository_.begin(),
+                                       edge_repository_.end(), edge_wrapper));
+      used_edge_names_.erase(edge_wrapper->name_);
+      // 按照名称查找并删除
+      auto shared_it = std::find_if(
+          shared_edge_repository_.begin(), shared_edge_repository_.end(),
+          [&edge_wrapper](std::shared_ptr<Edge> wrapper) {
+            return wrapper->getName() == edge_wrapper->name_;
+          });
+      if (shared_it != shared_edge_repository_.end()) {
+        shared_edge_repository_.erase(shared_it);
+      }
+      delete edge_wrapper;
+    }
+  }
+  return status;
+}
+
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type_!\n");
+  // NNDEPLOY_LOGI("remove unused node names!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  // base::ParallelType parallel_type_ = parallel_type_;
+  status = this->removeUnusedNodeAndEdge();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "remove unused node and edge failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -1756,6 +1840,7 @@ base::Status Graph::construct() {
   }
   run_node_repository_ = run_node_repository;
 
+  // 对于最外层的图而言，输出节点的的输入为整个图的输出边
   if (!is_inner_) {
     for (auto node_wrapper : run_node_repository_) {
       if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
@@ -1998,6 +2083,13 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
     json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
     json.AddMember("loop_count_", loop_count_, allocator);
+
+    rapidjson::Value unused_node_names_array(rapidjson::kArrayType);
+    for (const auto &name : unused_node_names_) {
+      rapidjson::Value name_value(name.c_str(), allocator);
+      unused_node_names_array.PushBack(name_value, allocator);
+    }
+    json.AddMember("unused_node_names_", unused_node_names_array, allocator);
   }
 
   // 序列化URL映射
@@ -2190,6 +2282,16 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
 
+  if (json.HasMember("unused_node_names_") &&
+      json["unused_node_names_"].IsArray()) {
+    const rapidjson::Value &unused_node_names = json["unused_node_names_"];
+    for (rapidjson::SizeType i = 0; i < unused_node_names.Size(); i++) {
+      if (unused_node_names[i].IsString()) {
+        unused_node_names_.insert(unused_node_names[i].GetString());
+      }
+    }
+  }
+
   // if (json.HasMember("loop_count_") && json["loop_count_"].IsInt()) {
   //   int loop_count = json["loop_count_"].GetInt();
   //   if (loop_count <= 0) {
@@ -2354,49 +2456,45 @@ base::Status Graph::deserialize(const std::string &json_str) {
 //   return Node::serialize(path);
 // }
 
-base::Status Graph::setRunIoNodeFlag(bool is_run_io_node) {
-  run_io_node_flag_ = is_run_io_node;
-  return base::kStatusCodeOk;
+void Graph::setUnusedNodeNames(const std::string &node_name) {
+  unused_node_names_.insert(node_name);
 }
-bool Graph::getRunIoNodeFlag() { return run_io_node_flag_; }
-void Graph::setKeepIoNodeNames(const std::string &node_name) {
-  keep_io_node_names_.insert(node_name);
+void Graph::setUnusedNodeNames(const std::set<std::string> &node_names) {
+  unused_node_names_.insert(node_names.begin(), node_names.end());
 }
-void Graph::setKeepIoNodeNames(const std::set<std::string> &node_names) {
-  keep_io_node_names_.insert(node_names.begin(), node_names.end());
+void Graph::removeUnusedNodeNames(const std::string &node_name) {
+  unused_node_names_.erase(node_name);
 }
-void Graph::removeKeepIoNodeNames(const std::string &node_name) {
-  keep_io_node_names_.erase(node_name);
+void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
+  for (const auto &name : node_names) {
+    unused_node_names_.erase(name);
+  }
 }
-void Graph::removeKeepIoNodeNames(const std::set<std::string> &node_names) {
-  keep_io_node_names_.erase(node_names.begin(), node_names.end());
-}
-std::set<std::string> Graph::getKeepIoNodeNames() {
-  return keep_io_node_names_;
-}
+std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
 
 void Graph::setNodeValue(const std::string &node_value_str) {
   // 查找第一个冒号的位置
   size_t first_colon = node_value_str.find(":");
   if (first_colon == std::string::npos) {
-    return; // 没有找到冒号，格式错误
+    return;  // 没有找到冒号，格式错误
   }
-  
+
   // 查找第二个冒号的位置
   size_t second_colon = node_value_str.find(":", first_colon + 1);
   if (second_colon == std::string::npos) {
-    return; // 没有找到第二个冒号，格式错误
+    return;  // 没有找到第二个冒号，格式错误
   }
-  
+
   // 提取node_name（第一个冒号之前）
   std::string node_name = node_value_str.substr(0, first_colon);
-  
+
   // 提取key（第一个冒号和第二个冒号之间）
-  std::string key = node_value_str.substr(first_colon + 1, second_colon - first_colon - 1);
-  
+  std::string key =
+      node_value_str.substr(first_colon + 1, second_colon - first_colon - 1);
+
   // 提取value（第二个冒号之后的所有内容）
   std::string value = node_value_str.substr(second_colon + 1);
-  
+
   node_value_map_[node_name][key] = value;
 }
 void Graph::setNodeValue(const std::string &node_name, const std::string &key,

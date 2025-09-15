@@ -358,41 +358,31 @@ class PyGraph : public Base {
                            getLoopCountMap);
   }
 
-  virtual base::Status setRunIoNodeFlag(bool is_run_io_node) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_run_io_node_flag",
-                           setRunIoNodeFlag, is_run_io_node);
+  virtual void setUnusedNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_unused_node_names",
+                           setUnusedNodeNames, node_name);
   }
 
-  virtual bool getRunIoNodeFlag() override {
-    PYBIND11_OVERRIDE_NAME(bool, Base, "get_run_io_node_flag",
-                           getRunIoNodeFlag);
-  }
-
-  virtual void setKeepIoNodeNames(const std::string &node_name) override {
-    PYBIND11_OVERRIDE_NAME(void, Base, "set_keep_io_node_names",
-                           setKeepIoNodeNames, node_name);
-  }
-
-  virtual void setKeepIoNodeNames(
+  virtual void setUnusedNodeNames(
       const std::set<std::string> &node_names) override {
-    PYBIND11_OVERRIDE_NAME(void, Base, "set_keep_io_node_names",
-                           setKeepIoNodeNames, node_names);
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_unused_node_names",
+                           setUnusedNodeNames, node_names);
   }
 
-  virtual void removeKeepIoNodeNames(const std::string &node_name) override {
-    PYBIND11_OVERRIDE_NAME(void, Base, "remove_keep_io_node_names",
-                           removeKeepIoNodeNames, node_name);
+  virtual void removeUnusedNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_unused_node_names",
+                           removeUnusedNodeNames, node_name);
   }
 
-  virtual void removeKeepIoNodeNames(
+  virtual void removeUnusedNodeNames(
       const std::set<std::string> &node_names) override {
-    PYBIND11_OVERRIDE_NAME(void, Base, "remove_keep_io_node_names",
-                           removeKeepIoNodeNames, node_names);
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_unused_node_names",
+                           removeUnusedNodeNames, node_names);
   }
 
-  virtual std::set<std::string> getKeepIoNodeNames() override {
-    PYBIND11_OVERRIDE_NAME(std::set<std::string>, Base,
-                           "get_keep_io_node_names", getKeepIoNodeNames);
+  virtual std::set<std::string> getUnusedNodeNames() override {
+    PYBIND11_OVERRIDE_NAME(std::set<std::string>, Base, "get_unused_node_names",
+                           getUnusedNodeNames);
   }
 
   virtual void setNodeValue(const std::string &node_value_str) override {
