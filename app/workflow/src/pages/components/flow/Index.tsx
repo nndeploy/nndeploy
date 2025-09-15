@@ -33,7 +33,7 @@ import { getNextNameNumberSuffix } from "./functions";
 import store, { } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
-import { IFlowNodesRunningStatus, ILog, IOutputResource } from "./entity";
+import { IFlowNodesRunningStatus, ILog, IOutputResource, IRunInfo } from "./entity";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
 import { EnumFlowType } from "../../../enum";
@@ -60,28 +60,52 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
 
-  const [outputResource, setOutputResource] = useState<IOutputResource>({ path: [], text: [] })
+  //  const [isRunning, setRunning] = useState(false);
 
-  const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
+  //const [runningTaskId, setRunningTaskId] = useState<string>('')
+
+  //const [runResult, setRunResult] = useState<string>('');
+  //  const [outputResource, setOutputResource] = useState<IOutputResource>({ type: 'memory', content: {}, time: Date.now() });
+
+  //  const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
+  // const [log, setLog] = useState<ILog>({
+  //   items: [],
+  //   time_profile: {
+  //     init_time: undefined,
+  //     run_time: undefined
+
+  //   }
+  // })
+
+  const [runInfo, setRunInfo] = useState<IRunInfo>({
+    isRunning: false,
+    time: Date.now(),
+    result: '',
+    runningTaskId: '',
+    log: {
+      items: [],
+      time_profile: {
+        init_time: undefined,
+        run_time: undefined
+
+      }
+    },
+    outputResource: {
+      type: 'memory',
+      content: {},
+      time: Date.now()
+    },
+    flowNodesRunningStatus: {}
+  })
 
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
 
-  const [runResult, setRunResult] = useState<string>('');
-
   const [downloading, setDownloading] = useState(false)
 
-  const [isRunning, setRunning] = useState(false);
 
-  const [runningTaskId, setRunningTaskId] = useState<string>('')
 
-  const [log, setLog] = useState<ILog>({
-    items: [],
-    time_profile: {
-      init_time: undefined,
-      run_time: undefined
 
-    }
-  })
+
 
   useEffect(() => {
     setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
@@ -337,23 +361,31 @@ const Flow: React.FC<FlowProps> = (props) => {
             downloadResolve()
             Toast.success(response.message)
             setDownloading(false)
-          } else if (response.result.type == 'log')
+          } else if (response.result.type == 'log') {
 
 
-            setLog((oldLog) => {
-              var newLog = {
-                ...oldLog,
-                items: [...oldLog.items, response.result.log],
+            // setLog((oldLog) => {
+            //   var newLog = {
+            //     ...oldLog,
+            //     items: [...oldLog.items, response.result.log],
 
+            //   }
+            //   return newLog
+            // })
+
+            setRunInfo((oldRunInfo) => {
+              return {
+                ...oldRunInfo,
+                log: {
+                  ...oldRunInfo.log,
+                  items: [...oldRunInfo.log.items, response.result.log],
+                }
               }
-              return newLog
             })
-
+          }
 
         }
-
-
-      };
+      }
 
 
       return new Promise((resolve, reject) => {
@@ -375,16 +407,36 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
 
+
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
-      setRunResult('')
-      setLog({
-        items: [],
-        time_profile: {
-          init_time: undefined,
-          run_time: undefined
+      // setRunning(true)
+      // setRunResult('running')
+      // setLog({
+      //   items: [],
+      //   time_profile: {
+      //     init_time: undefined,
+      //     run_time: undefined
+      //   }
+      // })
+
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          isRunning: true,
+          result: '',
+          log: {
+            items: [],
+            time_profile: {
+              init_time: undefined,
+              run_time: undefined
+            }
+          }
         }
+
       })
       const businessContent = designDataToBusinessData(
         flowJson,
@@ -392,7 +444,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         flowJson.nodes
       );
 
-      setRunning(true)
+
 
       const response = await apiWorkFlowRun(businessContent);
 
@@ -402,12 +454,20 @@ const Flow: React.FC<FlowProps> = (props) => {
       }
       const taskId = response.result.task_id
 
-      setRunningTaskId(taskId)
+      //setRunningTaskId(taskId)
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          runningTaskId: taskId,
+        }
+      })
 
       socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
 
       socket!.onclose = () => {
-
+        let j = 0
       };
 
       socket!.onmessage = (event) => {
@@ -437,64 +497,123 @@ const Flow: React.FC<FlowProps> = (props) => {
           });
         }
 
-
-
         const response = JSON.parse(event.data);
 
         if (response.flag != "success") {
 
           if (response.result.type == 'task_run_info') {
-            setRunning(false)
-            setFlowNodesRunningStatus({})
-            setRunResult('error')
+            // setRunning(false)
+            // setFlowNodesRunningStatus({})
+            // setRunResult('error')
+
+            setRunInfo(oldRunInfo => {
+
+
+              if (response.result.task_id == oldRunInfo.runningTaskId) {
+                return {
+
+
+                  ...oldRunInfo,
+                  isRunning: false,
+                  result: 'error',
+                  flowNodesRunningStatus: {},
+                }
+
+              } else {
+                return {
+                  ...oldRunInfo
+                }
+              }
+
+            })
+
             Toast.error("run fail ");
           }
           return;
         }
 
-        if (response.result.type == 'preview') {
-          response.result.path = response.result.path.map(item => {
+        if (response.result.type == 'memory') {
+          // response.result.path = response.result.path.map(item => {
+          //   return {
+          //     ...item,
+          //     path: `${item.path}&time=${Date.now()}`
+          //   }
+          // })
+
+          //setOutputResource({ ...response.result, time: Date.now() })
+          setRunInfo(oldRunInfo => {
             return {
-              ...item,
-              path: `${item.path}&time=${Date.now()}`
+
+              ...oldRunInfo,
+              outputResource: { ...response.result, time: Date.now() }
             }
           })
 
-          setOutputResource(response.result)
         } else if (response.result.type == 'progress') {
-          setFlowNodesRunningStatus(response.result.detail)
+          //setFlowNodesRunningStatus(response.result.detail)
+          setRunInfo(oldRunInfo => {
+
+            return {
+
+
+              ...oldRunInfo,
+              flowNodesRunningStatus: response.result.detail
+            }
+          })
         } else if (response.result.type == 'log') {
 
 
-          setLog((oldLog) => {
-            var newLog = {
-              ...oldLog,
-              items: [...oldLog.items, response.result.log],
+          // setLog((oldLog) => {
+          //   var newLog = {
+          //     ...oldLog,
+          //     items: [...oldLog.items, response.result.log],
 
+          //   }
+          //   return newLog
+          // })
+
+          setRunInfo(oldRunInfo => {
+            return {
+
+              ...oldRunInfo,
+              log: {
+                ...oldRunInfo.log,
+                items: [...oldRunInfo.log.items, response.result.log],
+              }
             }
-            return newLog
           })
         } else if (response.result.type == 'task_run_info') {
 
-          setLog((oldLog) => {
-            var newLog = {
-              ...oldLog,
-              time_profile: response.result.time_profile,
+          // setLog((oldLog) => {
+          //   var newLog = {
+          //     ...oldLog,
+          //     time_profile: response.result.time_profile,
 
+          //   }
+          //   return newLog
+          // })
+
+          // setRunResult('success')
+
+          // setRunning(false)
+
+          setRunInfo(oldRunInfo => {
+
+            return {
+              ...oldRunInfo,
+              isRunning: false,
+              result: 'success',
+              log: {
+                ...oldRunInfo.log,
+                time_profile: response.result.time_profile,
+              },
+              time: Date.now(),
             }
-            return newLog
+
+
           })
-
-          setRunning(false)
         }
-
-
-
-
-
-      };
-
-
+      }
 
       //Toast.success("run sucess!");
     } catch (error) {
@@ -618,16 +737,29 @@ const Flow: React.FC<FlowProps> = (props) => {
       ) : (
         <FlowEnviromentContext.Provider
           value={{
-            element: demoContainerRef, onSave, onRun, onDownload, downloading, onConfig, graphTopNode, nodeList, paramTypes, outputResource, flowNodesRunningStatus,
+            element: demoContainerRef,
+            onSave,
+            onRun,
+            onDownload,
+            downloading,
+            onConfig, graphTopNode, nodeList, paramTypes,
 
-            log: log,
-            runResult: runResult, 
-            downloadModalVisible, 
-            setDownloadModalVisible, 
-            downloadModalList, 
-            isRunning, 
-            
-            runningTaskId
+
+            downloadModalVisible,
+            setDownloadModalVisible,
+            downloadModalList,
+            runInfo,
+            setRunInfo
+
+
+            // log: log,
+            // runResult: runResult,
+            // isRunning,
+
+            // runningTaskId,
+            // outputResource,
+            // flowNodesRunningStatus,
+
           }}
         >
           <FreeLayoutEditorProvider
@@ -680,7 +812,7 @@ const Flow: React.FC<FlowProps> = (props) => {
           > */}
 
           {/* </SideSheet> */}
-        
+
 
         </FlowEnviromentContext.Provider>
       )}

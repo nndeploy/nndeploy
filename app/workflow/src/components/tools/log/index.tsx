@@ -4,12 +4,15 @@ import { Badge, Button, IconButton, List, Popover, SideSheet, Tooltip } from "@d
 import { useState } from "react";
 import './index.less'
 import { useFlowEnviromentContext } from "../../../context/flow-enviroment-context";
+import { result } from "lodash";
 
 const Log: React.FC<any> = (props) => {
 
   const [visible, setVisible] = useState(false);
 
-  const { log, runResult, element: flowElementRef } = useFlowEnviromentContext()
+  const {  element: flowElementRef, runInfo } = useFlowEnviromentContext()
+
+  const {log, result: runResult } = runInfo
 
 
   function showLog() {

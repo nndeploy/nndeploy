@@ -19,6 +19,8 @@ import { Toast } from '@douyinfe/semi-ui';
 import { WorkflowClipboardData, WorkflowClipboardRect } from '../type';
 import { FlowCommandId, WorkflowClipboardDataID } from '../constants';
 import { generateUniqueWorkflow } from './unique-workflow';
+import { getNextNameNumberSuffix } from '../../pages/components/flow/functions';
+import { FlowDocumentJSON } from '../../typings';
 
 export class PasteShortcut implements ShortcutsHandler {
   public commandId = FlowCommandId.PASTE;
@@ -80,6 +82,17 @@ export class PasteShortcut implements ShortcutsHandler {
       json: rawJSON,
       isUniqueId: (id: string) => !this.entityManager.getEntityById(id),
     });
+
+    let numberSuffix = getNextNameNumberSuffix(this.document.toJSON() as FlowDocumentJSON)
+    json.nodes.forEach((node: any, index) => {
+      let type = node.type
+      let typeParts = type.split('.')
+      let lastPart = typeParts[typeParts.length - 1]
+
+      let nextNameSuffix = numberSuffix + index
+
+      node.data.name_ = `${lastPart}_${nextNameSuffix}`
+    })
 
     const offset = this.calcPasteOffset(data.bounds);
     const parent = this.getSelectedContainer();

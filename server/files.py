@@ -14,7 +14,7 @@ from uuid import NAMESPACE_URL, uuid5
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from .schemas import (UploadResponse, DeleteResponse, FileListResponse)
+from .schemas import (UploadResponse, DeleteResponse, FileListResponse, FileInfoResponse)
 
 # ──────────────────────────────────────────────
 # Router
@@ -195,7 +195,7 @@ def _file_info(path: Path, base: Optional[Path] = None, parent_id: str = "") -> 
 
 @router.get("", response_model=FileListResponse, summary="list upload dir files")
 async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dict[str, str]]]:
-    allowed_dirs = ["images", "videos", "models"]
+    allowed_dirs = ["images", "videos", "models", "audios", "others"]
     file_info_list: List[Dict[str, str]] = []
 
     def traverse_directory(path: Path, parent_id: str = "") -> None:
@@ -327,10 +327,45 @@ async def delete_file(file_path: str
     "/upload",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="upload images/videos/models",
+    summary="upload images/videos/models/audios/others",
 )
 async def upload_file(
     file_path: str,
     file: UploadFile = File(...)
 ):
     return _save(file, file_path)
+
+# ──────────────────────────────────────────────
+# node: get file info by path (no workdir)
+# ──────────────────────────────────────────────
+@router.get(
+    "/info",
+    response_model=FileInfoResponse,
+    summary="get single file/dir info by path",
+)
+async def get_file_info(
+    file_path: str,
+):
+    p = Path(file_path).resolve()
+
+    if not p.exists():
+        return FileInfoResponse(
+            flag="failed",
+            message=f"path {p} does not exist",
+            result={}
+        )
+
+    try:
+        parent_id = parent_path_to_id(p)
+        info = _file_info(p, parent_id=parent_id)
+        return FileInfoResponse(
+            flag="success",
+            message="ok",
+            result=info["file_info"]
+        )
+    except Exception as e:
+        return FileInfoResponse(
+            flag="failed",
+            message=f"failed to get file info for {p}: {e}",
+            result={}
+        )

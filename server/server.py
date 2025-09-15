@@ -1,13 +1,13 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from typing import Set, Dict, Any, Optional
+from typing import Set, Dict, Any, Optional, Literal
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -21,6 +21,8 @@ import sqlite3
 import shutil
 import requests
 import contextvars
+import unicodedata
+import chardet
 import nndeploy.dag
 
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
@@ -114,6 +116,14 @@ class NnDeployServer:
             s = val.strip()
             return s or None
         s = str(val).strip()
+
+    def _norm_str(self, s: str | None) -> str | None:
+        if s is None:
+            return None
+        s = str(s)
+        s = unicodedata.normalize("NFC", s)
+        s = s.strip()
+        return s
 
     def _generate_unique_path(self, desired: Path) -> Path:
         if not desired.exists():
@@ -264,18 +274,38 @@ class NnDeployServer:
 
                 if id:
                     dst = self.db.get_workflow_path(id)
+                    name = self.db.get_workflow_name(id)
                     if not dst:
                         raise HTTPException(status_code=404, detail=f"workflow id {id} not found")
-                    self._write_json_replace(dst, data)
-                    cover, req = self._find_cover_and_requirements(dst)
-                    self.db.update_workflow_metadata(id, dst, cover, req)
+                    save_name = data.get("name_")
+                    name = self._norm_str(name)
+                    save_name = self._norm_str(save_name)
+                    if name == save_name:
+                        self._write_json_replace(dst, data)
+                        cover, req = self._find_cover_and_requirements(dst)
+                        self.db.update_workflow_metadata(id, save_name, dst, cover, req)
 
-                    return WorkFlowSaveResponse(
-                        flag="success",
-                        message="updated",
-                        result={"id": id}
-                    )
+                        return WorkFlowSaveResponse(
+                            flag="success",
+                            message="updated",
+                            result={"id": id}
+                        )
+                    else:
+                        base_name = save_name if save_name else f"{uuid.uuid4()}.json"
+                        if not base_name.endswith((".json", ".yml", ".yaml")):
+                            base_name = f"{base_name}.json"
+                        desired = self.workflow_dir / base_name
+                        dst = self._generate_unique_path(desired)
 
+                        self._write_json_replace(dst, data)
+                        cover, req = self._find_cover_and_requirements(dst)
+                        wid = self.db.insert_workflow(save_name, dst, cover, req)
+
+                        return WorkFlowSaveResponse(
+                            flag="success",
+                            message="created",
+                            result={"id": wid}
+                        )
                 else:
                     name_from_json = data.get("name_")
                     base_name = name_from_json if name_from_json else f"{uuid.uuid4()}.json"
@@ -286,7 +316,7 @@ class NnDeployServer:
 
                     self._write_json_replace(dst, data)
                     cover, req = self._find_cover_and_requirements(dst)
-                    wid = self.db.insert_workflow(dst, cover, req)
+                    wid = self.db.insert_workflow(name_from_json, dst, cover, req)
 
                     return WorkFlowSaveResponse(
                         flag="success",
@@ -320,9 +350,11 @@ class NnDeployServer:
             dst = self._generate_unique_path(desired)
             try:
                 content = await file.read()
+                data = json.loads(content.decode())
+                name = data["name_"]
                 self._write_json_replace(dst, content)
                 cover, req = self._find_cover_and_requirements(dst)
-                wid = self.db.insert_workflow(dst, cover, req)
+                wid = self.db.insert_workflow(name, dst, cover, req)
 
                 return UploadResponse(
                     flag="success",
@@ -386,16 +418,15 @@ class NnDeployServer:
             try:
                 for jf in self.workflow_dir.rglob("*.json"):
                     try:
-                        wid = self.db.upsert_workflow_by_path(jf)
+                        with jf.open("r", encoding="utf-8") as f:
+                            content = json.load(f)
+                        wid = self.db.upsert_workflow_by_path(jf, content.get("name_"))
 
                         id_cover = self.db.get_workflow_id_and_cover_by_path(jf)
                         if not id_cover:
                             logging.warning(f"[workflow->db] missing id for {jf}")
                             continue
                         wid, _cover = id_cover
-
-                        with jf.open("r", encoding="utf-8") as f:
-                            content = json.load(f)
 
                         results.append({
                             "id": wid,
@@ -661,9 +692,63 @@ class NnDeployServer:
         #     return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
         # preview
-        @api.get("/preview", tags=["Files"],
-                summary="preview images/videos")
-        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
+        # @api.get("/preview", tags=["Files"],
+        #         summary="preview images/videos/txt")
+        # async def preview_file(file_path: str = Query(..., description="absolute_path or relative path"), time: Optional[str] = None):
+        #     file_path = Path(file_path)
+        #     # unsafe process for relative path
+        #     if file_path.is_absolute():
+        #         f = file_path
+        #     else:
+        #         resource_root = Path(self.args.resources).resolve()
+        #         first_part = file_path.parts[0] if file_path.parts else ""
+        #         if first_part == resource_root.name:
+        #             f = file_path
+        #         else:
+        #             f = resource_root / file_path
+
+        #     if not f.exists():
+        #         raise HTTPException(status_code=404, detail="Not found")
+
+        #     MIME_MAP: dict[str, str] = {
+        #         # ---- image ----
+        #         ".jpg":  "image/jpeg",
+        #         ".jpeg": "image/jpeg",
+        #         ".png":  "image/png",
+        #         ".webp": "image/webp",
+        #         ".gif":  "image/gif",
+        #         ".svg":  "image/svg+xml",
+
+        #         # ---- video ----
+        #         ".mp4": "video/mp4",
+        #         ".mov": "video/quicktime",
+        #         ".avi": "video/x-msvideo",
+        #         ".mkv": "video/x-matroska",
+        #         ".webm": "video/webm",
+
+        #         # ---- text ----
+        #         ".txt": "text/plain",
+        #     }
+
+        #     mime = MIME_MAP.get(f.suffix.lower())
+        #     if mime is None:
+        #         raise HTTPException(
+        #             status_code=400,
+        #             detail="Unsupported preview type"
+        #         )
+        #     if mime == "text/plain":
+        #         return PlainTextResponse(f.read_text(encoding="utf-8"))
+        #     else:
+        #         return FileResponse(f, media_type=mime, filename=None)
+
+        @api.get("/preview", tags=["Files"], summary="preview images/videos/txt/binary")
+        async def preview_file(
+            file_path: str = Query(..., description="absolute_path or relative path"),
+            time: Optional[str] = None,
+            return_mime_type: Literal["video", "image", "text", "binary"] = Query(
+                "binary", alias="returnMimeType"
+            ),
+        ):
             file_path = Path(file_path)
             # unsafe process for relative path
             if file_path.is_absolute():
@@ -679,16 +764,16 @@ class NnDeployServer:
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
-            MIME_MAP: dict[str, str] = {
-                # ---- image ----
+            # ---- mime maps ----
+            IMAGE_MIME_MAP: dict[str, str] = {
                 ".jpg":  "image/jpeg",
                 ".jpeg": "image/jpeg",
                 ".png":  "image/png",
                 ".webp": "image/webp",
                 ".gif":  "image/gif",
                 ".svg":  "image/svg+xml",
-
-                # ---- video ----
+            }
+            VIDEO_MIME_MAP: dict[str, str] = {
                 ".mp4": "video/mp4",
                 ".mov": "video/quicktime",
                 ".avi": "video/x-msvideo",
@@ -696,49 +781,138 @@ class NnDeployServer:
                 ".webm": "video/webm",
             }
 
-            mime = MIME_MAP.get(f.suffix.lower())
-            if mime is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Unsupported preview type"
-                )
-            return FileResponse(f, media_type=mime, filename=None)
+            suffix = f.suffix.lower()
+
+            # ---- route by requested returnMimeType ----
+            if return_mime_type == "image":
+                mime = IMAGE_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Unsupported image type: {suffix}",
+                    )
+                return FileResponse(f, media_type=mime, filename=None)
+
+            if return_mime_type == "video":
+                mime = VIDEO_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Unsupported video type: {suffix}",
+                    )
+                return FileResponse(f, media_type=mime, filename=None)
+
+            if return_mime_type == "text":
+                raw_bytes = f.read_bytes()
+                detect_result = chardet.detect(raw_bytes)
+                encoding = detect_result.get("encoding") or "utf-8"
+                confidence = detect_result.get("confidence", 0)
+
+                try:
+                    content = raw_bytes.decode(encoding, errors="strict")
+                    return {
+                        "flag": "success",
+                        "message": f"success (detected encoding={encoding}, confidence={confidence:.2f})",
+                        "result": content,
+                    }
+                except UnicodeDecodeError:
+                    return {
+                        "flag": "error",
+                        "message": f"Cannot decode file as {encoding}. Consider using returnMimeType='binary' or specify correct encoding.",
+                        "result": None,
+                    }
+
+            return FileResponse(f, media_type="application/octet-stream", filename=None)
 
         # download
-        @api.get("/download", tags=["Files"],
-                summary="download images/videos/models")
-        async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
+        # @api.get("/download", tags=["Files"],
+        #         summary="download images/videos/models/txt")
+        # async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
+        #     f = Path(file_path)
+        #     if not f.exists():
+        #         raise HTTPException(status_code=404, detail="Not found")
+
+        #     MIME_MAP: dict[str, str] = {
+        #         # ---- image ----
+        #         ".jpg":  "image/jpeg",
+        #         ".jpeg": "image/jpeg",
+        #         ".png":  "image/png",
+        #         ".webp": "image/webp",
+        #         ".gif":  "image/gif",
+        #         ".svg":  "image/svg+xml",
+
+        #         # ---- video ----
+        #         ".mp4": "video/mp4",
+        #         ".mov": "video/quicktime",
+        #         ".avi": "video/x-msvideo",
+        #         ".mkv": "video/x-matroska",
+        #         ".webm": "video/webm",
+
+        #         # ---- model ----
+        #         ".onnx": "application/octet-stream",
+
+        #         # ---- text ----
+        #         ".txt": "text/plain"
+        #     }
+
+        #     mime = MIME_MAP.get(f.suffix.lower())
+        #     if mime is None:
+        #         raise HTTPException(
+        #             status_code=400,
+        #             detail="Unsupported download type"
+        #         )
+        #     return FileResponse(f, media_type=mime, filename=f.name)
+
+        @api.get("/download", tags=["Files"], summary="download images/videos/models/txt/binary")
+        async def download_file(
+            file_path: str = Query(..., description="absolute_path or relative path"),
+            return_mime_type: Literal["video", "image", "text", "binary"] = Query(
+                "binary", alias="returnMimeType"
+            ),
+        ):
             f = Path(file_path)
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
 
-            MIME_MAP: dict[str, str] = {
-                # ---- image ----
+            IMAGE_MIME_MAP: dict[str, str] = {
                 ".jpg":  "image/jpeg",
                 ".jpeg": "image/jpeg",
                 ".png":  "image/png",
                 ".webp": "image/webp",
                 ".gif":  "image/gif",
                 ".svg":  "image/svg+xml",
-
-                # ---- video ----
+            }
+            VIDEO_MIME_MAP: dict[str, str] = {
                 ".mp4": "video/mp4",
                 ".mov": "video/quicktime",
                 ".avi": "video/x-msvideo",
                 ".mkv": "video/x-matroska",
                 ".webm": "video/webm",
-
-                # ---- model ----
-                ".onnx": "application/octet-stream"
             }
 
-            mime = MIME_MAP.get(f.suffix.lower())
-            if mime is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Unsupported download type"
-                )
-            return FileResponse(f, media_type=mime, filename=f.name)
+            suffix = f.suffix.lower()
+
+            if return_mime_type == "image":
+                mime = IMAGE_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(status_code=400, detail=f"Unsupported image type: {suffix}")
+                return FileResponse(f, media_type=mime, filename=f.name)
+
+            if return_mime_type == "video":
+                mime = VIDEO_MIME_MAP.get(suffix)
+                if not mime:
+                    raise HTTPException(status_code=400, detail=f"Unsupported video type: {suffix}")
+                return FileResponse(f, media_type=mime, filename=f.name)
+
+            if return_mime_type == "text":
+                try:
+                    return PlainTextResponse(f.read_text(encoding="utf-8"))
+                except UnicodeDecodeError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="File is not valid UTF-8 text. Use returnMimeType='binary' instead."
+                    )
+            return FileResponse(f, media_type="application/octet-stream", filename=f.name)
 
         @api.post(
             "/models/download",
@@ -816,6 +990,7 @@ class NnDeployServer:
         }
         ws_set = self.task_ws_map.get(task_id, set())
         if not ws_set:
+            logging.warning("[notify_download_done] Ws_set is empty, timeout")
             return
         for ws in ws_set.copy():
             if self.loop and self.loop.is_running():
@@ -852,49 +1027,89 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path, text = extract_encode_output_paths(graph_json)
 
+        # path, text = extract_encode_output_paths(graph_json)
         # send result
-        flag = status.str
-        message = status.messages
-        result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
-        payload = {"flag": flag, "message": message, "result": result}
-        ws_set = self.task_ws_map.get(task_id, set())
-        for ws in ws_set.copy():
-            if self.loop and self.loop.is_running():
-                asyncio.run_coroutine_threadsafe(
-                    self._broadcast(payload, ws),
-                    self.loop
-                )
-            else:
-                logging.warning("[notify_task_done] Event loop not ready or not running")
+        # flag = status.str
+        # message = status.messages
+        # result = {"task_id": task_id, "type": "preview", "path": path, "text": text}
+        # payload = {"flag": flag, "message": message, "result": result}
+        # ws_set = self.task_ws_map.get(task_id, set())
+        # for ws in ws_set.copy():
+        #     if self.loop and self.loop.is_running():
+        #         asyncio.run_coroutine_threadsafe(
+        #             self._broadcast(payload, ws),
+        #             self.loop
+        #         )
+        #     else:
+        #         logging.warning("[notify_task_done] Event loop not ready or not running")
 
         # send graph output
-        show_items = []
+        # show_items = []
+        # try:
+        #     for node_name, out_map in (results or {}).items():
+        #         if not isinstance(out_map, dict):
+        #             continue
+        #         if "String" not in out_map:
+        #             continue
+        #         img_val = out_map.get("String")
+        #         img_list = img_val if isinstance(img_val, list) else [img_val]
+        #         text_list = [str(x) for x in img_list]
+        #         show_items.append({"name": node_name, "text": text_list})
+        # except Exception as e:
+        #     logging.exception("[notify_task_done] build show_items failed: %s", e)
+
+        # if show_items:
+        #     payload = {
+        #         "flag": status.str,
+        #         "message": status.messages,
+        #         "result": {"task_id": task_id, "type": "show", "string": show_items},
+        #     }
+        #     for ws in ws_set.copy():
+        #         if self.loop and self.loop.is_running():
+        #             asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+        #         else:
+        #             logging.warning("[notify_task_done] Event loop not ready or not running")
+
+        # —— send memory (collect String/Bool/Num/Text) ——
+        content = {}
         try:
             for node_name, out_map in (results or {}).items():
                 if not isinstance(out_map, dict):
                     continue
-                if "String" not in out_map:
-                    continue
-                img_val = out_map.get("String")
-                img_list = img_val if isinstance(img_val, list) else [img_val]
-                text_list = [str(x) for x in img_list]
-                show_items.append({"name": node_name, "text": text_list})
-        except Exception as e:
-            logging.exception("[notify_task_done] build show_items failed: %s", e)
 
-        if show_items:
-            payload = {
-                "flag": status.str,
-                "message": status.messages,
-                "result": {"task_id": task_id, "type": "show", "string": show_items},
-            }
-            for ws in ws_set.copy():
-                if self.loop and self.loop.is_running():
-                    asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
-                else:
-                    logging.warning("[notify_task_done] Event loop not ready or not running")
+                vals = []
+                for k in ("String", "Text", "Bool", "Num"):
+                    if k in out_map:
+                        v = out_map[k]
+                        if isinstance(v, list):
+                            vals.extend(v)
+                        else:
+                            vals.append(v)
+
+                if not vals:
+                    continue
+
+                s = " ".join(str(x) for x in vals)
+                content[node_name] = s
+        except Exception as e:
+            logging.exception("[notify_task_done] build memory content failed: %s", e)
+
+        payload = {
+            "flag": status.str,
+            "message": status.messages,
+            "result": {
+                "type": "memory",
+                "content": content,
+            },
+        }
+        ws_set = self.task_ws_map.get(task_id, set())
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+                logging.warning("[notify_task_done] Event loop ready or running")
+            else:
+                logging.warning("[notify_task_done] Event loop not ready or not running")
 
         # send graph run info
         flag = status.str
@@ -921,9 +1136,19 @@ class NnDeployServer:
                 logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
 
+    async def _wait_ws_binding(self, task_id: str, timeout: float = 60.0, poll: float = 0.05) -> bool:
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+        while loop.time() < deadline:
+            if self.task_ws_map.get(task_id):
+                return True
+            await asyncio.sleep(poll)
+        return False
+
     async def _download_models_task(self, task_id: str, graph_json: dict):
         token = set_task_id(task_id)
         try:
+            await self._wait_ws_binding(task_id, timeout=10.0)
             with scoped_stdio_to_logging("model-download"):
                 logging.info("model download task started")
 
@@ -932,7 +1157,7 @@ class NnDeployServer:
                     _handle_urls, graph_json, self.args.resources
                 )
                 logging.info("model download task finished: %s", result)
-            self.notify_download_done(task_id, success=True, result=result, error=None)
+                self.notify_download_done(task_id, success=True, result=result, error=None)
         except Exception as e:
             logging.exception("model download task failed")
             self.notify_download_done(task_id, success=False, result=None, error=str(e))

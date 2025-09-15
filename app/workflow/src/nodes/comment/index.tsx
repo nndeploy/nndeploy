@@ -8,7 +8,7 @@ export const CommentNodeRegistry: FlowNodeRegistry = {
     defaultPorts: [],
     renderKey: WorkflowNodeType.Comment,
     size: {
-      width: 240,
+      width: 200,
       height: 150,
     },
   },
