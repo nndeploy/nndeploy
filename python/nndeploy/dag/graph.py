@@ -639,6 +639,64 @@ class Graph(_C.dag.Graph):
         with open(path, "r") as f:
             json_str = f.read()
             self.deserialize(json_str)
+            
+    def set_node_value(self, *args):
+        """设置节点值
+        
+        支持多种调用方式：
+        1. set_node_value(node_value_str) - 通过JSON字符串设置
+        2. set_node_value(node_name, key, value) - 设置单个节点的键值对
+        3. set_node_value(node_value_map) - 通过字典设置多个节点值
+        """
+        return super().set_node_value(*args)
+    
+    def get_node_value(self):
+        """获取所有节点的值
+        
+        Returns:
+            dict: 节点值的嵌套字典，格式为 {node_name: {key: value}}
+        """
+        return super().get_node_value()
+    
+    def set_run_io_node_flag(self, is_run_io_node: bool):
+        """设置是否运行IO节点的标志
+        
+        Args:
+            is_run_io_node: 是否运行IO节点
+        """
+        return super().set_run_io_node_flag(is_run_io_node)
+    
+    def get_run_io_node_flag(self):
+        """获取是否运行IO节点的标志
+        
+        Returns:
+            bool: 是否运行IO节点
+        """
+        return super().get_run_io_node_flag()
+    
+    def set_keep_io_node_names(self, node_names):
+        """设置需要保持的IO节点名称
+        
+        Args:
+            node_names: 节点名称（字符串）或节点名称集合
+        """
+        return super().set_keep_io_node_names(node_names)
+    
+    def remove_keep_io_node_names(self, node_names):
+        """移除需要保持的IO节点名称
+        
+        Args:
+            node_names: 节点名称（字符串）或节点名称集合
+        """
+        return super().remove_keep_io_node_names(node_names)
+    
+    def get_keep_io_node_names(self):
+        """获取需要保持的IO节点名称集合
+        
+        Returns:
+            set: 节点名称集合
+        """
+        return super().get_keep_io_node_names()
     
     def __setattr__(self, name, value):
         """Override __setattr__ method to implement automatic node addition

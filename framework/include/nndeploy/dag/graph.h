@@ -332,6 +332,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual void removeKeepIoNodeNames(const std::set<std::string> &node_names);
   virtual std::set<std::string> getKeepIoNodeNames();
 
+  // node_name:key:value
+  virtual void setNodeValue(const std::string &node_value_str);
   virtual void setNodeValue(const std::string &node_name, const std::string &key, const std::string &value);
   virtual void setNodeValue(std::map<std::string, std::map<std::string, std::string>> node_value_map);
   virtual std::map<std::string, std::map<std::string, std::string>> getNodeValue();

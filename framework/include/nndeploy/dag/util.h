@@ -115,7 +115,8 @@ extern NNDEPLOY_CC_API std::string replaceGraphJsonStr(
     const std::string &json_str);
 extern NNDEPLOY_CC_API void replaceGraphJsonObj(
     std::map<std::string, std::map<std::string, std::string>> node_value_map,
-    rapidjson::Value &json);
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator);
 
 }  // namespace dag
 }  // namespace nndeploy

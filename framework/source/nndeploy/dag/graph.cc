@@ -2265,20 +2265,26 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 }
 
 base::Status Graph::deserialize(const std::string &json_str) {
-  base::Status status = Node::deserialize(json_str);
+  std::string json_str_param;
+  // replace node value
+  if (!node_value_map_.empty()) {
+    json_str_param = replaceGraphJsonStr(node_value_map_, json_str);
+  } else {
+    json_str_param = json_str;
+  }
+
+  base::Status status = Node::deserialize(json_str_param);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
   }
 
   rapidjson::Document document;
-  if (document.Parse(json_str.c_str()).HasParseError()) {
+  if (document.Parse(json_str_param.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
     return base::kStatusCodeErrorInvalidParam;
   }
   rapidjson::Value &json = document;
-
-  // replaceGraphJsonStr(node_value_map_, json_str);
 
   if (json.HasMember("node_repository_") &&
       json["node_repository_"].IsArray()) {
@@ -2368,6 +2374,30 @@ std::set<std::string> Graph::getKeepIoNodeNames() {
   return keep_io_node_names_;
 }
 
+void Graph::setNodeValue(const std::string &node_value_str) {
+  // 查找第一个冒号的位置
+  size_t first_colon = node_value_str.find(":");
+  if (first_colon == std::string::npos) {
+    return; // 没有找到冒号，格式错误
+  }
+  
+  // 查找第二个冒号的位置
+  size_t second_colon = node_value_str.find(":", first_colon + 1);
+  if (second_colon == std::string::npos) {
+    return; // 没有找到第二个冒号，格式错误
+  }
+  
+  // 提取node_name（第一个冒号之前）
+  std::string node_name = node_value_str.substr(0, first_colon);
+  
+  // 提取key（第一个冒号和第二个冒号之间）
+  std::string key = node_value_str.substr(first_colon + 1, second_colon - first_colon - 1);
+  
+  // 提取value（第二个冒号之后的所有内容）
+  std::string value = node_value_str.substr(second_colon + 1);
+  
+  node_value_map_[node_name][key] = value;
+}
 void Graph::setNodeValue(const std::string &node_name, const std::string &key,
                          const std::string &value) {
   node_value_map_[node_name][key] = value;

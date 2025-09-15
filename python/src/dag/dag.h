@@ -60,8 +60,10 @@ class PyNode : public Base {
                            param);
   }
 
-  base::Status setParam(const std::string &key, const std::string &value) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam, key, value);
+  base::Status setParam(const std::string &key,
+                        const std::string &value) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam, key,
+                           value);
   }
 
   //   base::Param *getParam() override {
@@ -87,7 +89,8 @@ class PyNode : public Base {
   }
 
   std::shared_ptr<RunStatus> getRunStatus() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<RunStatus>, Base, "get_run_status", getRunStatus);
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<RunStatus>, Base, "get_run_status",
+                           getRunStatus);
   }
 
   virtual void setTraceFlag(bool flag) override {
@@ -351,7 +354,71 @@ class PyGraph : public Base {
 
   virtual std::map<std::string, int> getLoopCountMap() override {
     using ReturnType = std::map<std::string, int>;
-    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map", getLoopCountMap);
+    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map",
+                           getLoopCountMap);
+  }
+
+  virtual base::Status setRunIoNodeFlag(bool is_run_io_node) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_run_io_node_flag",
+                           setRunIoNodeFlag, is_run_io_node);
+  }
+
+  virtual bool getRunIoNodeFlag() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "get_run_io_node_flag",
+                           getRunIoNodeFlag);
+  }
+
+  virtual void setKeepIoNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_keep_io_node_names",
+                           setKeepIoNodeNames, node_name);
+  }
+
+  virtual void setKeepIoNodeNames(
+      const std::set<std::string> &node_names) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_keep_io_node_names",
+                           setKeepIoNodeNames, node_names);
+  }
+
+  virtual void removeKeepIoNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_keep_io_node_names",
+                           removeKeepIoNodeNames, node_name);
+  }
+
+  virtual void removeKeepIoNodeNames(
+      const std::set<std::string> &node_names) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_keep_io_node_names",
+                           removeKeepIoNodeNames, node_names);
+  }
+
+  virtual std::set<std::string> getKeepIoNodeNames() override {
+    PYBIND11_OVERRIDE_NAME(std::set<std::string>, Base,
+                           "get_keep_io_node_names", getKeepIoNodeNames);
+  }
+
+  virtual void setNodeValue(const std::string &node_value_str) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_value_str);
+  }
+
+  virtual void setNodeValue(const std::string &node_name,
+                            const std::string &key,
+                            const std::string &value) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_name, key, value);
+  }
+
+  virtual void setNodeValue(
+      std::map<std::string, std::map<std::string, std::string>> node_value_map)
+      override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_value_map);
+  }
+
+  virtual std::map<std::string, std::map<std::string, std::string>>
+  getNodeValue() override {
+    using ReturnType =
+        std::map<std::string, std::map<std::string, std::string>>;
+    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_node_value", getNodeValue);
   }
 };
 

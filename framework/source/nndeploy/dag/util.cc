@@ -428,24 +428,64 @@ void findProducerNode(EdgeWrapper *edge_wrapper,
   }
   return;
 }
-
-// 辅助函数：根据路径替换JSON值
+// 修改函数签名，添加 allocator 参数
 void replaceJsonValue(rapidjson::Value &json, const std::string &key,
-                      const std::string &new_value) {
+                      const std::string &new_value,
+                      rapidjson::Document::AllocatorType &allocator) {
   if (!json.IsObject()) return;
 
-  if (json.HasMember(key.c_str()) && json[key.c_str()].IsString()) {
-    // 需要传入Document的Allocator，而不是Value的GetAllocator
-    // 这里需要修改函数签名来接收Document的allocator
-    // 暂时使用临时解决方案：重新创建字符串值
-    rapidjson::Value new_val;
-    new_val.SetString(new_value.c_str(), new_value.length());
-    json[key.c_str()] = new_val;
+  if (json.HasMember(key.c_str())) {
+    if (json[key.c_str()].IsString()) {
+      json[key.c_str()].SetString(new_value.c_str(), new_value.length(),
+                                  allocator);
+    } else if (json[key.c_str()].IsInt()) {
+      int int_val = std::stoi(new_value);
+      json[key.c_str()].SetInt(int_val);
+    } else if (json[key.c_str()].IsInt64()) {
+      int64_t int64_val = std::stoll(new_value);
+      json[key.c_str()].SetInt64(int64_val);
+    } else if (json[key.c_str()].IsUint()) {
+      unsigned int uint_val = std::stoul(new_value);
+      json[key.c_str()].SetUint(uint_val);
+    } else if (json[key.c_str()].IsUint64()) {
+      uint64_t uint64_val = std::stoull(new_value);
+      json[key.c_str()].SetUint64(uint64_val);
+    } else if (json[key.c_str()].IsFloat()) {
+      float float_val = std::stof(new_value);
+      json[key.c_str()].SetFloat(float_val);
+    } else if (json[key.c_str()].IsDouble()) {
+      double double_val = std::stod(new_value);
+      json[key.c_str()].SetDouble(double_val);
+    } else if (json[key.c_str()].IsBool()) {
+      bool bool_val = (new_value == "true" || new_value == "1");
+      json[key.c_str()].SetBool(bool_val);
+    } else if (json[key.c_str()].IsObject()) {
+      // 对象类型：解析new_value为JSON对象
+      rapidjson::Document doc;
+      doc.Parse(new_value.c_str());
+      if (!doc.HasParseError() && doc.IsObject()) {
+        json[key.c_str()].CopyFrom(doc, allocator);
+      }
+    } else if (json[key.c_str()].IsArray()) {
+      // 数组类型：解析new_value为JSON数组
+      rapidjson::Document doc;
+      doc.Parse(new_value.c_str());
+      if (!doc.HasParseError() && doc.IsArray()) {
+        json[key.c_str()].CopyFrom(doc, allocator);
+      }
+    } else {
+      // 其他类型：尝试解析为JSON并替换
+      rapidjson::Document doc;
+      doc.Parse(new_value.c_str());
+      if (!doc.HasParseError()) {
+        json[key.c_str()].CopyFrom(doc, allocator);
+      }
+    }
     return;
   }
 
   if (json.HasMember("params_") && json["params_"].IsObject()) {
-    replaceJsonValue(json["params_"], key, new_value);
+    replaceJsonValue(json["params_"], key, new_value, allocator);
     return;
   }
 }
@@ -459,13 +499,14 @@ std::string replaceGraphJsonStr(
     return json_str;
   }
   rapidjson::Value &json = document;
-  replaceGraphJsonObj(node_value_map, json);
+  replaceGraphJsonObj(node_value_map, json, document.GetAllocator());
   return json.GetString();
 }
 
 void replaceGraphJsonObj(
     std::map<std::string, std::map<std::string, std::string>> node_value_map,
-    rapidjson::Value &json) {
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) {
   if (json.IsObject()) {
     if (json.HasMember("name_") && json["name_"].IsString()) {
       std::string name = json["name_"].GetString();
@@ -474,14 +515,15 @@ void replaceGraphJsonObj(
         for (const auto &param_pair : node_iter->second) {
           const std::string &key = param_pair.first;
           const std::string &new_value = param_pair.second;
-          replaceJsonValue(json, key, new_value);
+          replaceJsonValue(json, key, new_value, allocator);
         }
       }
     }
-  
-    if (json.HasMember("node_repository_") && json["node_repository_"].IsArray()) {
+
+    if (json.HasMember("node_repository_") &&
+        json["node_repository_"].IsArray()) {
       for (auto &node : json["node_repository_"].GetArray()) {
-        replaceGraphJsonObj(node_value_map, node);
+        replaceGraphJsonObj(node_value_map, node, allocator);
       }
     }
   }
