@@ -37,7 +37,7 @@ object ImageInImageOut {
             // val workflowAsset = "resources/workflow/SegmentRMBGMNN.json"
             
             // 3) 预处理输入数据
-            val processedInputUri = ImageUtils.preprocessImage(context, inputUri)
+            val (processedInputFile, processedInputUri) = ImageUtils.preprocessImage(context, inputUri)
             
             // 4) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
@@ -55,6 +55,7 @@ object ImageInImageOut {
             runner.setJsonFile(true)
             runner.setTimeProfile(true)
             runner.setDebug(true)
+            runner.setNodeValue("OpenCvImageDecode_11", "path_", processedInputFile.absolutePath)
             
             // 设置输入文件路径
             // runner.setNodeValue("input_node", "input_path", processedInputUri.path ?: "")
