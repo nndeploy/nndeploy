@@ -2352,6 +2352,21 @@ base::Status Graph::setRunIoNodeFlag(bool is_run_io_node) {
   return base::kStatusCodeOk;
 }
 bool Graph::getRunIoNodeFlag() { return run_io_node_flag_; }
+void Graph::setKeepIoNodeNames(const std::string &node_name) {
+  keep_io_node_names_.insert(node_name);
+}
+void Graph::setKeepIoNodeNames(const std::set<std::string> &node_names) {
+  keep_io_node_names_.insert(node_names.begin(), node_names.end());
+}
+void Graph::removeKeepIoNodeNames(const std::string &node_name) {
+  keep_io_node_names_.erase(node_name);
+}
+void Graph::removeKeepIoNodeNames(const std::set<std::string> &node_names) {
+  keep_io_node_names_.erase(node_names.begin(), node_names.end());
+}
+std::set<std::string> Graph::getKeepIoNodeNames() {
+  return keep_io_node_names_;
+}
 
 void Graph::setNodeValue(const std::string &node_name, const std::string &key,
                          const std::string &value) {

@@ -326,6 +326,11 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   virtual base::Status setRunIoNodeFlag(bool is_run_io_node);
   virtual bool getRunIoNodeFlag();
+  virtual void setKeepIoNodeNames(const std::string &node_name);
+  virtual void setKeepIoNodeNames(const std::set<std::string> &node_names);
+  virtual void removeKeepIoNodeNames(const std::string &node_name);
+  virtual void removeKeepIoNodeNames(const std::set<std::string> &node_names);
+  virtual std::set<std::string> getKeepIoNodeNames();
 
   virtual void setNodeValue(const std::string &node_name, const std::string &key, const std::string &value);
   virtual void setNodeValue(std::map<std::string, std::map<std::string, std::string>> node_value_map);
@@ -365,6 +370,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    * 注：只有最外层的Graph才会起效果
    */
   bool run_io_node_flag_ = true;
+  std::set<std::string> keep_io_node_names_;
   /*
    * @brief 节点值
    * @details
