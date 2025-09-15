@@ -23,8 +23,7 @@ const IoTypeBinary: React.FC<IoTypeTextFileProps> = (props) => {
 
 
   const { node } = useNodeRender();
-  const form = getNodeForm(node)!
-  const nodeName = form.getValueIn('name_')
+
 
   const {  runInfo } = useFlowEnviromentContext()
 
@@ -34,22 +33,8 @@ const IoTypeBinary: React.FC<IoTypeTextFileProps> = (props) => {
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  async function handleFiles(e: any) {
-    const files: File[] = e.dataTransfer?.files || e.target.files;
 
-
-    const formData: FormData = new FormData()
-    formData.append('file', files[0])
-
-    const response = await apiOtherFileSave(formData)
-    if (response.flag === 'success') {
-      onChange(response.result.saved_path)
-    }
-
-    //setFileName(files[0].name)
-
-  }
-
+  
   useEffect(() => {
     // if (dropZoneRef.current) {
 
@@ -83,6 +68,27 @@ const IoTypeBinary: React.FC<IoTypeTextFileProps> = (props) => {
 
   const fileInfo = useGetFileInfo(value, direction,  runResult)
 
+
+
+  //   const form = getNodeForm(node)!
+  // const nodeName = form.getValueIn('name_')
+
+
+  async function handleFiles(e: any) {
+    const files: File[] = e.dataTransfer?.files || e.target.files;
+
+
+    const formData: FormData = new FormData()
+    formData.append('file', files[0])
+
+    const response = await apiOtherFileSave(formData)
+    if (response.flag === 'success') {
+      onChange(response.result.saved_path)
+    }
+
+    //setFileName(files[0].name)
+
+  }
 
 
 

@@ -24,7 +24,8 @@ export const FlowEnviromentContext = React.createContext<
     // outputResource: IOutputResource;
     // flowNodesRunningStatus: IFlowNodesRunningStatus, 
     // log: ILog, 
-    runInfo: IRunInfo
+    runInfo: IRunInfo,
+    setRunInfo: React.Dispatch<React.SetStateAction<IRunInfo>>,
 
     downloadModalVisible: boolean,
     setDownloadModalVisible: React.Dispatch<React.SetStateAction<boolean>>,
@@ -67,7 +68,7 @@ export const FlowEnviromentContext = React.createContext<
       time: Date.now()
     },
     flowNodesRunningStatus: {}
-  }, 
+  },
 
   downloadModalVisible: false,
   setDownloadModalList: [],

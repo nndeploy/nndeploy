@@ -19,36 +19,16 @@ interface IoTypeTextFileProps {
 const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
   const { value, onChange, direction } = props;
 
-  const { node } = useNodeRender();
-  const form = getNodeForm(node)!
-  const nodeName = form.getValueIn('name_')
+  const { runInfo } = useFlowEnviromentContext()
+  const { result: runResult } = runInfo
 
-  const {  runInfo } = useFlowEnviromentContext()
-  const {result: runResult } = runInfo
-
-
-
-
-
-
-  const [previewVisible, setPreviewVisible] = useState(false);
-
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}`
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFiles(e: any) {
-    const files: File[] = e.dataTransfer?.files || e.target.files;
-    const formData: FormData = new FormData()
-    formData.append('file', files[0])
 
-    const response = await apiImageSave(formData)
-    if (response.flag === 'success') {
-      onChange(response.result.saved_path)
-    }
 
-  }
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   useEffect(() => {
 
@@ -80,70 +60,115 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
     }
   }, [])
 
+ // const { node } = useNodeRender();
+  // const form = getNodeForm(node)!
+  // if (!form) {
+  //   console.log('form', form)
+  //   let j = 0
+  //   return <></>
+  // } else[
+  //   console.log('form', form)
+  // ]
+//  const nodeName = form.getValueIn('name_')
 
-  return (<div className={styles["io-type-container"]}>
-    {
-      direction === 'input' ? 
-   
-    <div className={classNames(styles['io-type-input-container'])}>
-      <div className={classNames(styles["upload-area"], { [styles.hasImage]: !!value })}
-        ref={dropZoneRef}
-        onClick={(event) => {
-          event.stopPropagation();
-          if (fileInputRef.current) {
-            fileInputRef.current.click();
-          }
-        }}>
-        {value ?
-          <div className={styles["image-container"]}>
 
-            <IconDelete size="extra-large" className={styles["icon-delete"]}
-              onClick={(event) => {
-                event.stopPropagation();
-                event.nativeEvent.stopImmediatePropagation();
-                onChange('')
-              }}
-            />
 
-            <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
-              event.stopPropagation();
-              setPreviewVisible(true)
-            }} />
-            <img src={previewUrl} style={{ maxWidth: '100%' }} />
-          </div>
-          : <>
-            <IconPlus size="extra-large" />
-            {/* <p>拖放文件到这里或点击上传</p> */}
-          </>
+  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}`
+
+
+
+  async function handleFiles(e: any) {
+    const files: File[] = e.dataTransfer?.files || e.target.files;
+    const formData: FormData = new FormData()
+    formData.append('file', files[0])
+
+    const response = await apiImageSave(formData)
+    if (response.flag === 'success') {
+      onChange(response.result.saved_path)
+    }
+
+  }
+
+
+
+
+  return (
+    <>
+      <div className={styles["io-type-container"]}>
+
+        {
+          direction === 'input' ?
+
+            <div className={classNames(styles['io-type-input-container'])}>
+              <div className={classNames(styles["upload-area"], { [styles.hasImage]: !!value })}
+                ref={dropZoneRef}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                  }
+                }}>
+                {value ?
+                  <div className={styles["image-container"]}>
+
+                    <IconDelete size="extra-large" className={styles["icon-delete"]}
+                      onClick={(event) => {
+                        debugger
+                        event.stopPropagation();
+                        event.nativeEvent.stopImmediatePropagation();
+                        onChange('')
+                      }}
+                    />
+
+                    <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
+                      debugger
+                      event.stopPropagation();
+                      setPreviewVisible(true)
+                    }} />
+                    <img src={previewUrl} style={{ maxWidth: '100%' }} />
+                  </div>
+                  : <>
+                    <IconPlus size="extra-large" />
+
+                  </>
+                }
+
+                <input type="file" id="fileInput" hidden ref={fileInputRef} />
+              </div>
+            </div>
+            :
+            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
+              <div className={styles["image-container"]}>
+                <img src={previewUrl} style={{ maxWidth: '100%' }} />
+              </div>
+            </div>
         }
 
-        <input type="file" id="fileInput" hidden ref={fileInputRef} />
-      </div>
-    </div>
-    : 
-    <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
-      <div className={styles["image-container"]}>
-        <img src={previewUrl} style={{ maxWidth: '100%' }} />
-      </div>
-    </div>
-}
 
-    <Modal
-      title="Preview"
-      visible={previewVisible}
-      onCancel={() => setPreviewVisible(false)}
-      footer={[
-        <Button key="cancel" onClick={() => setPreviewVisible(false)}>
-          Close
-        </Button>,
-      ]}
-    >
-      <div className={styles["preview-image-modal"]}>
-        <img src={previewUrl} style={{ maxWidth: '100%' }} />
-      </div>
 
-    </Modal>
-  </div>
+      </div>
+      <Modal
+        title="Preview"
+        visible={previewVisible}
+        closeOnEsc={true}
+        centered={true}
+        onCancel={() => {
+          setPreviewVisible(false)
+        }
+        }
+        footer={[
+          <Button key="cancel" onClick={() => setPreviewVisible(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+        <div className={styles["preview-image-modal"]}>
+
+          <img src={previewUrl} style={{ maxWidth: '100%' }} />
+        </div>
+
+      </Modal>
+    </>
   );
 
 }
