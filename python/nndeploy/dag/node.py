@@ -812,8 +812,8 @@ def get_all_node_json():
                 current_path = f"{current_path}{separator}{part}" if current_path else part
                 all_directories.add(current_path)
     
-    # Sort by path length to ensure parent directories are created first
-    sorted_directories = sorted(all_directories, key=lambda x: len(x.split("::" if "::" in x else ".")))
+    # sort by alphabet order
+    sorted_directories = sorted(all_directories)
     
     # Create directory nodes
     for directory_path in sorted_directories:
