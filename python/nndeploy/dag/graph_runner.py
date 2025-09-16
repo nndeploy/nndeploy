@@ -35,8 +35,9 @@ class GraphRunner:
 
     def _build_graph(self, graph_json_str: str, name: str):
         self.graph = Graph(name)
-        for item in self.args.node_param:
-            self.graph.set_node_value(item)
+        if self.args is not None:
+            for item in self.args.node_param:
+                self.graph.set_node_value(item)
         status = self.graph.deserialize(graph_json_str)
         return self.graph, status
     
