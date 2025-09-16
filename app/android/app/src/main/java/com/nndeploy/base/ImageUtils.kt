@@ -35,7 +35,7 @@ object ImageUtils {
     /**
      * 预处理图片 - 格式转换、尺寸调整等
      */
-    fun preprocessImage(context: Context, inputUri: Uri): Uri {
+    fun preprocessImage(context: Context, inputUri: Uri): Pair<File, Uri> {
         return try {
             Log.w("ImageUtils", "Starting image preprocessing")
             
@@ -55,10 +55,15 @@ object ImageUtils {
             }
             processedBitmap.recycle()
             
-            Uri.fromFile(outputFile)
+            Pair(outputFile, Uri.fromFile(outputFile))
         } catch (e: Exception) {
             Log.e("ImageUtils", "Image preprocessing failed", e)
-            inputUri // 如果预处理失败，返回原始URI
+            // 如果预处理失败，返回原始文件
+            val fallbackFile = File(context.cacheDir, "fallback_image_${System.currentTimeMillis()}.jpg")
+            val originalBitmap = loadBitmapFromUri(context, inputUri)
+            saveBitmapToFile(originalBitmap, fallbackFile)
+            originalBitmap.recycle()
+            Pair(fallbackFile, Uri.fromFile(fallbackFile))
         }
     }
     
