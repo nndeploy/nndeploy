@@ -21,6 +21,8 @@ import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDraw
 
 import { PropertyEdit } from "./propertyEdit";
 import IoType from "./ioType";
+import { useSize } from "../../../../components/comment/hooks";
+import { BorderArea } from "./border-area";
 
 const { Text } = Typography;
 
@@ -28,6 +30,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const isSidebar = useIsSidebar();
 
   const readonly = !useIsSidebar();
+
+   //const { width, height, onResize } = useSize();
 
   // const { node } = useNodeRender();
 
@@ -85,8 +89,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'source_',
     'version_',
 
-    'io_type_', 
-    'required_params_'
+   // 'io_type_', 
+    'required_params_', 
+    'size'
 
   ];
 
@@ -202,6 +207,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   // }
 
   return (
+    <>
     <div className="drawer-render-form" ref={renderFormRef}>
       <FormHeader />
 
@@ -219,7 +225,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                           <Field<any> key={child.name} name={child.name}>
                             {({ field: childField, fieldState: childState }) => {
 
-                              console.log('inputs_ childField.value.id', childField.value.id)
+                              //Playgroundconsole.log('inputs_ childField.value.id', childField.value.id)
                               return (
                                 <div
                                   style={{
@@ -305,7 +311,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                   width: '100%',
                                   position: 'relative',
                                   display: 'flex',
-                                  justifyContent: 'center',
+                                  justifyContent: 'flex-end',
                                   alignItems: 'center',
                                   gap: 8,
                                 }}
@@ -313,7 +319,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                 <div
                                   style={{
                                     justifyContent: 'end',
-                                    alignItems: 'center',
+                                    alignItems: 'flex-end',
                                     color: 'var(--semi-color-text-0)',
                                     width: 118,
                                     position: 'relative',
@@ -331,7 +337,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                                 <div
                                   style={{
-                                    flexGrow: 1,
+                                    //flexGrow: 1,
                                     minWidth: 0,
                                   }}
                                 >
@@ -402,11 +408,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             {
               (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
 
-              <Field key={getIoTypeFieldName()} name={getIoTypeFieldName()} >
+              <Field key={name_} name={getIoTypeFieldName()} >
                 {({ field, fieldState }) => {
                   return <IoType
                     direction = {isInputMediaNode() ? 'input' : 'output'}
                     ioDataType={ioType}
+                    nodeName={name_}
 
                    // value={getIoTypeFieldValue()}
                     value = {field.value as string}
@@ -543,6 +550,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
       </SideSheet>
     </div >
+    
+     </>
   );
 };
 
@@ -557,4 +566,5 @@ export const formMeta: FormMeta<FlowNodeJSON> = {
     //   return undefined;
     // },
   },
+
 };

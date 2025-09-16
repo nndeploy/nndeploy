@@ -20,7 +20,7 @@ interface IoTypeTextFileProps {
 const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
   const { value, onChange, direction } = props;
 
-  const { runInfo } = useFlowEnviromentContext()
+  const { runInfo, element } = useFlowEnviromentContext()
   const { result: runResult } = runInfo
 
 
@@ -149,7 +149,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
                 }}>
-{/* 
+                  {/* 
                   <IconDelete size="extra-large" className={styles["icon-delete"]}
                     onClick={(event) => {
                       debugger
@@ -162,7 +162,9 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
                   <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                     debugger
                     event.stopPropagation();
-                    setPreviewVisible(true)
+                    setPreviewVisible(oldValue => {
+                      return true
+                    })
                   }} />
                   <VideoPlayer
                     height={200}
@@ -202,7 +204,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
                       //['play', 'time', 'volume', 'playbackRate', 'fullscreen']
                       ['volume']
                     }
-                    clickToPlay={false}
+                    clickToPlay={true}
                     autoPlay={false}
 
 
@@ -224,7 +226,14 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
         visible={previewVisible}
         closeOnEsc={true}
         centered={true}
-        width={'800px'}
+       // width={'800px'}
+        width={'95%'}
+        height={'95%'}
+          getPopupContainer={() => {
+          //return document.body
+          return element?.current!
+        }}
+        className="model-flex"
         //height={'500px'}
         onCancel={() => {
           setPreviewVisible(false)
@@ -236,17 +245,20 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
           </Button>,
         ]}
       >
-        <div className={styles["preview-video-modal"]}>
+        <div className={classNames('model-content')}>
+          <div className={styles["preview-video-modal"]}>
 
-          <VideoPlayer
-            height={400}
-            controlsList={[]}
-            clickToPlay={false}
-            autoPlay={false}
+            <VideoPlayer
+            height={'80%'}
+             // height={400}
+              controlsList={['play', 'time', 'volume', 'playbackRate', 'fullscreen']}
+              clickToPlay={false}
+              autoPlay={false}
 
-            src={`/api/preview?file_path=${value}`}
-          //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
-          />
+              src={`/api/preview?file_path=${value}`}
+            //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
+            />
+          </div>
         </div>
 
       </Modal>

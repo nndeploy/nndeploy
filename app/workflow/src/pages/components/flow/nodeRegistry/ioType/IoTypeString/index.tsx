@@ -6,6 +6,8 @@ import { getNodeForm, useNodeRender } from "@flowgram.ai/free-layout-editor";
 import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
 import { EnumIODataType } from "..";
 import CodeEditor from "../../CodeEditor";
+import { useRef, useState } from "react";
+import { useGetRows } from "../effect";
 
 
 interface IoTypeStringProps {
@@ -45,17 +47,38 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
   const isOutputNeedShow = checkOutputNeedShow()
 
 
+  //const [rows, setRows] = useState(4);
+  //const textAreaRef = useRef<HTMLDivElement>(null);
+
+  // const handleResize = (e: React.MouseEvent<HTMLTextAreaElement, MouseEvent>) => {
+  //   const lineHeight = 20; // 根据实际行高调整
+  //   var temp = textAreaRef.current?.offsetHeight
+    
+  //   const newRows = Math.floor(temp! / lineHeight);
+  //   setRows(newRows);
+  // };
+
+  const [ textAreaContainaerRef, rows] = useGetRows(20);
+
+
+
+
   return (
     <div className={styles["io-type-container"]}>
       {
         direction === 'input' ?
 
-          <div className={classNames(styles['io-type-input-container'])}>
+          <div className={classNames(styles['io-type-input-container'])} ref={textAreaContainaerRef} >
             <TextArea showClear value={value}
+              className={styles['textArea']}
+              
 
+              onChange={(value, event) => {
+                //handleResize(event)
+                onChange(value)
+              }}
 
-              onChange={onChange}
-
+              rows={rows}
 
               onClick={(event) => {
                 event.stopPropagation();

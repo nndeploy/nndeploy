@@ -19,7 +19,10 @@ interface IoTypeTextFileProps {
 const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
   const { value, onChange, direction } = props;
 
-  const { runInfo } = useFlowEnviromentContext()
+
+  const [previewVisible, setPreviewVisible] = useState(false);
+
+  const { runInfo, element } = useFlowEnviromentContext()
   const { result: runResult } = runInfo
 
 
@@ -28,7 +31,6 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-  const [previewVisible, setPreviewVisible] = useState(false);
 
   useEffect(() => {
 
@@ -73,7 +75,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}`
+  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}&returnMimeType=image`
 
 
 
@@ -123,9 +125,14 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
                     <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                       debugger
                       event.stopPropagation();
-                      setPreviewVisible(true)
+                      setPreviewVisible(oldValue => {
+
+                        return true
+                      })
                     }} />
-                    <img src={previewUrl} style={{ maxWidth: '100%' }} />
+                    <img src={previewUrl}
+                    //style={{ maxWidth: '100%' }}
+                    />
                   </div>
                   : <>
                     <IconPlus size="extra-large" />
@@ -157,6 +164,16 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
         visible={previewVisible}
         closeOnEsc={true}
         centered={true}
+        fullScreen={false}
+        className="model-flex"
+        width={'95%'}
+        height={'95%'}
+        getPopupContainer={() => {
+          //return document.body
+          return element?.current!
+        }}
+        // width={'90%'}
+        // height={'90%'}
         onCancel={() => {
           setPreviewVisible(false)
         }
@@ -167,9 +184,11 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
           </Button>,
         ]}
       >
-        <div className={styles["preview-image-modal"]}>
+        <div className={classNames( 'model-content')}>
+          <div className={classNames("preview-image-modal")}>
 
-          <img src={previewUrl} style={{ maxWidth: '100%' }} />
+            <img src={previewUrl} style={{ maxWidth: '100%' }} />
+          </div>
         </div>
 
       </Modal>

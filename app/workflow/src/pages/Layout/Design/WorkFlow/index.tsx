@@ -32,11 +32,11 @@ interface WorkFlowProps {
   onFlowDeleteCallBack: (flowName: string) => void
 }
 const { Text, Paragraph } = Typography;
-function WorkFlow (props: WorkFlowProps) {
+function WorkFlow(props: WorkFlowProps) {
 
 
-  const {state} = useContext(store)
-  const {freshFlowTreeCnt} = state
+  const { state } = useContext(store)
+  const { freshFlowTreeCnt } = state
 
   const { onFlowDeleteCallBack } = props
   const { treeData, setTreeData, getWorkFlowTree } = useGetWorkflowTree();
@@ -48,7 +48,7 @@ function WorkFlow (props: WorkFlowProps) {
   //   refresh: getWorkFlowTree,
   // }));
 
-  useEffect(()=>{
+  useEffect(() => {
     getWorkFlowTree()
   }, [freshFlowTreeCnt])
 
@@ -160,7 +160,7 @@ function WorkFlow (props: WorkFlowProps) {
     return (
       <Dropdown
         closeOnEsc={true}
-        trigger={"click"}
+        trigger={"hover"}
         position="right"
         render={
           <Dropdown.Menu>
@@ -208,14 +208,33 @@ function WorkFlow (props: WorkFlowProps) {
               <Popconfirm
                 title="Are you sure?"
                 content="Are you sure to delete this item?"
-                onConfirm={() => deleteNode(workFlow.key as string)}
+
+                onConfirm={(event) => {
+                  event.stopPropagation();
+                  deleteNode(workFlow.key as string)
+                }}
                 onCancel={() => { }}
               >
-                delete
+
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.persist();
+                  }}
+                >
+                  delete
+                </span>
+
               </Popconfirm>
             </Dropdown.Item>
-            <Dropdown.Item onClick={() => onDownload(workFlow.key as string)}>
+            <Dropdown.Item onClick={(event) => {
+              event.stopPropagation()
+              onDownload(workFlow.key as string)
+            }
+            }>
+
               download
+
             </Dropdown.Item>
           </Dropdown.Menu>
         }

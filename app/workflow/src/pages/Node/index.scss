@@ -1,7 +1,7 @@
 .page-node {
   //padding: 20px;
-  height: calc(100vh - 17px );
-  display: flex ; 
+  height: calc(100vh - 17px);
+  display: flex;
   gap: 15px;
 
   .tree-pane {
@@ -69,4 +69,37 @@
   }
 
 
+}
+
+.model-flex {
+  .semi-modal-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .model-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+
+      align-content: center;
+      align-items: center;
+    }
+  }
+
+  .preview-image-modal {
+    display: flex;
+    justify-content: center;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+
+    &>img {
+      flex: 1;
+      min-height: 0;
+    }
+  }
 }
