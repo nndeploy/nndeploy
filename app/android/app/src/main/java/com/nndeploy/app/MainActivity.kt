@@ -60,10 +60,10 @@ fun App() {
             }
             composable("ai_process/{algorithmId}") { backStackEntry ->
                 val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
-                AIProcessScreen(nav, algorithmId, sharedAIViewModel)
+                CVProcessScreen(nav, algorithmId, sharedAIViewModel)
             }
             composable("ai_result") { 
-                AIResultScreen(nav, sharedAIViewModel) 
+                CVResultScreen(nav, sharedAIViewModel) 
             }
             
             // 我的页面

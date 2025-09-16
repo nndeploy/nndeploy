@@ -72,3 +72,4 @@ if __name__ == "__main__":
     
 # python3 tool/script/android_install_so.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a
 # python3 ../tool/script/android_install_so.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Debug_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a
+# python3 ../tool/script/android_install_so.py /home/always/github/public/nndeploy/build/nndeploy_2.6.1_Android_aarch64_Release_Clang /home/always/github/public/nndeploy/app/android/app/src/main/jniLibs/arm64-v8a

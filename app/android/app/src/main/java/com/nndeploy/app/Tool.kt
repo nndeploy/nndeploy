@@ -39,43 +39,10 @@ import android.util.Log
 import androidx.compose.runtime.rememberCoroutineScope
 import android.content.Context
 import java.io.File
+import com.nndeploy.ai.AIAlgorithm
+import com.nndeploy.ai.InOutType
+import com.nndeploy.ai.AlgorithmFactory
 
-
-/**
- * AI算法信息数据类
- */
-data class AIAlgorithm(
-    val id: String,
-    val name: String,
-    val description: String,
-    val icon: ImageVector,
-    val inputType: List<InOutType>,
-    val outputType: List<InOutType>,
-    val category: String,
-    val workflowAsset: String
-)
-
-/**
- * 输入类型枚举
- */
-enum class InOutType {
-    IMAGE,      // 仅图片
-    VIDEO,      // 仅视频  
-    CAMERA,     // 仅摄像头
-    PROMPT,          // 提示词
-    ALL              // 全部支持
-}
-
-/**
- * 输入源类型
- */
-enum class InputSource {
-    GALLERY_IMAGE,   // 相册图片
-    GALLERY_VIDEO,   // 相册视频
-    CAMERA_PHOTO,    // 拍照
-    CAMERA_VIDEO,    // 录像
-    TEXT_INPUT       // 文本框
-}
 
 /**
  * AI页面ViewModel
@@ -87,18 +54,7 @@ class AIViewModel : ViewModel() {
     var isProcessing by mutableStateOf(false)
     
     // 可用的AI算法列表
-    val availableAlgorithms = listOf(
-        AIAlgorithm(
-            id = "image_segmentation",
-            name = "图像分割",
-            description = "智能识别并分割图像中的不同对象和区域",
-            icon = Icons.Default.Crop,
-            inputType = listOf(InOutType.IMAGE),
-            outputType = listOf(InOutType.IMAGE),
-            category = "计算机视觉",
-            workflowAsset = "image_segmentation.json"
-        )
-    )
+    val availableAlgorithms = AlgorithmFactory.createDefaultAlgorithms()
 }
 
 /**
@@ -250,6 +206,8 @@ fun InputTypeChip(inputType: InOutType) {
         InOutType.IMAGE -> "图片" to Color(0xFF10B981)
         InOutType.VIDEO -> "视频" to Color(0xFFF59E0B)
         InOutType.CAMERA -> "摄像头" to Color(0xFFEF4444)
+        InOutType.AUDIO -> "音频" to Color(0xFFFF6B6B)
+        InOutType.TEXT -> "文本" to Color(0xFF4ECDC4)
         InOutType.PROMPT -> "提示词" to Color(0xFF8B5CF6)
         InOutType.ALL -> "全支持" to Color(0xFF06B6D4)
     }
@@ -275,7 +233,7 @@ fun InputTypeChip(inputType: InOutType) {
  * AI算法处理页面
  */
 @Composable
-fun AIProcessScreen(
+fun CVProcessScreen(
     nav: NavHostController,
     algorithmId: String,
     sharedViewModel: AIViewModel = viewModel()
@@ -285,7 +243,7 @@ fun AIProcessScreen(
     val scope = rememberCoroutineScope()
     
     // 找到对应的算法
-    val algorithm = vm.availableAlgorithms.find { it.id == algorithmId }
+    val algorithm = AlgorithmFactory.getAlgorithmsById(vm.availableAlgorithms, algorithmId)
     
     // 图片选择器
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -307,7 +265,7 @@ fun AIProcessScreen(
     ) { success ->
         if (success) {
             // 这里需要处理拍照成功的情况
-            Log.w("AIProcessScreen", "Photo taken successfully")
+            Log.w("CVProcessScreen", "Photo taken successfully")
         }
     }
     
@@ -404,16 +362,13 @@ fun AIProcessScreen(
                 vm.inputUri?.let { uri ->
                     scope.launch {
                         vm.isProcessing = true
+                        // 判断algorithm是否存在
+                        if (algorithm == null) {
+                            Toast.makeText(context, "算法 $algorithmId 不存在", Toast.LENGTH_LONG).show()
+                            return@launch
+                        }
                         try {
-                            val inputType = determineInputType(uri, context)
-                            val result = when (algorithmId) {
-                                "image_segmentation" -> {
-                                    ImageInImageOut.processImageInImageOut(context, uri, inputType)
-                                }
-                                else -> {
-                                    ProcessResult.Error("算法 $algorithmId 暂未实现")
-                                }
-                            }
+                            val result = ImageInImageOut.processImageInImageOut(context, uri, algorithm!!)
                             
                             when (result) {
                                 is ProcessResult.Success -> {
@@ -504,7 +459,7 @@ fun InputSelectionButtons(
  * AI处理结果页面
  */
 @Composable
-fun AIResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
+fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
     val vm: AIViewModel = sharedViewModel
     val context = LocalContext.current
     

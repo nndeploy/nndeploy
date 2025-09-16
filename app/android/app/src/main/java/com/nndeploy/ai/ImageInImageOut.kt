@@ -18,9 +18,9 @@ object ImageInImageOut {
     /**
      * 分割算法处理
      */
-    suspend fun processImageInImageOut(context: Context, inputUri: Uri, inputType: InputMediaType = InputMediaType.IMAGE): ProcessResult {
+    suspend fun processImageInImageOut(context: Context, inputUri: Uri, alg: AIAlgorithm): ProcessResult {
         return try {
-            Log.w("ImageInImageOut", "Starting segmentation processing for ${inputType.name}")
+            Log.w("ImageInImageOut", "Starting processing for ${alg.name}")
             
             // 1) 确保外部资源就绪
             val extResDir = FileUtils.ensureExternalResourcesReady(context)
@@ -32,9 +32,7 @@ object ImageInImageOut {
             Log.d("ImageInImageOut", "extRoot: ${extRoot.absolutePath}")
             Log.d("ImageInImageOut", "extWorkflowDir: ${extWorkflowDir.absolutePath}")
 
-            // val workflowAsset = extWorkflowDir.absolutePath + "/ClassificationResNetMnn.json"
-            val workflowAsset = "resources/workflow/ClassificationResNetMnn.json"
-            // val workflowAsset = "resources/workflow/SegmentRMBGMNN.json"
+            val workflowAsset = alg.workflowAsset
             
             // 3) 预处理输入数据
             val (processedInputFile, processedInputUri) = ImageUtils.preprocessImage(context, inputUri)
@@ -46,7 +44,7 @@ object ImageInImageOut {
             Log.d("ImageInImageOut", "Resolved JSON content: $resolvedJson")
             
             // 5) 写到外部私有目录，得到真实文件路径
-            val workflowOut = File(extWorkflowDir, "Segmentation_${inputType.name}_resolved.json").apply {
+            val workflowOut = File(extWorkflowDir, alg.id + "_resolved.json").apply {
                 writeText(resolvedJson)
             }
 
@@ -55,42 +53,29 @@ object ImageInImageOut {
             runner.setJsonFile(true)
             runner.setTimeProfile(true)
             runner.setDebug(true)
-            runner.setNodeValue("OpenCvImageDecode_11", "path_", processedInputFile.absolutePath)
+            val input_node_param = alg.parameters["input_node"] as Map<String, String>
+            val output_node_param = alg.parameters["output_node"] as Map<String, String>
+            runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), processedInputFile.absolutePath)
+            val resultPath = File(extResDir, "images/result.${alg.id}.jpg")
+            runner.setNodeValue(output_node_param.keys.first(), output_node_param.values.first(), resultPath.absolutePath)
             
-            // 设置输入文件路径
-            // runner.setNodeValue("input_node", "input_path", processedInputUri.path ?: "")
-            
-            val ok = runner.run(workflowOut.absolutePath, "seg_demo", "task_${System.currentTimeMillis()}")
+            val ok = runner.run(workflowOut.absolutePath, alg.id, "task_${System.currentTimeMillis()}")
             runner.close()
             
-            // 7) 获取结果路径
-            // val resultPath = getResultPath(extResDir, inputType, "segment")
-            val resultPath = File(extResDir, "images/result.resnet.jpg")
-            // val resultPath = File(extResDir, "images/result.rmbg.png")
             Log.d("ImageInImageOut", "resultPath: ${resultPath.absolutePath}")
             if (resultPath.exists()) {
                 Log.d("ImageInImageOut", "resultPath exists")
                 ProcessResult.Success(Uri.fromFile(resultPath))
             } else {
                 Log.d("ImageInImageOut", "resultPath not exists")
-                ProcessResult.Error("分割结果文件未找到: ${resultPath.absolutePath}")
+                ProcessResult.Error("结果文件未找到: ${resultPath.absolutePath}")
             }
             
         } catch (e: Exception) {
             Log.e("ImageInImageOut", "Segmentation processing failed", e)
-            ProcessResult.Error("分割处理失败: ${e.message}")
+            ProcessResult.Error("处理失败: ${e.message}")
         }
     }  
-}
-
-/**
- * 输入媒体类型枚举
- */
-enum class InputMediaType {
-    IMAGE,          // 图片
-    VIDEO,          // 视频
-    CAMERA_PHOTO,   // 摄像头拍照
-    CAMERA_VIDEO    // 摄像头录像
 }
 
 /**
@@ -101,22 +86,3 @@ sealed class ProcessResult {
     data class Error(val message: String) : ProcessResult()
 }
 
-/**
- * 获取处理结果文件路径
- * @param extResDir 外部结果目录
- * @param inputType 输入媒体类型
- * @param taskType 任务类型（如"segment"）
- * @return 结果文件路径
- */
-private fun getResultPath(extResDir: File, inputType: InputMediaType, taskType: String): File {
-    return when (inputType) {
-        InputMediaType.IMAGE, InputMediaType.CAMERA_PHOTO -> {
-            // 图片类型的结果文件
-            File(extResDir, "${taskType}_result.jpg")
-        }
-        InputMediaType.VIDEO, InputMediaType.CAMERA_VIDEO -> {
-            // 视频类型的结果文件
-            File(extResDir, "${taskType}_result.mp4")
-        }
-    }
-}
