@@ -24,7 +24,7 @@ const Resource: React.FC = () => {
   const { state } = useContext(store)
   const { freshResourceTreeCnt } = state
   
-  const { flatData, setFlatData, treeData  ,getResourceTree, } = useGetTree(freshResourceTreeCnt);
+  const { flatData, setFlatData, treeData  ,getResourceTree, } = useGetTree();
 
   const [resoureEditVisible, setResourceEditVisible] = useState(false);
   const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
