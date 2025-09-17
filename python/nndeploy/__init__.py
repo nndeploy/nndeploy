@@ -85,8 +85,9 @@ import nndeploy.segment
 import nndeploy.matting
 import nndeploy.face
 import nndeploy.gan
+import nndeploy.diffusers
 import nndeploy.api_llm
-# import nndeploy.diffusers
+import nndeploy.api_aigc
 
 from .nndeploy import get_version, framework_init, framework_deinit
 from .nndeploy import __version__

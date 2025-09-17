@@ -50,8 +50,10 @@ base::Status SequentialExecutor::deinit() {
     }
     // NNDEPLOY_LOGE("deinit node[%s]!\n", iter->node_->getName().c_str());
     status = iter->node_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "failed iter->node_->deinit()");
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("node[%s] deinit failed\n", iter->node_->getName().c_str());
+      return status;
+    }
     iter->node_->setInitializedFlag(false);
   }
   return status;
@@ -71,8 +73,10 @@ base::Status SequentialExecutor::run() {
       iter->node_->setRunningFlag(true);
       // NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());
       status = iter->node_->run();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "node execute failed!\n");
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node[%s] run failed\n", iter->node_->getName().c_str());
+        return status;
+      }
       iter->node_->setRunningFlag(false);
       // NNDEPLOY_LOGE("node[%s] run end\n", iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {

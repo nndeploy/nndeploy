@@ -2374,7 +2374,7 @@ base::Status Graph::deserialize(const std::string &json_str) {
   } else {
     json_str_param = json_str;
   }
-  NNDEPLOY_LOGI("json_str_param: %s\n", json_str_param.c_str());
+  // NNDEPLOY_LOGI("json_str_param: %s\n", json_str_param.c_str());
 
   base::Status status = Node::deserialize(json_str_param);
   if (status != base::kStatusCodeOk) {
