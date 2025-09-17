@@ -3,6 +3,7 @@ import logging
 import os
 import threading
 import traceback
+import pickle
 from pathlib import Path
 from logging.handlers import QueueHandler
 from .executor import GraphExecutor
@@ -81,6 +82,14 @@ def poll_plugin_updates(plugin_update_q, resources):
                 logging.warning("[Plugin] Plugin path not found: %s", plugin_path)
         except Exception:
             logging.exception("[Plugin] Import failed for: %s", plugin_path)
+
+
+def ensure_picklable(obj, default=None):
+    try:
+        pickle.dumps(obj)
+        return obj
+    except Exception:
+        return {}
 
 def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources) -> None:
     install_taskid_logrecord_factory()
@@ -193,7 +202,7 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, re
                 time_profiler_map = result_holder["tp_map"]
                 total = time_profiler_map.get("run_time", 0.0)
                 msg = result_holder["msg"]
-                results = result_holder["results"]
+                results = ensure_picklable(result_holder["results"])
                 status = ExecutionStatus(True, f"Run success {total:.2f} ms, {msg}")
 
         result_holder.pop("results", None)

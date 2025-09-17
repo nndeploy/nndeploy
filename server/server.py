@@ -1086,7 +1086,7 @@ class NnDeployServer:
                     continue
 
                 vals = []
-                for k in ("String", "Text", "Bool", "Num"):
+                for k in ("String", "Bool", "Num"):
                     if k in out_map:
                         v = out_map[k]
                         if isinstance(v, list):
