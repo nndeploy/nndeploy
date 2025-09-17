@@ -32,7 +32,7 @@ import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
 import store, { } from "../../Layout/Design/store/store";
 import React from "react";
-import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
+import { initFreshFlowTree, initFreshResourceTree } from "../../Layout/Design/store/actionType";
 import { IFlowNodesRunningStatus, ILog, IOutputResource, IRunInfo } from "./entity";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
@@ -612,6 +612,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
           })
+           dispatch(initFreshResourceTree({}))
         }
       }
 
