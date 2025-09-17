@@ -15,11 +15,24 @@ const IoTypeNumber: React.FC<IoTypeStringProps> = (props) => {
   const { value, onChange, direction } = props;
 
   const { node } = useNodeRender();
+
+    const { runInfo } = useFlowEnviromentContext()
+  const { outputResource } = runInfo
+
   const form = getNodeForm(node)!
+
+  
+  if (!form) {
+    console.log('IoTypeNumber form', form)
+    let j = 0
+    return <></>
+  } else {
+    // console.log('form', form)
+  }
+
   const nodeName = form.getValueIn('name_')
 
-  const { runInfo } = useFlowEnviromentContext()
-  const { outputResource } = runInfo
+
 
   function checkOutputNeedShow() {
 
