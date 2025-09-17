@@ -249,7 +249,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
           <div className={styles["preview-video-modal"]}>
 
             <VideoPlayer
-            height={'80%'}
+            //height={'80%'}
              // height={400}
               controlsList={['play', 'time', 'volume', 'playbackRate', 'fullscreen']}
               clickToPlay={false}
