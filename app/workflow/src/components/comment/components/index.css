@@ -36,6 +36,7 @@
     position: absolute;
     width: 10px;
     height: 10px;
+    z-index: 1;
 }
 
 .workflow-comment-editor {
