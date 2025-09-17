@@ -635,6 +635,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       // 生产者消费者相关操作
       .def("increase_producers", &Edge::increaseProducers, py::arg("producers"))
       .def("increase_consumers", &Edge::increaseConsumers, py::arg("consumers"))
+      .def("get_producers", &Edge::getProducers)
+      .def("get_consumers", &Edge::getConsumers)
 
       // 终止请求
       .def("request_terminate", &Edge::requestTerminate,

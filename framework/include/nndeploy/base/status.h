@@ -81,6 +81,7 @@ enum StatusCode : int {
 
   //
   kStatusCodeErrorDag,
+  kStatusCodeNodeInterrupt,
 };
 
 class NNDEPLOY_CC_API Status {

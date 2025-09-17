@@ -63,7 +63,8 @@ jobs:
       - name: Install iOS development tools
         run: |
           brew update
-          brew install cmake ninja
+          brew install ninja 
+          cmake --version || brew install cmake
             
       # Download and setup iOS OpenCV
       - name: Download and setup iOS OpenCV

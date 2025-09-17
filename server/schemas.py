@@ -20,13 +20,24 @@ class QueueItem(BaseModel):
     id: str
     priority: int
 
+class QueueStateResult(BaseModel):
+    running: List[Dict[str, Any]]
+    pending: List[Dict[str, Any]]
+    dispatched: List[Dict[str, Any]] = []
+
 class QueueStateResponse(BaseModel):
-    running: Dict[int, QueueItem]
-    pending: List[Tuple[int, QueueItem]]
+    flag: str
+    message: str
+    result: QueueStateResult
 
 class HistoryItem(BaseModel):
-    task: Dict[str, Any]
-    status: Dict[str, Any]
+    items: List[Dict[str, Any]]
+    total: int
+
+class HistoryResponse(BaseModel):
+    flag: str
+    message: str
+    result: HistoryItem
 
 class ProgressPayload(BaseModel):
     type: str
@@ -62,6 +73,16 @@ class TemplateLoadResponse(BaseModel):
     message: str
     result: Dict[str, Any]
 
+class TemplateDownloadRequest(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
+class TemplateDownloadResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
 class WorkFlowDeleteResponse(BaseModel):
     flag: str
     message: str
@@ -78,7 +99,12 @@ class DeleteResponse(BaseModel):
 class FileListResponse(BaseModel):
     flag: str
     message: str
-    result: Dict[str, Any]
+    result: list[Dict]
+
+class FileInfoResponse(BaseModel):
+    flag: str
+    message: str
+    result: dict
 
 class PreviewPayload(BaseModel):
     type: Literal["preview"]

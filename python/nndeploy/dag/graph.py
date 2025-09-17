@@ -639,6 +639,48 @@ class Graph(_C.dag.Graph):
         with open(path, "r") as f:
             json_str = f.read()
             self.deserialize(json_str)
+            
+    def set_node_value(self, *args):
+        """设置节点值
+        
+        支持多种调用方式：
+        1. set_node_value(node_value_str) - 通过JSON字符串设置
+        2. set_node_value(node_name, key, value) - 设置单个节点的键值对
+        3. set_node_value(node_value_map) - 通过字典设置多个节点值
+        """
+        return super().set_node_value(*args)
+    
+    def get_node_value(self):
+        """获取所有节点的值
+        
+        Returns:
+            dict: 节点值的嵌套字典，格式为 {node_name: {key: value}}
+        """
+        return super().get_node_value()
+    
+    def set_unused_node_names(self, *args):
+        """设置未使用的节点名称
+        
+        Args:
+            node_name: 节点名称
+        """
+        return super().set_unused_node_names(*args)
+    
+    def remove_unused_node_names(self, *args):
+        """移除未使用的节点名称
+        
+        Args:
+            node_name: 节点名称
+        """
+        return super().remove_unused_node_names(*args)
+    
+    def get_unused_node_names(self):
+        """获取未使用的节点名称
+        
+        Returns:
+            list: 未使用的节点名称列表
+        """
+        return super().get_unused_node_names()
     
     def __setattr__(self, name, value):
         """Override __setattr__ method to implement automatic node addition

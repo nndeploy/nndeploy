@@ -1,4 +1,5 @@
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/base.h"
 
 #include "nndeploy_api_registry.h"
 
@@ -11,6 +12,26 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .value("Input", NodeType::kNodeTypeInput)
       .value("Output", NodeType::kNodeTypeOutput)
       .value("Intermediate", NodeType::kNodeTypeIntermediate);
+
+  py::enum_<IOType>(m, "IOType")
+      .value("kIOTypeNone", IOType::kIOTypeNone)
+      .value("Bool", IOType::kIOTypeBool)
+      .value("Num", IOType::kIOTypeNum)
+      .value("String", IOType::kIOTypeString)
+      .value("Text", IOType::kIOTypeText)
+      .value("Json", IOType::kIOTypeJson)
+      .value("Xml", IOType::kIOTypeXml)
+      .value("Csv", IOType::kIOTypeCsv)
+      .value("Yaml", IOType::kIOTypeYaml)
+      .value("Binary", IOType::kIOTypeBinary)
+      .value("Image", IOType::kIOTypeImage)
+      .value("Video", IOType::kIOTypeVideo)
+      .value("Audio", IOType::kIOTypeAudio)
+      .value("Camera", IOType::kIOTypeCamera)
+      .value("Microphone", IOType::kIOTypeMicrophone)
+      .value("Model", IOType::kIOTypeModel)
+      .value("Dir", IOType::kIOTypeDir)
+      .value("Any", IOType::kIOTypeAny);
 
   py::enum_<EdgeTypeFlag>(m, "EdgeTypeFlag")
       .value("kBuffer", EdgeTypeFlag::kBuffer)

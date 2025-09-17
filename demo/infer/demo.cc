@@ -10,7 +10,9 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 // #include "onnx/defs/operator_sets.h"
 // #include "onnx/defs/schema.h"
 #include "nndeploy/framework.h"

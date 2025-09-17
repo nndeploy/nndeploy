@@ -15,7 +15,7 @@
 # --------------------------------------------------------------------
 
 # IR ONNX
-set(ENABLE_NNDEPLOY_IR_ONNX ON) # Support generating IR directly from ONNX models, disabled by default
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # Support generating IR directly from ONNX models, disabled by default
 
 # Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)
 set(ENABLE_NNDEPLOY_DEVICE_CUDA ON) # Whether to enable device CUDA, default is OFF
@@ -41,7 +41,7 @@ set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNN
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON) # Whether to enable INFERENCE TENSORRT, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "tool/script/third_party/openvino2023.1") # Whether to enable INFERENCE OPENVINO, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")

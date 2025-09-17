@@ -24,6 +24,7 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
  public:
   Decode(const std::string &name) : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->addRequiredParam("path_");
   }
   Decode(const std::string &name, std::vector<dag::Edge *> inputs,
          std::vector<dag::Edge *> outputs)
@@ -41,11 +42,13 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     // }
     inputs_ = inputs;
     outputs_ = outputs;
+    this->addRequiredParam("path_");
   }
   Decode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
     // this->setOutputTypeInfo<cv::Mat>();
+    this->addRequiredParam("path_");
   }
   Decode(const std::string &name, std::vector<dag::Edge *> inputs,
          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -65,6 +68,7 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     // }
     inputs_ = inputs;
     outputs_ = outputs;
+    this->addRequiredParam("path_");
   }
   virtual ~Decode() {}
 
@@ -181,6 +185,7 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
   Encode(const std::string &name) : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // this->setInputTypeInfo<cv::Mat>();
+    this->addRequiredParam("path_");
   }
   Encode(const std::string &name, std::vector<dag::Edge *> inputs,
          std::vector<dag::Edge *> outputs)
@@ -199,11 +204,13 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
     // }
     inputs_ = inputs;
     outputs_ = outputs;
+    this->addRequiredParam("path_");
   }
   Encode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // this->setInputTypeInfo<cv::Mat>();
+    this->addRequiredParam("path_");
   }
   Encode(const std::string &name, std::vector<dag::Edge *> inputs,
          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -223,6 +230,7 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
     // }
     inputs_ = inputs;
     outputs_ = outputs;
+    this->addRequiredParam("path_");
   }
   virtual ~Encode() {};
 
@@ -326,7 +334,8 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
   bool path_changed_ = false;
   std::string ref_path_ = "";
   // std::string fourcc_ = "MJPG";
-  std::string fourcc_ = "AVC1";
+  // std::string fourcc_ = "AVC1";
+  std::string fourcc_ = "avc1";
   double fps_ = 0.0;
   int width_ = 0;
   int height_ = 0;

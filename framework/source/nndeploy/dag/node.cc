@@ -218,7 +218,9 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
-void Node::setDeveloper(const std::string &developer) { developer_ = developer; }
+void Node::setDeveloper(const std::string &developer) {
+  developer_ = developer;
+}
 std::string Node::getDeveloper() { return developer_; }
 void Node::setDesc(const std::string &desc) { desc_ = desc; }
 std::string Node::getDesc() { return desc_; }
@@ -360,6 +362,56 @@ base::Status Node::getParam(const std::string &key, base::Any &any) {
 base::Status Node::setParam(const std::string &key, const std::string &value) {
   return base::kStatusCodeOk;
 }
+
+base::Status Node::setVersion(const std::string &version) {
+  version_ = version;
+  return base::kStatusCodeOk;
+}
+std::string Node::getVersion() { return version_; }
+
+base::Status Node::setRequiredParams(
+    const std::vector<std::string> &required_params) {
+  required_params_ = required_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addRequiredParam(const std::string &required_param) {
+  required_params_.emplace_back(required_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeRequiredParam(const std::string &required_param) {
+  auto it = std::find(required_params_.begin(), required_params_.end(),
+                      required_param);
+  if (it != required_params_.end()) {
+    required_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearRequiredParams() {
+  required_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getRequiredParams() { return required_params_; }
+
+base::Status Node::setUiParams(const std::vector<std::string> &ui_params) {
+  ui_params_ = ui_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addUiParam(const std::string &ui_param) {
+  ui_params_.emplace_back(ui_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeUiParam(const std::string &ui_param) {
+  auto it = std::find(ui_params_.begin(), ui_params_.end(), ui_param);
+  if (it != ui_params_.end()) {
+    ui_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearUiParams() {
+  ui_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getUiParams() { return ui_params_; }
 
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
@@ -568,6 +620,9 @@ bool Node::getGraphFlag() { return is_graph_; }
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
 
+void Node::setIoType(IOType io_type) { io_type_ = io_type; }
+IOType Node::getIoType() { return io_type_; }
+
 void Node::setLoopCount(int loop_count) {
   if (loop_count > 0) {
     loop_count_ = loop_count;
@@ -660,10 +715,12 @@ base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
+  stop_ = false;
   setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 base::Status Node::deinit() {
+  stop_ = false;
   setInitializedFlag(false);
   return base::kStatusCodeOk;
 }
@@ -692,7 +749,28 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 bool Node::synchronize() { return true; }
 
+// bool Node::interrupt() {
+//   stop_ = true;
+//   return true;
+// }
+
+// bool Node::checkInterruptStatus() { return stop_; }
+
+bool Node::interrupt() {
+  bool first = !stop_.exchange(true, std::memory_order_acq_rel);
+  return true;
+}
+
+bool Node::checkInterruptStatus() {
+  return stop_.load(std::memory_order_acquire);
+}
+
+void Node::clearInterrupt() { stop_.store(false, std::memory_order_release); }
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
+  if (stop_ == true) {
+    return std::vector<Edge *>();
+  }
   // init
   if (initialized_ == false && is_trace_ == false) {
     // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
@@ -927,6 +1005,21 @@ base::Status Node::serialize(rapidjson::Value &json,
                  rapidjson::Value(device_type_str.c_str(), allocator),
                  allocator);
 
+  json.AddMember("version_", rapidjson::Value(version_.c_str(), allocator),
+                 allocator);
+  rapidjson::Value required_params(rapidjson::kArrayType);
+  for (auto &required_param : required_params_) {
+    required_params.PushBack(
+        rapidjson::Value(required_param.c_str(), allocator), allocator);
+  }
+  json.AddMember("required_params_", required_params, allocator);
+  rapidjson::Value ui_params(rapidjson::kArrayType);
+  for (auto &ui_param : ui_params_) {
+    ui_params.PushBack(rapidjson::Value(ui_param.c_str(), allocator),
+                       allocator);
+  }
+  json.AddMember("ui_params_", ui_params, allocator);
+
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
   // 写入输入
@@ -1058,6 +1151,12 @@ base::Status Node::serialize(rapidjson::Value &json,
   std::string node_type_str = nodeTypeToString(node_type_);
   json.AddMember("node_type_",
                  rapidjson::Value(node_type_str.c_str(), allocator), allocator);
+  if (node_type_ == NodeType::kNodeTypeInput ||
+      node_type_ == NodeType::kNodeTypeOutput) {
+    std::string io_type_str = ioTypeToString(io_type_);
+    json.AddMember("io_type_", rapidjson::Value(io_type_str.c_str(), allocator),
+                   allocator);
+  }
 
   // 写入参数
   if (param_ != nullptr) {
@@ -1143,6 +1242,30 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     device_type_ = base::stringToDeviceType(json["device_type_"].GetString());
   }
 
+  if (json.HasMember("version_") && json["version_"].IsString()) {
+    version_ = json["version_"].GetString();
+  }
+
+  if (json.HasMember("required_params_") &&
+      json["required_params_"].IsArray()) {
+    required_params_.clear();
+    auto &required_params_array = json["required_params_"];
+    for (int i = 0; i < required_params_array.Size(); i++) {
+      if (required_params_array[i].IsString()) {
+        required_params_.emplace_back(required_params_array[i].GetString());
+      }
+    }
+  }
+  if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
+    ui_params_.clear();
+    auto &ui_params_array = json["ui_params_"];
+    for (int i = 0; i < ui_params_array.Size(); i++) {
+      if (ui_params_array[i].IsString()) {
+        ui_params_.emplace_back(ui_params_array[i].GetString());
+      }
+    }
+  }
+
   if (json.HasMember("is_external_stream_") &&
       json["is_external_stream_"].IsBool()) {
     is_external_stream_ = json["is_external_stream_"].GetBool();
@@ -1174,6 +1297,9 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // 读取节点类型
   if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
     node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
+  if (json.HasMember("io_type_") && json["io_type_"].IsString()) {
+    io_type_ = stringToIoType(json["io_type_"].GetString());
   }
   // 读取动态输入和输出
   if (json.HasMember("is_dynamic_input_") &&
@@ -1328,7 +1454,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
-  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  NNDEPLOY_LOGE("Failed to createNode [key: %s, name: %s]\n", node_key.c_str(),
+                node_name.c_str());
   return nullptr;
 }
 

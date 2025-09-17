@@ -149,25 +149,15 @@ base::Status Graph::removeOtherUrl(const std::string &url) {
   }
   return base::kStatusCodeErrorNullParam;
 }
-std::vector<std::string> Graph::getImageUrl() const {
-  return image_url_;
-}
+std::vector<std::string> Graph::getImageUrl() const { return image_url_; }
 
-std::vector<std::string> Graph::getVideoUrl() const {
-  return video_url_;
-}
+std::vector<std::string> Graph::getVideoUrl() const { return video_url_; }
 
-std::vector<std::string> Graph::getAudioUrl() const {
-  return audio_url_;
-}
+std::vector<std::string> Graph::getAudioUrl() const { return audio_url_; }
 
-std::vector<std::string> Graph::getModelUrl() const {
-  return model_url_;
-}
+std::vector<std::string> Graph::getModelUrl() const { return model_url_; }
 
-std::vector<std::string> Graph::getOtherUrl() const {
-  return other_url_;
-}
+std::vector<std::string> Graph::getOtherUrl() const { return other_url_; }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
@@ -815,9 +805,8 @@ Graph::getNodesRunStatusRecursive() {
 }
 
 base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
-  std::vector<Edge *> inputs,
-  std::vector<Edge *> outputs){
-
+                                          std::vector<Edge *> inputs,
+                                          std::vector<Edge *> outputs) {
   for (auto input : inputs) {
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
@@ -826,7 +815,6 @@ base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
       // input_wrapper->consumers_.emplace_back(node_wrapper);
       insertUnique(input_wrapper->consumers_, node_wrapper);
     }
-    
   }
   for (auto output : outputs) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
@@ -1130,6 +1118,14 @@ bool Graph::synchronize() {
     NNDEPLOY_LOGE("executor synchronize failed!");
   }
   return is_synchronize;
+}
+
+bool Graph::interrupt() {
+  bool is_interrupt = executor_->interrupt();
+  if (!is_interrupt) {
+    NNDEPLOY_LOGE("executor interrupt failed.\n");
+  }
+  return is_interrupt;
 }
 
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
@@ -1582,15 +1578,99 @@ base::Status Graph::toStaticGraph() {
   return status;
 }
 
+base::Status Graph::removeUnusedNodeAndEdge() {
+  base::Status status = base::kStatusCodeOk;
+  if (!unused_node_names_.empty()) {
+    // #. 更新边的信息
+    for (auto edge_wrapper : edge_repository_) {
+      std::vector<NodeWrapper *> producers_to_delete;
+      std::vector<NodeWrapper *> consumers_to_delete;
+      for (auto producer : edge_wrapper->producers_) {
+        if (unused_node_names_.find(producer->name_) !=
+            unused_node_names_.end()) {
+          producers_to_delete.emplace_back(producer);
+        }
+      }
+      for (auto consumer : edge_wrapper->consumers_) {
+        if (unused_node_names_.find(consumer->name_) !=
+            unused_node_names_.end()) {
+          consumers_to_delete.emplace_back(consumer);
+        }
+      }
+      for (auto producer : producers_to_delete) {
+        edge_wrapper->producers_.erase(
+            std::find(edge_wrapper->producers_.begin(),
+                      edge_wrapper->producers_.end(), producer));
+      }
+      for (auto consumer : consumers_to_delete) {
+        edge_wrapper->consumers_.erase(
+            std::find(edge_wrapper->consumers_.begin(),
+                      edge_wrapper->consumers_.end(), consumer));
+      }
+    }
+
+    // #. 删除节点 - node_repository_, shared_node_repository_, used_node_names_
+    std::vector<NodeWrapper *> nodes_to_delete;
+    for (auto node_wrapper : node_repository_) {
+      if (unused_node_names_.find(node_wrapper->name_) !=
+          unused_node_names_.end()) {
+        nodes_to_delete.emplace_back(node_wrapper);
+      }
+    }
+    for (auto node_wrapper : nodes_to_delete) {
+      node_repository_.erase(std::find(node_repository_.begin(),
+                                       node_repository_.end(), node_wrapper));
+      used_node_names_.erase(node_wrapper->name_);
+      // 按照名称查找并删除
+      auto shared_it = std::find_if(
+          shared_node_repository_.begin(), shared_node_repository_.end(),
+          [&node_wrapper](std::shared_ptr<Node> wrapper) {
+            return wrapper->getName() == node_wrapper->name_;
+          });
+      if (shared_it != shared_node_repository_.end()) {
+        shared_node_repository_.erase(shared_it);
+      }
+      delete node_wrapper;
+    }
+
+    // #. 删除边，如果边的生产者或消费者为空，则删除边
+    std::vector<EdgeWrapper *> edges_to_delete;
+    for (auto edge_wrapper : edge_repository_) {
+      if (edge_wrapper->producers_.empty() ||
+          edge_wrapper->consumers_.empty()) {
+        edges_to_delete.emplace_back(edge_wrapper);
+      }
+    }
+    for (auto edge_wrapper : edges_to_delete) {
+      edge_repository_.erase(std::find(edge_repository_.begin(),
+                                       edge_repository_.end(), edge_wrapper));
+      used_edge_names_.erase(edge_wrapper->name_);
+      // 按照名称查找并删除
+      auto shared_it = std::find_if(
+          shared_edge_repository_.begin(), shared_edge_repository_.end(),
+          [&edge_wrapper](std::shared_ptr<Edge> wrapper) {
+            return wrapper->getName() == edge_wrapper->name_;
+          });
+      if (shared_it != shared_edge_repository_.end()) {
+        shared_edge_repository_.erase(shared_it);
+      }
+      delete edge_wrapper;
+    }
+  }
+  return status;
+}
+
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type_!\n");
+  // NNDEPLOY_LOGI("remove unused node names!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  // base::ParallelType parallel_type_ = parallel_type_;
+  status = this->removeUnusedNodeAndEdge();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "remove unused node and edge failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -1739,7 +1819,41 @@ base::Status Graph::construct() {
     }
   }
 
+  // 找到运行节点
+  std::vector<NodeWrapper *> run_node_repository;
+  for (auto node_wrapper : node_repository_) {
+    bool has_input_or_output = false;
+    for (auto edge_wrapper : edge_repository_) {
+      if (std::find(edge_wrapper->producers_.begin(),
+                    edge_wrapper->producers_.end(),
+                    node_wrapper) != edge_wrapper->producers_.end() ||
+          std::find(edge_wrapper->consumers_.begin(),
+                    edge_wrapper->consumers_.end(),
+                    node_wrapper) != edge_wrapper->consumers_.end()) {
+        has_input_or_output = true;
+        break;
+      }
+    }
+    if (has_input_or_output) {
+      run_node_repository.emplace_back(node_wrapper);
+    }
+  }
+  run_node_repository_ = run_node_repository;
+
+  // 对于最外层的图而言，输出节点的的输入为整个图的输出边
   if (!is_inner_) {
+    for (auto node_wrapper : run_node_repository_) {
+      if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+        // NNDEPLOY_LOGI("graph[%s] output node[%s] found!\n", name_.c_str(),
+        //               node_wrapper->node_->getName().c_str());
+        auto inputs = node_wrapper->node_->getAllInput();
+        for (auto input : inputs) {
+          // NNDEPLOY_LOGI("graph[%s] output[%s] found!\n", name_.c_str(),
+          //               input->getName().c_str());
+          insertUnique(outputs_, input);
+        }
+      }
+    }
     for (auto iter : outputs_) {
       // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
       iter->markGraphOutput();
@@ -1822,25 +1936,25 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   // TODO
-  std::vector<NodeWrapper *> run_node_repository;
-  for (auto node_wrapper : node_repository_) {
-    bool has_input_or_output = false;
-    for (auto edge_wrapper : edge_repository_) {
-      if (std::find(edge_wrapper->producers_.begin(),
-                    edge_wrapper->producers_.end(),
-                    node_wrapper) != edge_wrapper->producers_.end() ||
-          std::find(edge_wrapper->consumers_.begin(),
-                    edge_wrapper->consumers_.end(),
-                    node_wrapper) != edge_wrapper->consumers_.end()) {
-        has_input_or_output = true;
-        break;
-      }
-    }
-    if (has_input_or_output) {
-      run_node_repository.emplace_back(node_wrapper);
-    }
-  }
-  run_node_repository_ = run_node_repository;
+  // std::vector<NodeWrapper *> run_node_repository;
+  // for (auto node_wrapper : node_repository_) {
+  //   bool has_input_or_output = false;
+  //   for (auto edge_wrapper : edge_repository_) {
+  //     if (std::find(edge_wrapper->producers_.begin(),
+  //                   edge_wrapper->producers_.end(),
+  //                   node_wrapper) != edge_wrapper->producers_.end() ||
+  //         std::find(edge_wrapper->consumers_.begin(),
+  //                   edge_wrapper->consumers_.end(),
+  //                   node_wrapper) != edge_wrapper->consumers_.end()) {
+  //       has_input_or_output = true;
+  //       break;
+  //     }
+  //   }
+  //   if (has_input_or_output) {
+  //     run_node_repository.emplace_back(node_wrapper);
+  //   }
+  // }
+  // run_node_repository_ = run_node_repository;
   status = executor_->init(edge_repository_, run_node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
@@ -1969,75 +2083,92 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
     json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
     json.AddMember("loop_count_", loop_count_, allocator);
+
+    rapidjson::Value unused_node_names_array(rapidjson::kArrayType);
+    for (const auto &name : unused_node_names_) {
+      rapidjson::Value name_value(name.c_str(), allocator);
+      unused_node_names_array.PushBack(name_value, allocator);
+    }
+    json.AddMember("unused_node_names_", unused_node_names_array, allocator);
   }
 
   // 序列化URL映射
   if (!image_url_.empty()) {
     rapidjson::Value image_url_array(rapidjson::kArrayType);
-    for (const auto& url : image_url_) {
+    for (const auto &url : image_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       image_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("image_url_", image_url_array, allocator);
   } else {
     rapidjson::Value image_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.jpg", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.jpg",
+        allocator);
     image_url_array.PushBack(url_value, allocator);
     json.AddMember("image_url_", image_url_array, allocator);
   }
 
   if (!video_url_.empty()) {
     rapidjson::Value video_url_array(rapidjson::kArrayType);
-    for (const auto& url : video_url_) {
+    for (const auto &url : video_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       video_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("video_url_", video_url_array, allocator);
   } else {
     rapidjson::Value video_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.mp4", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.mp4",
+        allocator);
     video_url_array.PushBack(url_value, allocator);
     json.AddMember("video_url_", video_url_array, allocator);
   }
 
   if (!audio_url_.empty()) {
     rapidjson::Value audio_url_array(rapidjson::kArrayType);
-    for (const auto& url : audio_url_) {
+    for (const auto &url : audio_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       audio_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("audio_url_", audio_url_array, allocator);
   } else {
     rapidjson::Value audio_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.mp3", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.mp3",
+        allocator);
     audio_url_array.PushBack(url_value, allocator);
     json.AddMember("audio_url_", audio_url_array, allocator);
   }
 
   if (!model_url_.empty()) {
     rapidjson::Value model_url_array(rapidjson::kArrayType);
-    for (const auto& url : model_url_) {
+    for (const auto &url : model_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       model_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("model_url_", model_url_array, allocator);
   } else {
     rapidjson::Value model_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.onnx", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.onnx",
+        allocator);
     model_url_array.PushBack(url_value, allocator);
     json.AddMember("model_url_", model_url_array, allocator);
   }
 
   if (!other_url_.empty()) {
     rapidjson::Value other_url_array(rapidjson::kArrayType);
-    for (const auto& url : other_url_) {
+    for (const auto &url : other_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       other_url_array.PushBack(url_value, allocator);
     }
     json.AddMember("other_url_", other_url_array, allocator);
   } else {
     rapidjson::Value other_url_array(rapidjson::kArrayType);
-    rapidjson::Value url_value("template[http,modelscope]@https://template.cn/template.txt", allocator);
+    rapidjson::Value url_value(
+        "template[http,modelscope]@https://template.cn/template.txt",
+        allocator);
     other_url_array.PushBack(url_value, allocator);
     json.AddMember("other_url_", other_url_array, allocator);
   }
@@ -2151,6 +2282,16 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
 
+  if (json.HasMember("unused_node_names_") &&
+      json["unused_node_names_"].IsArray()) {
+    const rapidjson::Value &unused_node_names = json["unused_node_names_"];
+    for (rapidjson::SizeType i = 0; i < unused_node_names.Size(); i++) {
+      if (unused_node_names[i].IsString()) {
+        unused_node_names_.insert(unused_node_names[i].GetString());
+      }
+    }
+  }
+
   // if (json.HasMember("loop_count_") && json["loop_count_"].IsInt()) {
   //   int loop_count = json["loop_count_"].GetInt();
   //   if (loop_count <= 0) {
@@ -2226,14 +2367,23 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 }
 
 base::Status Graph::deserialize(const std::string &json_str) {
-  base::Status status = Node::deserialize(json_str);
+  std::string json_str_param;
+  // replace node value
+  if (!node_value_map_.empty()) {
+    json_str_param = replaceGraphJsonStr(node_value_map_, json_str);
+  } else {
+    json_str_param = json_str;
+  }
+  NNDEPLOY_LOGI("json_str_param: %s\n", json_str_param.c_str());
+
+  base::Status status = Node::deserialize(json_str_param);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
   }
 
   rapidjson::Document document;
-  if (document.Parse(json_str.c_str()).HasParseError()) {
+  if (document.Parse(json_str_param.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
     return base::kStatusCodeErrorInvalidParam;
   }
@@ -2260,11 +2410,12 @@ base::Status Graph::deserialize(const std::string &json_str) {
           node = node_repository_[i]->node_;
           base::Status status = this->setNodeDesc(node, node_desc);
           if (status != base::kStatusCodeOk) {
-            NNDEPLOY_LOGE("set node desc failed - node: %s (key: %s), desc key: %s, desc name: %s\n", 
-                         node ? node->getName().c_str() : "null", 
-                         node ? node->getKey().c_str() : "null", 
-                         node_desc.getKey().c_str(), 
-                         node_desc.getName().c_str());
+            NNDEPLOY_LOGE(
+                "set node desc failed - node: %s (key: %s), desc key: %s, desc "
+                "name: %s\n",
+                node ? node->getName().c_str() : "null",
+                node ? node->getKey().c_str() : "null",
+                node_desc.getKey().c_str(), node_desc.getName().c_str());
             return status;
           }
         } else {
@@ -2304,6 +2455,60 @@ base::Status Graph::deserialize(const std::string &json_str) {
 // base::Status Graph::saveJson(const std::string &path) {
 //   return Node::serialize(path);
 // }
+
+void Graph::setUnusedNodeNames(const std::string &node_name) {
+  unused_node_names_.insert(node_name);
+}
+void Graph::setUnusedNodeNames(const std::set<std::string> &node_names) {
+  unused_node_names_.insert(node_names.begin(), node_names.end());
+}
+void Graph::removeUnusedNodeNames(const std::string &node_name) {
+  unused_node_names_.erase(node_name);
+}
+void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
+  for (const auto &name : node_names) {
+    unused_node_names_.erase(name);
+  }
+}
+std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
+
+void Graph::setNodeValue(const std::string &node_value_str) {
+  // 查找第一个冒号的位置
+  size_t first_colon = node_value_str.find(":");
+  if (first_colon == std::string::npos) {
+    return;  // 没有找到冒号，格式错误
+  }
+
+  // 查找第二个冒号的位置
+  size_t second_colon = node_value_str.find(":", first_colon + 1);
+  if (second_colon == std::string::npos) {
+    return;  // 没有找到第二个冒号，格式错误
+  }
+
+  // 提取node_name（第一个冒号之前）
+  std::string node_name = node_value_str.substr(0, first_colon);
+
+  // 提取key（第一个冒号和第二个冒号之间）
+  std::string key =
+      node_value_str.substr(first_colon + 1, second_colon - first_colon - 1);
+
+  // 提取value（第二个冒号之后的所有内容）
+  std::string value = node_value_str.substr(second_colon + 1);
+
+  node_value_map_[node_name][key] = value;
+}
+void Graph::setNodeValue(const std::string &node_name, const std::string &key,
+                         const std::string &value) {
+  node_value_map_[node_name][key] = value;
+}
+void Graph::setNodeValue(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map) {
+  node_value_map_ = node_value_map;
+}
+std::map<std::string, std::map<std::string, std::string>>
+Graph::getNodeValue() {
+  return node_value_map_;
+}
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 

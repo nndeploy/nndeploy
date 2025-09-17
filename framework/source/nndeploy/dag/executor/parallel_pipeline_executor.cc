@@ -17,6 +17,10 @@ base::Status ParallelPipelineExecutor::init(
     if (iter->node_->getInitialized()) {
       continue;
     }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
@@ -64,6 +68,8 @@ base::Status ParallelPipelineExecutor::deinit() {
   thread_pool_->destroy();
   delete thread_pool_;
 
+  for (auto n : topo_sort_node_) n->node_->clearInterrupt();
+
   for (auto iter : topo_sort_node_) {
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -85,30 +91,61 @@ base::Status ParallelPipelineExecutor::run() {
 }
 
 bool ParallelPipelineExecutor::synchronize() {
-  // NNDEPLOY_LOGE("deinit start!\n");
   std::unique_lock<std::mutex> lock(pipeline_mutex_);
-  // NNDEPLOY_LOGE("deinit start!\n");
   pipeline_cv_.wait(lock, [this]() {
-    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //               std::this_thread::get_id(), completed_size_, run_size_);
-    bool flag = false;
-    for (auto iter : topo_sort_node_) {
-      if (iter->node_->getCompletedSize() < run_size_) {
-        flag = false;
+    bool all_done_or_interrupted = true;
+    for (auto n : topo_sort_node_) {
+      bool done = (n->node_->getCompletedSize() >= run_size_);
+      bool stopped = n->node_->checkInterruptStatus();
+      if (!done && !stopped) {
+        all_done_or_interrupted = false;
         break;
       }
-      completed_size_ = run_size_;
-      flag = true;
     }
-    return flag;
+    if (all_done_or_interrupted) completed_size_ = run_size_;
+    return all_done_or_interrupted;
   });
-  for (auto iter : topo_sort_node_) {
-    if (iter->node_->synchronize() == false) {
-      return false;
-    }
+
+  for (auto n : topo_sort_node_) {
+    if (!n->node_->synchronize()) return false;
   }
-  is_synchronize_ = completed_size_ == run_size_;
-  return is_synchronize_;
+  is_synchronize_ = true;
+  return true;
+}
+
+// bool ParallelPipelineExecutor::synchronize() {
+//   // NNDEPLOY_LOGE("deinit start!\n");
+//   std::unique_lock<std::mutex> lock(pipeline_mutex_);
+//   // NNDEPLOY_LOGE("deinit start!\n");
+//   pipeline_cv_.wait(lock, [this]() {
+//     // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+//     //               std::this_thread::get_id(), completed_size_, run_size_);
+//     bool flag = false;
+//     for (auto iter : topo_sort_node_) {
+//       if (iter->node_->getCompletedSize() < run_size_) {
+//         flag = false;
+//         break;
+//       }
+//       completed_size_ = run_size_;
+//       flag = true;
+//     }
+//     return flag;
+//   });
+//   for (auto iter : topo_sort_node_) {
+//     if (iter->node_->synchronize() == false) {
+//       return false;
+//     }
+//   }
+//   is_synchronize_ = completed_size_ == run_size_;
+//   return is_synchronize_;
+// }
+
+bool ParallelPipelineExecutor::interrupt() {
+  for (auto e : edge_repository_) e->edge_->requestTerminate();
+  bool ok = true;
+  for (auto n : topo_sort_node_) ok &= n->node_->interrupt();
+  pipeline_cv_.notify_all();
+  return ok;
 }
 
 void ParallelPipelineExecutor::commitThreadPool() {
@@ -119,7 +156,22 @@ void ParallelPipelineExecutor::commitThreadPool() {
     auto func = [iter, this]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
+        if (iter->node_->checkInterruptStatus()) {
+          iter->node_->setRunningFlag(false);
+          pipeline_cv_.notify_all();
+          NNDEPLOY_LOGW("[%s] interrupted after init()",
+                        iter->node_->getName().c_str());
+          return base::kStatusCodeNodeInterrupt;
+        }
+
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
+        if (iter->node_->checkInterruptStatus()) {
+          iter->node_->setRunningFlag(false);
+          pipeline_cv_.notify_all();
+          NNDEPLOY_LOGW("[%s] interrupted after updateInput()\n",
+                        iter->node_->getName().c_str());
+          return base::kStatusCodeNodeInterrupt;
+        }
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           // NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
           //               iter->node_->getName().c_str());
@@ -138,6 +190,13 @@ void ParallelPipelineExecutor::commitThreadPool() {
           // }
           if (iter->node_->getCompletedSize() == run_size_) {
             pipeline_cv_.notify_all();
+          }
+
+          if (iter->node_->checkInterruptStatus()) {
+            pipeline_cv_.notify_all();
+            NNDEPLOY_LOGW("[%s] interrupted after run()",
+                          iter->node_->getName().c_str());
+            return base::kStatusCodeNodeInterrupt;
           }
           // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());
@@ -176,7 +235,7 @@ base::Status ParallelPipelineExecutor::executeNode(NodeWrapper* iter) {
           pipeline_cv_.notify_all();
         }
       }
-      NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
+      NNDEPLOY_LOGI("node_ run i[%ld]: %s.\n", completed_size_,
                     iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",

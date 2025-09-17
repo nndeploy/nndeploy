@@ -290,6 +290,42 @@ def get_data_type_enum_json():
 
 all_type_enum.append(get_data_type_enum_json)
 
+def get_api_base_json():
+    enum_list = [
+        "https://api.openai.com",
+        "https://api.deepseek.com",
+        "https://api.moonshot.cn"
+    ]
+    api_base_enum = {}
+    for single_enum in enum_list:
+        api_base_enum[f"{single_enum}"] = enum_list
+    return api_base_enum
+all_type_enum.append(get_api_base_json)
+
+
+def get_api_key_env_json():
+    enum_list = [
+        "OPENAI_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "MOONSHOT_API_KEY"
+    ]
+    api_key_env_enum = {}
+    for single_enum in enum_list:
+        api_key_env_enum[f"{single_enum}"] = enum_list
+    return api_key_env_enum
+all_type_enum.append(get_api_key_env_json)
+
+def get_api_model_json():
+    enum_list = [
+        "gpt-4o-mini",
+        "deepseek-chat",
+        "moonshot-v1-8k"
+    ]
+    api_model_enum = {}
+    for single_enum in enum_list:
+        api_model_enum[f"{single_enum}"] = enum_list
+    return api_model_enum
+all_type_enum.append(get_api_model_json)
 
 name_to_device_type_code = {
     "cpu": _C.base.DeviceTypeCode.cpu,
@@ -1873,6 +1909,21 @@ class Param(_C.base.Param):
 
     def get(self, key: str):
         return super().get(key)
+    
+    def set_required_params(self, params):
+        return super().set_required_params(params)
+    
+    def add_required_param(self, param):
+        return super().add_required_param(param)
+    
+    def remove_required_param(self, param):
+        return super().remove_required_param(param)
+    
+    def clear_required_params(self):
+        return super().clear_required_params()
+    
+    def get_required_params(self):
+        return super().get_required_params()
     
     def serialize(self) -> str:
         return super().serialize()

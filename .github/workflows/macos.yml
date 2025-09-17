@@ -54,7 +54,8 @@ jobs:
         run: |
           brew update  # Update Homebrew package manager
           # Install necessary development tools and libraries: CMake build system, Ninja build tool, package config tool, Protocol Buffers library
-          brew install cmake ninja pkg-config protobuf
+          brew install ninja pkg-config protobuf
+          cmake --version || brew install cmake
 
       # Step 4: Update Python dependencies
       - name: Update Python dependencies

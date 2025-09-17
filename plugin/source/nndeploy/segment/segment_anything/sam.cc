@@ -2,6 +2,7 @@
 
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
+// #include "sam.h"
 
 namespace nndeploy {
 namespace segment {
@@ -292,6 +293,7 @@ class SAMMaskNode : public dag::Node {
   SAMMaskNode(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::segment::SAMMaskNode";
     desc_ = "Segment Anything Mask Node for image segmentation tasks.";
+    // this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
     node_type_ = dag::NodeType::kNodeTypeInput;
@@ -484,8 +486,48 @@ base::Status SAMGraph::initStaticGraphNodes() {
   return status;
 }
 
+base::Status SAMGraph::initDynamicsGraphNodes() {
+  base::Status status = base::kStatusCodeOk;
+  preprocess_image_node_ =
+      this->createNode<preprocess::CvtResizePadNormTrans>("preprocess_image");
+  CHECK_IF_NULL_RETURN(preprocess_image_node_,
+                       "Failed to create preprocess_image node");
+
+  encoder_infer_node_ =
+      (infer::Infer *)this->createNode<infer::Infer>("encoder_infer");
+  CHECK_IF_NULL_RETURN(encoder_infer_node_,
+                       "Failed to create encoder_infer node");
+
+  preprocess_point_node_ = this->createNode<SAMPointNode>("preprocess_point");
+  CHECK_IF_NULL_RETURN(preprocess_point_node_,
+                       "Failed to create preprocess_point node");
+
+  preprocess_mask_node_ = this->createNode<SAMMaskNode>("preprocess_mask");
+  CHECK_IF_NULL_RETURN(preprocess_mask_node_,
+                       "Failed to create preprocess_mask node");
+
+  decoder_infer_node_ =
+      (infer::Infer *)this->createNode<infer::Infer>("decoder_infer");
+  CHECK_IF_NULL_RETURN(decoder_infer_node_,
+                       "Failed to create decoder_infer node");
+  decoder_infer_node_->setInputName("image_embeddings", 0);
+  decoder_infer_node_->setInputName("point_coords", 1);
+  decoder_infer_node_->setInputName("point_labels", 2);
+  decoder_infer_node_->setInputName("mask_input", 3);
+  decoder_infer_node_->setInputName("has_mask_input", 4);
+  decoder_infer_node_->setInputName("orig_im_size", 5);
+  decoder_infer_node_->setOutputName("masks", 0);
+  decoder_infer_node_->setOutputName("iou_predictions", 1);
+  decoder_infer_node_->setOutputName("low_res_masks", 2);
+
+  postprocess_node_ = this->createNode<SAMPostProcess>("postprocess");
+  CHECK_IF_NULL_RETURN(postprocess_node_, "Failed to create postprocess node");
+
+  return status;
+}
+
 REGISTER_NODE("nndeploy::segment::SelectPointNode", SelectPointNode);
-// REGISTER_NODE("nndeploy::segment::SAMGraph", SAMGraph);
+REGISTER_NODE("nndeploy::segment::SAMGraph", SAMGraph);
 REGISTER_NODE("nndeploy::segment::SAMPointNode", SAMPointNode);
 REGISTER_NODE("nndeploy::segment::SAMPostProcess", SAMPostProcess);
 REGISTER_NODE("nndeploy::segment::SAMMaskNode", SAMMaskNode);

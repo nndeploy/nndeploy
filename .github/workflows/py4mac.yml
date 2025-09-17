@@ -115,7 +115,8 @@ jobs:
       - name: Install system dependencies
         run: |
           brew update  # Update Homebrew package manager
-          brew install cmake ninja pkg-config protobuf
+          brew install ninja pkg-config protobuf
+          cmake --version || brew install cmake
 
       # Step 5: Update Python dependencies
       - name: Update Python dependencies

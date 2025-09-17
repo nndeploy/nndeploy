@@ -21,7 +21,7 @@
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
-namespace template_impl {
+namespace template_cpp {
 
 class TemplateParam : public base::Param {
  public:
@@ -29,7 +29,7 @@ class TemplateParam : public base::Param {
 
   using base::Param::serialize;
   virtual base::Status serialize(
-      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
     json.AddMember("template_param_",
                    rapidjson::Value(template_param_.c_str(),
                                     template_param_.length(), allocator),
@@ -37,7 +37,7 @@ class TemplateParam : public base::Param {
     return base::kStatusCodeOk;
   }
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json) {
+  virtual base::Status deserialize(rapidjson::Value &json) override {
     if (json.HasMember("template_param_") &&
         json["template_param_"].IsString()) {
       template_param_ = json["template_param_"].GetString();
@@ -46,21 +46,21 @@ class TemplateParam : public base::Param {
   }
 };
 
-class NNDEPLOY_CC_API TemplateNode : public dag::Node {
+class NNDEPLOY_CC_API TemplateCpp : public dag::Node {
  public:
-  TemplateNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  TemplateCpp(const std::string &name, std::vector<dag::Edge *> inputs,
                std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    this->setKey("nndeploy::template_impl::TemplateNode");
+    this->setKey("nndeploy::template_cpp::TemplateCpp");
     this->setDesc("Template node");
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<TemplateParam>();
   }
-  virtual ~TemplateNode() {}
+  virtual ~TemplateCpp() {}
 
   // tensor copy to tensor
-  virtual base::Status run() {
+  virtual base::Status run() override {
     TemplateParam *tmp_param = dynamic_cast<TemplateParam *>(param_.get());
     device::Tensor *src = inputs_[0]->getTensor(this);
     std::string template_param = tmp_param->template_param_;
@@ -76,19 +76,19 @@ class NNDEPLOY_CC_API TemplateGraph : public dag::Graph {
   TemplateGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                 std::vector<dag::Edge *> outputs  )
       : dag::Graph(name, inputs, outputs) {
-    this->setKey("nndeploy::template_impl::TemplateGraph");
+    this->setKey("nndeploy::template_cpp::TemplateGraph");
     this->setDesc("Template graph");
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
 
-    pre_ = dynamic_cast<TemplateNode *>(this->createNode<TemplateNode>("pre"));
-    infer_ = dynamic_cast<TemplateNode *>(this->createNode<TemplateNode>("infer"));
-    post_ = dynamic_cast<TemplateNode *>(this->createNode<TemplateNode>("post"));
+    pre_ = dynamic_cast<TemplateCpp *>(this->createNode<TemplateCpp>("pre"));
+    infer_ = dynamic_cast<TemplateCpp *>(this->createNode<TemplateCpp>("infer"));
+    post_ = dynamic_cast<TemplateCpp *>(this->createNode<TemplateCpp>("post"));
   }
   virtual ~TemplateGraph() {}
 
   // default param
-  virtual base::Status defaultParam() { return base::kStatusCodeOk; }
+  virtual base::Status defaultParam() override { return base::kStatusCodeOk; }
 
   // static graph
   base::Status make(dag::NodeDesc &pre_desc, dag::NodeDesc &infer_desc,
@@ -100,21 +100,21 @@ class NNDEPLOY_CC_API TemplateGraph : public dag::Graph {
   }
 
   // dynamic graph
-  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> &inputs) {
+  virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) override {
     std::vector<dag::Edge *> outputs;
-    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs[0]);
     std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs[0]);
     std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs[0]);
     return post_outputs;
   }
 
  private:
-  TemplateNode *pre_ = nullptr;
-  TemplateNode *infer_ = nullptr;
-  TemplateNode *post_ = nullptr;
+  TemplateCpp *pre_ = nullptr;
+  TemplateCpp *infer_ = nullptr;
+  TemplateCpp *post_ = nullptr;
 };
 
-}  // namespace template_impl
+}  // namespace template_cpp
 }  // namespace nndeploy
 
 #endif /* _NNDEPLOY_TEMPLATE_TEMPLATE_H_ */

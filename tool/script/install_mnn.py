@@ -150,7 +150,7 @@ mnn_include_dir.mkdir(parents=True, exist_ok=True)
 source_include_dir = Path(source_dir) / "include"
 if source_include_dir.exists():
     print("Copying header files from source...")
-    shutil.copytree(source_include_dir, mnn_include_dir, dirs_exist_ok=True)
+    shutil.copytree(source_include_dir, mnn_include_dir, symlinks=True, dirs_exist_ok=True)
 else:
     print("Warning: include directory not found in source code")
 
@@ -160,7 +160,7 @@ if MNN_INSTALL_DIR.exists():
     shutil.rmtree(MNN_INSTALL_DIR)
 
 # 拷贝整个目录
-shutil.copytree("mnn", MNN_INSTALL_DIR)
+shutil.copytree("mnn", MNN_INSTALL_DIR, symlinks=True)
 
 # 验证安装
 include_dir = MNN_INSTALL_DIR / "include"
@@ -178,15 +178,15 @@ for item in MNN_INSTALL_DIR.rglob("*"):
         if platform.system() == "Windows":
             # Windows平台：.dll文件拷贝到bin目录，.lib文件拷贝到lib目录
             if item.suffix == '.dll':
-                shutil.copy2(item, bin_dir)
+                shutil.copy2(item, bin_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to bin directory")
             elif item.suffix == '.lib':
-                shutil.copy2(item, lib_dir)
+                shutil.copy2(item, lib_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to lib directory")
         else:
             # Linux/macOS平台：.so/.dylib文件拷贝到lib目录
             if item.suffix in ['.so', '.dylib'] or '.so.' in item.name:
-                shutil.copy2(item, lib_dir)
+                shutil.copy2(item, lib_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to lib directory")
 
 print("Verifying installation:")

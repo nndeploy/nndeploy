@@ -1,4 +1,4 @@
-message(STATUS "plugin/template")
+message(STATUS "template")
 
 # set
 set(PLUGIN_SOURCE)
@@ -7,9 +7,12 @@ set(PLUGIN_BINARY nndeploy_plugin_template)
 
 # SOURCE
 file(GLOB_RECURSE PLUGIN_SOURCE
-  "${PLUGIN_ROOT_PATH}/include/nndeploy/template/*.h"
-  "${PLUGIN_ROOT_PATH}/source/nndeploy/template/*.cc"
+  "${ROOT_PATH}/template/cpp/*.h"
+  "${ROOT_PATH}/template/cpp/*.cc"
 )
+
+# include
+include_directories(${ROOT_PATH}/template/cpp)
 
 ## TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
@@ -28,10 +31,10 @@ target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 ## install
 if(SYSTEM.Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
-  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
+  # install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 else() 
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
-  install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
+  # install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/template DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 endif()
 
 # appedn list

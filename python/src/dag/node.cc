@@ -91,6 +91,21 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_external_param", &Node::setExternalParam, py::arg("key"),
            py::arg("external_param"))
       .def("get_external_param", &Node::getExternalParam, py::arg("key"))
+      .def("set_version", &Node::setVersion, py::arg("version"))
+      .def("get_version", &Node::getVersion)
+      .def("set_required_params", &Node::setRequiredParams,
+           py::arg("required_params"))
+      .def("add_required_param", &Node::addRequiredParam,
+           py::arg("required_param"))
+      .def("remove_required_param", &Node::removeRequiredParam,
+           py::arg("required_param"))
+      .def("clear_required_params", &Node::clearRequiredParams)
+      .def("get_required_params", &Node::getRequiredParams)
+      .def("set_ui_params", &Node::setUiParams, py::arg("ui_params"))
+      .def("add_ui_param", &Node::addUiParam, py::arg("ui_param"))
+      .def("remove_ui_param", &Node::removeUiParam, py::arg("ui_param"))
+      .def("clear_ui_params", &Node::clearUiParams)
+      .def("get_ui_params", &Node::getUiParams)
       .def("set_input", &Node::setInput, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output", &Node::setOutput, py::arg("output"),
@@ -143,6 +158,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_flag", &Node::getGraphFlag)
       .def("set_node_type", &Node::setNodeType, py::arg("node_type"))
       .def("get_node_type", &Node::getNodeType)
+      .def("set_io_type", &Node::setIoType, py::arg("io_type"))
+      .def("get_io_type", &Node::getIoType)
       .def("set_loop_count", &Node::setLoopCount, py::arg("loop_count"))
       .def("get_loop_count", &Node::getLoopCount)
       .def("set_stream", &Node::setStream, py::arg("stream"))
@@ -477,6 +494,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
       .def("synchronize", &Graph::synchronize,
            py::call_guard<py::gil_scoped_release>())
+      .def("interrupt", &Graph::interrupt,
+           py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference,
@@ -543,7 +562,36 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("json"))
       .def("deserialize",
            py::overload_cast<const std::string &>(&Graph::deserialize),
-           py::arg("json_str"));
+           py::arg("json_str"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::string &>(&Graph::setUnusedNodeNames),
+           py::arg("node_name"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::setUnusedNodeNames),
+           py::arg("node_names"))
+      .def(
+          "remove_unused_node_names",
+          py::overload_cast<const std::string &>(&Graph::removeUnusedNodeNames),
+          py::arg("node_name"))
+      .def("remove_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::removeUnusedNodeNames),
+           py::arg("node_names"))
+      .def("get_unused_node_names", &Graph::getUnusedNodeNames)
+      .def("set_node_value",
+           py::overload_cast<const std::string &>(&Graph::setNodeValue),
+           py::arg("node_value_str"))
+      .def("set_node_value",
+           py::overload_cast<const std::string &, const std::string &,
+                             const std::string &>(&Graph::setNodeValue),
+           py::arg("node_name"), py::arg("key"), py::arg("value"))
+      .def("set_node_value",
+           py::overload_cast<
+               std::map<std::string, std::map<std::string, std::string>>>(
+               &Graph::setNodeValue),
+           py::arg("node_value_map"))
+      .def("get_node_value", &Graph::getNodeValue);
 
   //   m.def("serialize", py::overload_cast<Graph *>(&serialize),
   //   py::arg("graph")); m.def("save_file", &saveFile, py::arg("graph"),

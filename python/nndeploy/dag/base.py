@@ -32,10 +32,98 @@ class NodeType(_C.dag.NodeType):
             "Intermediate": cls.Intermediate
         }
         if name not in name_to_node_type:
-            raise ValueError(f"不支持的节点类型: {name}")
+            raise ValueError(f"Unsupported node type: {name}")
         else:
             return cls(name_to_node_type[name])
+        
 
+
+
+name_to_io_type = {
+    "kIOTypeNone": _C.dag.IOType.kIOTypeNone,
+    "Bool": _C.dag.IOType.Bool,
+    "Num": _C.dag.IOType.Num,
+    "String": _C.dag.IOType.String,
+    "Text": _C.dag.IOType.Text,
+    "Json": _C.dag.IOType.Json,
+    "Xml": _C.dag.IOType.Xml,
+    "Csv": _C.dag.IOType.Csv,
+    "Yaml": _C.dag.IOType.Yaml,
+    "Binary": _C.dag.IOType.Binary,
+    "Image": _C.dag.IOType.Image,
+    "Video": _C.dag.IOType.Video,
+    "Audio": _C.dag.IOType.Audio,
+    "Camera": _C.dag.IOType.Camera,
+    "Microphone": _C.dag.IOType.Microphone,
+    "Model": _C.dag.IOType.Model,
+    "Dir": _C.dag.IOType.Dir,
+    "Any": _C.dag.IOType.Any,
+}
+
+
+io_type_to_name = {v: k for k, v in name_to_io_type.items()}
+
+
+class IOType(_C.dag.IOType):
+    kIOTypeNone = _C.dag.IOType.kIOTypeNone
+    Bool = _C.dag.IOType.Bool
+    Num = _C.dag.IOType.Num
+    String = _C.dag.IOType.String
+    Text = _C.dag.IOType.Text
+    Json = _C.dag.IOType.Json
+    Xml = _C.dag.IOType.Xml
+    Csv = _C.dag.IOType.Csv
+    Yaml = _C.dag.IOType.Yaml
+    Binary = _C.dag.IOType.Binary
+    Image = _C.dag.IOType.Image
+    Video = _C.dag.IOType.Video
+    Audio = _C.dag.IOType.Audio
+    Camera = _C.dag.IOType.Camera
+    Microphone = _C.dag.IOType.Microphone
+    Model = _C.dag.IOType.Model
+    Dir = _C.dag.IOType.Dir
+    Any = _C.dag.IOType.Any
+
+
+    @classmethod
+    def from_name(cls, name: str):
+        name_to_io_type = {
+            "kIOTypeNone": cls.kIOTypeNone,
+            "Bool": cls.Bool,
+            "Num": cls.Num,
+            "String": cls.String,
+            "Text": cls.Text,
+            "Json": cls.Json,
+            "Xml": cls.Xml,
+            "Csv": cls.Csv,
+            "Yaml": cls.Yaml,
+            "Binary": cls.Binary,
+            "Image": cls.Image,
+            "Video": cls.Video,
+            "Audio": cls.Audio,
+            "Camera": cls.Camera,
+            "Microphone": cls.Microphone,
+            "Model": cls.Model,
+            "Dir": cls.Dir,
+            "Any": cls.Any,
+        }
+        if name not in name_to_io_type:
+            raise ValueError(f"Unsupported io type: {name}")
+        else:
+            return cls(name_to_io_type[name])
+
+
+def get_io_type_enum_json():
+    enum_list = []
+    for io_type_name, io_type_code in name_to_io_type.items():
+        enum_list.append(io_type_name)
+    io_type_enum = {}
+    for single_enum in enum_list:
+        io_type_enum[f"{single_enum}"] = enum_list
+    return io_type_enum
+
+
+nndeploy.base.all_type_enum.append(get_io_type_enum_json)
 
 
 name_to_edge_type_flag = {

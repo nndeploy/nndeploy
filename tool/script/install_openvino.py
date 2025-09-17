@@ -321,7 +321,7 @@ if OPENVINO_INSTALL_DIR.exists():
     shutil.rmtree(OPENVINO_INSTALL_DIR)
 
 # Copy entire directory
-shutil.copytree("openvino", OPENVINO_INSTALL_DIR)
+shutil.copytree("openvino", OPENVINO_INSTALL_DIR, symlinks=True)
 
 # Verify installation
 print("Verifying installation:")
@@ -352,21 +352,21 @@ if include_dir.exists():
     print(f"Copying header files from {include_dir} to {target_include_dir}")
     if target_include_dir.exists():
         shutil.rmtree(target_include_dir)
-    shutil.copytree(include_dir, target_include_dir)
+    shutil.copytree(include_dir, target_include_dir, symlinks=True)
 
 # Copy library files
 if lib_dir.exists():
     print(f"Copying library files from {lib_dir} to {target_lib_dir}")
     for lib_file in lib_dir.iterdir():
         if lib_file.is_file():
-            shutil.copy2(lib_file, target_lib_dir)
+            shutil.copy2(lib_file, target_lib_dir, follow_symlinks=False)
 
 # Copy binary files
 if bin_dir.exists():
     print(f"Copying binary files from {bin_dir} to {target_bin_dir}")
     for bin_file in bin_dir.iterdir():
         if bin_file.is_file():
-            shutil.copy2(bin_file, target_bin_dir)
+            shutil.copy2(bin_file, target_bin_dir, follow_symlinks=False)
 
 
 if target_include_dir.exists():
@@ -387,3 +387,18 @@ if target_bin_dir.exists():
             print(f"  {bin_file.name}")
 
 print(f"OpenVINO {OPENVINO_VER} installation completed!")
+
+# # 添加 Intel® 软件包存储库
+# wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+# echo "deb https://apt.repos.intel.com/openvino/2023 ubuntu20 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2023.list
+
+# # 更新软件包列表并安装
+# sudo apt update
+# sudo apt install openvino-2023.1.0
+
+# # 将这行
+# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "tool/script/third_party/openvino2023.1") 
+
+# # 改为
+# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO ON)  # 使用系统安装的 OpenVINO

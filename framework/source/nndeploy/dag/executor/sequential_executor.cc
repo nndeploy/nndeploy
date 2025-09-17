@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace dag {
 
-SequentialExecutor::SequentialExecutor() : Executor(){};
-SequentialExecutor::~SequentialExecutor(){};
+SequentialExecutor::SequentialExecutor() : Executor() {};
+SequentialExecutor::~SequentialExecutor() {};
 
 base::Status SequentialExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,
@@ -18,6 +18,10 @@ base::Status SequentialExecutor::init(
   for (auto iter : topo_sort_node_) {
     if (iter->node_->getInitialized()) {
       continue;
+    }
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
     }
     iter->node_->setInitializedFlag(false);
     // NNDEPLOY_LOGE("init node[%s]!\n", iter->node_->getName().c_str());
@@ -58,6 +62,11 @@ base::Status SequentialExecutor::run() {
   for (auto iter : topo_sort_node_) {
     base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
 
+    if (iter->node_->checkInterruptStatus() == true) {
+      iter->node_->setRunningFlag(false);
+      return base::kStatusCodeNodeInterrupt;
+    }
+
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       iter->node_->setRunningFlag(true);
       // NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());
@@ -80,6 +89,15 @@ base::Status SequentialExecutor::run() {
 bool SequentialExecutor::synchronize() {
   for (auto iter : topo_sort_node_) {
     if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool SequentialExecutor::interrupt() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->interrupt() == false) {
       return false;
     }
   }

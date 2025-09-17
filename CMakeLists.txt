@@ -4,14 +4,15 @@ project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
 
-set(NNDEPLOY_MAJOR_VERSION 0)
-set(NNDEPLOY_MINOR_VERSION 2)
-set(NNDEPLOY_PATCH_VERSION 12)
+set(NNDEPLOY_MAJOR_VERSION 2)
+set(NNDEPLOY_MINOR_VERSION 6)
+set(NNDEPLOY_PATCH_VERSION 1)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
 add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
+# 1. Include utility and summary CMake files
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -86,6 +87,14 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
 nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
+# # JAVA bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_JAVA "Build Java bindings" OFF)
+# # Swift bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_SWIFT "Build Swift bindings" OFF)
+# # Go bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_GO "Build Go bindings" OFF)
+# # C# bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_CSHARP "Build C# bindings" OFF)
 
 # 3. **Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)**: Such as CUDA, OpenCL, various NPU hardware acceleration support
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "Enable NVIDIA CUDA GPU support" OFF)
@@ -619,10 +628,13 @@ else()
   set(NNDEPLOY_CMAKE_LITTLE_ENDIAN 1)
 endif()
 
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF)
-if(ENABLE_NNDEPLOY_IR)
-  set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
+nndeploy_option(ENABLE_NNDEPLOY_SAFETENSORS_CPP "Enable safetensors-cpp" ON)
+if(ENABLE_NNDEPLOY_SAFETENSORS_CPP)
   add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
+endif()
+if(ENABLE_NNDEPLOY_IR)
+  # set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
+  # add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
   if(ENABLE_NNDEPLOY_IR_ONNX)
     # add_definitions(-DNOMINMAX)
     # add_definitions(-DWIN32_LEAN_AND_MEAN)
@@ -1064,6 +1076,26 @@ endif()
 # python
 if(ENABLE_NNDEPLOY_PYTHON)
   include(${ROOT_PATH}/python/config.cmake)
+endif()
+
+# java
+if(ENABLE_NNDEPLOY_FFI_JAVA)
+  include(${ROOT_PATH}/ffi/java/config.cmake)
+endif()
+
+# swift
+if(ENABLE_NNDEPLOY_FFI_SWIFT)
+  include(${ROOT_PATH}/ffi/swift/config.cmake)
+endif()
+
+# go
+if(ENABLE_NNDEPLOY_FFI_GO)
+  include(${ROOT_PATH}/ffi/go/config.cmake)
+endif()
+
+# csharp
+if(ENABLE_NNDEPLOY_FFI_CSHARP)
+  include(${ROOT_PATH}/ffi/csharp/config.cmake)
 endif()
 
 # cpack

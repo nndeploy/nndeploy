@@ -22,7 +22,7 @@ class NNDEPLOY_CC_API SegmentResult : public base::Param {
     }
     if (score_ != nullptr) {
       delete score_;
-      score_ == nullptr;
+      score_ = nullptr;
     }
   };
 

@@ -39,6 +39,7 @@ base::Status DefaultInterpret::interpret(
     structure_stream.close();
   }
 
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   // 读模型权重文件
   if (model_value.size() > 1 && !model_value[1].empty()) {
     std::string warn, err;
@@ -65,6 +66,7 @@ base::Status DefaultInterpret::interpret(
         status, base::kStatusCodeOk, status,
         "model_desc_->deserializeWeightsFromSafetensors failed!");
   }
+#endif
 
   return status;
 }

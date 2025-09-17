@@ -15,9 +15,39 @@ base::Status Param::get(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 
+
+base::Status Param::setRequiredParams(const std::vector<std::string> &required_params) {
+  required_params_ = required_params;
+  return base::kStatusCodeOk;
+}
+base::Status Param::addRequiredParam(const std::string &required_param) {
+  required_params_.emplace_back(required_param);
+  return base::kStatusCodeOk;
+}
+base::Status Param::removeRequiredParam(const std::string &required_param) {
+  auto it = std::find(required_params_.begin(), required_params_.end(), required_param);
+  if (it != required_params_.end()) {
+    required_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Param::clearRequiredParams() {
+  required_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Param::getRequiredParams() {
+  return required_params_;
+}
+
 // 序列化：数据结构->[rapidjson::Value\stream\path\string]
 base::Status Param::serialize(rapidjson::Value &json,
                               rapidjson::Document::AllocatorType &allocator) {
+  rapidjson::Value required_params(rapidjson::kArrayType);
+  for (auto &required_param : required_params_) {
+    required_params.PushBack(rapidjson::Value(required_param.c_str(), allocator),
+                             allocator);
+  }
+  json.AddMember("required_params_", required_params, allocator);
   return base::kStatusCodeOk;
 }
 std::string Param::serialize() {
@@ -52,6 +82,15 @@ base::Status Param::saveFile(const std::string &path) {
 }
 // 反序列化：[rapidjson::Value\stream\path\string]->数据结构
 base::Status Param::deserialize(rapidjson::Value &json) {
+  if (json.HasMember("required_params_") && json["required_params_"].IsArray()) {
+    required_params_.clear();
+    auto &required_params_array = json["required_params_"];
+    for (int i = 0; i < required_params_array.Size(); i++) {
+      if (required_params_array[i].IsString()) {
+        required_params_.emplace_back(required_params_array[i].GetString());
+      }
+    }
+  }
   return base::kStatusCodeOk;
 }
 base::Status Param::deserialize(const std::string &json_str) {

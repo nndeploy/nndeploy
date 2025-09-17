@@ -229,7 +229,7 @@ class NNDEPLOY_CC_API PrefillSampleNode : public dag::Node {
                     std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs), is_first_(true) {
     key_ = "nndeploy::qwen::PrefillSampleNode";
-    desc_ = "llm sample node [logits -> token_ids]";
+    desc_ = "Sample next token IDs from logits during LLM prefill stage.";
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
@@ -250,7 +250,7 @@ class NNDEPLOY_CC_API DecodeSampleNode : public dag::Node {
                    std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs), is_first_(true) {
     key_ = "nndeploy::qwen::DecodeSampleNode";
-    desc_ = "llm sample node [logits -> token_ids]";
+    desc_ = "Sample next token IDs from logits during LLM decode stage.";
     param_ = std::make_shared<DecodeSampleParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
@@ -272,10 +272,12 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
              std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs) {
     key_ = "nndeploy::qwen::PromptNode";
-    desc_ = "llm prompt node [{} -> TokenizerText]";
+    desc_ =
+        "Generate TokenizerText from prompt string using optional template.";
     param_ = std::make_shared<PromptParam>();
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
   virtual ~PromptNode() {}
   virtual base::Status run();
@@ -315,9 +317,10 @@ class NNDEPLOY_CC_API PrintNode : public dag::Node {
             std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs) {
     key_ = "nndeploy::qwen::PrintNode";
-    desc_ = "Print TokenizerText";
+    desc_ = "Print TokenizerText content and save to temporary output file.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
   virtual ~PrintNode() {}
   virtual base::Status run();
@@ -329,7 +332,9 @@ class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
               std::vector<dag::Edge*> outputs)
       : CompositeNode(name, inputs, outputs) {
     key_ = "nndeploy::qwen::QwenPrefill";
-    desc_ = "llm prefill stage [TokenizerText -> {token_ids, kv_}]";
+    desc_ =
+        "LLM prefill pipeline: TokenizerText -> token IDs -> embeddings -> "
+        "inference -> sampled token IDs with KV cache.";
     this->setInputTypeInfo<tokenizer::TokenizerText>();
     this->setOutputTypeInfo<tokenizer::TokenizerIds>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -376,7 +381,9 @@ class NNDEPLOY_CC_API QwenDecode : public dag::CompositeNode {
              std::vector<dag::Edge*> outputs)
       : CompositeNode(name, inputs, outputs) {
     key_ = "nndeploy::qwen::QwenDecode";
-    desc_ = "llm decode stage [token_ids -> TokenizerText]";
+    desc_ =
+        "LLM decode pipeline: token IDs + KV cache -> embeddings -> inference "
+        "-> sampled tokens -> decoded text.";
     this->setInputTypeInfo<tokenizer::TokenizerIds>();
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<tokenizer::TokenizerIds>();

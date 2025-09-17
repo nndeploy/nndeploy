@@ -166,6 +166,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
@@ -323,12 +324,28 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deserialize(rapidjson::Value &json);
   virtual base::Status deserialize(const std::string &json_str);
 
+  virtual void setUnusedNodeNames(const std::string &node_name);
+  virtual void setUnusedNodeNames(const std::set<std::string> &node_names);
+  virtual void removeUnusedNodeNames(const std::string &node_name);
+  virtual void removeUnusedNodeNames(const std::set<std::string> &node_names);
+  virtual std::set<std::string> getUnusedNodeNames();
+
+  // node_name:key:value
+  virtual void setNodeValue(const std::string &node_value_str);
+  virtual void setNodeValue(const std::string &node_name,
+                            const std::string &key, const std::string &value);
+  virtual void setNodeValue(
+      std::map<std::string, std::map<std::string, std::string>> node_value_map);
+  virtual std::map<std::string, std::map<std::string, std::string>>
+  getNodeValue();
+
  protected:
+  virtual base::Status removeUnusedNodeAndEdge();
   virtual base::Status construct();
   virtual base::Status executor();
 
  protected:
-  // 
+  //
   std::vector<std::string> image_url_;
   std::vector<std::string> video_url_;
   std::vector<std::string> audio_url_;
@@ -349,6 +366,18 @@ class NNDEPLOY_CC_API Graph : public Node {
       external_param_repository_;
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
+
+  std::set<std::string> unused_node_names_;
+  /*
+   * @brief 节点值
+   * @details
+   * 用于存储节点值
+   * 格式为：{node_name: {key: value}}
+   * 注：node_name为节点名称
+   * 注：key为节点值的key
+   * 注：value为节点值的value
+   */
+  std::map<std::string, std::map<std::string, std::string>> node_value_map_;
 };
 
 template <typename T, typename... Args,

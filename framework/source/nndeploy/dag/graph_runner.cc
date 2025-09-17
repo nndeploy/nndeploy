@@ -159,6 +159,13 @@ void GraphRunner::set_json_file(bool is_json_file) {
 void GraphRunner::set_dump(bool is_dump) { is_dump_ = is_dump; }
 
 void GraphRunner::set_time_profile(bool is_time_profile) {
+  // 测试手机app是否调用这个函数
+  // 在/data/local/tmp下创建一个test_app.txt文件，并写入当前时间
+  std::ofstream out("/data/local/tmp/test_app.txt");
+  out << "set_time_profile: " << is_time_profile << std::endl;
+  out.close();
+
+  NNDEPLOY_LOGE("set_time_profile: %s", is_time_profile ? "true" : "false");
   is_time_profile_ = is_time_profile;
 }
 
@@ -172,12 +179,18 @@ void GraphRunner::set_loop_max_flag(bool is_loop_max_flag) {
   is_loop_max_flag_ = is_loop_max_flag;
 }
 
+void GraphRunner::set_node_value(const std::string& node_name, const std::string& key, const std::string& value) {
+  node_value_map_[node_name][key] = value;
+}
+
 base::Status GraphRunner::buildGraph(const std::string& graph_json_str,
                                      const std::string& name) {
   graph_ = std::make_shared<Graph>(name);
   if (!graph_) {
     return base::kStatusCodeErrorOutOfMemory;
   }
+  
+  graph_->setNodeValue(node_value_map_);
 
   base::Status status;
   if (is_json_file_) {

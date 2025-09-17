@@ -4,10 +4,10 @@ import requests
 import os
 import logging
 import json
+import threading
 from typing import Dict, Tuple, Any, List
 from pathlib import Path
 from urllib.parse import urlparse
-
 from modelscope.hub.file_download import model_file_download
 
 from nndeploy.dag import GraphRunner
@@ -17,6 +17,9 @@ class GraphExecutor:
     def __init__(self, resources, cache_type=False, cache_size=None):
         self.runner = GraphRunner()
         self.resources = resources
+
+    def interrupt_running(self):
+        self.runner.cancel_running()
 
     def execute(self, graph_json: Dict, task_id: str) -> Tuple[Dict, float]:
         name = graph_json.get("name_")
@@ -101,6 +104,9 @@ class GraphExecutor:
                     except Exception as e:
                         logging.error(f"Failed to download http resource for {field}.{idx}: {e}")
                         continue
+                elif type_.startswith("template"):
+                    logging.info(f"Skip processing template resource for {field}.{idx}")
+                    continue
                 else:
                     logging.warning(f"Unsupported or failed to download resource for {field}.{idx} with type '{type_}'")
 

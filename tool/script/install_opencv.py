@@ -83,6 +83,38 @@ if platform.system() == "Windows":
         -DBUILD_PROTOBUF=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
+elif platform.system() == "Darwin":
+    cmake_cmd = f"""cmake .. \
+        -DBUILD_TESTS=OFF \
+        -DBUILD_PERF_TESTS=OFF \
+        -DWITH_FFMPEG=ON \
+        -DBUILD_ZLIB=OFF \
+        -DBUILD_PNG=OFF \
+        -DBUILD_JPEG=OFF \
+        -DBUILD_TIFF=OFF \
+        -DBUILD_WEBP=OFF \
+        -DBUILD_opencv_world=OFF \
+        -DBUILD_opencv_core=ON \
+        -DBUILD_opencv_imgproc=ON \
+        -DBUILD_opencv_imgcodecs=ON \
+        -DBUILD_opencv_videoio=ON \
+        -DBUILD_opencv_highgui=ON \
+        -DBUILD_opencv_video=ON \
+        -DBUILD_opencv_dnn=ON \
+        -DBUILD_opencv_calib3d=ON \
+        -DBUILD_opencv_features2d=ON \
+        -DBUILD_opencv_flann=ON \
+        -DBUILD_opencv_apps=OFF \
+        -DBUILD_opencv_java=OFF \
+        -DBUILD_opencv_js=OFF \
+        -DBUILD_opencv_python2=OFF \
+        -DBUILD_opencv_python3=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_DOCS=OFF \
+        -DWITH_PROTOBUF=OFF \
+        -DBUILD_PROTOBUF=OFF \
+        -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
+    """
 else:
     cmake_cmd = f"""cmake .. \
         -DBUILD_TESTS=OFF \
@@ -131,14 +163,14 @@ if platform.system() == "Windows":
     if opencv_lib_dir.exists():
         for lib_file in opencv_lib_dir.glob("*"):
             if lib_file.is_file():
-                shutil.copy2(lib_file, target_lib_dir)
+                shutil.copy2(lib_file, target_lib_dir, follow_symlinks=False)
     
     # Copy bin directory contents
     opencv_bin_dir = OPENCV_INSTALL_DIR / "x64" / "vc16" / "bin"
     if opencv_bin_dir.exists():
         for bin_file in opencv_bin_dir.glob("*"):
             if bin_file.is_file():
-                shutil.copy2(bin_file, target_bin_dir)
+                shutil.copy2(bin_file, target_bin_dir, follow_symlinks=False)
                 
 # Check and fix lib64 directory issue
 lib64_dir = OPENCV_INSTALL_DIR / "lib64"
@@ -152,12 +184,12 @@ elif lib64_dir.exists() and lib_dir.exists():
     print("Detected both lib64 and lib directories, merging lib64 contents into lib directory...")
     for lib_file in lib64_dir.iterdir():
         if lib_file.is_file():
-            shutil.copy2(lib_file, lib_dir)
+            shutil.copy2(lib_file, lib_dir, follow_symlinks=False)
         elif lib_file.is_dir():
             target_dir = lib_dir / lib_file.name
             if target_dir.exists():
                 shutil.rmtree(target_dir)
-            shutil.copytree(lib_file, target_dir)
+            shutil.copytree(lib_file, target_dir, symlinks=True)
     shutil.rmtree(lib64_dir)
     print("Successfully merged lib64 directory contents into lib directory")
 
@@ -179,5 +211,5 @@ if lib_dir.exists():
     for lib_file in lib_dir.iterdir():
         if lib_file.is_file():
             print(f"  {lib_file.name}")
-
+            
 print(f"OpenCV {OPENCV_VER} installation completed!")
