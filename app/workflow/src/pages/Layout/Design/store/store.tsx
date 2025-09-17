@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, } from './actionType'
+import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, INIT_FRESH_RESOURCE_TREE, } from './actionType'
 import { IDagGraphInfo, INodeEntity, INodeTreeNodeEntity, NodeTreeNodeData } from '../../../Node/entity';
 import { FlowNodeRegistry } from '../../../../typings';
 import { buildNodeRegistry } from '../../../components/flow/nodeRegistry/buildNodeRegistry';
@@ -9,8 +9,9 @@ interface state {
   dagGraphInfo: IDagGraphInfo,
   nodeList: INodeEntity[],
   nodeRegistries: FlowNodeRegistry[],
-  treeData: NodeTreeNodeData[], 
-  freshFlowTreeCnt: number, 
+  treeData: NodeTreeNodeData[],
+  freshFlowTreeCnt: number,
+  freshResourceTreeCnt: number,
 }
 
 export const initialState: state = {
@@ -33,10 +34,11 @@ export const initialState: state = {
     nodes: []
 
   },
-  nodeList: [], 
+  nodeList: [],
   nodeRegistries: [],
-  treeData: [], 
-  freshFlowTreeCnt: 0
+  treeData: [],
+  freshFlowTreeCnt: 0,
+  freshResourceTreeCnt: 0
 
 }
 
@@ -77,7 +79,7 @@ export function reducer(state: state, action: any): state {
   const dagGraphInfo: IDagGraphInfo = action.payload
 
   switch (action.type) {
-    case INIT_DAG_GRAPH_INFO:
+    case INIT_DAG_GRAPH_INFO: {
 
 
 
@@ -94,15 +96,23 @@ export function reducer(state: state, action: any): state {
       nodeRegistries.push(CommentNodeRegistry)
 
 
-      var treeData = buildTreeFromArray(dagGraphInfo.nodes)
+      const treeData = buildTreeFromArray(dagGraphInfo.nodes)
 
-      var temp = { ...state, dagGraphInfo, nodeList: [dagGraphInfo.graph, ...leafNodes] , nodeRegistries, treeData }
+      const temp: state = { ...state, dagGraphInfo, nodeList: [dagGraphInfo.graph, ...leafNodes], nodeRegistries, treeData }
       return temp
+    }
 
 
-      case INIT_FRESH_FLOW_TREE: 
-         var temp = { ...state, freshFlowTreeCnt: state.freshFlowTreeCnt +1}
-          return temp
+    case INIT_FRESH_FLOW_TREE: {
+
+
+      const temp: state = { ...state, freshFlowTreeCnt: state.freshFlowTreeCnt + 1 }
+      return temp
+    }
+    case INIT_FRESH_RESOURCE_TREE: {
+      const temp: state = { ...state, freshResourceTreeCnt: state.freshResourceTreeCnt + 1 }
+      return temp
+    }
     default:
       throw new Error();
   }

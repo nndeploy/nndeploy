@@ -18,7 +18,8 @@ export const useSize = () => {
   const nodeMeta = node.getNodeMeta();
   const playground = usePlayground();
   const historyService = useService(HistoryService);
-  const { size = { width: 240, height: 150 } } = nodeMeta;
+  //const { size = { width: 200, height: 150 } } = nodeMeta;
+  const  size = { width: 200, height: 80 }
   const transform = node.getData(TransformData);
   const formModel = node.getData(FlowNodeFormData).getFormModel<FormModelV2>();
   const formSize = formModel.getValueIn<{ width: number; height: number }>(

@@ -4,6 +4,7 @@ import IoTypeImage from "./IoTypeImage";
 import IoTypeNumber from "./IoTypeNumber";
 import IoTypeString from "./IoTypeString";
 import IoTypeTextFile from "./IoTypeTextFile";
+import IoTypeVideo from "./IoTypeVideo";
 
 export enum EnumIODataType {
   Bool = 'Bool',
@@ -28,6 +29,7 @@ export enum EnumIODataType {
 interface IoTypeProps {
   value: string;
   direction: 'input' | 'output',
+  nodeName:string; 
   ioDataType: EnumIODataType,
   onChange: (value: string) => void;
 }
@@ -37,7 +39,7 @@ type ComponentMap = {
 };
 
 const IoType: React.FC<IoTypeProps> = (props) => {
-  const { value, onChange, ioDataType, direction } = props;
+  const { value, onChange, ioDataType, direction,nodeName } = props;
 
   const COMPONENT_MAP: ComponentMap = {
 
@@ -49,6 +51,8 @@ const IoType: React.FC<IoTypeProps> = (props) => {
 
     [EnumIODataType.Text]: IoTypeTextFile,
     [EnumIODataType.Image]: IoTypeImage,
+
+    [EnumIODataType.Video]: IoTypeVideo,
     [EnumIODataType.Binary]: IoTypeBinary,
     [EnumIODataType.Model]: IoTypeBinary,
 
@@ -65,7 +69,7 @@ const IoType: React.FC<IoTypeProps> = (props) => {
   const Component = COMPONENT_MAP[ioDataType] ?? <></>;
 
   return (
-    <Component value={value} onChange={onChange} direction={direction} ioDataType={ioDataType} />
+    <Component key={ nodeName + '_' +  ioDataType } value={value} onChange={onChange} direction={direction} ioDataType={ioDataType} />
   )
 }
 

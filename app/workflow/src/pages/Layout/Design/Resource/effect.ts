@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { apiGetResourceTree } from "./api";
 import { IResourceTreeNodeEntity, IServerResourceFileEntity, IServerResourceResonseData, ResourceTreeNodeData } from "./entity";
+import store from "../store/store";
 
 export function useGetTree(): {
+
   flatData: IResourceTreeNodeEntity[];
   setFlatData: React.Dispatch<React.SetStateAction<IResourceTreeNodeEntity[]>>;
 
@@ -13,6 +15,9 @@ export function useGetTree(): {
 } {
   const [flatData, setFlatData] = useState<IResourceTreeNodeEntity[]>([]);
   const [treeData, setTreeData] = useState<ResourceTreeNodeData[]>([]);
+
+  const { state } = useContext(store)
+  const { freshResourceTreeCnt } = state
 
   function buildTreeFromArray(
     data: IResourceTreeNodeEntity[],
@@ -54,7 +59,7 @@ export function useGetTree(): {
   //       const flatItem: IResourceTreeNodeEntity = { 
   //         id: file.filename, name: file.filename, parentId: fileType, type: 'leaf', 
   //         file_info: file
-        
+
   //       }
   //       flatItems = [...flatItems, flatItem]
   //     }
@@ -62,32 +67,33 @@ export function useGetTree(): {
   //   return flatItems
   // }
 
-  async function getResourceTree(){
-      const response =  await apiGetResourceTree()
+  async function getResourceTree() {
+    const response = await apiGetResourceTree()
 
-      //let flatData = transforServerDataToFlatData(response.result)
+    //let flatData = transforServerDataToFlatData(response.result)
 
-      function getNodeById(id:string){
-        return response.result.find(item=>item.id == id)!
+    function getNodeById(id: string) {
+      return response.result.find(item => item.id == id)!
+    }
+
+    if (response.flag != "success") {
+      return
+    }
+
+    response.result = response.result.map(item => {
+      return {
+        ...item,
+        parent_info: getNodeById(item.parentId)
       }
-
-      if(response.flag != "success"){
-        return 
-      }
-
-      response.result = response.result.map(item=>{
-        return {
-          ...item,
-          parent_info: getNodeById(item.parentId)
-        }
-      })
-      setFlatData(response.result);
+    })
+    setFlatData(response.result);
     ;
   }
 
   useEffect(() => {
+    
     getResourceTree()
-  }, []);
+  }, [freshResourceTreeCnt]);
 
   useEffect(() => {
     const tree = buildTreeFromArray(flatData);

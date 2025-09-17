@@ -1,7 +1,28 @@
 .io-type-container {
 
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
   .io-type-input-container {
-  
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .textArea {
+      height: 100%;
+      resize: vertical;
+      :global{
+        .semi-input-textarea-showClear{
+           padding-right: 10px;
+        }
+      }
+     
+    }
   }
 
   .io-type-output-container {

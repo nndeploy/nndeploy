@@ -22,3 +22,17 @@ export function initFreshFlowTree(payload:any){
 }
 
 
+
+export const INIT_FRESH_RESOURCE_TREE:string = 'INIT_FRESH_RESOURCE_TREE'  
+
+export function initFreshResourceTree(payload:any){
+
+    //debugger;
+    return {
+        type: INIT_FRESH_RESOURCE_TREE, 
+        payload
+    }
+}
+
+
+

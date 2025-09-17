@@ -85,8 +85,8 @@ export class PasteShortcut implements ShortcutsHandler {
 
     let numberSuffix = getNextNameNumberSuffix(this.document.toJSON() as FlowDocumentJSON)
     json.nodes.forEach((node: any, index) => {
-      let type = node.type
-      let typeParts = type.split('.')
+      let type:string = node.type
+      let typeParts = type.split(/\.|::/)
       let lastPart = typeParts[typeParts.length - 1]
 
       let nextNameSuffix = numberSuffix + index

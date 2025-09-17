@@ -12,9 +12,10 @@ export const NodeWrapperStyle = styled.div`
   justify-content: center;
   position: relative;
   min-width: 200px;
-   max-width: 200px;
+  max-width: 1000px;
   width: 100%;
   height: auto;
+ 
 
   &.selected {
     border: 1px solid #4e40e5;
@@ -22,6 +23,9 @@ export const NodeWrapperStyle = styled.div`
   .output-area{
     text-align:right;
   }
+
+   position: relative;
+  z-index: 1;
 `;
 
 export const ErrorIcon = () => (

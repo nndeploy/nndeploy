@@ -7,7 +7,7 @@ import {
 } from "@douyinfe/semi-ui";
 import { useGetTree } from "./effect";
 import { IconMore } from "@douyinfe/semi-icons";
-import { ReactNode, useState } from "react";
+import { ReactNode, useContext, useState } from "react";
 
 import "./index.scss";
 import ResourceEditDrawer from "./ResourceEditDrawer";
@@ -15,10 +15,16 @@ import { IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 import BranchEditDrawer from "./BranchEditDrawer";
 import { apiResourceDelete } from "./api";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import store from "../store/store";
 
 const { Text, Paragraph } = Typography;
 const Resource: React.FC = () => {
-  const { flatData, setFlatData, treeData  ,getResourceTree} = useGetTree();
+
+  
+  const { state } = useContext(store)
+  const { freshResourceTreeCnt } = state
+  
+  const { flatData, setFlatData, treeData  ,getResourceTree, } = useGetTree();
 
   const [resoureEditVisible, setResourceEditVisible] = useState(false);
   const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
@@ -200,7 +206,7 @@ const Resource: React.FC = () => {
 
   const renderLabel = (label: ReactNode, item: ResourceTreeNodeData) => (
     <div
-      style={{ display: "flex", height: "24px" }}
+      style={{ display: "flex", height: "24px", alignItems: 'center' }}
       draggable
       ///@ts-ignore
       //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}

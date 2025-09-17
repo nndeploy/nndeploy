@@ -29,7 +29,15 @@ export function FormItem({
         <Text style={{ width: '100%' }} ellipsis={{ showTooltip: !!showTooltip }}>
           {name}
         </Text>
-        {required && <span style={{ color: '#f93920', paddingLeft: '2px' }}>*</span>}
+        {
+        required && <span style={{
+          fontSize: 12,
+          color: '#f93920',
+          paddingLeft: '2px' 
+        
+        }} 
+          >*</span>
+        }
       </div>
     ),
     [name]

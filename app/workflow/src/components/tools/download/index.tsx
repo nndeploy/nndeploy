@@ -73,6 +73,10 @@ const Download: React.FC<any> = (props) => {
       onCancel={handleCancel}
       maskClosable={false}
       className="download-model"
+     // modal={false}
+      //mask = {true}
+     
+      
       width={700}
     //okButtonProps={{ size: 'small', type: 'warning' }}
     //cancelButtonProps={{ size: 'small', disabled: true }}

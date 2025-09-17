@@ -7,6 +7,8 @@ import { useNodeRenderContext } from '../../hooks';
 import { SidebarContext } from '../../context';
 import { scrollToView } from './utils';
 import { NodeWrapperStyle } from './styles';
+import { BorderArea } from './border-area';
+import { useSize } from '../comment/hooks';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
@@ -26,6 +28,10 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   const form = nodeRender.form;
   const ctx = useClientContext();
 
+  const { width, height, onResize } = useSize();
+
+
+
   const portsRender = ports.map((p) => <WorkflowPortRender key={p.id} entity={p} />);
 
   return (
@@ -41,8 +47,8 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
         onClick={(e) => {
           selectNode(e);
           ///@ts-ignore
-          if(e?.nativeEvent?.currentTarget?.classList?.contains('semi-portal')){
-            return; 
+          if (e?.nativeEvent?.currentTarget?.classList?.contains('semi-portal')) {
+            return;
           }
           if (!isDragging) {
             sidebar.setNodeRender(nodeRender);
@@ -59,10 +65,13 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
         data-node-selected={String(selected)}
         style={{
           outline: form?.state.invalid ? '1px solid red' : 'none',
+          width,
+          height: height <= 80 ? 'auto' : height
         }}
       >
         {children}
       </NodeWrapperStyle>
+      <BorderArea onResize={onResize} />
       {portsRender}
     </>
   );

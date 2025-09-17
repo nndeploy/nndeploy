@@ -31,7 +31,7 @@ const IoTypeBinary: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-  const dropZoneRef = useRef<HTMLDivElement>(null);
+ // const dropZoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   
