@@ -11,10 +11,21 @@ import time
 import os
 
 from diffusers import DiffusionPipeline
+from diffusers import AutoPipelineForImage2Image
 
-from typing import Dict, Any, List, Optional
+from typing import List, Optional, Tuple, Union
 import numpy as np
-from PIL import Image
+# from PIL import Image
+from PIL import Image, ImageFilter, ImageOps
+
+ImageInput = Union[
+    Image.Image,
+    np.ndarray,
+    torch.Tensor,
+    List[Image.Image],
+    List[np.ndarray],
+    List[torch.Tensor],
+]
 
 class FromPretrainedParam(nndeploy.base.Param):
     def __init__(self):
@@ -251,3 +262,216 @@ class Text2ImageCreator(nndeploy.dag.NodeCreator):
 # 注册节点创建器
 text2image_creator = Text2ImageCreator()
 nndeploy.dag.register_node("nndeploy.diffusers.Text2Image", text2image_creator)
+
+
+class Image2Image(nndeploy.dag.Node):
+    """
+    基于nndeploy框架的Diffusers Pipeline图生图节点
+    
+    该节点封装了Hugging Face Diffusers库的图像到图像生成功能，
+    支持Stable Diffusion等多种扩散模型的图像转换推理。
+    """
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        super().__init__(name, inputs, outputs)
+        self.set_key("nndeploy.diffusers.Image2Image")
+        self.set_desc("Diffusers Pipeline for image-to-image generation")
+        self.set_input_type(str, "Input text prompt")  # Input text prompt
+        self.set_input_type(str, "Input negative text prompt")  # Input negative text prompt
+        self.set_input_type(ImageInput, "Input source image")  # Input source image
+        self.set_output_type(Image, "Output PIL image")  # Output PIL image
+        self.set_dynamic_output(True)
+        
+        # 初始化参数
+        self.param = FromPretrainedParam()
+        
+        # 设置默认设备为CUDA
+        self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
+        
+        # 参数
+        self.num_inference_steps = 50
+        self.guidance_scale = 8.0
+        self.eta = 0.0
+        self.guidance_rescale = 0.0
+        self.strength = 0.5  # 图生图特有参数，控制对原图的修改程度
+        self.timesteps: List[int] = None,
+        self.sigmas: List[float] = None,
+        
+        # 管道实例
+        self.pipeline = None
+        
+    def init(self):        
+        try:
+            try:
+                # 首先尝试本地加载
+                self.pipeline = AutoPipelineForImage2Image.from_pretrained(
+                    pretrained_model_or_path=self.param.pretrained_model_name_or_path,
+                    local_files_only=True,
+                    torch_dtype=get_torch_dtype(self.param.torch_dtype),
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
+                )
+            except Exception as local_error:                
+                self.pipeline = AutoPipelineForImage2Image.from_pretrained(
+                    pretrained_model_or_path=self.param.pretrained_model_name_or_path,
+                    torch_dtype=get_torch_dtype(self.param.torch_dtype),
+                    mirror=self.param.mirror,
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
+                )
+            
+            # 根据设备类型移动管道
+            device_type = self.get_device_type()
+            if device_type.code_ == nndeploy.base.DeviceTypeCode.cuda:
+                device_id = device_type.device_id_
+                target_device = f"cuda:{device_id}"
+                self.pipeline.to(target_device)
+            elif device_type.code_ == nndeploy.base.DeviceTypeCode.cpu:
+                self.pipeline.to("cpu")
+            else:
+                self.pipeline.to("cpu")
+                
+            return nndeploy.base.Status.ok()
+            
+        except Exception as e:
+            print(f"初始化Diffusers图生图管道失败: {e}")
+            return nndeploy.base.Status.error()
+    
+    def run(self) -> nndeploy.base.Status:
+        """执行图像到图像生成"""
+        try:
+            # 获取输入文本提示词
+            input_edge = self.get_input(0)
+            prompt = input_edge.get(self)
+            
+            input_edge = self.get_input(1)
+            negative_prompt = input_edge.get(self)
+            
+            input_edge = self.get_input(2)
+            source_image = input_edge.get(self)
+                        
+            timesteps=None
+            if self.timesteps != [None]:
+                print(f"timesteps: {self.timesteps}")
+                timesteps = self.timesteps
+            sigmas = None
+            if self.sigmas != [None]:
+                print(f"sigmas: {self.sigmas}")
+                sigmas = self.sigmas
+            
+            # 根据source_image类型确定num_images_per_prompt
+            num_images_per_prompt = 1
+            if source_image is not None:
+                if isinstance(source_image, (list, tuple)):
+                    num_images_per_prompt = len(source_image)
+                elif isinstance(source_image, torch.Tensor) and len(source_image.shape) >= 4:
+                    # 对于numpy数组或torch张量，假设第一个维度是batch维度
+                    num_images_per_prompt = source_image.shape[0]
+                else:
+                    # 单个图像
+                    num_images_per_prompt = 1
+                    
+            print(f"num_images_per_prompt: {num_images_per_prompt}")
+            print(f"source_image: {source_image}")
+            print("pipeline", self.pipeline)
+                       
+            result = self.pipeline(
+                prompt=prompt,
+                image=source_image,
+                strength=self.strength,
+                num_inference_steps=self.num_inference_steps,
+                timesteps=timesteps,
+                sigmas=sigmas,
+                guidance_scale=self.guidance_scale,
+                negative_prompt=negative_prompt,
+                num_images_per_prompt=num_images_per_prompt,
+                eta=self.eta,
+                guidance_rescale=self.guidance_rescale
+            )
+                            
+            # 输出到输出边
+            min_len = min(len(result.images), len(self.get_all_output()))
+            for i in range(min_len):
+                output_edge = self.get_output(i)
+                generated_image = result.images[i]
+                output_edge.set(generated_image)
+            
+            return nndeploy.base.Status.ok()            
+        except Exception as e:
+            print(f"图生图推理失败: {e}")
+            return nndeploy.base.Status.error()
+    
+    def serialize(self) -> str:
+        """序列化节点参数"""
+        try:
+            # 添加必需参数
+            self.add_required_param("param")
+            self.add_required_param("num_inference_steps")
+            
+            # 获取基类序列化结果
+            base_json = super().serialize()
+            json_obj = json.loads(base_json)
+            
+            # 序列化推理参数
+            json_obj["num_inference_steps"] = self.num_inference_steps
+            json_obj["guidance_scale"] = self.guidance_scale
+            json_obj["eta"] = self.eta
+            json_obj["guidance_rescale"] = self.guidance_rescale
+            json_obj["strength"] = self.strength
+            json_obj["timesteps"] = self.timesteps if self.timesteps is not None else List[int]
+            json_obj["sigmas"] = self.sigmas if self.sigmas is not None else List[float]
+            
+             # 添加自定义参数
+            json_obj["param"] = json.loads(self.param.serialize())
+            
+            return json.dumps(json_obj, ensure_ascii=False, indent=2)
+            
+        except Exception as e:
+            print(f"序列化失败: {e}")
+            return "{}"
+    
+    def deserialize(self, json_str: str) -> nndeploy.base.Status:
+        """反序列化节点参数"""
+        try:
+            json_obj = json.loads(json_str)
+            
+            # 反序列化自定义参数
+            if "param" in json_obj:
+                param_json = json.dumps(json_obj["param"])
+                self.param.deserialize(param_json)
+            
+            # 反序列化推理参数
+            if "num_inference_steps" in json_obj:
+                self.num_inference_steps = json_obj["num_inference_steps"]
+            if "guidance_scale" in json_obj:
+                self.guidance_scale = json_obj["guidance_scale"]
+            if "eta" in json_obj:
+                self.eta = json_obj["eta"]
+            if "guidance_rescale" in json_obj:
+                self.guidance_rescale = json_obj["guidance_rescale"]
+            if "strength" in json_obj:
+                self.strength = json_obj["strength"]
+            if "timesteps" in json_obj:
+                self.timesteps = json_obj["timesteps"]
+            if "sigmas" in json_obj:
+                self.sigmas = json_obj["sigmas"]
+            
+            # 调用基类反序列化
+            return super().deserialize(json_str)
+            
+        except Exception as e:
+            print(f"反序列化失败: {e}")
+            return nndeploy.base.Status.ok()
+
+
+class Image2ImageCreator(nndeploy.dag.NodeCreator):
+    """Diffusers Pipeline图生图节点创建器"""
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        """创建Diffusers Pipeline图生图节点实例"""
+        self.node = Image2Image(name, inputs, outputs)
+        return self.node
+
+
+# 注册节点创建器
+image2image_creator = Image2ImageCreator()
+nndeploy.dag.register_node("nndeploy.diffusers.Image2Image", image2image_creator)
