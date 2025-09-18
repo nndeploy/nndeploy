@@ -267,7 +267,7 @@ std::vector<Node *> Edge::getConsumers() {
   std::vector<Node *> result;
   for (auto consumer : consumers) {
     if (consumer == nullptr) {
-      NNDEPLOY_LOGE("consumer is nullptr\n");
+      // NNDEPLOY_LOGE("consumer is nullptr\n");
       continue;
     }
     result.push_back(consumer);

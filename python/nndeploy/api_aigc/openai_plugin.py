@@ -162,6 +162,6 @@ class OpenAIImageNodeCreator(nndeploy.dag.NodeCreator):
 
 # 注册节点
 openai_image_node_creator = OpenAIImageNodeCreator()
-nndeploy.dag.register_node("nndeploy.openai.OpenAIImageNode", openai_image_node_creator)
+nndeploy.dag.register_node("nndeploy.api_aigc.OpenAIImageNode", openai_image_node_creator)
 
 

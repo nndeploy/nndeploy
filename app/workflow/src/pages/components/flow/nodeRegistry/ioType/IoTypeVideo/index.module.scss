@@ -26,71 +26,72 @@
       border-color: #0066ff;
     }
 
-  
+
 
 
   }
-    .video-container {
-      position: relative;
 
+  .video-container {
+    position: relative;
+
+    &:before {
+      visibility: hidden;
+      background-color: var(--semi-color-overlay-bg);
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+
+    }
+
+    &:hover {
       &:before {
-        visibility: hidden;
-        background-color: var(--semi-color-overlay-bg);
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-
-      }
-
-      &:hover {
-        &:before {
-          visibility: visible;
-        }
-
-        .icon-view {
-          visibility: visible;
-        }
-
-        .icon-delete {
-          visibility: visible;
-        }
+        visibility: visible;
       }
 
       .icon-view {
-        visibility: hidden;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        color: rgba(255, 255, 255, 0.7);
-        cursor: pointer;
-        z-index: 10;
-
-        &:hover {
-          color: white;
-        }
+        visibility: visible;
       }
 
       .icon-delete {
-        visibility: hidden;
-        position: absolute;
-        top: 10px;
-        right: 10%;
-
-        color: rgba(255, 255, 255, 0.7);
-        cursor: pointer;
-        z-index: 10;
-
-        &:hover {
-          color: white;
-        }
+        visibility: visible;
       }
-
     }
+
+    .icon-view {
+      visibility: hidden;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+    .icon-delete {
+      visibility: hidden;
+      position: absolute;
+      top: 10px;
+      right: 10%;
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+  }
 
   .io-type-output-container {
     display: none;
@@ -103,5 +104,9 @@
 
 .preview-video-modal {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  flex: 1;
+  min-height: 0;
+
 }

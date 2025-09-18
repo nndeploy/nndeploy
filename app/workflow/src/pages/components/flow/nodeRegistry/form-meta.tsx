@@ -89,7 +89,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'source_',
     'version_',
 
-   // 'io_type_', 
+    'io_type_', 
     'required_params_', 
     'size'
 

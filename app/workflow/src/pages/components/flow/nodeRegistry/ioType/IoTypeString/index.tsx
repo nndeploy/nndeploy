@@ -22,11 +22,19 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
   const { runInfo } = useFlowEnviromentContext()
   const { outputResource } = runInfo
 
+  const [textAreaContainaerRef, rows] = useGetRows(20);
+
+
+
   const { node } = useNodeRender();
+
+
   const form = getNodeForm(node)!
 
+
+
   if (!form) {
-    console.log('form', form)
+    console.log('IoTypeString form', form)
     let j = 0
     return <></>
   } else {
@@ -53,12 +61,10 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
   // const handleResize = (e: React.MouseEvent<HTMLTextAreaElement, MouseEvent>) => {
   //   const lineHeight = 20; // 根据实际行高调整
   //   var temp = textAreaRef.current?.offsetHeight
-    
+
   //   const newRows = Math.floor(temp! / lineHeight);
   //   setRows(newRows);
   // };
-
-  const [ textAreaContainaerRef, rows] = useGetRows(20);
 
 
 
@@ -71,7 +77,7 @@ const IoTypeString: React.FC<IoTypeStringProps> = (props) => {
           <div className={classNames(styles['io-type-input-container'])} ref={textAreaContainaerRef} >
             <TextArea showClear value={value}
               className={styles['textArea']}
-              
+
 
               onChange={(value, event) => {
                 //handleResize(event)

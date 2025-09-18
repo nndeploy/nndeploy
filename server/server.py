@@ -87,6 +87,13 @@ class NnDeployServer:
         self.db_path = Path(self.args.resources) / "db" / "nndeploy.db"
         self.workflow_dir.mkdir(parents=True, exist_ok=True)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Ensure required subdirectories exist
+        required_dirs = ["images", "videos", "audios", "models", "others"]
+        for sub in required_dirs:
+            d = Path(self.args.resources) / sub
+            d.mkdir(parents=True, exist_ok=True)
+
         self.db = DB(self.db_path).init_schema()
 
         self.cancel_event_queue = cancel_event_queue
@@ -1079,7 +1086,7 @@ class NnDeployServer:
                     continue
 
                 vals = []
-                for k in ("String", "Text", "Bool", "Num"):
+                for k in ("String", "Bool", "Num"):
                     if k in out_map:
                         v = out_map[k]
                         if isinstance(v, list):

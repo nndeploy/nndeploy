@@ -3,29 +3,18 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
+from nndeploy.base import get_torch_dtype
 
 import json
 import torch
 import time
 import os
 
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
+from diffusers import DiffusionPipeline
 
 from typing import Dict, Any, List, Optional
 import numpy as np
 from PIL import Image
-
-
-def get_torch_dtype(self):
-    """获取torch数据类型对象"""
-    if self.torch_dtype == "float16":
-        return torch.float16
-    elif self.torch_dtype == "float32":
-        return torch.float32
-    elif self.torch_dtype == "bfloat16":
-        return torch.bfloat16
-    else:
-        return None
 
 class FromPretrainedParam(nndeploy.base.Param):
     def __init__(self):
@@ -38,11 +27,8 @@ class FromPretrainedParam(nndeploy.base.Param):
         self.mirror = "https://hf-mirror.com"
         
         # 设备和内存管理参数
-        self.device_map = "balanced"
+        # self.device_map = "balanced"
         self.low_cpu_mem_usage = True
-                
-        # 其他参数
-        self.output_loading_info = False
     
     def serialize(self) -> str:
         """序列化参数为JSON字符串"""
@@ -50,13 +36,11 @@ class FromPretrainedParam(nndeploy.base.Param):
             "pretrained_model_name_or_path": self.pretrained_model_name_or_path,
             "torch_dtype": self.torch_dtype,
             "mirror": self.mirror,
-            "device_map": self.device_map,
             "low_cpu_mem_usage": self.low_cpu_mem_usage,
-            "output_loading_info": self.output_loading_info
         }
         return json.dumps(param_dict, ensure_ascii=False, indent=2)
     
-    def deserialize(self, json_str: str) -> bool:
+    def deserialize(self, json_str: str) -> nndeploy.base.Status:
         """从JSON字符串反序列化参数"""
         try:
             param_dict = json.loads(json_str)
@@ -69,18 +53,14 @@ class FromPretrainedParam(nndeploy.base.Param):
             self.mirror = param_dict.get("mirror", "")
             
             # 设备和内存管理参数
-            self.device_map = param_dict.get("device_map", "balanced")
-            self.low_cpu_mem_usage = param_dict.get("low_cpu_mem_usage", True)
-            
-            # 其他参数
-            self.output_loading_info = param_dict.get("output_loading_info", False)
-            
-            return True
+            # self.device_map = param_dict.get("device_map", "balanced")
+            self.low_cpu_mem_usage = param_dict.get("low_cpu_mem_usage", True)            
+            return nndeploy.base.Status.ok()
         except Exception as e:
             print(f"反序列化参数失败: {e}")
-            return False
+            return nndeploy.base.Status.error()
     
-class StableDiffusion(nndeploy.dag.Node):
+class Text2Image(nndeploy.dag.Node):
     """
     基于nndeploy框架的Diffusers Pipeline节点
     
@@ -89,128 +69,135 @@ class StableDiffusion(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.StableDiffusion")
+        self.set_key("nndeploy.diffusers.Text2Image")
         self.set_desc("Diffusers Pipeline for text-to-image generation")
-        self.set_input_type(str)  # 输入文本提示词
-        self.set_input_type(str)  # 输入反向文本提示词
-        self.set_output_type(np.ndarray)  # 输出ndarray图像
+        self.set_input_type(str, "Input text prompt")  # Input text prompt
+        self.set_input_type(str, "Input negative text prompt")  # Input negative text prompt
+        self.set_input_type(torch.Tensor, "Input latent")  # latent
+        self.set_output_type(Image, "Output PIL image")  # Output ndarray image
+        self.set_dynamic_output(True)
         
         # 初始化参数
-        self.param_ = FromPretrainedParam()
+        self.param = FromPretrainedParam()
         
         # 设置默认设备为CUDA
         self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
-        self.height = 512
-        self.width = 512
-        self.num_inference_steps = 20
+        
+        # 参数
+        self.num_inference_steps = 50
         self.guidance_scale = 8.0
-        self.num_images_per_prompt = 1
-        slef.is_
-        self.seed = None
-        self.latents = None
-        self.ip_adapter_image = None
-        self.ip_adapter_image_embeds = None
-        # self.output_type = "numpy"
-        self.cross_attention_kwargs = None
+        self.eta = 0.0
         self.guidance_rescale = 0.0
+        self.timesteps: List[int] = None,
+        self.sigmas: List[float] = None,
         
         # 管道实例
         self.pipeline = None
         
-    def init(self) -> bool:        
+    def init(self):        
         try:
             try:
                 # 首先尝试本地加载
                 self.pipeline = DiffusionPipeline.from_pretrained(
-                    self.param_.pretrained_model_name_or_path,
+                    pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
                     local_files_only=True,
-                    use_safetensors=True,
-                    **load_kwargs
+                    torch_dtype=get_torch_dtype(self.param.torch_dtype),
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
                 )
-                print("成功从本地加载模型")
-            except Exception as local_error:
-                print(f"本地加载失败: {local_error}")
-                print("尝试从远程下载...")
-                
-                # 远程下载
+            except Exception as local_error:                
                 self.pipeline = DiffusionPipeline.from_pretrained(
-                    self.param_.pretrained_model_name_or_path,
-                    resume_download=True,
-                    force_download=False,
-                    **load_kwargs
+                    pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
+                    torch_dtype=get_torch_dtype(self.param.torch_dtype),
+                    mirror=self.param.mirror,
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
                 )
-                print("成功从远程下载并加载模型")
             
             # 根据设备类型移动管道
             device_type = self.get_device_type()
             if device_type.code_ == nndeploy.base.DeviceTypeCode.cuda:
                 device_id = device_type.device_id_
                 target_device = f"cuda:{device_id}"
-                print(f"将管道移动到设备: {target_device}")
                 self.pipeline.to(target_device)
             elif device_type.code_ == nndeploy.base.DeviceTypeCode.cpu:
-                print("将管道移动到CPU")
                 self.pipeline.to("cpu")
             else:
-                print("使用默认CPU设备")
                 self.pipeline.to("cpu")
-            
-            print("Diffusers管道初始化完成")
-            return True
+                
+            return nndeploy.base.Status.ok()
             
         except Exception as e:
             print(f"初始化Diffusers管道失败: {e}")
-            return False
+            return nndeploy.base.Status.error()
     
-    def run(self) -> bool:
+    def run(self) -> nndeploy.base.Status:
         """执行文本到图像生成"""
         try:
             # 获取输入文本提示词
             input_edge = self.get_input(0)
             prompt = input_edge.get(self)
             
-            if not prompt or not isinstance(prompt, str):
-                print("错误: 输入提示词为空或格式不正确")
-                return False
+            input_edge = self.get_input(1)
+            negative_prompt = input_edge.get(self)
             
-            print(f"生成图像，提示词: {prompt}")
+            input_edge = self.get_input(2)
+            latent = input_edge.get(self)
             
-            # 执行推理
+            timesteps=None
+            if self.timesteps != [None]:
+                print(f"timesteps: {self.timesteps}")
+                timesteps = self.timesteps
+            sigmas = None
+            if self.sigmas != [None]:
+                print(f"sigmas: {self.sigmas}")
+                sigmas = self.sigmas
+            
+            num_images_per_prompt = latent.shape[0]
+            
             result = self.pipeline(
                 prompt=prompt,
-                num_inference_steps=50,  # 可以作为参数配置
-                guidance_scale=7.5,      # 可以作为参数配置
-                height=512,              # 可以作为参数配置
-                width=512,               # 可以作为参数配置
-                return_dict=True
+                num_inference_steps=self.num_inference_steps,
+                timesteps=timesteps,
+                sigmas=sigmas,
+                guidance_scale=self.guidance_scale,
+                negative_prompt=negative_prompt,
+                num_images_per_prompt=num_images_per_prompt,
+                eta=self.eta,
+                latents=latent,
+                guidance_rescale=self.guidance_rescale
             )
-            
-            # 获取生成的图像
-            generated_image = result.images[0]
-            
+                            
             # 输出到输出边
-            output_edge = self.get_output(0)
-            output_edge.set(generated_image)
+            min_len = min(len(result.images), len(self.get_all_output()))
+            for i in range(min_len):
+                output_edge = self.get_output(i)
+                generated_image = result.images[i]
+                output_edge.set(generated_image)
             
-            print("图像生成完成")
-            return True
-            
+            return nndeploy.base.Status.ok()            
         except Exception as e:
-            print(f"图像生成失败: {e}")
-            return False
+            return nndeploy.base.Status.error()
     
     def serialize(self) -> str:
         """序列化节点参数"""
         try:
             # 添加必需参数
             self.add_required_param("param")
+            self.add_required_param("num_inference_steps")
             
             # 获取基类序列化结果
             base_json = super().serialize()
             json_obj = json.loads(base_json)
             
-            # 添加自定义参数
-            json_obj["param"] = json.loads(self.param_.serialize())
+            # 序列化推理参数
+            json_obj["num_inference_steps"] = self.num_inference_steps
+            json_obj["guidance_scale"] = self.guidance_scale
+            json_obj["eta"] = self.eta
+            json_obj["guidance_rescale"] = self.guidance_rescale
+            json_obj["timesteps"] = self.timesteps if self.timesteps is not None else List[int]
+            json_obj["sigmas"] = self.sigmas if self.sigmas is not None else List[float]
+            
+             # 添加自定义参数
+            json_obj["param"] = json.loads(self.param.serialize())
             
             return json.dumps(json_obj, ensure_ascii=False, indent=2)
             
@@ -218,7 +205,7 @@ class StableDiffusion(nndeploy.dag.Node):
             print(f"序列化失败: {e}")
             return "{}"
     
-    def deserialize(self, json_str: str) -> bool:
+    def deserialize(self, json_str: str) -> nndeploy.base.Status:
         """反序列化节点参数"""
         try:
             json_obj = json.loads(json_str)
@@ -226,33 +213,41 @@ class StableDiffusion(nndeploy.dag.Node):
             # 反序列化自定义参数
             if "param" in json_obj:
                 param_json = json.dumps(json_obj["param"])
-                if not self.param_.deserialize(param_json):
-                    print("参数反序列化失败")
-                    return False
+                self.param.deserialize(param_json)
+            
+            # 反序列化推理参数
+            if "num_inference_steps" in json_obj:
+                self.num_inference_steps = json_obj["num_inference_steps"]
+            if "guidance_scale" in json_obj:
+                self.guidance_scale = json_obj["guidance_scale"]
+            if "eta" in json_obj:
+                self.eta = json_obj["eta"]
+            if "guidance_rescale" in json_obj:
+                self.guidance_rescale = json_obj["guidance_rescale"]
+            if "timesteps" in json_obj:
+                self.timesteps = json_obj["timesteps"]
+            if "sigmas" in json_obj:
+                self.sigmas = json_obj["sigmas"]
             
             # 调用基类反序列化
             return super().deserialize(json_str)
             
         except Exception as e:
             print(f"反序列化失败: {e}")
-            return False
+            return nndeploy.base.Status.ok()
 
 
-class DiffusersPipelineCreator(nndeploy.dag.NodeCreator):
+class Text2ImageCreator(nndeploy.dag.NodeCreator):
     """Diffusers Pipeline节点创建器"""
-    
     def __init__(self):
         super().__init__()
         
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         """创建Diffusers Pipeline节点实例"""
-        self.node = StableDiffusion(name, inputs, outputs)
+        self.node = Text2Image(name, inputs, outputs)
         return self.node
 
 
 # 注册节点创建器
-diffusers_pipeline_creator = DiffusersPipelineCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.StableDiffusion", diffusers_pipeline_creator)
-
-# 保持向后兼容的别名
-Pipeline = StableDiffusion
+text2image_creator = Text2ImageCreator()
+nndeploy.dag.register_node("nndeploy.diffusers.Text2Image", text2image_creator)
