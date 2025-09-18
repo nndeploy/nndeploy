@@ -912,6 +912,20 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("remove_required_param", &Param::removeRequiredParam)
       .def("clear_required_params", &Param::clearRequiredParams)
       .def("get_required_params", &Param::getRequiredParams)
+      .def("set_ui_params", &Param::setUiParams)
+      .def("add_ui_param", &Param::addUiParam)
+      .def("remove_ui_param", &Param::removeUiParam)
+      .def("clear_ui_params", &Param::clearUiParams)
+      .def("get_ui_params", &Param::getUiParams)
+      .def("set_io_params", &Param::setIoParams)
+      .def("add_io_param", &Param::addIoParam)
+      .def("remove_io_param", &Param::removeIoParam)
+      .def("clear_io_params", &Param::clearIoParams)
+      .def("get_io_params", &Param::getIoParams)
+      .def("add_dropdown_param", &Param::addDropdownParam)
+      .def("remove_dropdown_param", &Param::removeDropdownParam)
+      .def("clear_dropdown_params", &Param::clearDropdownParams)
+      .def("get_dropdown_params", &Param::getDropdownParams)
 
       .def("serialize", py::overload_cast<rapidjson::Value&,
                                           rapidjson::Document::AllocatorType&>(

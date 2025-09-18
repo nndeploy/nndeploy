@@ -72,7 +72,7 @@ class Text2Image(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.Text2Image")
+        self.set_key("nndeploy.diffusion.Text2Image")
         self.set_desc("Diffusers Pipeline for text-to-image generation")
         self.set_input_type(str, "Input text prompt")  # Input text prompt
         self.set_input_type(str, "Input negative text prompt")  # Input negative text prompt
@@ -82,6 +82,7 @@ class Text2Image(nndeploy.dag.Node):
         
         # 初始化参数
         self.param = FromPretrainedParam()
+        self.param.add_required_param()
         
         # 设置默认设备为CUDA
         self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
@@ -253,7 +254,7 @@ class Text2ImageCreator(nndeploy.dag.NodeCreator):
 
 # 注册节点创建器
 text2image_creator = Text2ImageCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.Text2Image", text2image_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.Text2Image", text2image_creator)
 
 
 class Image2Image(nndeploy.dag.Node):
@@ -265,7 +266,7 @@ class Image2Image(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.Image2Image")
+        self.set_key("nndeploy.diffusion.Image2Image")
         self.set_desc("Diffusers Pipeline for image-to-image generation")
         self.set_input_type(str, "Input text prompt")  # Input text prompt
         self.set_input_type(str, "Input negative text prompt")  # Input negative text prompt
@@ -507,7 +508,7 @@ class Image2ImageCreator(nndeploy.dag.NodeCreator):
 
 # 注册节点创建器
 image2image_creator = Image2ImageCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.Image2Image", image2image_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.Image2Image", image2image_creator)
 
 
 class Inpainting(nndeploy.dag.Node):
@@ -519,7 +520,7 @@ class Inpainting(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.Inpainting")
+        self.set_key("nndeploy.diffusion.Inpainting")
         self.set_desc("Diffusers Pipeline for image inpainting")
         self.set_input_type(str, "Input text prompt")  # Input text prompt
         self.set_input_type(str, "Input negative text prompt")  # Input negative text prompt
@@ -771,5 +772,5 @@ class InpaintingCreator(nndeploy.dag.NodeCreator):
 
 # 注册节点创建器
 inpainting_creator = InpaintingCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.Inpainting", inpainting_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.Inpainting", inpainting_creator)
 
