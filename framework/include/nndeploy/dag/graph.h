@@ -35,6 +35,22 @@ class NNDEPLOY_CC_API Graph : public Node {
         std::vector<Edge *> outputs);
   virtual ~Graph();
 
+  base::Status setImageUrl(const std::string &key, const std::string &url);
+  base::Status removeImageUrl(const std::string &key);
+  base::Status setVideoUrl(const std::string &key, const std::string &url);
+  base::Status removeVideoUrl(const std::string &key);
+  base::Status setAudioUrl(const std::string &key, const std::string &url);
+  base::Status removeAudioUrl(const std::string &key);
+  base::Status setModelUrl(const std::string &key, const std::string &url);
+  base::Status removeModelUrl(const std::string &key);
+  base::Status setOtherUrl(const std::string &key, const std::string &url);
+  base::Status removeOtherUrl(const std::string &key);
+  std::string getImageUrl(const std::string &key);
+  std::string getVideoUrl(const std::string &key);
+  std::string getAudioUrl(const std::string &key);
+  std::string getModelUrl(const std::string &key);
+  std::string getOtherUrl(const std::string &key);
+
   base::Status setEdgeQueueMaxSize(int queue_max_size);
   int getEdgeQueueMaxSize();
 
@@ -100,7 +116,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<std::string> getNodesNameRecursive();
 
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatus();
-  std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatusRecursive();
+  std::map<std::string, std::shared_ptr<RunStatus>>
+  getNodesRunStatusRecursive();
 
   // help function
   base::Status addNodeInputAndOutput(NodeWrapper *node_wrapper,
@@ -308,6 +325,13 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status executor();
 
  protected:
+  // 
+  std::map<std::string, std::string> image_url_;
+  std::map<std::string, std::string> video_url_;
+  std::map<std::string, std::string> audio_url_;
+  std::map<std::string, std::string> model_url_;
+  std::map<std::string, std::string> other_url_;
+
   bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
@@ -1425,14 +1449,14 @@ using createGraphFunc = std::function<Graph *(
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value)>;
 
-extern NNDEPLOY_CC_API std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap();
+extern NNDEPLOY_CC_API std::map<std::string, createGraphFunc> &
+getGlobalGraphCreatorMap();
 
-class NNDEPLOY_CC_API TypeGraphRegister {
- public:
-  explicit TypeGraphRegister(const std::string &name, createGraphFunc func) {
-    getGlobalGraphCreatorMap()[name] = func;
-  }
-};
+class NNDEPLOY_CC_API TypeGraphRegister{public : explicit TypeGraphRegister(
+    const std::string &name,
+    createGraphFunc func){getGlobalGraphCreatorMap()[name] = func;
+}  // namespace dag
+};  // namespace nndeploy
 
 extern NNDEPLOY_CC_API Graph *createGraph(const std::string &name,
                                           base::InferenceType inference_type,

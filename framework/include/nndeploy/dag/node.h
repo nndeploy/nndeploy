@@ -98,6 +98,10 @@ class NNDEPLOY_CC_API Node {
   std::string getKey();
   void setName(const std::string &name);
   std::string getName();
+  void setDeveloper(const std::string &developer);
+  std::string getDeveloper();
+  void setGithub(const std::string &github);
+  std::string getGithub();
   void setDesc(const std::string &desc);
   std::string getDesc();
 
@@ -273,6 +277,8 @@ class NNDEPLOY_CC_API Node {
    */
   std::string key_;
   std::string name_;
+  std::string developer_;
+  std::string github_;
   std::string desc_;
   base::DeviceType device_type_;
   /**
