@@ -113,6 +113,7 @@ class PILImageEncodec(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
         
     def serialize(self):
+        self.add_io_param("path_")
         self.add_required_param("path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
@@ -174,6 +175,7 @@ class PILImageDecodec(nndeploy.dag.Node):
             return nndeploy.base.Status.error()
         
     def serialize(self):
+        self.add_io_param("path_")
         self.add_required_param("path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)

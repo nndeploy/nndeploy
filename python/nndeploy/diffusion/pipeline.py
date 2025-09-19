@@ -11,13 +11,21 @@ import time
 import os
 
 from diffusers import DiffusionPipeline
+from diffusers import AutoPipelineForText2Image
 from diffusers import AutoPipelineForImage2Image
 from diffusers import AutoPipelineForInpainting
+
+from diffusers.quantizers import PipelineQuantizationConfig
 
 from typing import List, Optional, Tuple, Union
 import numpy as np
 # from PIL import Image
 from PIL import Image, ImageFilter, ImageOps
+
+supported_text2image_models = [
+    "stable-diffusion-v1-5/stable-diffusion-v1-5",
+    "stabilityai/stable-diffusion-xl-base-1.0",
+]
 
 class FromPretrainedParam(nndeploy.base.Param):
     def __init__(self):
@@ -35,13 +43,14 @@ class FromPretrainedParam(nndeploy.base.Param):
     
     def serialize(self) -> str:
         """序列化参数为JSON字符串"""
-        param_dict = {
-            "pretrained_model_name_or_path": self.pretrained_model_name_or_path,
-            "torch_dtype": self.torch_dtype,
-            "mirror": self.mirror,
-            "low_cpu_mem_usage": self.low_cpu_mem_usage,
-        }
-        return json.dumps(param_dict, ensure_ascii=False, indent=2)
+        self.add_dropdown_param("pretrained_model_name_or_path", supported_text2image_models)
+        base_json = super().serialize()
+        json_obj = json.loads(base_json)
+        json_obj["pretrained_model_name_or_path"] = self.pretrained_model_name_or_path
+        json_obj["torch_dtype"] = self.torch_dtype
+        json_obj["mirror"] = self.mirror
+        json_obj["low_cpu_mem_usage"] = self.low_cpu_mem_usage
+        return json.dumps(json_obj, ensure_ascii=False, indent=2)
     
     def deserialize(self, json_str: str) -> nndeploy.base.Status:
         """从JSON字符串反序列化参数"""
@@ -57,11 +66,51 @@ class FromPretrainedParam(nndeploy.base.Param):
             
             # 设备和内存管理参数
             # self.device_map = param_dict.get("device_map", "balanced")
-            self.low_cpu_mem_usage = param_dict.get("low_cpu_mem_usage", True)            
-            return nndeploy.base.Status.ok()
+            self.low_cpu_mem_usage = param_dict.get("low_cpu_mem_usage", True)        
+                
+            # 调用基类反序列化
+            return super().deserialize(json_str)
         except Exception as e:
             print(f"反序列化参数失败: {e}")
             return nndeploy.base.Status.error()
+        
+class QuantizationParam(nndeploy.base.Param):
+    def __init__(self):
+        super().__init__()
+        self.is_quantized = False
+        self.quant_backend = "bitsandbytes_4bit"
+        self.quant_kwargs = {}
+        self.components_to_quantize = ["transformer", "text_encoder"]
+        self.quant_mapping = {}
+        
+    def serialize(self) -> str:
+        """序列化参数为JSON字符串"""
+        param_dict = {
+            "is_quantized": self.is_quantized,
+            "quant_backend": self.quant_backend,
+            "quant_kwargs": self.quant_kwargs,
+            "components_to_quantize": self.components_to_quantize,
+            "quant_mapping": self.quant_mapping,
+        }
+        return json.dumps(param_dict, ensure_ascii=False, indent=2)
+    
+    def deserialize(self, json_str: str) -> nndeploy.base.Status:
+        """从JSON字符串反序列化参数"""
+        try:
+            param_dict = json.loads(json_str)
+            
+            # 量化相关参数
+            self.is_quantized = param_dict.get("is_quantized", False)
+            self.quant_backend = param_dict.get("quant_backend", None)
+            self.quant_kwargs = param_dict.get("quant_kwargs", {})
+            self.components_to_quantize = param_dict.get("components_to_quantize", [])
+            self.quant_mapping = param_dict.get("quant_mapping", {})
+            
+            return nndeploy.base.Status.ok()
+        except Exception as e:
+            print(f"反序列化量化参数失败: {e}")
+            return nndeploy.base.Status.error()
+
     
 class Text2Image(nndeploy.dag.Node):
     """
@@ -81,12 +130,9 @@ class Text2Image(nndeploy.dag.Node):
         self.set_dynamic_output(True)
         
         # 初始化参数
-        self.param = FromPretrainedParam()
-        self.param.add_required_param()
-        
+        self.param = FromPretrainedParam()       
         # 设置默认设备为CUDA
         self.set_device_type(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cuda, 0))
-        
         # 参数
         self.num_inference_steps = 50
         self.guidance_scale = 8.0
@@ -94,26 +140,46 @@ class Text2Image(nndeploy.dag.Node):
         self.guidance_rescale = 0.0
         self.timesteps: List[int] = None,
         self.sigmas: List[float] = None,
+        # 低内存
+        self.enable_model_cpu_offload = True
+        # 内存高效注意力
+        self.enable_xformers_memory_efficient_attention = False
+        # 是否启用LoRA
+        self.is_lora = False
+        # LoRA权重
+        self.lora_weights = ""
+        # 量化
+        self.quantization_param = QuantizationParam()
         
         # 管道实例
         self.pipeline = None
         
     def init(self):        
         try:
+            quantization_config = None
+            if self.quantization_param.is_quantized:
+                quantization_config = PipelineQuantizationConfig(
+                    quant_backend=self.quantization_param.quant_backend,
+                    quant_kwargs=self.quantization_param.quant_kwargs,
+                    components_to_quantize=self.quantization_param.components_to_quantize,
+                    quant_mapping=self.quantization_param.quant_mapping
+                )
             try:
                 # 首先尝试本地加载
-                self.pipeline = DiffusionPipeline.from_pretrained(
+                self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
                     local_files_only=True,
                     torch_dtype=get_torch_dtype(self.param.torch_dtype),
-                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage,
+                    quantization_config=quantization_config
                 )
             except Exception as local_error:                
-                self.pipeline = DiffusionPipeline.from_pretrained(
+                self.pipeline = AutoPipelineForText2Image.from_pretrained(
                     pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
                     torch_dtype=get_torch_dtype(self.param.torch_dtype),
                     mirror=self.param.mirror,
-                    low_cpu_mem_usage=self.param.low_cpu_mem_usage
+                    low_cpu_mem_usage=self.param.low_cpu_mem_usage,
+                    quantization_config=quantization_config
                 )
             
             # 根据设备类型移动管道
@@ -126,6 +192,21 @@ class Text2Image(nndeploy.dag.Node):
                 self.pipeline.to("cpu")
             else:
                 self.pipeline.to("cpu")
+                
+            if self.is_lora:
+                self.pipeline.load_lora_weights(self.lora_weights)
+                
+            if self.enable_model_cpu_offload:
+                self.pipeline.enable_model_cpu_offload()
+            if self.enable_xformers_memory_efficient_attention:
+                try:
+                    import xformers
+                    self.pipeline.enable_xformers_memory_efficient_attention()
+                    print("已启用XFormers内存高效注意力")
+                except ImportError:
+                    print("警告: 未安装xformers，无法启用内存高效注意力。请参考 https://github.com/facebookresearch/xformers 安装xformers")
+                except Exception as e:
+                    print(f"启用XFormers内存高效注意力失败: {e}")
                 
             return nndeploy.base.Status.ok()
             
@@ -199,6 +280,11 @@ class Text2Image(nndeploy.dag.Node):
             json_obj["guidance_rescale"] = self.guidance_rescale
             json_obj["timesteps"] = self.timesteps if self.timesteps is not None else List[int]
             json_obj["sigmas"] = self.sigmas if self.sigmas is not None else List[float]
+            json_obj["enable_model_cpu_offload"] = self.enable_model_cpu_offload
+            json_obj["enable_xformers_memory_efficient_attention"] = self.enable_xformers_memory_efficient_attention
+            json_obj["is_lora"] = self.is_lora
+            json_obj["lora_weights"] = self.lora_weights
+            json_obj["quantization_param"] = json.loads(self.quantization_param.serialize())
             
              # 添加自定义参数
             json_obj["param"] = json.loads(self.param.serialize())
@@ -232,6 +318,17 @@ class Text2Image(nndeploy.dag.Node):
                 self.timesteps = json_obj["timesteps"]
             if "sigmas" in json_obj:
                 self.sigmas = json_obj["sigmas"]
+            if "enable_model_cpu_offload" in json_obj:
+                self.enable_model_cpu_offload = json_obj["enable_model_cpu_offload"]
+            if "enable_xformers_memory_efficient_attention" in json_obj:
+                self.enable_xformers_memory_efficient_attention = json_obj["enable_xformers_memory_efficient_attention"]
+            if "is_lora" in json_obj:
+                self.is_lora = json_obj["is_lora"]
+            if "lora_weights" in json_obj:
+                self.lora_weights = json_obj["lora_weights"]
+            if "quantization_param" in json_obj:
+                quantization_param_json = json.dumps(json_obj["quantization_param"])
+                self.quantization_param.deserialize(quantization_param_json)
             
             # 调用基类反序列化
             return super().deserialize(json_str)
@@ -554,8 +651,6 @@ class Inpainting(nndeploy.dag.Node):
     def init(self):        
         try:
             try:
-                # 首先尝试本地加载
-                from diffusers import AutoPipelineForInpainting
                 self.pipeline = AutoPipelineForInpainting.from_pretrained(
                     pretrained_model_or_path=self.param.pretrained_model_name_or_path,
                     local_files_only=True,
@@ -563,7 +658,6 @@ class Inpainting(nndeploy.dag.Node):
                     low_cpu_mem_usage=self.param.low_cpu_mem_usage
                 )
             except Exception as local_error:                
-                from diffusers import AutoPipelineForInpainting
                 self.pipeline = AutoPipelineForInpainting.from_pretrained(
                     pretrained_model_or_path=self.param.pretrained_model_name_or_path,
                     torch_dtype=get_torch_dtype(self.param.torch_dtype),
