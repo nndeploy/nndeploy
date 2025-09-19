@@ -22,16 +22,7 @@ class PILImage2Numpy(nndeploy.dag.Node):
         input_edge = self.get_input(0) # 获取输入边
         image = input_edge.get(self) # 获取输入的image
         image_array = np.array(image)
-        # 使用numpy实现颜色空间转换：PIL图像通常是RGB格式，转换为BGR格式（OpenCV标准）
-        if len(image_array.shape) == 3 and image_array.shape[2] == 3:
-            # RGB到BGR的numpy颜色空间转换
-            cv_mat = np.stack([image_array[:, :, 2], image_array[:, :, 1], image_array[:, :, 0]], axis=2)
-        elif len(image_array.shape) == 3 and image_array.shape[2] == 4:
-            # RGBA到BGRA的numpy颜色空间转换
-            cv_mat = np.stack([image_array[:, :, 2], image_array[:, :, 1], image_array[:, :, 0], image_array[:, :, 3]], axis=2)
-        else:
-            # 灰度图或其他格式直接使用
-            cv_mat = image_array
+        cv_mat = image_array
         output_edge = self.get_output(0) # 获取输出边
         output_edge.set(cv_mat) # 将输出写入到输出边中
         return nndeploy.base.Status.ok()
@@ -55,6 +46,54 @@ class PILImage2NumpyCreator(nndeploy.dag.NodeCreator):
 
 pil_image2numpy_node_creator = PILImage2NumpyCreator()
 nndeploy.dag.register_node("nndeploy.codec.PILImage2Numpy", pil_image2numpy_node_creator)
+
+
+class Numpy2PILImage(nndeploy.dag.Node):
+    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+        super().__init__(name, inputs, outputs)
+        self.set_key("nndeploy.codec.Numpy2PILImage")
+        self.set_desc("Numpy to PIL Image")
+        self.set_input_type(np.ndarray)
+        self.set_output_type(Image)
+        
+    def run(self) -> bool:
+        input_edge = self.get_input(0) # 获取输入边
+        numpy_array = input_edge.get(self) # 获取输入的numpy数组
+        
+        # 确保数组格式正确
+        if numpy_array.dtype != np.uint8:
+            # 如果是浮点数，假设范围是[0,1]，转换为[0,255]
+            if numpy_array.dtype in [np.float32, np.float64]:
+                numpy_array = (numpy_array * 255).astype(np.uint8)
+            else:
+                numpy_array = numpy_array.astype(np.uint8)
+        
+        # 转换为PIL Image
+        pil_image = Image.fromarray(numpy_array)
+        
+        output_edge = self.get_output(0) # 获取输出边
+        output_edge.set(pil_image) # 将输出写入到输出边中
+        return nndeploy.base.Status.ok()
+      
+    def serialize(self):
+        json_str = super().serialize()
+        json_obj = json.loads(json_str)
+        return json.dumps(json_obj)
+        
+    def deserialize(self, target: str):
+        json_obj = json.loads(target)
+        return super().deserialize(target)
+      
+class Numpy2PILImageCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = Numpy2PILImage(name, inputs, outputs)
+        return self.node
+
+numpy2pil_image_node_creator = Numpy2PILImageCreator()
+nndeploy.dag.register_node("nndeploy.codec.Numpy2PILImage", numpy2pil_image_node_creator)
     
 
 class PILImageEncodec(nndeploy.dag.Node):
@@ -74,6 +113,7 @@ class PILImageEncodec(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
         
     def serialize(self):
+        self.add_io_param("path_")
         self.add_required_param("path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
@@ -95,3 +135,73 @@ class PILImageEncodecCreator(nndeploy.dag.NodeCreator):
 
 pil_image_encodec_node_creator = PILImageEncodecCreator()
 nndeploy.dag.register_node("nndeploy.codec.PILImageEncodec", pil_image_encodec_node_creator)
+
+
+class PILImageDecodec(nndeploy.dag.Node):
+    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+        super().__init__(name, inputs, outputs)
+        self.set_key("nndeploy.codec.PILImageDecodec")
+        self.set_desc("PIL Image Decodec with Color Space Conversion")
+        self.set_output_type(Image)
+        self.set_node_type(nndeploy.dag.NodeType.Input)
+        self.set_io_type(nndeploy.dag.IOType.Image)
+        self.path_ = ""
+        self.color_mode_ = "RGB"  # 支持的颜色模式：RGB, RGBA, L, CMYK等
+    
+    def run(self) -> bool:
+        try:
+            # 从文件路径加载图像
+            image = Image.open(self.path_)
+            
+            # 执行颜色空间转换
+            if self.color_mode_ and image.mode != self.color_mode_:
+                if self.color_mode_ == "RGB" and image.mode == "RGBA":
+                    # RGBA转RGB，使用白色背景
+                    background = Image.new("RGB", image.size, (255, 255, 255))
+                    background.paste(image, mask=image.split()[-1])  # 使用alpha通道作为mask
+                    image = background
+                else:
+                    # 通用转换
+                    image = image.convert(self.color_mode_)
+            
+            # 输出到输出边
+            output_edge = self.get_output(0)
+            output_edge.set(image)
+            
+            return nndeploy.base.Status.ok()
+            
+        except Exception as e:
+            print(f"PIL图像解码失败: {e}")
+            return nndeploy.base.Status.error()
+        
+    def serialize(self):
+        self.add_io_param("path_")
+        self.add_required_param("path_")
+        json_str = super().serialize()
+        json_obj = json.loads(json_str)
+        json_obj["path_"] = self.path_
+        json_obj["color_mode_"] = self.color_mode_
+        return json.dumps(json_obj, ensure_ascii=False, indent=2)
+
+    def deserialize(self, target: str):
+        try:
+            json_obj = json.loads(target)
+            if "path_" in json_obj:
+                self.path_ = json_obj["path_"]
+            if "color_mode_" in json_obj:
+                self.color_mode_ = json_obj["color_mode_"]
+            return super().deserialize(target)
+        except Exception as e:
+            print(f"PIL图像解码节点反序列化失败: {e}")
+            return nndeploy.base.Status.error()
+
+class PILImageDecodecCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = PILImageDecodec(name, inputs, outputs)
+        return self.node
+
+pil_image_decodec_node_creator = PILImageDecodecCreator()
+nndeploy.dag.register_node("nndeploy.codec.PILImageDecodec", pil_image_decodec_node_creator)

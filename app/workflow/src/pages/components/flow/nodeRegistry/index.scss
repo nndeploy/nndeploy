@@ -148,15 +148,26 @@
           .UIName {
             flex-basis: 140px;
             display: flex;
+           // flex-shrink: 0;
+           &.object{
+            flex: 1;
+           }
+            &.array{
+            flex: 1;
+           }
 
           }
           .UIComponent{
             flex: 1;
+            flex-shrink: 1;
+            min-width: 0;
 
           }
 
           .UIActions {
             white-space: nowrap;
+            flex-basis: content;
+            flex-shrink: 0;
           }
         }
       }

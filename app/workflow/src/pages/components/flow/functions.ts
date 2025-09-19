@@ -29,12 +29,16 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
     originValue: ''
   }
 
+  if(fieldNames[fieldNames.length -1] == 'color_mode_'){
+    let j = 0;
+  }
+
   const nodeRegistry = getNodeRegistry(form, nodeList)
 
   let fieldValue: any = nodeRegistry
-
+  let fieldName = ''
   for (let i = 0; i < fieldNames.length; i++) {
-    let fieldName = fieldNames[i]
+     fieldName = fieldNames[i]
     if (fieldValue == null) {
       let i = 0
     }
@@ -124,9 +128,39 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
   //   return fieldNames.length == 2 && fieldNames[1] == 'params_'
   // }
 
-  if (lodash.isString(fieldValue) && paramTypes.hasOwnProperty(fieldValue)) {
+  function getSelectOptions(){
+    if (!lodash.isString(fieldName)){
+      return undefined
+    }
+
+    let parents :string[] = ['', 'param_', 'param']
+
+    let options : any[] = []
+    for(let parent of parents){
+
+
+      options = parent ? nodeRegistry[parent]?.['dropdown_params_']?.[fieldName] 
+      : nodeRegistry['dropdown_params_']?.[fieldName]
+
+      if(options){
+        return options
+      }
+
+    }
+
+    if(paramTypes.hasOwnProperty(fieldValue)){
+      options = paramTypes[fieldValue]
+      return options
+    }
+
+    return undefined
+  }
+
+  const selectOptions = getSelectOptions()
+
+  if (!result.isArray && selectOptions) { //lodash.isString(fieldValue) &&
     result.componentType = 'select'
-    result.selectOptions = paramTypes[fieldValue]
+    result.selectOptions = selectOptions
     result.selectKey = fieldValue
   }
 

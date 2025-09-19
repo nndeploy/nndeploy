@@ -10,6 +10,8 @@ import torch
 import numpy as np
 from typing import Optional, Tuple, Union
 
+from PIL import Image
+
 class LatentNoise(nndeploy.dag.Node):
     """
     潜在空间噪声生成输入节点
@@ -19,7 +21,7 @@ class LatentNoise(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.LatentNoise")
+        self.set_key("nndeploy.diffusion.LatentNoise")
         self.set_desc("Generate random noise tensor for diffusion models")
         
         # 输出：噪声张量
@@ -153,7 +155,7 @@ class LatentNoiseCreator(nndeploy.dag.NodeCreator):
         return self.node
 
 latent_noise_creator = LatentNoiseCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.LatentNoise", latent_noise_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.LatentNoise", latent_noise_creator)
 
 class LatentEmpty(nndeploy.dag.Node):
     """
@@ -164,7 +166,7 @@ class LatentEmpty(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.LatentEmpty")
+        self.set_key("nndeploy.diffusion.LatentEmpty")
         self.set_desc("Generate empty (zero) latent tensor")
         
         # 输出：空潜在空间张量
@@ -274,7 +276,7 @@ class LatentEmptyCreator(nndeploy.dag.NodeCreator):
         return self.node
 
 latent_empty_creator = LatentEmptyCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.LatentEmpty", latent_empty_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.LatentEmpty", latent_empty_creator)
 
 class LatentFromImage(nndeploy.dag.Node):
     """
@@ -285,11 +287,12 @@ class LatentFromImage(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.LatentFromImage")
+        self.set_key("nndeploy.diffusion.LatentFromImage")
         self.set_desc("Encode image to latent space representation")
         
-        # 输入：图像
-        self.set_input_type(torch.Tensor, "Input image tensor")
+        # 输入：PIL图像
+        
+        self.set_input_type(Image.Image, "Input PIL image")
         
         # 输出：潜在空间张量
         self.set_output_type(torch.Tensor, "Output latent tensor")
@@ -312,9 +315,9 @@ class LatentFromImage(nndeploy.dag.Node):
     def run(self) -> nndeploy.base.Status:
         """将图像编码为潜在空间"""
         try:
-            # 获取输入图像
+            # 获取输入PIL图像
             input_edge = self.get_input(0)
-            image_tensor = input_edge.get(self)
+            pil_image = input_edge.get(self)
             
             # 确定设备
             device_type = self.get_device_type()
@@ -323,6 +326,18 @@ class LatentFromImage(nndeploy.dag.Node):
                 device = f"cuda:{device_id}"
             else:
                 device = "cpu"
+            
+            # 将PIL图像转换为张量
+            import torchvision.transforms as transforms
+            
+            # 定义转换管道
+            transform = transforms.Compose([
+                transforms.ToTensor(),  # 转换为张量并归一化到[0,1]
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # 归一化到[-1,1]
+            ])
+            
+            # 转换PIL图像为张量
+            image_tensor = transform(pil_image).unsqueeze(0)  # 添加批次维度
             
             # 确保图像在正确的设备上
             if image_tensor.device != torch.device(device):
@@ -391,7 +406,7 @@ class LatentFromImageCreator(nndeploy.dag.NodeCreator):
         return self.node
 
 latent_from_image_creator = LatentFromImageCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.LatentFromImage", latent_from_image_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.LatentFromImage", latent_from_image_creator)
 
 class LatentBatch(nndeploy.dag.Node):
     """
@@ -402,7 +417,7 @@ class LatentBatch(nndeploy.dag.Node):
     """
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy.diffusers.LatentBatch")
+        self.set_key("nndeploy.diffusion.LatentBatch")
         self.set_desc("Batch multiple latent tensors together")
         
         # 输入：多个潜在空间张量
@@ -509,4 +524,4 @@ class LatentBatchCreator(nndeploy.dag.NodeCreator):
         return self.node
 
 latent_batch_creator = LatentBatchCreator()
-nndeploy.dag.register_node("nndeploy.diffusers.LatentBatch", latent_batch_creator)
+nndeploy.dag.register_node("nndeploy.diffusion.LatentBatch", latent_batch_creator)

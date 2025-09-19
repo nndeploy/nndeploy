@@ -1,24 +1,31 @@
-import { TextArea, Upload, Typography, Input } from "@douyinfe/semi-ui";
+import { TextArea, Upload, Typography, Input, Button } from "@douyinfe/semi-ui";
 import { BeforeUploadProps } from "@douyinfe/semi-ui/lib/es/upload";
 import { useEffect, useRef, useState } from "react";
 import { apiGetFileContent, apiOtherFileSave } from "./api";
-import { IconFolderOpen, IconPlus, IconSearch } from "@douyinfe/semi-icons";
+import { IconDownload, IconFolderOpen, IconPlus, IconSearch } from "@douyinfe/semi-icons";
 import styles from './index.module.scss'
 import classNames from "classnames";
+import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
+import request from "../../../../../../request";
 
 const { Text } = Typography;
 
 
 interface IoTypeTextFileProps {
   value: any;
+  direction: 'input' | 'output';
   onChange: (value: string) => void;
 }
 const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
-  const { value, onChange } = props;
+  const { value, onChange, direction } = props;
 
   const [fileContent, setFileContent] = useState('');
 
   const [fileName, setFileName] = useState('')
+
+  const { runInfo } = useFlowEnviromentContext()
+
+  const { result: runResult } = runInfo
 
   async function getFileContent(filePath: string) {
 
@@ -101,62 +108,105 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
     }
   }
 
+  function getdownloadFileName() {
+
+    if (value) {
+      const parts = (value as string).split('/')
+      return parts[parts.length - 1]
+    }
+    return ''
+
+  }
+
+  const downloadFileName = getdownloadFileName()
+
+  function onDownload(event: any) {
+    event.stopPropagation();
+    event.nativeEvent.stopImmediatePropagation();
+    const url = `/api/download?file_path=${value}`
+    request.download(url, {}, {}, undefined)
+
+    //onChange('')
+  }
+
+
+
 
   return (
-    <>
-      <div onClick={event => {
-        event.stopPropagation();
-        event.nativeEvent.stopImmediatePropagation();
+    <div className={styles["io-type-container"]}>
+      {
+        direction === 'input' ?
+
+          <div className={classNames(styles['io-type-input-container']
+            //, { [styles.show]: direction === 'input' }
+          )}>
+            <div className={classNames(styles["upload-area"])} onClick={event => {
+              event.stopPropagation();
+              event.nativeEvent.stopImmediatePropagation();
 
 
-      }}>
-        {/* <IconPlus size="extra-large"
+            }}>
 
-          onClick={event => {
-            event.stopPropagation();
-            event.nativeEvent.stopImmediatePropagation();
 
-            if (fileInputRef.current) {
-              fileInputRef.current.click();
+              <Input readOnly suffix={<IconFolderOpen
+                onClick={event => {
+                  event.stopPropagation();
+                  event.nativeEvent.stopImmediatePropagation();
+
+                  if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                  }
+                }} />}
+                style={{ cursor: 'default!important' }}
+                onFocus={(e) => e.target.style.caretColor = 'transparent'}
+
+                value={fileName}
+
+                showClear={false}
+                onClick={event => {
+                  event.stopPropagation();
+
+                  event.nativeEvent.stopImmediatePropagation();
+
+                  if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                  }
+                }} />
+
+
+              <input type="file" id="fileInput" hidden ref={fileInputRef} />
+
+              {value && fileContent && <div className={styles['preview']} onClick={(event) => {
+                event.stopPropagation();
+              }}>{fileContent}</div>
+
+              }
+
+            </div>
+          </div>
+          :
+          <div className={classNames(styles['io-type-output-container'])} >
+            {value && runResult == 'success' && <div className={styles['preview']} >
+              <div className={classNames(styles['file-item-info'])} >
+
+                <span className={styles.fileName}>{downloadFileName} </span>
+                {/* <span className={styles.fileSize}>{fileInfo.size} </span> */}
+                <Button theme='light'
+                  disabled={runResult != 'success'}
+                  type='primary'
+                  onClick={onDownload}
+                  icon={<IconDownload />}
+                  className={styles.download}>
+                </Button>
+
+              </div>
+
+            </div>
+
             }
-          }}
-        /> */}
-        <Input readOnly suffix={<IconFolderOpen
-          onClick={event => {
-            event.stopPropagation();
-            event.nativeEvent.stopImmediatePropagation();
-
-            if (fileInputRef.current) {
-              fileInputRef.current.click();
-            }
-          }} />}
-          style={{ cursor: 'default!important' }}
-          onFocus={(e) => e.target.style.caretColor = 'transparent'}
-
-          value={fileName}
-
-          showClear={false}
-          onClick={event => {
-            event.stopPropagation();
-
-            event.nativeEvent.stopImmediatePropagation();
-
-            if (fileInputRef.current) {
-              fileInputRef.current.click();
-            }
-          }} />
-
-
-        <input type="file" id="fileInput" hidden ref={fileInputRef} />
-
-        {value && fileContent && <div className={styles['preview']} onClick={(event) => {
-          event.stopPropagation();
-        }}>{fileContent}</div>
-
-        }
-
-      </div>
-    </>
+          </div>
+      }
+    </div>
 
   );
 

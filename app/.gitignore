@@ -114,6 +114,7 @@ lib-esnext/
 lib-commonjs/
 lib-shim/
 dist/
+dist.zip
 dist-storybook/
 *.tsbuildinfo
 

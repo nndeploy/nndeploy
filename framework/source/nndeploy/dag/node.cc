@@ -413,6 +413,48 @@ base::Status Node::clearUiParams() {
 }
 std::vector<std::string> Node::getUiParams() { return ui_params_; }
 
+base::Status Node::setIoParams(const std::vector<std::string> &io_params) {
+  io_params_ = io_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addIoParam(const std::string &io_param) {
+  io_params_.emplace_back(io_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeIoParam(const std::string &io_param) {
+  auto it = std::find(io_params_.begin(), io_params_.end(), io_param);
+  if (it != io_params_.end()) {
+    io_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearIoParams() {
+  io_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getIoParams() { return io_params_; }
+
+base::Status Node::setDropdownParams(const std::map<std::string, std::vector<std::string>> &dropdown_params) {
+  dropdown_params_ = dropdown_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addDropdownParam(const std::string &dropdown_param, const std::vector<std::string> &dropdown_values) {
+  dropdown_params_[dropdown_param] = dropdown_values;
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeDropdownParam(const std::string &dropdown_param) {
+  auto it = dropdown_params_.find(dropdown_param);
+  if (it != dropdown_params_.end()) {
+    dropdown_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearDropdownParams() {
+  dropdown_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::map<std::string, std::vector<std::string>> Node::getDropdownParams() { return dropdown_params_; }
+
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");
@@ -1019,6 +1061,20 @@ base::Status Node::serialize(rapidjson::Value &json,
                        allocator);
   }
   json.AddMember("ui_params_", ui_params, allocator);
+  rapidjson::Value io_params(rapidjson::kArrayType);
+  for (auto &io_param : io_params_) {
+    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator), allocator);
+  }
+  json.AddMember("io_params_", io_params, allocator);
+  rapidjson::Value dropdown_params(rapidjson::kObjectType);
+  for (auto &dropdown_param : dropdown_params_) {
+    rapidjson::Value dropdown_values(rapidjson::kArrayType);
+    for (auto &dropdown_value : dropdown_param.second) {
+      dropdown_values.PushBack(rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
+    }
+    dropdown_params.AddMember(rapidjson::Value(dropdown_param.first.c_str(), allocator), dropdown_values, allocator);
+  }
+  json.AddMember("dropdown_params_", dropdown_params, allocator);
 
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
@@ -1246,16 +1302,16 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     version_ = json["version_"].GetString();
   }
 
-  if (json.HasMember("required_params_") &&
-      json["required_params_"].IsArray()) {
-    required_params_.clear();
-    auto &required_params_array = json["required_params_"];
-    for (int i = 0; i < required_params_array.Size(); i++) {
-      if (required_params_array[i].IsString()) {
-        required_params_.emplace_back(required_params_array[i].GetString());
-      }
-    }
-  }
+  // if (json.HasMember("required_params_") &&
+  //     json["required_params_"].IsArray()) {
+  //   required_params_.clear();
+  //   auto &required_params_array = json["required_params_"];
+  //   for (int i = 0; i < required_params_array.Size(); i++) {
+  //     if (required_params_array[i].IsString()) {
+  //       required_params_.emplace_back(required_params_array[i].GetString());
+  //     }
+  //   }
+  // }
   if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
     ui_params_.clear();
     auto &ui_params_array = json["ui_params_"];
@@ -1265,6 +1321,30 @@ base::Status Node::deserialize(rapidjson::Value &json) {
       }
     }
   }
+  // if (json.HasMember("io_params_") && json["io_params_"].IsArray()) {
+  //   io_params_.clear();
+  //   auto &io_params_array = json["io_params_"];
+  //   for (int i = 0; i < io_params_array.Size(); i++) {
+  //     if (io_params_array[i].IsString()) {
+  //       io_params_.emplace_back(io_params_array[i].GetString());
+  //     }
+  //   }
+  // }
+  // if (json.HasMember("dropdown_params_") && json["dropdown_params_"].IsObject()) {
+  //   dropdown_params_.clear();
+  //   auto &dropdown_params_obj = json["dropdown_params_"];
+  //   for (auto it = dropdown_params_obj.MemberBegin(); it != dropdown_params_obj.MemberEnd(); ++it) {
+  //     if (it->value.IsArray()) {
+  //       std::vector<std::string> dropdown_values;
+  //       for (int i = 0; i < it->value.Size(); i++) {
+  //         if (it->value[i].IsString()) {
+  //           dropdown_values.emplace_back(it->value[i].GetString());
+  //         }
+  //       }
+  //       dropdown_params_[it->name.GetString()] = dropdown_values;
+  //     }
+  //   }
+  // }
 
   if (json.HasMember("is_external_stream_") &&
       json["is_external_stream_"].IsBool()) {

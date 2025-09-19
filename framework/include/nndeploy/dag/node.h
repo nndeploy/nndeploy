@@ -153,6 +153,18 @@ class NNDEPLOY_CC_API Node {
   base::Status clearUiParams();
   std::vector<std::string> getUiParams();
 
+  base::Status setIoParams(const std::vector<std::string> &io_params);
+  base::Status addIoParam(const std::string &io_param);
+  base::Status removeIoParam(const std::string &io_param);
+  base::Status clearIoParams();
+  std::vector<std::string> getIoParams();
+
+  base::Status setDropdownParams(const std::map<std::string, std::vector<std::string>> &dropdown_params);
+  base::Status addDropdownParam(const std::string &dropdown_param, const std::vector<std::string> &dropdown_values);
+  base::Status removeDropdownParam(const std::string &dropdown_param);
+  base::Status clearDropdownParams();
+  std::map<std::string, std::vector<std::string>> getDropdownParams();
+
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
 
@@ -359,6 +371,8 @@ class NNDEPLOY_CC_API Node {
   std::string version_ = "1.0.0";
   std::vector<std::string> required_params_;
   std::vector<std::string> ui_params_;
+  std::vector<std::string> io_params_;
+  std::map<std::string, std::vector<std::string>> dropdown_params_;
 };
 
 /**

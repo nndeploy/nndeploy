@@ -174,6 +174,62 @@ class Node(_C.dag.Node):
     def get_required_params(self) -> list:
         """获取必需参数列表。"""
         return super().get_required_params()
+    
+    def set_ui_params(self, ui_params: list):
+        """设置UI参数列表。"""
+        return super().set_ui_params(ui_params)
+    
+    def add_ui_param(self, ui_param: str):
+        """添加UI参数。"""
+        return super().add_ui_param(ui_param)
+    
+    def remove_ui_param(self, ui_param: str):
+        """移除UI参数。"""
+        return super().remove_ui_param(ui_param)
+    
+    def clear_ui_params(self):
+        """清空UI参数列表。"""
+        return super().clear_ui_params()
+    
+    def get_ui_params(self) -> list:
+        """获取UI参数列表。"""
+        return super().get_ui_params()
+    
+    def set_io_params(self, io_params: list):
+        """设置IO参数列表。"""
+        return super().set_io_params(io_params)
+    
+    def add_io_param(self, io_param: str):
+        """添加IO参数。"""
+        return super().add_io_param(io_param)
+    
+    def remove_io_param(self, io_param: str):
+        """移除IO参数。"""
+        return super().remove_io_param(io_param)
+    
+    def clear_io_params(self):
+        """清空IO参数列表。"""
+        return super().clear_io_params()
+    
+    def get_io_params(self) -> list:
+        """获取IO参数列表。"""
+        return super().get_io_params()
+    
+    def set_dropdown_params(self, dropdown_params: dict):
+        """设置下拉参数列表。"""
+        return super().set_dropdown_params(dropdown_params)
+    
+    def add_dropdown_param(self, dropdown_param: str, dropdown_values: list):
+        """添加下拉参数。"""
+        return super().add_dropdown_param(dropdown_param, dropdown_values)
+    
+    def remove_dropdown_param(self, dropdown_param: str):
+        """移除下拉参数。"""
+        return super().remove_dropdown_param(dropdown_param)
+    
+    def clear_dropdown_params(self):
+        """清空下拉参数列表。"""
+        return super().clear_dropdown_params()
         
     def set_input(self, input, index: int = -1):
         """Set input at the specified index."""

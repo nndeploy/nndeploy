@@ -1923,7 +1923,49 @@ class Param(_C.base.Param):
         return super().clear_required_params()
     
     def get_required_params(self):
-        return super().get_required_params()
+        return super().get_required_params()\
+    
+    def set_ui_params(self, params):
+        return super().set_ui_params(params)
+    
+    def add_ui_param(self, param):
+        return super().add_ui_param(param)
+    
+    def remove_ui_param(self, param):
+        return super().remove_ui_param(param)
+    
+    def clear_ui_params(self):
+        return super().clear_ui_params()
+    
+    def get_ui_params(self):
+        return super().get_ui_params()
+    
+    def set_io_params(self, params):
+        return super().set_io_params(params)
+    
+    def add_io_param(self, param):
+        return super().add_io_param(param)
+    
+    def remove_io_param(self, param):
+        return super().remove_io_param(param)
+    
+    def clear_io_params(self):
+        return super().clear_io_params()
+    
+    def get_io_params(self):
+        return super().get_io_params()
+    
+    def add_dropdown_param(self, param, values):
+        return super().add_dropdown_param(param, values)
+    
+    def remove_dropdown_param(self, param):
+        return super().remove_dropdown_param(param)
+    
+    def clear_dropdown_params(self):
+        return super().clear_dropdown_params()
+    
+    def get_dropdown_params(self):
+        return super().get_dropdown_params()
     
     def serialize(self) -> str:
         return super().serialize()

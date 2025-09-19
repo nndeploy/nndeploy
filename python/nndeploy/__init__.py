@@ -85,7 +85,7 @@ import nndeploy.segment
 import nndeploy.matting
 import nndeploy.face
 import nndeploy.gan
-import nndeploy.diffusers
+import nndeploy.diffusion
 import nndeploy.api_llm
 import nndeploy.api_aigc
 

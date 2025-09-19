@@ -9,7 +9,7 @@ interface IDragArea {
 }
 
 export const DragArea: FC<IDragArea> = (props) => {
-  const {  stopEvent = true, style } = props;
+  const { stopEvent = true, style } = props;
 
   const playground = usePlayground();
 
@@ -26,7 +26,7 @@ export const DragArea: FC<IDragArea> = (props) => {
           e.preventDefault();
           e.stopPropagation();
         }
-       
+
         onStartDrag(e);
         selectNode(e);
         playground.node.focus(); // 防止节点无法被删除

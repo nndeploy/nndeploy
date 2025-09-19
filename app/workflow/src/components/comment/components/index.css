@@ -3,6 +3,10 @@
     height: auto;
     min-width: 120px;
     min-height: 80px;
+
+    code{
+      white-space: break-spaces !important;
+    }
 }
 
 .workflow-comment-container {

@@ -106,6 +106,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("remove_ui_param", &Node::removeUiParam, py::arg("ui_param"))
       .def("clear_ui_params", &Node::clearUiParams)
       .def("get_ui_params", &Node::getUiParams)
+      .def("set_io_params", &Node::setIoParams, py::arg("io_params"))
+      .def("add_io_param", &Node::addIoParam, py::arg("io_param"))
+      .def("remove_io_param", &Node::removeIoParam, py::arg("io_param"))
+      .def("clear_io_params", &Node::clearIoParams)
+      .def("get_io_params", &Node::getIoParams)
+      .def("set_dropdown_params", &Node::setDropdownParams, py::arg("dropdown_params"))
+      .def("add_dropdown_param", &Node::addDropdownParam, py::arg("dropdown_param"), py::arg("dropdown_values"))
+      .def("remove_dropdown_param", &Node::removeDropdownParam, py::arg("dropdown_param"))
+      .def("clear_dropdown_params", &Node::clearDropdownParams)
+      .def("get_dropdown_params", &Node::getDropdownParams)
       .def("set_input", &Node::setInput, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output", &Node::setOutput, py::arg("output"),

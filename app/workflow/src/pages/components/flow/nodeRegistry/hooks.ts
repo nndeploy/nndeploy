@@ -43,6 +43,10 @@ export function usePropertiesEdit(
       }
     })
   } else if (fieldType.componentType == 'object') {
+
+    if(!value){
+      let j = 0
+    }
     initPropertyList = Object.entries(value).map(([name, _value]) => {
       return {
         key: genId(),

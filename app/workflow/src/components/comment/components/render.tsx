@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
 import {
   Field,
@@ -19,6 +19,8 @@ import { CommentEditor } from './editor';
 import { ContentDragArea } from './content-drag-area';
 import { CommentContainer } from './container';
 import { BorderArea } from './border-area';
+import { Switch } from '@douyinfe/semi-ui';
+import CodeBlock from '../../../pages/components/flow/nodeRegistry/CodeBlock';
 
 export const CommentRender: FC<{
   node: WorkflowNodeEntity;
@@ -33,6 +35,8 @@ export const CommentRender: FC<{
 
   const { width, height, onResize } = useSize();
   const { overflow, updateOverflow } = useOverflow({ model, height });
+
+  const [ language, setLanguage ] = useState('text');
 
   return (
     <div
@@ -52,13 +56,28 @@ export const CommentRender: FC<{
         }, 20);
       }}
     >
+      
       <Form control={formControl}>
         <>
           {/* 背景 */}
           <CommentContainer focused={focused} style={{ height }}>
+            <div>
+            <Switch 
+            defaultChecked={language == 'markdown'}
+           
+           // checked={language == 'text'}
+              onChange={(v) => {
+                setLanguage(v ? 'markdown' : 'text')
+              }}
+            />
+            </div>
+
+
             <Field name={CommentEditorFormField.Note}>
-              {({ field }: FieldRenderProps<string>) => (
-                <>
+              {({ field }: FieldRenderProps<string>) => {
+
+
+                return language == 'text' ? <>
                   {/** 编辑器 */}
                   <CommentEditor model={model} value={field.value} onChange={field.onChange} />
                   {/* 内容拖拽区域（点击后隐藏） */}
@@ -66,8 +85,15 @@ export const CommentRender: FC<{
                   {/* 更多按钮 */}
                   <MoreButton node={node} focused={focused} deleteNode={deleteNode} />
                 </>
-              )}
+                  :
+                  <CodeBlock
+                    code={field.value}
+                    language={language}
+                  />
+              }}
             </Field>
+
+
           </CommentContainer>
           {/* 边框 */}
           <BorderArea model={model} overflow={overflow} onResize={onResize} />

@@ -15,7 +15,7 @@ import "./index.scss";
 import { FormHeader } from "../form-header";
 import lodash, { uniqueId } from "lodash";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IResourceTreeNodeEntity } from "../../../Layout/Design/Resource/entity";
 import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDrawer";
 
@@ -31,13 +31,13 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const readonly = !useIsSidebar();
 
-   //const { width, height, onResize } = useSize();
+  //const { width, height, onResize } = useSize();
 
   // const { node } = useNodeRender();
 
-  const { nodeList = [], paramTypes, element: flowElementRef,  runInfo} = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes, element: flowElementRef, runInfo } = useFlowEnviromentContext()
 
-  const {outputResource} = runInfo
+  const { outputResource } = runInfo
 
   const is_dynamic_input_ = form.getValueIn("is_dynamic_input_");
   const is_dynamic_output_ = form.getValueIn("is_dynamic_output_");
@@ -49,10 +49,21 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const ioType = form.getValueIn('io_type_')
 
   function getIoTypeFieldName() {
-    const required_params = form.getValueIn('required_params_')
-    if (required_params && required_params.length > 0) {
-      return required_params[0]
+
+
+    const parents = ['', 'param_', 'param']
+    for (const parent of parents) {
+
+      const params  = ['io_param_', 'required_params_']
+
+      for(const param of params){
+        let ioPosition = form.getValueIn( (parent ? parent + '.' : '') + param)
+        if (ioPosition && ioPosition.length > 0) {
+          return (parent ? parent + '.' : '') + ioPosition[0]
+        }
+      }
     }
+  
     return "empty-field"
   }
 
@@ -68,6 +79,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     form.setValueIn(getIoTypeFieldName(), value)
   }
 
+  const [refresh, setRefresh] = useState({})
 
 
 
@@ -89,9 +101,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'source_',
     'version_',
 
-    'io_type_', 
-    'required_params_', 
-    'size'
+    'io_type_',
+    'io_params_',
+    'dropdown_params',
+    'required_params_',
+    'size', 
+
 
   ];
 
@@ -126,8 +141,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     // }
     // return false
 
-     const nodeType = form.getValueIn('node_type_')
-     return nodeType == 'Input'
+    const nodeType = form.getValueIn('node_type_')
+    return nodeType == 'Input'
 
     // if (ioType) {
     //   return true
@@ -143,8 +158,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     // }
     // return false
 
-     const nodeType = form.getValueIn('node_type_')
-     return nodeType == 'Output'
+    const nodeType = form.getValueIn('node_type_')
+    return nodeType == 'Output'
   }
 
 
@@ -208,25 +223,106 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   return (
     <>
-    <div className="drawer-render-form" ref={renderFormRef}>
-      <FormHeader />
+      <div className="drawer-render-form" ref={renderFormRef}>
+        <FormHeader />
 
-      <FormContent>
-        {!isSidebar && (
-          <>
-            <div className="connection-area">
-              <div className="input-area">
-                <FieldArray name="inputs_">
-                  {({ field }) => {
+        <FormContent>
+          {!isSidebar && (
+            <>
+              <div className="connection-area">
+                <div className="input-area">
+                  <FieldArray name="inputs_">
+                    {({ field }) => {
 
-                    return <>
-                      {field.map((child, index) => {
-                        return (
+                      return <>
+                        {field.map((child, index) => {
+                          return (
+                            <Field<any> key={child.name} name={child.name}>
+                              {({ field: childField, fieldState: childState }) => {
+                                
+                                const truncatedValueType = childField.value.type_?.length > 12 ? childField.value.type_.substring(0, 12) + '...' : childField.value.type_
+                                //Playgroundconsole.log('inputs_ childField.value.id', childField.value.id)
+                                return (
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      marginBottom: 6,
+                                      width: '100%',
+                                      position: 'relative',
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      gap: 8,
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        justifyContent: 'start',
+                                        alignItems: 'center',
+                                        color: 'var(--semi-color-text-0)',
+                                        width: 118,
+                                        position: 'relative',
+                                        display: 'flex',
+                                        columnGap: 4,
+                                        flexShrink: 0,
+                                      }}
+                                    >
+
+                                      <Tooltip content={<>
+                                        <p>type: {childField.value.type_}</p>
+                                        <p>desc: {childField.value.desc_}</p>
+                                      </>}>{truncatedValueType}</Tooltip>
+                                    </div>
+
+                                    <div
+                                      style={{
+                                        flexGrow: 1,
+                                        minWidth: 0,
+                                      }}
+                                    >
+                                      <div
+                                        className="connection-point connection-point-left"
+                                        data-port-id={childField.value.id}
+                                        data-port-type="input"
+                                        data-port-desc={childField.value.desc_}
+                                      //data-port-wangba={childField.value.desc_}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                );
+                              }}
+                            </Field>
+                          );
+                        })}
+                      </>
+                    }}
+                  </FieldArray>
+
+                </div>
+                <div className="output-area">
+                  <FieldArray name="outputs_">
+                    {({ field }) => {
+
+                      return <>
+                        {field.map((child, index) => (
                           <Field<any> key={child.name} name={child.name}>
                             {({ field: childField, fieldState: childState }) => {
 
-                              //Playgroundconsole.log('inputs_ childField.value.id', childField.value.id)
-                              return (
+                               const truncatedValueType = childField.value.type_?.length > 12 ? childField.value.type_.substring(0, 12) + '...' : childField.value.type_
+                              
+
+                              //console.log('outputs_ childField.value.id', childField.value.id)
+                              return <>
+
+                                {/* <FormItem
+                              name={`${childField.value.type_}`}///${childField.value.desc_}
+                              description={<> <p>type: {childField.value.type_}</p>
+                                <p>desc: {childField.value.desc_}</p></>}
+                              type="boolean"
+                              required={false}
+
+                            > */}
+
                                 <div
                                   style={{
                                     fontSize: 12,
@@ -234,15 +330,15 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                     width: '100%',
                                     position: 'relative',
                                     display: 'flex',
-                                    justifyContent: 'center',
+                                    justifyContent: 'flex-end',
                                     alignItems: 'center',
                                     gap: 8,
                                   }}
                                 >
                                   <div
                                     style={{
-                                      justifyContent: 'start',
-                                      alignItems: 'center',
+                                      justifyContent: 'end',
+                                      alignItems: 'flex-end',
                                       color: 'var(--semi-color-text-0)',
                                       width: 118,
                                       position: 'relative',
@@ -255,117 +351,40 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                     <Tooltip content={<>
                                       <p>type: {childField.value.type_}</p>
                                       <p>desc: {childField.value.desc_}</p>
-                                    </>}>{childField.value.type_}</Tooltip>
+                                    </>}>{truncatedValueType}</Tooltip>
                                   </div>
 
                                   <div
                                     style={{
-                                      flexGrow: 1,
+                                      //flexGrow: 1,
                                       minWidth: 0,
                                     }}
                                   >
+
                                     <div
-                                      className="connection-point connection-point-left"
+                                      className="connection-point connection-point-right"
                                       data-port-id={childField.value.id}
-                                      data-port-type="input"
+                                      data-port-type="output"
                                       data-port-desc={childField.value.desc_}
-                                    //data-port-wangba={childField.value.desc_}
-                                    ></div>
+                                    >
+
+                                    </div>
                                   </div>
                                 </div>
-                              );
+
+
+                                {/* </FormItem> */}
+                              </>
                             }}
                           </Field>
-                        );
-                      })}
-                    </>
-                  }}
-                </FieldArray>
-
+                        ))}
+                      </>
+                    }}
+                  </FieldArray>
+                </div>
               </div>
-              <div className="output-area">
-                <FieldArray name="outputs_">
-                  {({ field }) => {
 
-                    return <>
-                      {field.map((child, index) => (
-                        <Field<any> key={child.name} name={child.name}>
-                          {({ field: childField, fieldState: childState }) => {
-
-                            //console.log('outputs_ childField.value.id', childField.value.id)
-                            return <>
-
-                              {/* <FormItem
-                              name={`${childField.value.type_}`}///${childField.value.desc_}
-                              description={<> <p>type: {childField.value.type_}</p>
-                                <p>desc: {childField.value.desc_}</p></>}
-                              type="boolean"
-                              required={false}
-
-                            > */}
-
-                              <div
-                                style={{
-                                  fontSize: 12,
-                                  marginBottom: 6,
-                                  width: '100%',
-                                  position: 'relative',
-                                  display: 'flex',
-                                  justifyContent: 'flex-end',
-                                  alignItems: 'center',
-                                  gap: 8,
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    justifyContent: 'end',
-                                    alignItems: 'flex-end',
-                                    color: 'var(--semi-color-text-0)',
-                                    width: 118,
-                                    position: 'relative',
-                                    display: 'flex',
-                                    columnGap: 4,
-                                    flexShrink: 0,
-                                  }}
-                                >
-
-                                  <Tooltip content={<>
-                                    <p>type: {childField.value.type_}</p>
-                                    <p>desc: {childField.value.desc_}</p>
-                                  </>}>{childField.value.type_}</Tooltip>
-                                </div>
-
-                                <div
-                                  style={{
-                                    //flexGrow: 1,
-                                    minWidth: 0,
-                                  }}
-                                >
-
-                                  <div
-                                    className="connection-point connection-point-right"
-                                    data-port-id={childField.value.id}
-                                    data-port-type="output"
-                                    data-port-desc={childField.value.desc_}
-                                  >
-
-                                  </div>
-                                </div>
-                              </div>
-
-
-                              {/* </FormItem> */}
-                            </>
-                          }}
-                        </Field>
-                      ))}
-                    </>
-                  }}
-                </FieldArray>
-              </div>
-            </div>
-
-            {/* <Field key={'path_'} name={'path_'}>
+              {/* <Field key={'path_'} name={'path_'}>
               {({ field, fieldState }) => {
 
                 if (needShowMedia() && field.value && isImageFile(field.value as string)) {
@@ -405,80 +424,91 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
             </Field> */}
 
-            {
-              (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
+              {
+                (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
 
-              <Field key={name_} name={getIoTypeFieldName()} >
-                {({ field, fieldState }) => {
-                  return <IoType
-                    direction = {isInputMediaNode() ? 'input' : 'output'}
-                    ioDataType={ioType}
-                    nodeName={name_}
+                <Field key={name_} name={getIoTypeFieldName()} >
+                  {({ field, fieldState }) => {
+                    return <IoType
+                      direction={isInputMediaNode() ? 'input' : 'output'}
+                      ioDataType={ioType}
+                      nodeName={name_}
 
-                   // value={getIoTypeFieldValue()}
-                    value = {field.value as string}
-                    //onChange={handleIoTypeValueChange}
-                    onChange = {field.onChange}
-                  />
-                }}
-              </Field>
-            }
-            
-            {/* {
+                      // value={getIoTypeFieldValue()}
+                      value={field.value as string}
+                      //onChange={handleIoTypeValueChange}
+                      onChange={value => {
+
+                        field.onChange(value)
+                       // form.setValueIn(getIoTypeFieldName(), value)
+                        setRefresh({})
+                        
+                      }
+                      }
+                    />
+                  }}
+                </Field>
+              }
+
+              {/* {
               isTextNode() && needShowTextContent() &&
               <TextArea rows={8} value={outputResource.text.find(item => item.name == form.getValueIn('name_'))?.text}>
 
               </TextArea>
             } */}
 
-          </>
-        )}
-        {isSidebar ? (
-          <>
-            <div className="property-container">
-              <div className="UIProperties">
+            </>
+          )}
+          {isSidebar ? (
+            <>
+              <div className="property-container">
+                <div className="UIProperties">
 
-                {basicFields.map((fieldName, index) => {
+                  {basicFields.map((fieldName, index) => {
 
-                  return (
-                    <Field key={fieldName} name={fieldName} >
-                      {({ field, fieldState }) => {
-                        return <PropertyEdit fieldName={fieldName} parentPaths={[]}
-                          // value={form.getValueIn(fieldName)}
+                    return (
+                      <Field key={fieldName} name={fieldName} >
+                        {({ field, fieldState }) => {
 
-                          // onChange={(value) => {
-                          //   form.setValueIn(fieldName, value)
-                          // }}
+                          if(field.name == 'param_'){
+                            let j = 0;
+                          }
+                          return <PropertyEdit fieldName={fieldName} parentPaths={[]}
+                            // value={form.getValueIn(fieldName)}
 
-                          value={field.value}
+                            // onChange={(value) => {
+                            //   form.setValueIn(fieldName, value)
+                            // }}
 
-                          onChange={(value) => {
-                            field.onChange(value)
-                          }}
-                          onRemove={() => { }}
-                          onFieldRename={() => {
+                            value={field.value}
 
-                          }}
+                            onChange={(value) => {
+                              field.onChange(value)
+                            }}
+                            onRemove={() => { }}
+                            onFieldRename={() => {
 
-                          showLine={false}
+                            }}
 
-                          form={form}
-                          nodeList={nodeList}
-                          paramTypes={paramTypes}
-                          isLast={index == basicFields.length - 1}
-                          topField={true}
+                            showLine={false}
 
-                        />
-                      }}
-                    </Field>
+                            form={form}
+                            nodeList={nodeList}
+                            paramTypes={paramTypes}
+                            isLast={index == basicFields.length - 1}
+                            topField={true}
 
-                  )
-                })}
+                          />
+                        }}
+                      </Field>
 
+                    )
+                  })}
+
+                </div>
               </div>
-            </div>
 
-            {/* {is_dynamic_input_ && (
+              {/* {is_dynamic_input_ && (
               <Section text={"inputs_"} key="inputs_">
                 <FormDynamicPorts portType="inputs_" />
               </Section>
@@ -525,33 +555,33 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </TextArea>
             } */}
 
-          </>
-        ) : (
-          <></>
-        )}
-      </FormContent>
+            </>
+          ) : (
+            <></>
+          )}
+        </FormContent>
 
 
-      <SideSheet
-        width={"60%"}
-        mask={true}
-        visible={resoureEditVisible}
-        onCancel={handleResoureDrawerClose}
-        closeOnEsc={true}
-        title={'resource preview'}
-        getPopupContainer={getPopupContainer}
-      >
-        <ResourceEditDrawer
-          node={resourceEdit!}
-          onSure={onResourceEditDrawerSure}
-          onClose={onResourceEditDrawerClose}
-          showFileInfo={false}
-        />
+        <SideSheet
+          width={"60%"}
+          mask={true}
+          visible={resoureEditVisible}
+          onCancel={handleResoureDrawerClose}
+          closeOnEsc={true}
+          title={'resource preview'}
+          getPopupContainer={getPopupContainer}
+        >
+          <ResourceEditDrawer
+            node={resourceEdit!}
+            onSure={onResourceEditDrawerSure}
+            onClose={onResourceEditDrawerClose}
+            showFileInfo={false}
+          />
 
-      </SideSheet>
-    </div >
-    
-     </>
+        </SideSheet>
+      </div >
+
+    </>
   );
 };
 
