@@ -136,6 +136,12 @@ class PILImageEncodecCreator(nndeploy.dag.NodeCreator):
 pil_image_encodec_node_creator = PILImageEncodecCreator()
 nndeploy.dag.register_node("nndeploy.codec.PILImageEncodec", pil_image_encodec_node_creator)
 
+supported_color_modes = [
+    "RGB",
+    "RGBA",
+    "L",
+    "CMYK",
+]
 
 class PILImageDecodec(nndeploy.dag.Node):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
@@ -177,6 +183,7 @@ class PILImageDecodec(nndeploy.dag.Node):
     def serialize(self):
         self.add_io_param("path_")
         self.add_required_param("path_")
+        self.add_dropdown_param("color_mode_", supported_color_modes)
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["path_"] = self.path_
