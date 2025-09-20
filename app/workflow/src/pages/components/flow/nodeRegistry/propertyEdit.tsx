@@ -41,12 +41,15 @@ export function PropertyEdit(
 
   //isArrayItem = false
 
-  if (fieldName == 'param_') {
+  if (fieldName == 'user_content_') {
     let j = 0
   }
 
   function isHiddenField(fieldName: string) {
-    if (fieldName == 'required_params_') {
+
+
+    const hiddenFields = ['io_params_', 'dropdown_params_', 'required_params_', 'ui_params_']
+    if (hiddenFields.includes(fieldName)) {
 
       return true
     }
@@ -119,6 +122,8 @@ export function PropertyEdit(
   const [showPortsUpdate, setShowPortsUpdate] = useState(false)
   const [portsUpdateRefresh, setPortsUpdateRefresh] = useState({})
 
+  const [selectOptions, setSelectOptions] = useState<any[]>(fieldType.selectOptions || [])
+
 
 
   const isHidden = isHiddenField(fieldName)
@@ -163,7 +168,7 @@ export function PropertyEdit(
           <div className="UIRow">
             {
               isArrayItem ? <></> :
-                <div className="UIName">
+                <div className="UIName array">
 
                   {
 
@@ -229,7 +234,7 @@ export function PropertyEdit(
                 fieldName={index + ""}
                 parentPaths={[...parentPaths, fieldName]}
                 key={_property.key}
-                value={_property.value}
+                value={value[index]} //_property.value
                 isArrayItem={_property.isArrayItem}
 
                 onChange={(_v) => {
@@ -260,7 +265,7 @@ export function PropertyEdit(
       <div className="UIPropertyMain">
         <div className="UIRow">
           {isArrayItem ? <></> :
-            <div className="UIName">
+            <div className="UIName object">
               {
 
                 isTopField ? fieldName : <Input
@@ -337,12 +342,16 @@ export function PropertyEdit(
       </div >
       <div className={classNames('UICollapsible', { 'collapsed': collapse })}>
         <div className={classNames('UIProperties', { shrink: true })}>
-          {propertyList.map((_property, index) => (
-            <PropertyEdit
+          {propertyList.map((_property, index) => {
+
+            if (_property.name.includes('user_content_')) {
+              let j = 0;
+            }
+            return <PropertyEdit
               fieldName={_property.name}
               parentPaths={[...parentPaths, fieldName]}
               // key={_property.key}
-              value={_property.value}
+              value={value[_property.name]} //_property.value
               isArrayItem={_property.isArrayItem}
 
               onChange={(_v) => {
@@ -360,7 +369,8 @@ export function PropertyEdit(
               nodeList={nodeList}
               paramTypes={paramTypes}
             />
-          ))}
+          }
+          )}
         </div>
       </div>
     </>
@@ -380,11 +390,30 @@ export function PropertyEdit(
           style={{ width: '100%' }}
 
           value={value}
+          filter={true}
+          showClear={true}
 
           onChange={(value) => {
+            // 当用户输入新值时自动添加选项
+            // if (!fieldType.selectOptions?.some(opt => opt === value)) {
+            //   setSelectOptions(prev => [...prev, { label: value, value }]);
+            // }
             onChangeProps(value)
           }}
-          optionList={paramTypes[fieldType.selectKey!].map((item: any) => {
+
+          onSearch={(value) => {
+            
+             if (value ){
+              
+              if( !fieldType.selectOptions?.some(opt => opt === value)) {
+                setSelectOptions(prev => [...(fieldType.selectOptions ?? []), value ]);
+              }
+            }else{
+              setSelectOptions(fieldType.selectOptions ?? [])
+            }
+          }}
+
+          optionList={selectOptions?.map((item: any) => {
             return {
               label: item,
               value: item
