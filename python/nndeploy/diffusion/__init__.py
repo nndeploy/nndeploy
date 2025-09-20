@@ -1,13 +1,13 @@
 
 try:
-    from .pipeline import Text2Image, Image2Image, ImageInput
+    from .pipeline import Text2Image, Image2Image, Inpainting
 except:
-    print("diffusers pipeline import error")
+    print("diffusion pipeline import error")
     pass
 
 
 try:
     from .latent import LatentNoise, LatentEmpty, LatentFromImage, LatentBatch
 except:
-    print("diffusers latent import error")
+    print("diffusion latent import error")
     pass
