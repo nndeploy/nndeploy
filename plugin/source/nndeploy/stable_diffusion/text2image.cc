@@ -23,7 +23,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     desc_ = "Create TokenizerText from input prompt string.";
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
-    this->setIoType(dag::IOType::kIOTypeAny);
+    this->setIoType(dag::IOType::kIOTypeString);
   }
 
   virtual ~InitTokenText() {}
@@ -69,13 +69,13 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
 
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    this->addRequiredParam("prompt_");
     base::Status status = dag::Node::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
     }
     json.AddMember("prompt_", rapidjson::Value(prompt_.c_str(), allocator),
                    allocator);
-    json.AddMember("size_", size_, allocator);
     return status;
   }
 
@@ -87,12 +87,6 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     if (json.HasMember("prompt_") && json["prompt_"].IsString()) {
       std::string prompt = json["prompt_"].GetString();
       this->setPrompt(prompt);
-    }
-    if (json.HasMember("size_") && json["size_"].IsInt()) {
-      int size = json["size_"].GetInt();
-      if (size > 0) {
-        this->setSize(size);
-      }
     }
     return status;
   }
