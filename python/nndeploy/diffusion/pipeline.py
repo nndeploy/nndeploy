@@ -25,6 +25,7 @@ from PIL import Image, ImageFilter, ImageOps
 supported_text2image_models = [
     "stable-diffusion-v1-5/stable-diffusion-v1-5",
     "stabilityai/stable-diffusion-xl-base-1.0",
+    "kandinsky-community/kandinsky-2-2-decoder",
 ]
 
 class FromPretrainedParam(nndeploy.base.Param):
