@@ -15,7 +15,7 @@ CONFIG = {
     
     "versions": {
         "2.6.2": {
-            "frontend":  {"tag": "v1.4.1", "asset": "dist.zip"},
+            "frontend":  {"tag": "v1.4.2", "asset": "dist.zip"},
             "templates": {"tag": "v1.0.1", "asset": "nndeploy-workflow.zip"}
         }
     },

@@ -75,6 +75,7 @@ import nndeploy.net
 import nndeploy.inference
 import nndeploy.dag
 import nndeploy.basic
+import nndeploy.image
 import nndeploy.preprocess
 import nndeploy.tokenizer
 import nndeploy.codec
