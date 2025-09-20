@@ -168,7 +168,7 @@ class Text2Image(nndeploy.dag.Node):
             try:
                 # 首先尝试本地加载
                 self.pipeline = AutoPipelineForText2Image.from_pretrained(
-                    pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
+                    pretrained_model_or_path=self.param.pretrained_model_name_or_path,
                     local_files_only=True,
                     torch_dtype=get_torch_dtype(self.param.torch_dtype),
                     low_cpu_mem_usage=self.param.low_cpu_mem_usage,
@@ -176,7 +176,7 @@ class Text2Image(nndeploy.dag.Node):
                 )
             except Exception as local_error:                
                 self.pipeline = AutoPipelineForText2Image.from_pretrained(
-                    pretrained_model_name_or_path=self.param.pretrained_model_name_or_path,
+                    pretrained_model_or_path=self.param.pretrained_model_name_or_path,
                     torch_dtype=get_torch_dtype(self.param.torch_dtype),
                     mirror=self.param.mirror,
                     low_cpu_mem_usage=self.param.low_cpu_mem_usage,
