@@ -1,6 +1,7 @@
 
 try:
     from .pipeline import Text2Image, Image2Image, Inpainting
+    # from .pipeline import Text2Image
 except:
     print("diffusion pipeline import error")
     pass
