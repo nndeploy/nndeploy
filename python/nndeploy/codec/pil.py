@@ -9,7 +9,7 @@ import json
 
 from PIL import Image
 import numpy as np
-   
+from typing import List
 
 class PILImageEncodec(nndeploy.dag.Node):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
@@ -127,3 +127,86 @@ class PILImageDecodecCreator(nndeploy.dag.NodeCreator):
 
 pil_image_decodec_node_creator = PILImageDecodecCreator()
 nndeploy.dag.register_node("nndeploy.codec.PILImageDecodec", pil_image_decodec_node_creator)
+
+# PILImage2Gif
+
+# PILImage2Video
+
+# MakeImageGrid
+class MakeImageGrid(nndeploy.dag.Node):
+    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+        super().__init__(name, inputs, outputs)
+        self.set_key("nndeploy.codec.MakeImageGrid")
+        self.set_desc("将多张PIL图像拼接为网格")
+        self.rows = 1
+        self.cols = 1
+        self.resize_h = -1
+        self.resize_w = -1
+        self.set_input_type(Image)  # 动态输入，类型为PIL.Image
+        self.set_output_type(Image)
+        self.set_dynamic_input(True)
+
+    def run(self) -> bool:
+        try:
+            # 动态输入，收集所有输入边的图像
+            images: List[Image.Image] = []
+            for i in range(len(self.get_all_input())):
+                edge = self.get_input(i)
+                img = edge.get(self)
+                if img is not None:
+                    images.append(img)
+            if len(images) != self.rows * self.cols:
+                print(f"MakeImageGrid: 输入图像数量({len(images)})与网格(rows*cols={self.rows*self.cols})不符")
+                return nndeploy.base.Status.error()
+            # 可选resize
+            if self.resize_h != -1 and self.resize_w != -1:
+                images = [img.resize((self.resize_w, self.resize_h)) for img in images]
+            w, h = images[0].size
+            grid = Image.new("RGB", size=(self.cols * w, self.rows * h))
+            for i, img in enumerate(images):
+                grid.paste(img, box=(i % self.cols * w, i // self.cols * h))
+            # 输出到输出边
+            output_edge = self.get_output(0)
+            output_edge.set(grid)
+            return nndeploy.base.Status.ok()
+        except Exception as e:
+            print(f"MakeImageGrid节点运行失败: {e}")
+            return nndeploy.base.Status.error()
+
+    def serialize(self):
+        self.add_required_param("rows")
+        self.add_required_param("cols")
+        json_str = super().serialize()
+        json_obj = json.loads(json_str)
+        json_obj["rows"] = self.rows
+        json_obj["cols"] = self.cols
+        json_obj["resize_h"] = self.resize_h
+        json_obj["resize_w"] = self.resize_w
+        return json.dumps(json_obj, ensure_ascii=False, indent=2)
+
+    def deserialize(self, target: str):
+        try:
+            json_obj = json.loads(target)
+            if "rows" in json_obj:
+                self.rows = int(json_obj["rows"])
+            if "cols" in json_obj:
+                self.cols = int(json_obj["cols"])
+            if "resize_h" in json_obj:
+                self.resize_h = int(json_obj["resize_h"])
+            if "resize_w" in json_obj:
+                self.resize_w = int(json_obj["resize_w"])
+            return super().deserialize(target)
+        except Exception as e:
+            print(f"MakeImageGrid节点反序列化失败: {e}")
+            return nndeploy.base.Status.error()
+
+class MakeImageGridCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = MakeImageGrid(name, inputs, outputs)
+        return self.node
+
+make_image_grid_node_creator = MakeImageGridCreator()
+nndeploy.dag.register_node("nndeploy.codec.MakeImageGrid", make_image_grid_node_creator)
+
