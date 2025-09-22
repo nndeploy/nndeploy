@@ -71,8 +71,9 @@ class NNDEPLOY_CC_API Graph : public Node {
       std::vector<std::shared_ptr<Edge>> outputs);
 
   // create edge
-  Edge *createEdge(const std::string &name);
-  std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name);
+  Edge *createEdge(const std::string &name, bool feedback = false);
+  std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name,
+                                            bool feedback = false);
 
   // add edge
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);

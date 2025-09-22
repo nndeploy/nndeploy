@@ -150,9 +150,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     return abstact_edge_->getGraphOutput<T>();
   }
 
-
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     this->setTypeInfo<T>();
     return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
   }
@@ -212,6 +211,24 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
   bool checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
 
+  // ---------------- Feedback API ----------------
+  /**
+   * @brief Mark this edge as a feedback edge (loop edge).
+   *
+   * @param enable true = feedback edge, false = normal edge
+   * @return base::Status
+   * @note Must be called before construct(); otherwise, returns error
+   */
+  base::Status setFeedback(bool enable);
+
+  /**
+   * @brief Check whether this edge is marked as feedback.
+   *
+   * @return true if feedback edge, false otherwise
+   */
+  bool isFeedback() const;
+  // -----------------------------------------------------
+
  private:
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;
@@ -219,6 +236,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   std::condition_variable type_info_cv_;
   std::shared_ptr<EdgeTypeInfo> type_info_;
   int queue_max_size_ = 16;
+  bool feedback = false;
 };
 
 }  // namespace dag

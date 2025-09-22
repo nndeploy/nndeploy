@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
       "print_node", std::vector<dag::Edge *>{add_mul_out},
       std::vector<dag::Edge *>{});
 
-  //   base::ParallelType pt = base::kParallelTypeSequential;
-  base::ParallelType pt = base::kParallelTypePipeline;
+  base::ParallelType pt = base::kParallelTypeSequential;
+  // base::ParallelType pt = base::kParallelTypePipeline;
   status = graph->setParallelType(pt);
 
   status = graph->init();

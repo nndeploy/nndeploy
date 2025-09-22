@@ -262,7 +262,7 @@ std::vector<Node *> Edge::getConsumers() {
   if (abstact_edge_ == nullptr) {
     return std::vector<Node *>();
   }
-  
+
   std::vector<Node *> consumers = abstact_edge_->getConsumers();
   std::vector<Node *> result;
   for (auto consumer : consumers) {
@@ -271,7 +271,7 @@ std::vector<Node *> Edge::getConsumers() {
       continue;
     }
     result.push_back(consumer);
-  } 
+  }
 
   return result;
 }
@@ -296,6 +296,17 @@ std::string Edge::getTypeName() { return type_info_->getTypeName(); }
 bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
   return *type_info_ == *type_info;
 }
+
+base::Status Edge::setFeedback(bool enable) {
+  if (abstact_edge_ != nullptr) {
+    // Feedback flag must be set before construct()
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  feedback = enable;
+  return base::kStatusCodeOk;
+}
+
+bool Edge::isFeedback() const { return feedback; }
 
 }  // namespace dag
 }  // namespace nndeploy

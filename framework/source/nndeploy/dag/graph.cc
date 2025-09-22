@@ -294,7 +294,7 @@ base::Status Graph::setOutputsSharedPtr(
   return base::kStatusCodeOk;
 }
 
-Edge *Graph::createEdge(const std::string &name) {
+Edge *Graph::createEdge(const std::string &name, bool feedback) {
   std::string unique_name = name;
   if (unique_name.empty()) {
     unique_name = "edge_" + base::getUniqueString();
@@ -304,6 +304,17 @@ Edge *Graph::createEdge(const std::string &name) {
     return nullptr;
   }
   Edge *edge = new Edge(unique_name);
+
+  if (feedback) {
+    auto st = edge->setFeedback(true);
+    if (st != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("setFeedback(true) failed for edge[%s], status=%d\n",
+                    unique_name.c_str(), (int)st);
+      delete edge;
+      return nullptr;
+    }
+  }
+
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
@@ -313,7 +324,8 @@ Edge *Graph::createEdge(const std::string &name) {
   return edge;
 }
 
-std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
+std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name,
+                                                 bool feedback) {
   std::string unique_name = name;
   if (unique_name.empty()) {
     unique_name = "edge_" + base::getUniqueString();
@@ -323,6 +335,16 @@ std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
     return nullptr;
   }
   std::shared_ptr<Edge> edge_ptr = std::make_shared<Edge>(unique_name);
+
+  if (feedback) {
+    auto st = edge_ptr->setFeedback(true);
+    if (st != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("setFeedback(true) failed for edge[%s], status=%d\n",
+                    unique_name.c_str(), (int)st);
+      return {};
+    }
+  }
+
   Edge *edge = edge_ptr.get();
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   // 创建shared edge
