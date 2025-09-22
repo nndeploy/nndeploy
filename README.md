@@ -1,7 +1,11 @@
 
 [English](README_EN.md) | 简体中文
 
-<p align="left">
+<h3 align="center">
+nndeploy: 基于工作流的多端AI推理部署框架
+</h3>
+
+<p align="center">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux" style="height: 16px;">
 </a>
@@ -22,36 +26,7 @@
 </a>
 </p>
 
-<h1 align="center">
-nndeploy
-</h1>
-
-nndeploy是一款基于工作流的多端AI部署框架，让AI算法部署变得像搭积木一样简单！
-
-采用可视化工作流设计，内置丰富的算法节点，用户只需拖拽操作即可快速构建专业AI应用，无需编写复杂代码。
-
-支持Python/C++自定义节点开发，无需前端代码，自动集成到可视化界面
-
-构建的工作流可一键导出JSON配置文件，支持Python/C++ API加载运行。集成主流推理引擎和深度优化策略，确保最佳性能，支持一次开发多端部署，覆盖Linux、Windows、macOS、Android、iOS全平台。
-
-
-<!-- <p align="center">
-<a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/windows.yml/badge.svg" alt="Windows">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/android.yml/badge.svg" alt="Android">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/macos.yml/badge.svg" alt="macOS">
-</a>
- <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
-  <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS">
-</a>
-</p> -->
+---
 
 <!-- <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
@@ -69,14 +44,17 @@ nndeploy是一款基于工作流的多端AI部署框架，让AI算法部署变�
   </picture>
 </p>
 
+
+nndeploy 是一款面向多端的工作流式AI推理部署框架。你只需用熟悉的 Python 或 C++ 编写算法节点，框架即可自动生成可视化节点，无需关心前端开发。内置了丰富的开箱即用算法（如大语言模型、Stable Diffusion、检测、分割等），支持通过拖拽方式快速搭建AI应用，并持续扩展更多高价值算法。可视化工作流可一键导出为 JSON 配置文件，结合 Python/C++ API 即可直接加载运行。框架集成了 Torch、TensorRT、OpenVINO、CoreML、MNN、AscendCL、RKNN 等主流推理引擎及深度性能优化方案，全面支持云端、桌面、移动和边缘等多种部署场景。兼顾开发效率与生产性能，助你将 AI 创意高效落地。
+
+
 ---
 
-<!-- ## 最新动态
-- [2025/08/01] 🔥 **可视化工作流**：告别复杂的代码编写！通过简单的拖拽操作，你就能快速搭建专业的AI应用。无论你是技术小白还是经验丰富的开发者，都能在几分钟内完成AI算法的部署。[立即体验丰富的工作流模板：换脸、LLM对话、AI绘画、目标检测、图像分割等应用](https://github.com/nndeploy/nndeploy-workflow)
-- [2025/07/20] 🔥 **Python API**：只需几行代码，就能将你的AI模型部署到手机、电脑、服务器等各种设备上。更棒的是，还支持工作流可视化展示，让你在团队汇报时轻松展示令人惊艳的AI效果，瞬间成为焦点！[点击查看超简单的入门教程，5分钟上手](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/python.html)
-- [2025/05/29] 🔥 **免费AI推理课程**：想要在AI推理部署领域找到更好的工作机会？我们基于nndeploy框架打造了业内最全面的AI推理部署课程，深度覆盖模型中间表示、模型解释、计算图构建、图优化、内存优化、并行优化和算子优化等企业核心技术需求。这门课程都将成为你职业发展的强力助推器。[昇腾平台免费学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站同步更新](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) -->
+## 最新动态
 
-<!-- --- -->
+- [2025/05/29]🔥nndeploy开源团队和昇腾官方合作的推理框架免费课程上线拉，适合想入门和提升AI推理部署的同学。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) 
+
+---
 
 ## 快速开始
 
@@ -140,15 +118,35 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python插件开发手册](docs/zh_cn/quick_start/plugin_python.md)
 
-## 核心特性
+## 特性
 
-### **AI部署的效率工具**
+### **算法生态**
+
+目前已支持包括大语言模型（LLM）、AIGC生成、换脸、目标检测、分割等在内的 100+ 主流AI模型，我们将持续集成更多高价值的AI算法，打造丰富的多端AI推理生态，满足各类行业与创新应用需求。
+
+| 应用场景 | 可用模型 | 支持平台 |
+|---------|---------|---------|
+| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS |
+| **生成模型** | **Stable Diffusion 1.5** | Linux/Windows/macOS/Android/iOS |
+| **换脸** | **deep-live-cam** | Linux/Windows/macOS |
+| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS |
+| **目标追踪** | FairMot | Linux/Windows/macOS/Android/iOS |
+| **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS |
+| **分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS |
+| **API LLM** | **deep-live-cam** | Linux/Windows/macOS |
+| **API AIGC** | **deep-live-cam** | Linux/Windows/macOS |
+
+> 注：如果你有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
+
+### **简单易用**
+
 - **可视化工作流**：通过拖拉拽操作就能部署AI算法，前端可视化调节AI算法的所有节点参数，快速预览算法调参后的效果
 - **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
 - **算法组合**：灵活组合不同算法，快速构建创新AI应用
 - **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
 
-### **AI部署的性能工具**
+### **高性能**
+
 - **13种推理引擎无缝集成**：一套工作流，多端部署。通过零抽象成本接入了13种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
 
   | 推理框架 | 适用场景 | 状态 |
@@ -171,19 +169,7 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置C++/CUDA/Ascend C/SIMD等优化实现的节点
 
-## 开箱即用的节点
-
-针对以下AI算法，开发了40+节点，并制作了[工作流模板](https://github.com/nndeploy/nndeploy-workflow)，让你能够立即体验和使用各种AI功能：
-
-| 应用场景 | 可用模型 | 
-|---------|---------|
-| **图像分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet |
-| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | 
-| **目标追踪** | FairMot | 
-| **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** |
-| **生成模型** | **Stable Diffusion 1.5** | 
-| **大语言模型** | **QWen-0.5B** | 
-| **换脸** | **deep-live-cam** | 
+## 案例
 
 ### YOLO可视化调参与一键部署
 
@@ -218,8 +204,6 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
   </picture>
 </p>
 
-> 会持续开发的节点，如果你有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
-
 ## 保持领先
 
 在 GitHub 上给 nndeploy Star，并立即收到新版本的通知。
@@ -234,7 +218,10 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- 欢迎加入技术交流群！微信：Always031856（请简单备注个人信息^_^）
+
+- 当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
+
+- 微信：Always031856（欢迎加好友，进活跃的AI推理部署交流群，备注：nndeploy_姓名）
   
   <img src="docs/image/wechat.jpg" width="225px">
 
