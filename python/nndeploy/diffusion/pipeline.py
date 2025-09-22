@@ -24,11 +24,10 @@ from PIL import Image, ImageFilter, ImageOps
 from .diffusers_info.pretrain_model_paths import get_text2image_pipelines_pretrained_model_paths
 from .diffusers_info.pretrain_model_paths import get_image2image_pipelines_pretrained_model_paths
 from .diffusers_info.pretrain_model_paths import get_inpainting_pipelines_pretrained_model_paths
-from .util import (
-    setup_china_mirror,
-    download_model,
-    load_model_offline,
-)
+
+from diffusers.utils import logging
+
+logging.set_verbosity_info()
 
 def get_scheduler(pipeline, scheduler, scheduler_kwargs):
     if scheduler == "default":
@@ -75,45 +74,20 @@ class Text2Image(nndeploy.dag.Node):
         
     def init(self):        
         try:
-            model_id = self.pretrained_model_name_or_path
             try:
-                # Step 1: Try to load locally first
+                # Try to load locally first
                 self.pipeline = AutoPipelineForText2Image.from_pretrained(
-                    pretrained_model_or_path=model_id,
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
                     local_files_only=True,
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
-            except Exception as local_error:
-                # Step 2: Try online (setup mirror if applicable)
-                try:
-                    setup_china_mirror()
-                except Exception:
-                    pass
-                try:
-                    self.pipeline = AutoPipelineForText2Image.from_pretrained(
-                        pretrained_model_or_path=model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors,
-                    )
-                except Exception as online_error:
-                    # Step 3: Pre-download to cache then load offline
-                    if "kandinsky-community/kandinsky-2-2-decoder" in model_id:
-                        try:
-                            download_model("kandinsky-community/kandinsky-2-2-prior")
-                        except Exception:
-                            pass
-                    ok = download_model(model_id) is not None
-                    if not ok:
-                        raise online_error
-                    offline = load_model_offline(
-                        model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors,
-                    )
-                    if offline is None:
-                        raise online_error
-                    self.pipeline = offline
+            except Exception as local_error:                
+                self.pipeline = AutoPipelineForText2Image.from_pretrained(
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
+                    torch_dtype=get_torch_dtype(self.torch_dtype),
+                    use_safetensors=self.use_safetensors,
+                )
             
             # Memory optimization
             if self.enable_sequential_cpu_offload:
@@ -311,40 +285,20 @@ class Image2Image(nndeploy.dag.Node):
 
     def init(self):
         try:
-            model_id = self.pretrained_model_name_or_path
             try:
-                # Step 1: Try to load locally first
+                # Try to load locally first
                 self.pipeline = AutoPipelineForImage2Image.from_pretrained(
-                    pretrained_model_or_path=model_id,
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
                     local_files_only=True,
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors
                 )
             except Exception as local_error:
-                # Step 2: Try online (setup mirror if applicable)
-                try:
-                    setup_china_mirror()
-                except Exception:
-                    pass
-                try:
-                    self.pipeline = AutoPipelineForImage2Image.from_pretrained(
-                        pretrained_model_or_path=model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors
-                    )
-                except Exception as online_error:
-                    # Step 3: Pre-download to cache then load offline
-                    ok = download_model(model_id) is not None
-                    if not ok:
-                        raise online_error
-                    offline = load_model_offline(
-                        model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors,
-                    )
-                    if offline is None:
-                        raise online_error
-                    self.pipeline = offline
+                self.pipeline = AutoPipelineForImage2Image.from_pretrained(
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
+                    torch_dtype=get_torch_dtype(self.torch_dtype),
+                    use_safetensors=self.use_safetensors
+                )
 
             # Memory optimization
             if self.enable_sequential_cpu_offload:
@@ -565,38 +519,20 @@ class Inpainting(nndeploy.dag.Node):
 
     def init(self):
         try:
-            # Load model with robust fallback
-            model_id = self.pretrained_model_name_or_path
+            # Load model
             try:
                 self.pipeline = AutoPipelineForInpainting.from_pretrained(
-                    pretrained_model_or_path=model_id,
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
                     local_files_only=True,
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
             except Exception as local_error:
-                try:
-                    setup_china_mirror()
-                except Exception:
-                    pass
-                try:
-                    self.pipeline = AutoPipelineForInpainting.from_pretrained(
-                        pretrained_model_or_path=model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors,
-                    )
-                except Exception as online_error:
-                    ok = download_model(model_id) is not None
-                    if not ok:
-                        raise online_error
-                    offline = load_model_offline(
-                        model_id,
-                        torch_dtype=get_torch_dtype(self.torch_dtype),
-                        use_safetensors=self.use_safetensors,
-                    )
-                    if offline is None:
-                        raise online_error
-                    self.pipeline = offline
+                self.pipeline = AutoPipelineForInpainting.from_pretrained(
+                    pretrained_model_or_path=self.pretrained_model_name_or_path,
+                    torch_dtype=get_torch_dtype(self.torch_dtype),
+                    use_safetensors=self.use_safetensors,
+                )
 
             # Memory optimization
             if self.enable_sequential_cpu_offload and hasattr(self.pipeline, "enable_sequential_cpu_offload"):
@@ -705,7 +641,7 @@ class Inpainting(nndeploy.dag.Node):
         try:
             # Add required parameters
             self.add_required_param("pretrained_model_name_or_path")
-            self.add_dropdown_param("pretrained_model_name_or_path", get_inpainting_pipelines_pretrained_model_paths)
+            self.add_dropdown_param("pretrained_model_name_or_path", get_inpainting_pipelines_pretrained_model_paths())
             # Get base class serialization
             base_json = super().serialize()
             json_obj = json.loads(base_json)
