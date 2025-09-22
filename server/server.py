@@ -1137,7 +1137,7 @@ class NnDeployServer:
         targets = [ws] if ws else list(self.sockets)
         for w in targets:
             try:
-                logging.info(f"[_broadcast] sending to {w.client}")
+                # logging.info(f"[_broadcast] sending to {w.client}")
                 await w.send_json(payload)
             except Exception as e:
                 logging.error(f"[_broadcast] failed to send: {e}")
