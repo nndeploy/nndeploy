@@ -25,7 +25,7 @@
   3. 安装工具并登录：
      ```
      pip install huggingface_hub
-     hf login --token <your_token>
+     huggingface-cli login --token <your_token>
      ```
 
 ---
@@ -63,7 +63,7 @@
 
 ## 4. 常见问题速查
 
-- **下载慢/失败**：配置 hugging face 镜像，或用本地模型。
+- **下载慢/失败**：配置 hugging face 镜像，检查是否由模型权限，使用本地模型。
 - **显存不足**：先开 `enable_model_cpu_offload`，再考虑 `enable_sequential_cpu_offload`。
 - **推理慢**：关闭 `enable_sequential_cpu_offload` 或升级硬件。
 - **xformers 安装失败**：检查 Python/CUDA 兼容，见 [官方文档](https://github.com/facebookresearch/xformers)。

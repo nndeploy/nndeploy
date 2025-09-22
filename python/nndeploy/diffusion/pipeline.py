@@ -88,10 +88,12 @@ class Text2Image(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
+                
+            print("Text2Image pipeline:", self.pipeline)
             
             # Memory optimization
             if self.enable_sequential_cpu_offload:
-                self.pipeline.reset_device_map()
+                # self.pipeline.reset_device_map()
                 try:
                     self.pipeline.enable_sequential_cpu_offload()
                     self.enable_model_cpu_offload = False 
@@ -151,15 +153,31 @@ class Text2Image(nndeploy.dag.Node):
             
             num_images_per_prompt = latent.shape[0]
             
-            result = self.pipeline(
-                prompt=prompt,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                latents=latent,
-                guidance_rescale=self.guidance_rescale
-            )
+            # 检查pipeline是否支持guidance_rescale参数
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                # print("Pipeline supports guidance_rescale parameter")
+                result = self.pipeline(
+                    prompt=prompt,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    latents=latent,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                # print("Pipeline does not support guidance_rescale parameter")
+                result = self.pipeline(
+                    prompt=prompt,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    latents=latent,
+                )
                             
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
@@ -299,6 +317,8 @@ class Image2Image(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors
                 )
+                
+            print("Image2Image pipeline:", self.pipeline)
 
             # Memory optimization
             if self.enable_sequential_cpu_offload:
@@ -378,17 +398,32 @@ class Image2Image(nndeploy.dag.Node):
                 generator = torch.Generator(device=device)
                 generator.manual_seed(self.generator_seed)
 
-            result = self.pipeline(
-                prompt=prompt,
-                image=source_image,
-                strength=self.strength,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                generator=generator,
-                guidance_rescale=self.guidance_rescale
-            )
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                )
 
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
@@ -533,6 +568,8 @@ class Inpainting(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
+            
+            print("Inpainting pipeline:", self.pipeline)
 
             # Memory optimization
             if self.enable_sequential_cpu_offload and hasattr(self.pipeline, "enable_sequential_cpu_offload"):
@@ -611,18 +648,34 @@ class Inpainting(nndeploy.dag.Node):
                 generator.manual_seed(self.generator_seed)
 
             # Inference
-            result = self.pipeline(
-                prompt=prompt,
-                image=source_image,
-                mask_image=mask_image,
-                strength=self.strength,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                generator=generator,
-                guidance_rescale=self.guidance_rescale
-            )
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    mask_image=mask_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    mask_image=mask_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                )
 
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
