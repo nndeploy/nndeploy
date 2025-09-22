@@ -32,14 +32,14 @@ int main(int argc, char **argv) {
       "add_node", std::vector<dag::Edge *>{const_out},
       std::vector<dag::Edge *>{add_out});
 
-  dag::Edge *add_mul_out = graph->createEdge("add_mul_out");
-  AddMulNode *add_mul_node = (AddMulNode *)graph->createNode<AddMulNode>(
-      "add_mul_node", std::vector<dag::Edge *>{add_out},
-      std::vector<dag::Edge *>{add_mul_out});
-  add_mul_node->defaultParam();
+  // dag::Edge *add_mul_out = graph->createEdge("add_mul_out");
+  // AddMulNode *add_mul_node = (AddMulNode *)graph->createNode<AddMulNode>(
+  //     "add_mul_node", std::vector<dag::Edge *>{add_out},
+  //     std::vector<dag::Edge *>{add_mul_out});
+  // add_mul_node->defaultParam();
 
   PrintNode *node = (PrintNode *)graph->createNode<PrintNode>(
-      "print_node", std::vector<dag::Edge *>{add_mul_out},
+      "print_node", std::vector<dag::Edge *>{add_out},
       std::vector<dag::Edge *>{});
 
   base::ParallelType pt = base::kParallelTypeSequential;

@@ -11,6 +11,7 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/executor/loop_aware_sequential_executor.h"
 #include "nndeploy/dag/executor/parallel_pipeline_executor.h"
 #include "nndeploy/dag/executor/parallel_task_executor.h"
 #include "nndeploy/dag/executor/sequential_executor.h"
@@ -1929,12 +1930,30 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
+  // 检测是否存在有效的反馈边（有生产者也有消费者）
+  auto has_feedback_edge = [this]() -> bool {
+    for (auto* ew : edge_repository_) {
+      if (!ew || !ew->edge_) continue;
+      if (ew->edge_->isFeedback() &&
+          !ew->producers_.empty() &&
+          !ew->consumers_.empty()) {
+        return true;
+      }
+    }
+    return false;
+  }();
+ 
   if (parallel_type_ == base::kParallelTypeNone) {
     // NNDEPLOY_LOGE("parallel_type_ is None!\n");
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type_ == base::kParallelTypeSequential) {
     // NNDEPLOY_LOGE("parallel_type_ is Sequential!\n");
-    executor_ = std::make_shared<SequentialExecutor>();
+    if (has_feedback_edge) {
+      executor_ = std::make_shared<LoopAwareSequentialExecutor>();
+      NNDEPLOY_LOGI("Use LoopAwareSequentialExecutor for feedback graph.\n");
+    } else {
+      executor_ = std::make_shared<SequentialExecutor>();
+    }
   } else if (parallel_type_ == base::kParallelTypeTask) {
     // NNDEPLOY_LOGE("parallel_type_ is Task!\n");
     executor_ = std::make_shared<ParallelTaskExecutor>();
