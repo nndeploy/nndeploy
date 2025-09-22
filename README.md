@@ -2,7 +2,7 @@
 [English](README_EN.md) | 简体中文
 
 <h3 align="center">
-nndeploy: 基于工作流的多端AI推理部署框架
+nndeploy: 基于可视化工作流的多端AI推理部署框架
 </h3>
 
 <p align="center">
@@ -45,14 +45,17 @@ nndeploy: 基于工作流的多端AI推理部署框架
 </p>
 
 
-nndeploy 是一款面向多端的工作流式AI推理部署框架。你只需用熟悉的 Python 或 C++ 编写算法节点，框架即可自动生成可视化节点，无需关心前端开发。内置了丰富的开箱即用算法（如大语言模型、Stable Diffusion、检测、分割等），支持通过拖拽方式快速搭建AI应用，并持续扩展更多高价值算法。可视化工作流可一键导出为 JSON 配置文件，结合 Python/C++ API 即可直接加载运行。框架集成了 Torch、TensorRT、OpenVINO、CoreML、MNN、AscendCL、RKNN 等主流推理引擎及深度性能优化方案，全面支持云端、桌面、移动和边缘等多种部署场景。兼顾开发效率与生产性能，助你将 AI 创意高效落地。
+**核心理念**：你只需要用熟悉的Python或C++写算法节点逻辑，框架自动生成可视化节点，不用折腾前端。对于非AI领域的程序员，我们提供了开箱即用的算法节点，包括大语言模型、Stable Diffusion、检测、分割等，通过拖拽方式就能搭建AI应用，我们将持续部署更多高价值的AI算法。
 
+**打通从工作流到生产的完整链路**：可视化搭建的工作流可一键导出为JSON配置文件，使用Python/C++ API可直接加载运行，框架还内置Torch、TensorRT、OpenVINO、CoreML、MNN、AscendCL、RKNN等主流推理引擎和深度性能优化策略，支持部署到云服务器、桌面应用、移动端、边缘设备，不仅开发效率高还可以满足生产环境的性能要求。
+
+nndeploy就是想让你把脑海中的AI算法创意，用最短的路径变成能投入生产环境的高性能应用。
 
 ---
 
 ## 最新动态
 
-- [2025/05/29]🔥nndeploy开源团队和昇腾官方合作的推理框架免费课程上线拉，适合想入门和提升AI推理部署的同学。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) 
+- [2025/05/29]🔥nndeploy开源团队和昇腾官方合作的推理框架免费课程上线拉，适合想入门和提升AI推理部署能力的同学。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) 
 
 ---
 
@@ -122,19 +125,19 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ### **算法生态**
 
-目前已支持包括大语言模型（LLM）、AIGC生成、换脸、目标检测、分割等在内的 100+ 主流AI模型，我们将持续集成更多高价值的AI算法，打造丰富的多端AI推理生态，满足各类行业与创新应用需求。
+目前已支持包括大语言模型（LLM）、AIGC生成、换脸、目标检测、分割等在内的 100+ 主流AI模型，我们将持续部署更多高价值的AI算法，打造丰富的多端AI推理生态，满足各类行业与创新应用需求。
 
-| 应用场景 | 可用模型 | 支持平台 |
-|---------|---------|---------|
-| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS |
-| **生成模型** | **Stable Diffusion 1.5** | Linux/Windows/macOS/Android/iOS |
-| **换脸** | **deep-live-cam** | Linux/Windows/macOS |
-| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS |
-| **目标追踪** | FairMot | Linux/Windows/macOS/Android/iOS |
-| **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS |
-| **分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS |
-| **API LLM** | **deep-live-cam** | Linux/Windows/macOS |
-| **API AIGC** | **deep-live-cam** | Linux/Windows/macOS |
+| 应用场景 | 可用模型 | 支持平台 | 备注 |
+|---------|---------|---------|---------|
+| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS | |
+| **图片生成** | **Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, Stable Diffusion 3 PAG, IF, HunyuanDiT, Kandinsky, Kandinsky V2.2, Kandinsky 3, Wuerstchen, Stable Cascade, LCM, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, Lumina2, Chroma, CogView3 Plus, CogView4, Stable Diffusion ControlNet, Stable Diffusion PAG, Stable Diffusion XL ControlNet, Stable Diffusion XL ControlNet Union, Stable Diffusion XL PAG, Stable Diffusion XL ControlNet PAG, Flux ControlNet, Flux Control, Flux Kontext, Stable Diffusion ControlNet PAG, Stable Diffusion 3 ControlNet** | Linux/Windows/macOS | 支持文生图、图生图、图像修复 |
+| **换脸** | **deep-live-cam** | Linux/Windows/macOS | |
+| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
+| **目标追踪** | FairMot | Linux/Windows/macOS/Android/iOS | |
+| **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS | |
+| **分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS | |
+| **API LLM** | OPENAI, DeepSeek, Moonshot | Linux/Windows/macOS | |
+| **API AIGC** | OPENAI | Linux/Windows/macOS | |
 
 > 注：如果你有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
