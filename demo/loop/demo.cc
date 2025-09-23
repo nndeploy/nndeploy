@@ -18,33 +18,93 @@
 using namespace nndeploy;
 using namespace loop;
 
-int main(int argc, char **argv) {
+// int main(int argc, char **argv) {
+//   base::Status status = base::kStatusCodeOk;
+//   dag::Graph *graph = new dag::Graph("add_graph", {}, {});
+
+//   dag::Edge *const_out = graph->createEdge("const_out");
+//   ConstNode *const_node = (ConstNode *)graph->createNode<ConstNode>(
+//       "const_node", std::vector<dag::Edge *>{},
+//       std::vector<dag::Edge *>{const_out});
+
+//   dag::Edge *add_out = graph->createEdge("add_out");
+//   AddNode *add_node = (AddNode *)graph->createNode<AddNode>(
+//       "add_node", std::vector<dag::Edge *>{const_out},
+//       std::vector<dag::Edge *>{add_out});
+
+//   // dag::Edge *add_mul_out = graph->createEdge("add_mul_out");
+//   // AddMulNode *add_mul_node = (AddMulNode *)graph->createNode<AddMulNode>(
+//   //     "add_mul_node", std::vector<dag::Edge *>{add_out},
+//   //     std::vector<dag::Edge *>{add_mul_out});
+//   // add_mul_node->defaultParam();
+
+//   PrintNode *node = (PrintNode *)graph->createNode<PrintNode>(
+//       "print_node", std::vector<dag::Edge *>{add_out},
+//       std::vector<dag::Edge *>{});
+
+//   base::ParallelType pt = base::kParallelTypeSequential;
+//   // base::ParallelType pt = base::kParallelTypePipeline;
+//   status = graph->setParallelType(pt);
+
+//   status = graph->init();
+//   if (status != base::kStatusCodeOk) {
+//     NNDEPLOY_LOGE("graph init failed.\n");
+//     return -1;
+//   }
+
+//   graph->dump();
+
+//   NNDEPLOY_TIME_POINT_START("graph->run");
+//   status = graph->run();
+//   if (status != base::kStatusCodeOk) {
+//     NNDEPLOY_LOGE("graph dump failed.\n");
+//     return -1;
+//   }
+//   NNDEPLOY_TIME_POINT_END("graph->run");
+//   NNDEPLOY_TIME_PROFILER_PRINT("demo");
+//   NNDEPLOY_TIME_PROFILER_RESET();
+
+//   bool sync = graph->synchronize();
+//   if (!sync) {
+//     NNDEPLOY_LOGE("graph synchronize failed.\n");
+//     return -1;
+//   }
+
+//   status = graph->deinit();
+//   if (status != base::kStatusCodeOk) {
+//     NNDEPLOY_LOGE("graph deinit failed");
+//     return -1;
+//   }
+
+//   delete graph;
+
+//   return 0;
+// }
+
+int main(int argc, char *argv[]) {
   base::Status status = base::kStatusCodeOk;
-  dag::Graph *graph = new dag::Graph("add_graph", {}, {});
+  dag::Graph *graph = new dag::Graph("demo_feedback", {}, {});
 
-  dag::Edge *const_out = graph->createEdge("const_out");
-  ConstNode *const_node = (ConstNode *)graph->createNode<ConstNode>(
-      "const_node", std::vector<dag::Edge *>{},
-      std::vector<dag::Edge *>{const_out});
+  base::ParallelType pt = base::kParallelTypeFeedback;
+  status = graph->setParallelType(pt);
 
-  dag::Edge *add_out = graph->createEdge("add_out");
-  AddNode *add_node = (AddNode *)graph->createNode<AddNode>(
-      "add_node", std::vector<dag::Edge *>{const_out},
-      std::vector<dag::Edge *>{add_out});
+  dag::Edge *state = graph->createEdge("state", true);
+  dag::Edge *out = graph->createEdge("out");
 
-  // dag::Edge *add_mul_out = graph->createEdge("add_mul_out");
-  // AddMulNode *add_mul_node = (AddMulNode *)graph->createNode<AddMulNode>(
-  //     "add_mul_node", std::vector<dag::Edge *>{add_out},
-  //     std::vector<dag::Edge *>{add_mul_out});
-  // add_mul_node->defaultParam();
+  SourceNode *source = (SourceNode *)graph->createNode<SourceNode>(
+      "source", std::vector<dag::Edge *>{}, std::vector<dag::Edge *>{state});
+
+  DemoAccumulateNode *acc_node =
+      (DemoAccumulateNode *)graph->createNode<DemoAccumulateNode>(
+          "acc_node", std::vector<dag::Edge *>{state},
+          std::vector<dag::Edge *>{state, out});
+  if (!acc_node) {
+    NNDEPLOY_LOGE("create demo::Accumulate failed!");
+    return -1;
+  }
 
   PrintNode *node = (PrintNode *)graph->createNode<PrintNode>(
-      "print_node", std::vector<dag::Edge *>{add_out},
-      std::vector<dag::Edge *>{});
-
-  base::ParallelType pt = base::kParallelTypeSequential;
-  // base::ParallelType pt = base::kParallelTypePipeline;
-  status = graph->setParallelType(pt);
+      "print_node", std::vector<dag::Edge *>{out}, std::vector<dag::Edge *>{});
 
   status = graph->init();
   if (status != base::kStatusCodeOk) {

@@ -80,6 +80,8 @@ class PipelineEdge : public AbstractEdge {
 
   virtual bool requestTerminate();
 
+  bool hasBeenConsumedBy(const Node *n) override { return false; }
+
  private:
   PipelineDataPacket *getPipelineDataPacket(const Node *node);
 

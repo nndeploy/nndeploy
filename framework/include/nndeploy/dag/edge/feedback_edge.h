@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_DAG_EDGE_FIXED_EDGE_H_
-#define _NNDEPLOY_DAG_EDGE_FIXED_EDGE_H_
+#ifndef _NNDEPLOY_DAG_EDGE_FEEDBACK_EDGE_H_
+#define _NNDEPLOY_DAG_EDGE_FEEDBACK_EDGE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -18,12 +18,10 @@
 namespace nndeploy {
 namespace dag {
 
-class FixedEdge : public AbstractEdge {
+class FeedBackEdge : public AbstractEdge {
  public:
-  FixedEdge(base::ParallelType paralle_type);
-  virtual ~FixedEdge();
-
-  virtual base::Status setQueueMaxSize(int queue_max_size);
+  FeedBackEdge(base::ParallelType paralle_type);
+  virtual ~FeedBackEdge();
 
   virtual base::Status construct();
 
@@ -70,10 +68,13 @@ class FixedEdge : public AbstractEdge {
 
   virtual bool requestTerminate();
 
-  bool hasBeenConsumedBy(const Node *n) override { return false; }
+  virtual base::Status setQueueMaxSize(int queue_max_size);
+
+  bool hasBeenConsumedBy(const Node *n) override;
 
  private:
   DataPacket *data_packet_;
+  std::unordered_map<const Node *, int64_t> last_read_index_;
 };
 
 }  // namespace dag

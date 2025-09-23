@@ -200,7 +200,7 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     DataPacket *data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
@@ -208,7 +208,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
     }
     this->increaseIndex();
     data_packet->setIndex(index_);
-    base::Status status = data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
+    base::Status status =
+        data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set any.\n");
       delete data_packet;
@@ -248,6 +249,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   base::Status increaseConsumers(std::vector<Node *> &consumers);
 
   virtual bool requestTerminate() = 0;
+
+  virtual bool hasBeenConsumedBy(const Node *node) = 0;
 
  protected:
   bool checkNode(const Node *node);

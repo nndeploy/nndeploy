@@ -434,11 +434,14 @@ base::Status Node::clearIoParams() {
 }
 std::vector<std::string> Node::getIoParams() { return io_params_; }
 
-base::Status Node::setDropdownParams(const std::map<std::string, std::vector<std::string>> &dropdown_params) {
+base::Status Node::setDropdownParams(
+    const std::map<std::string, std::vector<std::string>> &dropdown_params) {
   dropdown_params_ = dropdown_params;
   return base::kStatusCodeOk;
 }
-base::Status Node::addDropdownParam(const std::string &dropdown_param, const std::vector<std::string> &dropdown_values) {
+base::Status Node::addDropdownParam(
+    const std::string &dropdown_param,
+    const std::vector<std::string> &dropdown_values) {
   dropdown_params_[dropdown_param] = dropdown_values;
   return base::kStatusCodeOk;
 }
@@ -453,7 +456,9 @@ base::Status Node::clearDropdownParams() {
   dropdown_params_.clear();
   return base::kStatusCodeOk;
 }
-std::map<std::string, std::vector<std::string>> Node::getDropdownParams() { return dropdown_params_; }
+std::map<std::string, std::vector<std::string>> Node::getDropdownParams() {
+  return dropdown_params_;
+}
 
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
@@ -776,17 +781,47 @@ base::Status Node::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeOk;
 }
 
+// base::EdgeUpdateFlag Node::updateInput() {
+//   base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
+//   for (auto input : inputs_) {
+//     flag = input->update(this);
+//     if (flag != base::kEdgeUpdateFlagComplete) {
+//       // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
+//       //               base::edgeUpdateFlagToString(flag).c_str());
+//       break;
+//     }
+//   }
+//   return flag;
+// }
+
 base::EdgeUpdateFlag Node::updateInput() {
-  base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
-  for (auto input : inputs_) {
-    flag = input->update(this);
-    if (flag != base::kEdgeUpdateFlagComplete) {
-      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
-      //               base::edgeUpdateFlagToString(flag).c_str());
+  bool has_fb = false;
+  for (auto *e : inputs_) {
+    if (e && e->isFeedback()) {
+      has_fb = true;
       break;
     }
   }
-  return flag;
+
+  for (auto *e : inputs_) {
+    if (!e) return base::kEdgeUpdateFlagTerminate;
+
+    auto flag = e->update(this);
+    if (flag == base::kEdgeUpdateFlagComplete) continue;
+
+    // 关键：含反馈节点，允许“非反馈输入 + 以前读过 => 复用”
+    if (has_fb && !e->isFeedback() && e->hasBeenConsumedBy(this)) {
+      continue;  // 作为就绪处理（sticky）
+    }
+
+    // 其它情况：仍按原规则，不就绪
+    if (flag == base::kEdgeUpdateFlagTerminate) {
+      return base::kEdgeUpdateFlagTerminate;
+    }
+
+    // 这里保留你原来的其它分支（如果有）
+  }
+  return base::kEdgeUpdateFlagComplete;
 }
 
 bool Node::synchronize() { return true; }
@@ -1063,16 +1098,20 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("ui_params_", ui_params, allocator);
   rapidjson::Value io_params(rapidjson::kArrayType);
   for (auto &io_param : io_params_) {
-    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator), allocator);
+    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator),
+                       allocator);
   }
   json.AddMember("io_params_", io_params, allocator);
   rapidjson::Value dropdown_params(rapidjson::kObjectType);
   for (auto &dropdown_param : dropdown_params_) {
     rapidjson::Value dropdown_values(rapidjson::kArrayType);
     for (auto &dropdown_value : dropdown_param.second) {
-      dropdown_values.PushBack(rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
+      dropdown_values.PushBack(
+          rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
     }
-    dropdown_params.AddMember(rapidjson::Value(dropdown_param.first.c_str(), allocator), dropdown_values, allocator);
+    dropdown_params.AddMember(
+        rapidjson::Value(dropdown_param.first.c_str(), allocator),
+        dropdown_values, allocator);
   }
   json.AddMember("dropdown_params_", dropdown_params, allocator);
 
@@ -1330,10 +1369,12 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   //     }
   //   }
   // }
-  // if (json.HasMember("dropdown_params_") && json["dropdown_params_"].IsObject()) {
+  // if (json.HasMember("dropdown_params_") &&
+  // json["dropdown_params_"].IsObject()) {
   //   dropdown_params_.clear();
   //   auto &dropdown_params_obj = json["dropdown_params_"];
-  //   for (auto it = dropdown_params_obj.MemberBegin(); it != dropdown_params_obj.MemberEnd(); ++it) {
+  //   for (auto it = dropdown_params_obj.MemberBegin(); it !=
+  //   dropdown_params_obj.MemberEnd(); ++it) {
   //     if (it->value.IsArray()) {
   //       std::vector<std::string> dropdown_values;
   //       for (int i = 0; i < it->value.Size(); i++) {

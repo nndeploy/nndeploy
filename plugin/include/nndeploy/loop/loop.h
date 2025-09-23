@@ -26,6 +26,34 @@ class ValParam : public base::Param {
   int val = 0;
 };
 
+class DemoState : public base::Param {
+ public:
+  int step = 0;
+  float acc = 0.0f;    // 累加值
+  int max_steps = 10;  // 终止条件（示例）
+};
+
+class NNDEPLOY_CC_API SourceNode : public dag::Node {
+ public:
+  SourceNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::SourceNode";
+    desc_ = "source variable";
+    this->setOutputTypeInfo<DemoState>();
+    node_type_ = dag::NodeType::kNodeTypeInput;
+  }
+  virtual ~SourceNode() {}
+
+  virtual base::Status run();
+
+  virtual base::EdgeUpdateFlag updateInput();
+
+ private:
+  int index_ = 0;
+  int size_ = 1;
+};
+
 class NNDEPLOY_CC_API ConstNode : public dag::Node {
  public:
   ConstNode(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -111,6 +139,18 @@ class NNDEPLOY_CC_API AddMulNode : public dag::CompositeNode {
 
  private:
   dag::Node *add_ = nullptr;
+};
+
+class NNDEPLOY_CC_API DemoAccumulateNode : public dag::Node {
+ public:
+  DemoAccumulateNode(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::Accumulate";
+  }
+  virtual ~DemoAccumulateNode() {}
+
+  virtual base::Status run();
 };
 
 }  // namespace loop

@@ -229,6 +229,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   bool isFeedback() const;
   // -----------------------------------------------------
 
+  bool hasBeenConsumedBy(const Node *n);
+
  private:
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;

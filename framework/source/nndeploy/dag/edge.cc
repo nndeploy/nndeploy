@@ -298,15 +298,19 @@ bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
 }
 
 base::Status Edge::setFeedback(bool enable) {
-  if (abstact_edge_ != nullptr) {
-    // Feedback flag must be set before construct()
-    return base::kStatusCodeErrorInvalidValue;
-  }
+  // if (abstact_edge_ != nullptr) {
+  //   // Feedback flag must be set before construct()
+  //   return base::kStatusCodeErrorInvalidValue;
+  // }
   feedback = enable;
   return base::kStatusCodeOk;
 }
 
 bool Edge::isFeedback() const { return feedback; }
+
+bool Edge::hasBeenConsumedBy(const Node *n) {
+  return abstact_edge_->hasBeenConsumedBy(n);
+}
 
 }  // namespace dag
 }  // namespace nndeploy

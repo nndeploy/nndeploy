@@ -26,6 +26,30 @@ base::EdgeUpdateFlag ConstNode::updateInput() {
   }
 }
 
+base::Status SourceNode::run() {
+  setRunningFlag(true);
+  DemoState *val = new DemoState();
+  val->step = 0;
+  val->acc = 0.0f;
+  val->max_steps = 5;
+  index_++;
+  this->getOutput(0)->set(val, true);
+  setRunningFlag(false);
+  return base::kStatusCodeOk;
+}
+
+base::EdgeUpdateFlag SourceNode::updateInput() {
+  if (index_ < size_) {
+    return base::kEdgeUpdateFlagComplete;
+  } else {
+    if (size_ == 0) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      return base::kEdgeUpdateFlagTerminate;
+    }
+  }
+}
+
 base::Status AddNode::run() {
   setRunningFlag(true);
   ValParam *input = (ValParam *)(inputs_[0]->getParam(this));
@@ -39,8 +63,8 @@ base::Status AddNode::run() {
 
 base::Status PrintNode::run() {
   setRunningFlag(true);
-  ValParam *input = (ValParam *)(inputs_[0]->getParam(this));
-  int val = input->val;
+  DemoState *input = (DemoState *)(inputs_[0]->getParam(this));
+  float val = input->acc;
   std::cout << "The final result is " << val << std::endl;
   setRunningFlag(false);
   return base::kStatusCodeOk;
@@ -63,9 +87,37 @@ base::Status AddMulNode::run() {
   return status;
 }
 
+base::Status DemoAccumulateNode::run() {
+  // 取输入：回边 state + 外部输入 inc
+  auto *state = inputs_[0]->getParam(this);  // DemoState*
+  if (!state) {
+    NNDEPLOY_LOGE("DemoAccumulateNode: null input!");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  auto *st = dynamic_cast<DemoState *>(state);
+  if (!st) {
+    NNDEPLOY_LOGE("DemoAccumulateNode: wrong param type!");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 更新累加
+  st->acc += 1;  // 每轮加一个常量（比如 1.0）
+  st->step += 1;
+
+  if (st->step < st->max_steps) {
+    outputs_[0]->set(st);
+  } else {
+    outputs_[1]->set(st, false);
+  }
+
+  return base::kStatusCodeOk;
+}
+
 REGISTER_NODE("nndeploy::loop::ConstNode", ConstNode);
 REGISTER_NODE("nndeploy::loop::AddNode", AddNode);
 REGISTER_NODE("nndeploy::loop::PrintNode", PrintNode);
+REGISTER_NODE("nndeploy::loop::Accumulate", DemoAccumulateNode);
 
 }  // namespace loop
 }  // namespace nndeploy
