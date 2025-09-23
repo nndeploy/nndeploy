@@ -123,11 +123,21 @@ base::Status MnnLlmInfer::serialize(
     rapidjson::Value& json,
     rapidjson::Document::AllocatorType& allocator) {
   // TODO: 实现节点序列化
+  base::Status status = dag::Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("MnnLlmInfer::serialize failed\n");
+    return status;
+  }
   return base::kStatusCodeOk;
 }
 
 base::Status MnnLlmInfer::deserialize(rapidjson::Value& json) {
   // TODO: 实现节点反序列化
+  base::Status status = dag::Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("MnnLlmInfer::deserialize failed\n");
+    return status;
+  }
   return base::kStatusCodeOk;
 }
 
