@@ -129,8 +129,8 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 | 应用场景 | 可用模型 | 支持平台 | 备注 |
 |---------|---------|---------|---------|
-| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS | |
-| **图片生成** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, Stable Diffusion 3 PAG, IF, HunyuanDiT, <br>Kandinsky, Kandinsky V2.2, Kandinsky 3, Wuerstchen, Stable Cascade, LCM, PixArt Alpha, PixArt Sigma, <br>Sana, AuraFlow, Flux, Lumina, Lumina2, Chroma, CogView3 Plus, CogView4, Stable Diffusion ControlNet, <br>Stable Diffusion PAG, Stable Diffusion XL ControlNet, Stable Diffusion XL ControlNet Union, <br>Stable Diffusion XL PAG, Stable Diffusion XL ControlNet PAG, Flux ControlNet, Flux Control, <br>Flux Kontext, Stable Diffusion ControlNet PAG, Stable Diffusion 3 ControlNet | Linux/Windows/macOS | 支持文生图、<br>图生图、<br>图像修复 |
+| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS |  |
+| **图片生成** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4等等模型 | Linux/Windows/macOS | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
 | **换脸** | **deep-live-cam** | Linux/Windows/macOS | |
 | **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
 | **目标追踪** | FairMot | Linux/Windows/macOS/Android/iOS | |

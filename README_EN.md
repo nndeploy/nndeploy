@@ -118,7 +118,7 @@ We currently support 100+ mainstream AI models including LLMs, AIGC generation, 
 | Application | Available Models | Supported Platforms | Notes |
 |-------------|------------------|----------------------|-------|
 | **LLM** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS | |
-| **Image Generation** | Stable Diffusion 1.5, SDXL, SD3, SD3 PAG, IF, HunyuanDiT, Kandinsky series, Wuerstchen, Stable Cascade, LCM, PixArt series, Sana, AuraFlow, Flux, Lumina series, Chroma, CogView3/4, SD ControlNet series, Flux ControlNet, etc. | Linux/Windows/macOS | Text-to-image, image-to-image, inpainting |
+| **Image Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4 etc | Linux/Windows/macOS | Text-to-image, image-to-image, inpainting base on **diffusers** |
 | **Face Swap** | **deep-live-cam** | Linux/Windows/macOS | |
 | **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
 | **Object Tracking** | FairMot | Linux/Windows/macOS/Android/iOS | |
