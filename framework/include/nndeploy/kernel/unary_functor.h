@@ -16,8 +16,8 @@ struct UnaryFunctor;
 // Relu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeRelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src zero = Src(0);
     return static_cast<Dst>(src > zero ? src : zero);
   }
@@ -26,9 +26,8 @@ struct UnaryFunctor<Device, kKernelTypeRelu, Dst, Src> {
 // Elu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeElu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
-      : alpha(a0.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar) : alpha(a0.Value<double>()) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src > Src(0) ? src
                                          : alpha * (std::exp(src) - Src(1)));
   }
@@ -38,9 +37,9 @@ struct UnaryFunctor<Device, kKernelTypeElu, Dst, Src> {
 // Celu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeCelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
       : alpha(a0.Value<double>()), inv_alpha(1.0 / a0.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(
         src > Src(0) ? src : alpha * (std::exp(src * inv_alpha) - Src(1)));
   }
@@ -51,8 +50,8 @@ struct UnaryFunctor<Device, kKernelTypeCelu, Dst, Src> {
 // HardSwish
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeHardSwish, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src three = Src(3);
     const Src six = Src(6);
     return static_cast<Dst>(src <= -three  ? Src(0)
@@ -64,8 +63,8 @@ struct UnaryFunctor<Device, kKernelTypeHardSwish, Dst, Src> {
 // HardSigmoid
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeHardSigmoid, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src three = Src(3);
     const Src six = Src(6);
     const Src half = Src(0.5);
@@ -78,9 +77,8 @@ struct UnaryFunctor<Device, kKernelTypeHardSigmoid, Dst, Src> {
 // HardShrink
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeHardShrink, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
-      : lambd(a0.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar) : lambd(a0.Value<double>()) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return (std::abs(src) <= lambd) ? Dst(0) : static_cast<Dst>(src);
   }
   const double lambd;
@@ -89,9 +87,9 @@ struct UnaryFunctor<Device, kKernelTypeHardShrink, Dst, Src> {
 // HardTanh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeHardTanh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
       : min_val(a0.Value<double>()), max_val(a1.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src <= min_val   ? min_val
                             : src >= max_val ? max_val
                                              : src);
@@ -103,9 +101,8 @@ struct UnaryFunctor<Device, kKernelTypeHardTanh, Dst, Src> {
 // LeakyRelu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLeakyRelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
-      : alpha(a0.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar) : alpha(a0.Value<double>()) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src > Src(0) ? src : alpha * src);
   }
   const double alpha;
@@ -114,8 +111,8 @@ struct UnaryFunctor<Device, kKernelTypeLeakyRelu, Dst, Src> {
 // Mish
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeMish, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     using std::exp;
     using std::tanh;
     Src soft_plus = std::log(Src(1) + exp(src));
@@ -126,8 +123,8 @@ struct UnaryFunctor<Device, kKernelTypeMish, Dst, Src> {
 // Selu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const double scale = 1.0507009873554804934193349852946;
     const double alpha = 1.6732632423543772848170429916717;
     return static_cast<Dst>(
@@ -138,8 +135,8 @@ struct UnaryFunctor<Device, kKernelTypeSelu, Dst, Src> {
 // Silu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSilu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src / (Src(1) + std::exp(-src)));
   }
 };
@@ -147,8 +144,8 @@ struct UnaryFunctor<Device, kKernelTypeSilu, Dst, Src> {
 // SoftSign
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSoftSign, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src / (Src(1) + std::abs(src)));
   }
 };
@@ -156,9 +153,9 @@ struct UnaryFunctor<Device, kKernelTypeSoftSign, Dst, Src> {
 // SoftPlus
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSoftPlus, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
       : beta(a0.Value<double>()), threshold(a1.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>((src * beta) > threshold
                                 ? src
                                 : std::log(Src(1) + std::exp(src * beta)) /
@@ -171,9 +168,8 @@ struct UnaryFunctor<Device, kKernelTypeSoftPlus, Dst, Src> {
 // SoftShrink
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSoftShrink, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar)
-      : alpha(a0.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar) : alpha(a0.Value<double>()) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::abs(src) <= alpha ? Src(0)
                             : src > alpha          ? src - alpha
                                                    : src + alpha);
@@ -184,8 +180,8 @@ struct UnaryFunctor<Device, kKernelTypeSoftShrink, Dst, Src> {
 // Tanh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeTanh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::tanh(src));
   }
 };
@@ -193,9 +189,9 @@ struct UnaryFunctor<Device, kKernelTypeTanh, Dst, Src> {
 // Threshold
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeThreshold, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
+  DEVICE_FUNC UnaryFunctor(Scalar a0, Scalar a1)
       : threshold(a0.Value<double>()), value(a1.Value<double>()) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src <= threshold ? value : src);
   }
   const double threshold;
@@ -205,8 +201,8 @@ struct UnaryFunctor<Device, kKernelTypeThreshold, Dst, Src> {
 // FastGelu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeFastGelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src a = Src(0.7978845608028654);
     const Src b = Src(0.044715);
     const Src c = Src(0.5);
@@ -218,8 +214,8 @@ struct UnaryFunctor<Device, kKernelTypeFastGelu, Dst, Src> {
 // QuickGelu
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeQuickGelu, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src pi_over_sqrt_8 = Src(1.1107207345395915617539702475152);
     return static_cast<Dst>(
         src * (Src(0.5) * (Src(1) + std::tanh(pi_over_sqrt_8 * src))));
@@ -229,8 +225,8 @@ struct UnaryFunctor<Device, kKernelTypeQuickGelu, Dst, Src> {
 // SquareReLU
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSquareReLU, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src zero = Src(0);
     return static_cast<Dst>(src > zero ? src * src : zero);
   }
@@ -239,8 +235,8 @@ struct UnaryFunctor<Device, kKernelTypeSquareReLU, Dst, Src> {
 // Abs
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAbs, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::abs(src));
   }
 };
@@ -248,8 +244,8 @@ struct UnaryFunctor<Device, kKernelTypeAbs, Dst, Src> {
 // Acos
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAcos, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::acos(src));
   }
 };
@@ -257,8 +253,8 @@ struct UnaryFunctor<Device, kKernelTypeAcos, Dst, Src> {
 // Acosh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAcosh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::acosh(src));
   }
 };
@@ -266,8 +262,8 @@ struct UnaryFunctor<Device, kKernelTypeAcosh, Dst, Src> {
 // Asin
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAsin, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::asin(src));
   }
 };
@@ -275,8 +271,8 @@ struct UnaryFunctor<Device, kKernelTypeAsin, Dst, Src> {
 // Asinh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAsinh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::asinh(src));
   }
 };
@@ -284,8 +280,8 @@ struct UnaryFunctor<Device, kKernelTypeAsinh, Dst, Src> {
 // Atan
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAtan, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::atan(src));
   }
 };
@@ -293,8 +289,8 @@ struct UnaryFunctor<Device, kKernelTypeAtan, Dst, Src> {
 // Atanh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeAtanh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::atanh(src));
   }
 };
@@ -302,8 +298,8 @@ struct UnaryFunctor<Device, kKernelTypeAtanh, Dst, Src> {
 // Ceil
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeCeil, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::ceil(src));
   }
 };
@@ -311,8 +307,8 @@ struct UnaryFunctor<Device, kKernelTypeCeil, Dst, Src> {
 // Cos
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeCos, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::cos(src));
   }
 };
@@ -320,8 +316,8 @@ struct UnaryFunctor<Device, kKernelTypeCos, Dst, Src> {
 // Cosh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeCosh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::cosh(src));
   }
 };
@@ -329,8 +325,8 @@ struct UnaryFunctor<Device, kKernelTypeCosh, Dst, Src> {
 // Erf
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeErf, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::erf(src));
   }
 };
@@ -338,8 +334,8 @@ struct UnaryFunctor<Device, kKernelTypeErf, Dst, Src> {
 // Erfc
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeErfc, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::erfc(src));
   }
 };
@@ -347,8 +343,8 @@ struct UnaryFunctor<Device, kKernelTypeErfc, Dst, Src> {
 // Exp
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeExp, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::exp(src));
   }
 };
@@ -356,8 +352,8 @@ struct UnaryFunctor<Device, kKernelTypeExp, Dst, Src> {
 // Exp2
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeExp2, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::exp2(src));
   }
 };
@@ -365,8 +361,8 @@ struct UnaryFunctor<Device, kKernelTypeExp2, Dst, Src> {
 // Expm1
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeExpm1, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::expm1(src));
   }
 };
@@ -374,8 +370,8 @@ struct UnaryFunctor<Device, kKernelTypeExpm1, Dst, Src> {
 // Floor
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeFloor, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::floor(src));
   }
 };
@@ -383,8 +379,8 @@ struct UnaryFunctor<Device, kKernelTypeFloor, Dst, Src> {
 // Lgamma
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLgamma, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::lgamma(src));
   }
 };
@@ -392,8 +388,8 @@ struct UnaryFunctor<Device, kKernelTypeLgamma, Dst, Src> {
 // Log
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLog, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::log(src));
   }
 };
@@ -401,8 +397,8 @@ struct UnaryFunctor<Device, kKernelTypeLog, Dst, Src> {
 // Log2
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLog2, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::log2(src));
   }
 };
@@ -410,8 +406,8 @@ struct UnaryFunctor<Device, kKernelTypeLog2, Dst, Src> {
 // Log10
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLog10, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::log10(src));
   }
 };
@@ -419,8 +415,8 @@ struct UnaryFunctor<Device, kKernelTypeLog10, Dst, Src> {
 // Log1p
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLog1p, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::log1p(src));
   }
 };
@@ -428,8 +424,8 @@ struct UnaryFunctor<Device, kKernelTypeLog1p, Dst, Src> {
 // LogSigmoid
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLogSigmoid, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(-std::log(Src(1.0) + std::exp(-src)));
   }
 };
@@ -437,17 +433,15 @@ struct UnaryFunctor<Device, kKernelTypeLogSigmoid, Dst, Src> {
 // Negative
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeNegative, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(-src);
-  }
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const { return static_cast<Dst>(-src); }
 };
 
 // Reciprocal
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeReciprocal, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(Src(1.0) / src);
   }
 };
@@ -455,8 +449,8 @@ struct UnaryFunctor<Device, kKernelTypeReciprocal, Dst, Src> {
 // ReciprocalNoNan
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeReciprocalNoNan, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return (std::abs(src) <= Src(0.0)) ? Dst(0.0)
                                        : static_cast<Dst>(Src(1.0) / src);
   }
@@ -465,8 +459,8 @@ struct UnaryFunctor<Device, kKernelTypeReciprocalNoNan, Dst, Src> {
 // Rint
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeRint, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::rint(src));
   }
 };
@@ -474,8 +468,8 @@ struct UnaryFunctor<Device, kKernelTypeRint, Dst, Src> {
 // Round
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeRound, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::round(src));
   }
 };
@@ -483,8 +477,8 @@ struct UnaryFunctor<Device, kKernelTypeRound, Dst, Src> {
 // Rsqrt
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeRsqrt, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(Src(1.0) / std::sqrt(src));
   }
 };
@@ -492,8 +486,8 @@ struct UnaryFunctor<Device, kKernelTypeRsqrt, Dst, Src> {
 // Sigmoid
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSigmoid, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(Src(1.0) / (Src(1.0) + std::exp(-src)));
   }
 };
@@ -501,8 +495,8 @@ struct UnaryFunctor<Device, kKernelTypeSigmoid, Dst, Src> {
 // Sign
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSign, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     const Src zero = Src(0);
     return static_cast<Dst>(src > zero ? 1.0 : src < zero ? -1.0 : 0.0);
   }
@@ -511,8 +505,8 @@ struct UnaryFunctor<Device, kKernelTypeSign, Dst, Src> {
 // Sin
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSin, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::sin(src));
   }
 };
@@ -520,8 +514,8 @@ struct UnaryFunctor<Device, kKernelTypeSin, Dst, Src> {
 // Sinh
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSinh, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::sinh(src));
   }
 };
@@ -529,8 +523,8 @@ struct UnaryFunctor<Device, kKernelTypeSinh, Dst, Src> {
 // Sqrt
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSqrt, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::sqrt(src));
   }
 };
@@ -538,8 +532,8 @@ struct UnaryFunctor<Device, kKernelTypeSqrt, Dst, Src> {
 // Square
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeSquare, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src * src);
   }
 };
@@ -547,8 +541,8 @@ struct UnaryFunctor<Device, kKernelTypeSquare, Dst, Src> {
 // Tan
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeTan, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(std::tan(src));
   }
 };
@@ -556,8 +550,8 @@ struct UnaryFunctor<Device, kKernelTypeTan, Dst, Src> {
 // NotEqualZero
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeNotEqualZero, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const {
     return static_cast<Dst>(src != Src(0));
   }
 };
@@ -565,69 +559,22 @@ struct UnaryFunctor<Device, kKernelTypeNotEqualZero, Dst, Src> {
 // LogicalNot
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeLogicalNot, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(!src);
-  }
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const { return static_cast<Dst>(!src); }
 };
 
 // Cast
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeCast, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(src);
-  }
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const { return static_cast<Dst>(src); }
 };
 
 // BitwiseNot
 template <int Device, typename Dst, typename Src>
 struct UnaryFunctor<Device, kKernelTypeBitwiseNot, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(~src);
-  }
-};
-
-// ------- 复数专用（仅对 std::complex<T> 生效） -------
-template <int Device, typename Dst, typename Src>
-struct UnaryFunctor<Device, kKernelTypeConj, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return Dst{src.real(), -src.imag()};
-  }
-};
-
-template <int Device, typename Dst, typename Src>
-struct UnaryFunctor<Device, kKernelTypeReal, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(src.real());
-  }
-};
-
-template <int Device, typename Dst, typename Src>
-struct UnaryFunctor<Device, kKernelTypeImag, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return static_cast<Dst>(src.imag());
-  }
-};
-
-template <int Device, typename Dst, typename Src>
-struct UnaryFunctor<Device, kKernelTypeRealGrad, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return Dst{src, typename Dst::value_type(0)};
-  }
-};
-
-template <int Device, typename Dst, typename Src>
-struct UnaryFunctor<Device, kKernelTypeImagGrad, Dst, Src> {
-  NNDEPLOY_DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
-  NNDEPLOY_DEVICE_FUNC Dst operator()(Src src) const {
-    return Dst{typename Dst::value_type(0), src};
-  }
+  DEVICE_FUNC UnaryFunctor(Scalar, Scalar) {}
+  DEVICE_FUNC Dst operator()(Src src) const { return static_cast<Dst>(~src); }
 };
 
 // ------- 工具函数：判断是否支持 -------
@@ -637,5 +584,5 @@ inline constexpr bool IsUnaryFunctorDefined = true;
 }  // namespace kernel
 }  // namespace nndeploy
 
-#undef NNDEPLOY_DEVICE_FUNC
+#undef DEVICE_FUNC
 #endif  // _NNDEPLOY_KERNEL_ELEMENTWISE_UNARY_FUNCTOR_H_

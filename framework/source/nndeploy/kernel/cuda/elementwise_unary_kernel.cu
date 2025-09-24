@@ -1,7 +1,9 @@
 #include "nndeploy/device/cuda/cuda_device.h"
-#include "nndeploy/kernel/elementwise_unary_kernel.h"
-#include "nndeploy/kernel/util.h"
+#include "nndeploy/kernel/cuda/elementwise_kernel_launch.cuh"
 #include "nndeploy/kernel/cuda/type.h"
+#include "nndeploy/kernel/elementwise_unary_kernel.h"
+#include "nndeploy/kernel/unary_functor.h"
+#include "nndeploy/kernel/util.h"
 namespace nndeploy {
 namespace kernel {
 namespace {
@@ -14,16 +16,20 @@ class CudaElementwiseUnaryImpl : public ElementwiseUnaryKernel {
 
   void Launch(device::Stream* stream, const void* src, void* dst,
               size_t count) override {
-    // cudaStream_t cuda_stream =
-    //     (cudaStream_t)stream->as<CudaStream>()->getStream();
-    // auto functor =
-    //     UnaryFunctor<DeviceType::kCUDA, unary_kernel, Dst, Src>(attr0,
-    //     attr1);
+    cudaStream_t cuda_stream =
+        (cudaStream_t)stream->as<device::CudaStream>()->getStream();
+    auto functor =
+        UnaryFunctor<base::kDeviceTypeCodeCuda, unary_kernel, Dst, Src>(attr0,
+                                                                        attr1);
 
-    // TODO: sjx  cuda执行函数
-    // OF_CUDA_CHECK((cuda::elementwise::Unary<decltype(functor), Dst, Src>(
-    //     functor, count, reinterpret_cast<Dst*>(dst), reinterpret_cast<const
-    //     Src*>(src), cuda_stream->cuda_stream())));
+    cudaError_t ret = UnaryLaunch<decltype(functor), Dst, Src>(
+        functor, count, reinterpret_cast<Dst*>(dst),
+        reinterpret_cast<const Src*>(src), cuda_stream);
+
+    if (ret != cudaSuccess) {
+      NNDEPLOY_LOGE(
+          "Cuda Elementwise Unary Kernel launch failed, errorCode is %d", ret);
+    }
   }
 
  protected:
@@ -95,7 +101,7 @@ class CudaElementwiseUnaryFactory : public ElementwiseUnaryKernelFactory {
     if (it != new_elementwise_unary_handle.end()) {
       return it->second(attr0, attr1);
     } else {
-      // TODO:sjx  加一句报错
+      NNDEPLOY_LOGE("cuda kernel not implemented");
       return nullptr;
     }
   }

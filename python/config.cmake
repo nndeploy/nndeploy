@@ -284,6 +284,14 @@ if(ENABLE_NNDEPLOY_PLUGIN)
     )
     set(SOURCE ${SOURCE} ${PYTHON_DETECT_SOURCE})
   endif()
+
+  if(ENABLE_NNDEPLOY_PLUGIN_OCR)
+    file(GLOB_RECURSE PYTHON_OCR_SOURCE
+      "${ROOT_PATH}/python/src/ocr/*.h"
+      "${ROOT_PATH}/python/src/ocr/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_OCR_SOURCE})
+  endif()
   
   if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
     file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
