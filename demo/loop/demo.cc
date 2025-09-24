@@ -228,8 +228,8 @@ int main() {
 
   // 跑
   g->init();
-  g->dump();  // 可视化：feedback 边是虚线（你已改过 dump）
-  g->run();   // SequentialFeedbackExecutor 逐轮推进直到无进展
+  g->dump();
+  g->run();
   g->synchronize();
   g->deinit();
   delete g;

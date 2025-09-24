@@ -62,6 +62,10 @@ if(ENABLE_NNDEPLOY_LOOP)
   include(${ROOT_PATH}/demo/loop/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_FEEDBACK)
+  include(${ROOT_PATH}/demo/feedback/config.cmake)
+endif()
+
 ################################################################################
 
 # plugin

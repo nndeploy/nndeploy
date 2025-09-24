@@ -84,5 +84,10 @@ if(ENABLE_NNDEPLOY_PLUGIN_DAG_LOOP)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/loop/config.cmake)
 endif()
 
+# # dag feedback
+if(ENABLE_NNDEPLOY_PLUGIN_DAG_FEEDBACK)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/feedback/config.cmake)
+endif()
+
 # appedn list
 # message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")
