@@ -14,7 +14,6 @@ namespace kernel {
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeRelu)            \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeElu)             \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeCelu)            \
-  NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeGelu)            \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeHardSwish)       \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeHardSigmoid)     \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeHardShrink)      \
@@ -38,8 +37,6 @@ namespace kernel {
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeCeil)            \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeCos)             \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeCosh)            \
-  NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeDigamma)         \
-  NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeTrigamma)        \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeErf)             \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeErfc)            \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeExp)             \
@@ -65,7 +62,6 @@ namespace kernel {
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeSqrt)            \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeSquare)          \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeTan)             \
-  NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeTrunc)           \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeNotEqualZero)    \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeFastGelu)        \
   NNDEPLOY_PP_MAKE_TUPLE_SEQ(UnaryKernelType::kKernelTypeQuickGelu)       \

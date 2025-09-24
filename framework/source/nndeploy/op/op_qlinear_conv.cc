@@ -128,7 +128,6 @@ base::Status OpQLinearConv::inferShape() {
     output_shape[new_i] = 1 + strided_kernel_positions;
   }
 
-
   outputs_[0]->reshape(output_shape);
   // outputs_[0]->print();
 
@@ -214,7 +213,6 @@ base::Status OpQLinearConv::qLinearConvImpl(
                                     i * kernel_shape[1] + j];
 
                   value += x_val * w_val;
-                 
                 }
               }
             }
@@ -240,11 +238,10 @@ base::Status OpQLinearConv::qLinearConvImpl(
     if (std::is_integral<T>::value) {
       // int8范围
       if (std::is_signed<T>::value) {
-      
         quantized_value = std::max(-128.0f, std::min(127.0f, quantized_value));
       } else {
         // uint8范围
-     
+
         quantized_value = std::max(0.0f, std::min(255.0f, quantized_value));
       }
     }
