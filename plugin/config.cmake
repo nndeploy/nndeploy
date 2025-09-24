@@ -79,5 +79,10 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/matting/config.cmake)
 endif()
 
+## ocr
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_OCR)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/ocr/config.cmake)
+endif()
+
 # appedn list
 # message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")

@@ -2,7 +2,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_demo_super_resolution)
+set(BINARY nndeploy_demo_ocr)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)

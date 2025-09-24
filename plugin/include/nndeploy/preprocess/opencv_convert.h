@@ -58,6 +58,9 @@ class NNDEPLOY_CC_API OpenCvConvert {
   static bool convertToTensor(const cv::Mat &src, device::Tensor *dst,
                               bool normalize, float *scale, float *mean,
                               float *std);
+  static bool convertToBatchTensor(const cv::Mat &src, device::Tensor *dst,
+                                bool normalize, float *scale, float *mean,
+                                float *std, int batch);
 };
 
 }  // namespace preprocess
