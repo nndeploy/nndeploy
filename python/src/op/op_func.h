@@ -5,28 +5,49 @@
 #include <pybind11/stl.h>
 
 #include "nndeploy/ir/op_param.h"
+#include "nndeploy/op/op_abs.h"
+#include "nndeploy/op/op_acos.h"
 #include "nndeploy/op/op_add.h"
+#include "nndeploy/op/op_asin.h"
+#include "nndeploy/op/op_atan.h"
 #include "nndeploy/op/op_batchnorm.h"
+#include "nndeploy/op/op_ceil.h"
 #include "nndeploy/op/op_concat.h"
 #include "nndeploy/op/op_conv.h"
+#include "nndeploy/op/op_cos.h"
+#include "nndeploy/op/op_cosh.h"
 #include "nndeploy/op/op_dequantize_linear.h"
+#include "nndeploy/op/op_erf.h"
+#include "nndeploy/op/op_exp.h"
 #include "nndeploy/op/op_flatten.h"
+#include "nndeploy/op/op_floor.h"
 #include "nndeploy/op/op_gather.h"
 #include "nndeploy/op/op_gelu.h"
 #include "nndeploy/op/op_gemm.h"
 #include "nndeploy/op/op_global_averagepool.h"
+#include "nndeploy/op/op_hardsigmoid.h"
+#include "nndeploy/op/op_log.h"
 #include "nndeploy/op/op_mat_mul.h"
 #include "nndeploy/op/op_maxpool.h"
 #include "nndeploy/op/op_mul.h"
 #include "nndeploy/op/op_qlinear_conv.h"
 #include "nndeploy/op/op_quantize_linear.h"
+#include "nndeploy/op/op_reciprocal.h"
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_reshape.h"
 #include "nndeploy/op/op_rmsnorm.h"
+#include "nndeploy/op/op_round.h"
+#include "nndeploy/op/op_selu.h"
 #include "nndeploy/op/op_sigmoid.h"
+#include "nndeploy/op/op_sign.h"
+#include "nndeploy/op/op_sin.h"
+#include "nndeploy/op/op_sinh.h"
 #include "nndeploy/op/op_slice.h"
 #include "nndeploy/op/op_softmax.h"
 #include "nndeploy/op/op_split.h"
+#include "nndeploy/op/op_sqrt.h"
+#include "nndeploy/op/op_tan.h"
+#include "nndeploy/op/op_tanh.h"
 #include "nndeploy/op/op_transpose.h"
 #include "nndeploy/op/op_where.h"
 
@@ -53,6 +74,50 @@ device::Tensor* batchNormFunc(
     std::shared_ptr<ir::BatchNormalizationParam> param);
 
 device::Tensor* reluFunc(device::Tensor* input);
+
+device::Tensor* hardsigmoidFunc(device::Tensor* input);
+
+device::Tensor* seluFunc(device::Tensor* input);
+
+device::Tensor* tanhFunc(device::Tensor* input);
+
+device::Tensor* sigmoidFunc(device::Tensor* input);
+
+device::Tensor* absFunc(device::Tensor* input);
+
+device::Tensor* acosFunc(device::Tensor* input);
+
+device::Tensor* asinFunc(device::Tensor* input);
+
+device::Tensor* atanFunc(device::Tensor* input);
+
+device::Tensor* cosFunc(device::Tensor* input);
+
+device::Tensor* coshFunc(device::Tensor* input);
+
+device::Tensor* erfFunc(device::Tensor* input);
+
+device::Tensor* expFunc(device::Tensor* input);
+
+device::Tensor* logFunc(device::Tensor* input);
+
+device::Tensor* reciprocalFunc(device::Tensor* input);
+
+device::Tensor* sinFunc(device::Tensor* input);
+
+device::Tensor* sinhFunc(device::Tensor* input);
+
+device::Tensor* sqrtFunc(device::Tensor* input);
+
+device::Tensor* tanFunc(device::Tensor* input);
+
+device::Tensor* ceilFunc(device::Tensor* input);
+
+device::Tensor* floorFunc(device::Tensor* input);
+
+device::Tensor* roundFunc(device::Tensor* input);
+
+device::Tensor* signFunc(device::Tensor* input);
 
 device::Tensor* reshapeFunc(device::Tensor* input, device::Tensor* shape,
                             std::shared_ptr<ir::ReshapeParam> param);

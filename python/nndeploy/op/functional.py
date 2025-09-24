@@ -20,9 +20,6 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
     return Tensor(_C.op.conv(input, weight, bias, param))
 
 
-# 其余 import 已在上文给出，不再重复
-
-
 def concat(input1, input2, axis=0):
     param = _C.ir.ConcatParam()
     param.axis_ = axis
@@ -39,8 +36,92 @@ def relu(input):
     return Tensor(_C.op.relu(input))
 
 
-def gelu(input):
-    return Tensor(_C.op.gelu(input))
+def hardsigmoid(input):
+    return Tensor(_C.op.hardsigmoid(input))
+
+
+def selu(input):
+    return Tensor(_C.op.selu(input))
+
+
+def tanh(input):
+    return Tensor(_C.op.tanh(input))
+
+
+def abs(input):
+    return Tensor(_C.op.abs(input))
+
+
+def acos(input):
+    return Tensor(_C.op.acos(input))
+
+
+def asin(input):
+    return Tensor(_C.op.asin(input))
+
+
+def atan(input):
+    return Tensor(_C.op.atan(input))
+
+
+def ceil(input):
+    return Tensor(_C.op.ceil(input))
+
+
+def cos(input):
+    return Tensor(_C.op.cos(input))
+
+
+def cosh(input):
+    return Tensor(_C.op.cosh(input))
+
+
+def erf(input):
+    return Tensor(_C.op.erf(input))
+
+
+def exp(input):
+    return Tensor(_C.op.exp(input))
+
+
+def floor(input):
+    return Tensor(_C.op.floor(input))
+
+
+def log(input):
+    return Tensor(_C.op.log(input))
+
+
+def reciprocal(input):
+    return Tensor(_C.op.reciprocal(input))
+
+
+def round(input):
+    return Tensor(_C.op.round(input))
+
+
+def sigmoid(input):
+    return Tensor(_C.op.sigmoid(input))
+
+
+def sign(input):
+    return Tensor(_C.op.sign(input))
+
+
+def sin(input):
+    return Tensor(_C.op.sin(input))
+
+
+def sinh(input):
+    return Tensor(_C.op.sinh(input))
+
+
+def sqrt(input):
+    return Tensor(_C.op.sqrt(input))
+
+
+def tan(input):
+    return Tensor(_C.op.tan(input))
 
 
 def add(input1, input2):
