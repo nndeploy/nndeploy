@@ -297,5 +297,59 @@ bool OpenCvConvert::convertToTensor(const cv::Mat &src, device::Tensor *dst,
   return ret;
 }
 
+bool OpenCvConvert::convertToBatchTensor(const cv::Mat &src, device::Tensor *dst,
+                                    bool normalize, float *scale, float *mean,
+                                    float *std, int batch_index) {
+  bool ret = true;
+
+  int n = dst->getBatch();   // batch size
+  int c = dst->getChannel();
+  int h = dst->getHeight();
+  int w = dst->getWidth();
+  base::DataType data_type = dst->getDataType();
+  size_t data_type_size = data_type.size();
+  int cv_type = OpenCvConvert::convertFromDataType(data_type);
+  int cv_single_type = CV_MAKETYPE(cv_type, 1);
+  int cv_mix_type = CV_MAKETYPE(cv_type, c);
+
+  // 每个 batch 的偏移量
+  size_t batch_offset = (size_t)batch_index * c * h * w * data_type_size;
+
+  if (dst->getDataFormat() == base::kDataFormatNCHW) {
+    cv::Mat tmp(cv::Size(w, h), cv_mix_type);
+    if (normalize) {
+      ret = OpenCvConvert::normalize(src, tmp, data_type, scale, mean, std);
+      if (!ret) {
+        return ret;
+      }
+    } else {
+      src.convertTo(tmp, cv_mix_type);
+    }
+    std::vector<cv::Mat> tmp_vec;
+    for (int i = 0; i < c; ++i) {
+      int8_t *data = ((int8_t *)dst->getData()) + batch_offset + w * h * i * data_type_size;
+      tmp_vec.emplace_back(
+          cv::Mat(cv::Size(w, h), cv_single_type, (void *)data));
+    }
+    cv::split(tmp, tmp_vec);
+  } else if (dst->getDataFormat() == base::kDataFormatNHWC) {
+    int8_t *data = (int8_t *)dst->getData() + batch_offset;
+    cv::Mat tmp(cv::Size(w, h), cv_mix_type, (void *)data);
+    if (normalize) {
+      ret = OpenCvConvert::normalize(src, tmp, data_type, scale, mean, std);
+      if (!ret) {
+        return ret;
+      }
+    } else {
+      src.convertTo(tmp, cv_mix_type);
+    }
+  } else {
+    NNDEPLOY_LOGE("data format not support!\n");
+    ret = false;
+  }
+
+  return ret;
+}
+
 }  // namespace preprocess
 }  // namespace nndeploy

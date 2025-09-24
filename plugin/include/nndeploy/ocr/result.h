@@ -1,18 +1,3 @@
-
-// Copyright (c) 2022 PaddlePaddle Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef _NNDEPLOY_OCR_RESULT_H_
 #define _NNDEPLOY_OCR_RESULT_H_
 
@@ -30,6 +15,8 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
 
 namespace nndeploy {
 namespace ocr {
@@ -47,7 +34,8 @@ class NNDEPLOY_CC_API OCRResult : public base::Param {
   // 文本检测结果：每个检测到的文本区域的边界框坐标
   // 每个数组包含8个整数：[x1, y1, x2, y2, x3, y3, x4, y4] 表示四个顶点坐标
   std::vector<std::array<int, 8>> boxes_;
-
+  std::vector<cv::Mat> image_list_;
+  std::vector<int> classifier_result;
   // 文本识别结果：识别出的文本内容
   std::vector<std::string> text_;
   // 文本识别置信度分数：每个识别文本的可信度，范围通常为[0, 1]
@@ -65,6 +53,8 @@ class NNDEPLOY_CC_API OCRResult : public base::Param {
   std::vector<std::string> table_structure_;
   // 完整的表格HTML代码：将表格内容和结构组合成完整的HTML表格
   std::string table_html_;
+  int detector_resized_w;
+  int detector_resized_h;
 
   // 清空所有结果数据
   void clear();
