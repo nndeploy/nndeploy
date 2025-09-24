@@ -1,12 +1,12 @@
-#include "nndeploy/dag/executor/loop_aware_sequential_executor.h"
+#include "nndeploy/dag/executor/sequential_feedback_executor.h"
 
 namespace nndeploy {
 namespace dag {
 
-LoopAwareSequentialExecutor::LoopAwareSequentialExecutor() : Executor() {};
-LoopAwareSequentialExecutor::~LoopAwareSequentialExecutor() {};
+SequentialFeedbackExecutor::SequentialFeedbackExecutor() : Executor() {};
+SequentialFeedbackExecutor::~SequentialFeedbackExecutor() {};
 
-bool LoopAwareSequentialExecutor::buildTopoIgnoringFeedback_(
+bool SequentialFeedbackExecutor::buildTopoIgnoringFeedback_(
     const std::vector<EdgeWrapper*>& edges,
     const std::vector<NodeWrapper*>& nodes,
     std::vector<NodeWrapper*>& topo_out) {
@@ -57,7 +57,7 @@ bool LoopAwareSequentialExecutor::buildTopoIgnoringFeedback_(
   // 4) 如果因为用户没标干净 feedback 导致仍有环，兜底把剩下的也 append 进来
   if ((int)topo_out.size() != (int)nodes.size()) {
     NNDEPLOY_LOGW(
-        "LoopAwareSequentialExecutor: non-feedback subgraph still cyclic; "
+        "SequentialFeedbackExecutor: non-feedback subgraph still cyclic; "
         "falling back by appending remaining nodes.\n");
     std::vector<char> used(nodes.size(), 0);
     for (auto* nw : topo_out) used[idx[nw]] = 1;
@@ -68,7 +68,7 @@ bool LoopAwareSequentialExecutor::buildTopoIgnoringFeedback_(
   return true;
 }
 
-base::Status LoopAwareSequentialExecutor::init(
+base::Status SequentialFeedbackExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
     std::vector<NodeWrapper*>& node_repository) {
   base::Status status = base::kStatusCodeOk;
@@ -79,7 +79,7 @@ base::Status LoopAwareSequentialExecutor::init(
     // 理论上不会走到这里；兜底仍可用 DFS
     status = topoSortDFS(node_repository, topo_sort_node_);
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("LoopAwareSequentialExecutor: topo sort failed.\n");
+      NNDEPLOY_LOGE("SequentialFeedbackExecutor: topo sort failed.\n");
       return status;
     }
   }
@@ -107,15 +107,14 @@ base::Status LoopAwareSequentialExecutor::init(
   return status;
 }
 
-base::Status LoopAwareSequentialExecutor::deinit() {
+base::Status SequentialFeedbackExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
 
   // 请求边终止（与原实现一致）
   for (auto* ew : edge_repository_) {
     if (!ew || !ew->edge_) continue;
     if (!ew->edge_->requestTerminate()) {
-      NNDEPLOY_LOGE(
-          "LoopAwareSequentialExecutor: requestTerminate() failed!\n");
+      NNDEPLOY_LOGE("SequentialFeedbackExecutor: requestTerminate() failed!\n");
       return base::kStatusCodeErrorDag;
     }
   }
@@ -134,7 +133,7 @@ base::Status LoopAwareSequentialExecutor::deinit() {
   return status;
 }
 
-base::Status LoopAwareSequentialExecutor::sweepOnce_(bool& progressed) {
+base::Status SequentialFeedbackExecutor::sweepOnce_(bool& progressed) {
   progressed = false;
 
   for (auto* nw : topo_sort_node_) {
@@ -169,7 +168,7 @@ base::Status LoopAwareSequentialExecutor::sweepOnce_(bool& progressed) {
   return base::kStatusCodeOk;
 }
 
-base::Status LoopAwareSequentialExecutor::run() {
+base::Status SequentialFeedbackExecutor::run() {
   base::Status status = base::kStatusCodeOk;
 
   int rounds = 0;
@@ -187,7 +186,7 @@ base::Status LoopAwareSequentialExecutor::run() {
 
     if (max_rounds_ > 0 && rounds >= max_rounds_) {
       NNDEPLOY_LOGW(
-          "LoopAwareSequentialExecutor: reach max_rounds_=%d, break.\n",
+          "SequentialFeedbackExecutor: reach max_rounds_=%d, break.\n",
           max_rounds_);
       break;
     }
@@ -195,7 +194,7 @@ base::Status LoopAwareSequentialExecutor::run() {
   return status;
 }
 
-bool LoopAwareSequentialExecutor::synchronize() {
+bool SequentialFeedbackExecutor::synchronize() {
   for (auto* nw : topo_sort_node_) {
     Node* node = nw->node_;
     if (!node) continue;
@@ -204,7 +203,7 @@ bool LoopAwareSequentialExecutor::synchronize() {
   return true;
 }
 
-bool LoopAwareSequentialExecutor::interrupt() {
+bool SequentialFeedbackExecutor::interrupt() {
   for (auto* nw : topo_sort_node_) {
     Node* node = nw->node_;
     if (!node) continue;

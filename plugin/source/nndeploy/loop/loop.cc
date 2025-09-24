@@ -5,16 +5,40 @@ namespace loop {
 
 base::Status ConstNode::run() {
   setRunningFlag(true);
-  ValParam *val = new ValParam();
-  val->val = 10;
+  NewtonParam *val = new NewtonParam();
+  val->A = 3.0;
   index_++;
   this->getOutput(0)->set(val, false);
-  this->getOutput(0)->notifyWritten(val);
   setRunningFlag(false);
   return base::kStatusCodeOk;
 }
 
 base::EdgeUpdateFlag ConstNode::updateInput() {
+  if (index_ < size_) {
+    return base::kEdgeUpdateFlagComplete;
+  } else {
+    if (size_ == 0) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      return base::kEdgeUpdateFlagTerminate;
+    }
+  }
+}
+
+base::Status InitStateNode::run() {
+  setRunningFlag(false);
+  if (emitted_) return base::kStatusCodeOk;
+  auto *s = new NewtonState();
+  s->x = x0_;
+  s->step = 0;
+  index_++;
+  outputs_[0]->set(s, /*is_external=*/true);  // 写到反馈边
+  emitted_ = true;
+  setRunningFlag(false);
+  return base::kStatusCodeOk;
+}
+
+base::EdgeUpdateFlag InitStateNode::updateInput() {
   if (index_ < size_) {
     return base::kEdgeUpdateFlagComplete;
   } else {
@@ -50,6 +74,49 @@ base::EdgeUpdateFlag SourceNode::updateInput() {
   }
 }
 
+base::Status NewtonStepNode::run() {
+  auto *oldS = dynamic_cast<NewtonState *>(inputs_[0]->getParam(this));
+  if (!oldS) return base::kStatusCodeErrorInvalidValue;
+
+  auto *p = dynamic_cast<NewtonParam *>(inputs_[1]->getParam(this));
+
+  if (!oldS || !p) return base::kStatusCodeErrorInvalidValue;
+
+  double x = (std::abs(oldS->x) < 1e-12) ? 1e-12 : oldS->x;
+  double xn = 0.5 * (x + p->A / x);
+
+  // 产生“新状态”对象（不要就地修改旧状态）
+  auto *newS = new NewtonState();
+  newS->x = xn;
+  newS->step = oldS->step + 1;
+
+  outputs_[0]->set(newS);  // 写到 new_state（普通边）
+  return base::kStatusCodeOk;
+}
+
+base::Status NewtonGuardNode::run() {
+  auto *st_new = inputs_[0]->getParam(this);  // from new_state
+  auto *st_old = inputs_[1]->getParam(this);  // from state_fb
+  auto *p = dynamic_cast<NewtonGuardParam *>(getParam());
+  if (!st_new || !st_old || !p) return base::kStatusCodeErrorInvalidValue;
+
+  auto *ns = dynamic_cast<NewtonState *>(st_new);
+  auto *os = dynamic_cast<NewtonState *>(st_old);
+  if (!ns || !os) return base::kStatusCodeErrorInvalidValue;
+
+  bool converged = std::abs(ns->x - os->x) < p->eps;
+  bool too_many = ns->step >= p->max_iter;
+
+  if (converged || too_many) {
+    // 结束：只写 done
+    outputs_[1]->set(ns);
+  } else {
+    // 继续：只写回反馈边（把 new 作为下一轮的旧）
+    outputs_[0]->set(ns);  // 回写 state_fb（feedback=true）
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status AddNode::run() {
   setRunningFlag(true);
   ValParam *input = (ValParam *)(inputs_[0]->getParam(this));
@@ -63,8 +130,9 @@ base::Status AddNode::run() {
 
 base::Status PrintNode::run() {
   setRunningFlag(true);
-  DemoState *input = (DemoState *)(inputs_[0]->getParam(this));
-  float val = input->acc;
+  NewtonState *input = (NewtonState *)(inputs_[0]->getParam(this));
+  float val = input->x;
+  std::cout << "The iter is " << input->step << std::endl;
   std::cout << "The final result is " << val << std::endl;
   setRunningFlag(false);
   return base::kStatusCodeOk;

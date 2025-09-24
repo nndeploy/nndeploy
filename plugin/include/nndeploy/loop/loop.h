@@ -33,6 +33,65 @@ class DemoState : public base::Param {
   int max_steps = 10;  // 终止条件（示例）
 };
 
+// 你的工程里 base::Param 已有，这里只定义两个派生做承载
+class NewtonState : public base::Param {
+ public:
+  double x = 0.0;  // 当前迭代值
+  int step = 0;    // 已迭代步数
+};
+
+class NewtonParam : public base::Param {
+ public:
+  double A = 3.0;  // 目标常数
+};
+
+class NewtonGuardParam : public base::Param {
+ public:
+  double eps = 1e-6;  // 收敛阈值
+  int max_iter = 50;  // 最大步数
+};
+
+class NNDEPLOY_CC_API InitStateNode : public dag::Node {
+ public:
+  InitStateNode(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::InitStateNode";
+    desc_ = "init variable";
+  }
+  virtual ~InitStateNode() {}
+
+  virtual base::Status run();
+
+  virtual base::EdgeUpdateFlag updateInput();
+
+  void set_x0(double x0) { x0_ = x0; }
+
+ private:
+  bool emitted_ = false;
+  double x0_ = 1.0;
+  int index_ = 0;
+  int size_ = 1;
+};
+
+class NNDEPLOY_CC_API NewtonStepNode : public dag::Node {
+ public:
+  NewtonStepNode(const std::string &name, std::vector<dag::Edge *> in,
+                 std::vector<dag::Edge *> out)
+      : Node("NewtonStep", std::move(in), std::move(out)) {}
+  virtual ~NewtonStepNode() {}
+  virtual base::Status run();
+};
+
+class NNDEPLOY_CC_API NewtonGuardNode : public dag::Node {
+ public:
+  NewtonGuardNode(const std::string &name, std::vector<dag::Edge *> in,
+                  std::vector<dag::Edge *> out)
+      : Node("NewtonGuard", std::move(in), std::move(out)) {}
+  virtual ~NewtonGuardNode() {}
+  virtual base::Status run();
+};
+
 class NNDEPLOY_CC_API SourceNode : public dag::Node {
  public:
   SourceNode(const std::string &name, std::vector<dag::Edge *> inputs,

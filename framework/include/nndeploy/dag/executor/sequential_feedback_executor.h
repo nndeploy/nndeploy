@@ -1,15 +1,15 @@
-#ifndef _NNDEPLOY_DAG_LOOP_AWARE_SEQUENTIAL_EXECUTOR_H_
-#define _NNDEPLOY_DAG_LOOP_AWARE_SEQUENTIAL_EXECUTOR_H_
+#ifndef _NNDEPLOY_DAG_SEQUENTIAL_FEEDBACK_EXECUTOR_H_
+#define _NNDEPLOY_DAG_SEQUENTIAL_FEEDBACK_EXECUTOR_H_
 
 #include "nndeploy/dag/executor.h"
 
 namespace nndeploy {
 namespace dag {
 
-class LoopAwareSequentialExecutor : public Executor {
+class SequentialFeedbackExecutor : public Executor {
  public:
-  LoopAwareSequentialExecutor();
-  virtual ~LoopAwareSequentialExecutor();
+  SequentialFeedbackExecutor();
+  virtual ~SequentialFeedbackExecutor();
 
   virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
                             std::vector<NodeWrapper *> &node_repository);
@@ -21,10 +21,10 @@ class LoopAwareSequentialExecutor : public Executor {
   void setMaxRounds(int max_rounds) { max_rounds_ = max_rounds; }
 
  private:
-  bool buildTopoIgnoringFeedback_(const std::vector<EdgeWrapper*>& edges,
-    const std::vector<NodeWrapper*>& nodes,
-    std::vector<NodeWrapper*>& topo_out);
-  base::Status sweepOnce_(bool& progressed);
+  bool buildTopoIgnoringFeedback_(const std::vector<EdgeWrapper *> &edges,
+                                  const std::vector<NodeWrapper *> &nodes,
+                                  std::vector<NodeWrapper *> &topo_out);
+  base::Status sweepOnce_(bool &progressed);
 
  protected:
   std::vector<NodeWrapper *> topo_sort_node_;

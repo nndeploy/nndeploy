@@ -11,10 +11,10 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/executor/loop_aware_sequential_executor.h"
 #include "nndeploy/dag/executor/parallel_pipeline_executor.h"
 #include "nndeploy/dag/executor/parallel_task_executor.h"
 #include "nndeploy/dag/executor/sequential_executor.h"
+#include "nndeploy/dag/executor/sequential_feedback_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
@@ -2072,8 +2072,8 @@ base::Status Graph::executor() {
     // NNDEPLOY_LOGE("parallel_type_ is Sequential!\n");
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type_ == base::kParallelTypeFeedback) {
-    NNDEPLOY_LOGI("Use LoopAwareSequentialExecutor for feedback graph.\n");
-    executor_ = std::make_shared<LoopAwareSequentialExecutor>();
+    NNDEPLOY_LOGI("Use SequentialFeedbackExecutor for feedback graph.\n");
+    executor_ = std::make_shared<SequentialFeedbackExecutor>();
   } else if (parallel_type_ == base::kParallelTypeTask) {
     // NNDEPLOY_LOGE("parallel_type_ is Task!\n");
     executor_ = std::make_shared<ParallelTaskExecutor>();
