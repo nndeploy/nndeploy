@@ -169,7 +169,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     base::Status status = base::kStatusCodeOk;
     if (anything_ == nullptr) {
       anything_ = (void *)(t);
@@ -280,7 +280,7 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     std::unique_lock<std::mutex> lock(mutex_);
     base::Status status = DataPacket::set4py(wrapper, t, is_external);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -302,6 +302,12 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   std::condition_variable cv_;
   int consumers_size_ = 0;
   int consumers_count_ = 0;
+};
+
+class NNDEPLOY_CC_API FreebackDataPacket : public DataPacket {
+ public:
+  FreebackDataPacket();
+  ~FreebackDataPacket() override;
 };
 
 }  // namespace dag
