@@ -356,6 +356,7 @@ enum EdgeType : int {
   kEdgeTypeFixed = 0x0001,
   kEdgeTypePipeline = 0x0001 << 1,
   kEdgeTypeFeedback = 0x0001 << 2,
+  kEdgeTypePipelineFeedback = 0x0001 << 3
 };
 
 enum EdgeUpdateFlag : int {
