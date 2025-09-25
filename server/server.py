@@ -1239,9 +1239,6 @@ class NnDeployServer:
                 )
 
                 logging.info("model download task finished: %s", result)
-                self.notify_download_progress(task_id, {
-                    "phase": "done", "result": result, "task_id": task_id
-                })
                 self.notify_download_done(task_id, success=True, result=result, error=None)
 
         except Exception as e:
