@@ -38,7 +38,7 @@ def cli():
     return ap.parse_args()
 
 def configure_root_logger(log_q: mp.Queue, log_file: str, server) -> QueueListener:
-    log_fmt = "%(asctime)s %(processName)s %(levelname)s %(message)s"
+    log_fmt = "%(asctime)s %(processName)s %(message)s"
     root = logging.getLogger()
     root.setLevel(logging.INFO)
     root.handlers.clear()
