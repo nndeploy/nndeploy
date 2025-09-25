@@ -4,16 +4,14 @@
 
 ### 下载模型
 
-from modelscope import snapshot_download
+- [ocr/OCRv5_mobile_det/inference.onnx](./ocr/OCRv5_mobile_det/inference.onnx): OCRv5_mobile_det, Model Type: onnx, [download](https://modelscope.cn/models/nndeploy/nndeploy/resolve/master/ocr/OCRv5_mobile_det/inference.onnx)
 
-model_dir = snapshot_download('chunquansang/paddleocr_detector_onnx')
+- [ocr/ch_ppocr_mobile_v2.0_cls_infer/inference.onnx](./ocr/ch_ppocr_mobile_v2.0_cls_infer/inference.onnx): ch_ppocr_mobile_v2.0_cls_infer, Model Type: onnx, [download](https://modelscope.cn/models/nndeploy/nndeploy/resolve/master/ocr/ch_ppocr_mobile_v2.0_cls_infer/inference.onnx)
 
-model_dir = snapshot_download('chunquansang/paddleocr_classifier_onnx')
+- [ocr/OCRv5_mobile_rec/inference.onnx](./ocr/OCRv5_mobile_rec/inference.onnx): OCRv5_mobile_rec, Model Type: onnx, [download](https://modelscope.cn/models/nndeploy/nndeploy/resolve/master/ocr/OCRv5_mobile_rec/inference.onnx)
 
-model_dir = snapshot_download('chunquansang/paddleocr_recognizer_onnx')
+- [ocr/OCRv5_mobile_rec/config.json](./ocr/OCRv5_mobile_rec/config.json): OCRv5_mobile_rec, Type: json, [download](https://modelscope.cn/models/nndeploy/nndeploy/resolve/master/ocr/OCRv5_mobile_rec/config.json)
 
-### 安装yaml-cpp
-sudo apt-get install libyaml-cpp-dev
 
 ### 下载图片
 
@@ -52,7 +50,7 @@ cd /yourpath/nndeploy/build
 
 ~/.cache/modelscope/hub/models/chunquansang/paddleocr_detector_onnx/
 # 执行
-./nndeploy_demo_ocr --name nndeploy::ocr::DetectorGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --classifier_model_value ~/.cache/modelscope/hub/models/chunquansang/paddleocr_classifier_onnx/classifier.onnx --detector_model_value ~/.cache/modelscope/hub/models/chunquansang/paddleocr_detector_onnx/detector.onnx --recognizer_model_value ~/.cache/modelscope/hub/models/chunquansang/paddleocr_recognizer_onnx/recognizer.onnx --character_txt_value ~/.cache/modelscope/hub/models/chunquansang/paddleocr_recognizer_onnx/recognizer.yml --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --detector_model_inputs x --detector_model_outputs fetch_name_0 --classifier_model_inputs x --classifier_model_outputs softmax_0.tmp_0 --recognizer_model_inputs x --recognizer_model_outputs fetch_name_0 --input_path ./12.jpg --output_path ./output.jpg
+./nndeploy_demo_ocr --name nndeploy::ocr::DetectorGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --classifier_model_value ~/.cache/modelscope/hub/models/nndeploy/nndeploy/ocr/ch_ppocr_mobile_v2.0_cls_infer/inference.onnx --detector_model_value ~/.cache/modelscope/hub/models/nndeploy/nndeploy/ocr/OCRv5_mobile_det/inference.onnx --recognizer_model_value ~/.cache/modelscope/hub/models/nndeploy/nndeploy/ocr/OCRv5_mobile_rev/inference.onnx --character_txt_value ~/.cache/modelscope/hub/models/nndeploy/nndeploy/ocr/OCRv5_mobile_rec/config.json --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --detector_model_inputs x --detector_model_outputs fetch_name_0 --classifier_model_inputs x --classifier_model_outputs softmax_0.tmp_0 --recognizer_model_inputs x --recognizer_model_outputs fetch_name_0 --input_path ./12.jpg --output_path ./output.jpg
 
 # 耗时
 ----------------------------------------------------------------------------------------------

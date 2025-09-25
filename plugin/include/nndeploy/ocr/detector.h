@@ -11,35 +11,34 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/result.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/ocr/ocr_postprocess_op.h"
+#include "nndeploy/ocr/result.h"
 #include "nndeploy/preprocess/opencv_convert.h"
 #include "nndeploy/preprocess/params.h"
-#include "nndeploy/detect/result.h"
-#include "nndeploy/ocr/ocr_postprocess_op.h"
-#include "nndeploy/dag/graph.h"
-#include "nndeploy/infer/infer.h"
-#include "nndeploy/ocr/result.h"
 
 namespace nndeploy {
 namespace ocr {
 
-
-class NNDEPLOY_CC_API DetectorParam: public base::Param{
-    public:
-        int version_ = -1;
-    using base::Param::serialize;
-    virtual base::Status serialize(rapidjson::Value &json,
+class NNDEPLOY_CC_API DetectorParam : public base::Param {
+ public:
+  int version_ = -1;
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
-    using base::Param::deserialize;
-    virtual base::Status deserialize(rapidjson::Value &json);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
-      public:
+ public:
   base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   base::PixelType dst_pixel_type_ = base::kPixelTypeBGR;
   base::InterpType interp_type_ = base::kInterpTypeLinear;
@@ -62,8 +61,8 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
 
   using base::Param::serialize;
   virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override {
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) override {
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
     json.AddMember("src_pixel_type_",
                    rapidjson::Value(src_pixel_type_str.c_str(), allocator),
@@ -89,7 +88,6 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
 
     json.AddMember("max_side_len_", max_side_len_, allocator);
     json.AddMember("normalize_", normalize_, allocator);
-    
 
     rapidjson::Value scale_array(rapidjson::kArrayType);
     rapidjson::Value mean_array(rapidjson::kArrayType);
@@ -122,12 +120,16 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
   }
 
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override {
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+  virtual base::Status deserialize(rapidjson::Value &json) override {
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
     if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
       interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
@@ -153,7 +155,7 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
     }
 
     if (json.HasMember("scale_") && json["scale_"].IsArray()) {
-      const rapidjson::Value& scale_array = json["scale_"];
+      const rapidjson::Value &scale_array = json["scale_"];
       for (int i = 0; i < 3 && i < scale_array.Size(); i++) {
         if (scale_array[i].IsFloat()) {
           scale_[i] = scale_array[i].GetFloat();
@@ -161,7 +163,7 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
       }
     }
     if (json.HasMember("mean_") && json["mean_"].IsArray()) {
-      const rapidjson::Value& mean_array = json["mean_"];
+      const rapidjson::Value &mean_array = json["mean_"];
       for (int i = 0; i < 3 && i < mean_array.Size(); i++) {
         if (mean_array[i].IsFloat()) {
           mean_[i] = mean_array[i].GetFloat();
@@ -169,7 +171,7 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
       }
     }
     if (json.HasMember("std_") && json["std_"].IsArray()) {
-      const rapidjson::Value& std_array = json["std_"];
+      const rapidjson::Value &std_array = json["std_"];
       for (int i = 0; i < 3 && i < std_array.Size(); i++) {
         if (std_array[i].IsFloat()) {
           std_[i] = std_array[i].GetFloat();
@@ -194,7 +196,7 @@ class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
     }
 
     if (json.HasMember("border_val_") && json["border_val_"].IsArray()) {
-      const rapidjson::Value& border_val_array = json["border_val_"];
+      const rapidjson::Value &border_val_array = json["border_val_"];
       for (int i = 0; i < 4 && i < border_val_array.Size(); i++) {
         if (border_val_array[i].IsFloat()) {
           border_val_.val_[i] = border_val_array[i].GetFloat();
@@ -210,16 +212,20 @@ class NNDEPLOY_CC_API DetectorPreProcess : public dag::Node {
  public:
   DetectorPreProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::ocr::DetectorPreProcess";
-    desc_ = "ocr detectorpreprocess cv::Mat to device::Tensor[resize->pad->normalize->transpose]";
+    desc_ =
+        "ocr detectorpreprocess cv::Mat to "
+        "device::Tensor[resize->pad->normalize->transpose]";
     param_ = std::make_shared<DetectorPreProcessParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
   DetectorPreProcess(const std::string &name, std::vector<dag::Edge *> inputs,
-                    std::vector<dag::Edge *> outputs)
+                     std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::ocr::DetectorPreProcess";
-    desc_ = "ocr detectorpreprocess cv::Mat to device::Tensor[resize->pad->normalize->transpose]";
+    desc_ =
+        "ocr detectorpreprocess cv::Mat to "
+        "device::Tensor[resize->pad->normalize->transpose]";
     param_ = std::make_shared<DetectorPreProcessParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -236,7 +242,7 @@ class NNDEPLOY_CC_API DetectorPostParam : public base::Param {
   double det_db_box_thresh_ = 0.6;
   double det_db_unclip_ratio_ = 1.5;
   std::string det_db_score_mode_ = "slow";
-  bool use_dilation_ = false; 
+  bool use_dilation_ = false;
 
   using base::Param::serialize;
   virtual base::Status serialize(rapidjson::Value &json,
@@ -255,7 +261,7 @@ class NNDEPLOY_CC_API DetectorPostProcess : public dag::Node {
     this->setOutputTypeInfo<OCRResult>();
   }
   DetectorPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
-                  std::vector<dag::Edge *> outputs)
+                      std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::ocr::DetectorPostProcess";
     desc_ = "PPOcrDetv3/v4/v5 postprocess[device::Tensor->OcrResult]";
@@ -291,41 +297,43 @@ class NNDEPLOY_CC_API DetectorPostProcess : public dag::Node {
 //   std::vector<DetectBBoxResult> bboxs_;
 // };
 
-
 class NNDEPLOY_CC_API DetectorGraph : public dag::Graph {
  public:
-    DetectorGraph(const std::string &name) : dag::Graph(name) {
-      key_ = "nndeploy::ocr::DetectorGraph";
-      desc_ = "PPOcrDetv3/v4/v5 graph[cv::Mat->preprocess->infer->postprocess->OcrResult]";
-      this->setInputTypeInfo<cv::Mat>();
-      this->setOutputTypeInfo<OCRResult>();
-      pre_ = dynamic_cast<DetectorPreProcess *>(
-          this->createNode<DetectorPreProcess>("preprocess"));
-      infer_ =
-          dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
-      post_ = dynamic_cast<DetectorPostProcess *>(
-          this->createNode<DetectorPostProcess>("postprocess"));
-    }
+  DetectorGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::ocr::DetectorGraph";
+    desc_ =
+        "PPOcrDetv3/v4/v5 "
+        "graph[cv::Mat->preprocess->infer->postprocess->OcrResult]";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<OCRResult>();
+    pre_ = dynamic_cast<DetectorPreProcess *>(
+        this->createNode<DetectorPreProcess>("preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<DetectorPostProcess *>(
+        this->createNode<DetectorPostProcess>("postprocess"));
+  }
 
-    DetectorGraph(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
+  DetectorGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::ocr::DetectorGraph";
-    desc_ = "PPOcrDetv3/v4/v5 graph[cv::Mat->preprocess->infer->postprocess->OcrResult]";
-   this->setInputTypeInfo<cv::Mat>();
-      this->setOutputTypeInfo<OCRResult>();
-      pre_ = dynamic_cast<DetectorPreProcess *>(
-          this->createNode<DetectorPreProcess>("preprocess"));
-      infer_ =
-          dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
-      post_ = dynamic_cast<DetectorPostProcess *>(
-          this->createNode<DetectorPostProcess>("postprocess"));
+    desc_ =
+        "PPOcrDetv3/v4/v5 "
+        "graph[cv::Mat->preprocess->infer->postprocess->OcrResult]";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<OCRResult>();
+    pre_ = dynamic_cast<DetectorPreProcess *>(
+        this->createNode<DetectorPreProcess>("preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<DetectorPostProcess *>(
+        this->createNode<DetectorPostProcess>("postprocess"));
   }
 
   virtual ~DetectorGraph() {}
 
-
-    base::Status make(const dag::NodeDesc &pre_desc,
+  base::Status make(const dag::NodeDesc &pre_desc,
                     const dag::NodeDesc &infer_desc,
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
@@ -387,39 +395,43 @@ class NNDEPLOY_CC_API DetectorGraph : public dag::Graph {
   }
 
   base::Status setDbThresh(float threshold) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->det_db_thresh_ = threshold;
     return base::kStatusCodeOk;
   }
 
   base::Status setDbBoxThresh(float threshold) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->det_db_box_thresh_ = threshold;
     return base::kStatusCodeOk;
   }
 
-
   base::Status setDbUnclipRatio(float ratio) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->det_db_unclip_ratio_ = ratio;
     return base::kStatusCodeOk;
   }
 
-
   base::Status setDbScoreMode(const std::string &mode) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->det_db_score_mode_ = mode;
     return base::kStatusCodeOk;
   }
 
   base::Status setDbUseDilation(bool value) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->use_dilation_ = value;
     return base::kStatusCodeOk;
   }
 
-   base::Status setVersion(int version) {
-    DetectorPostParam *param = dynamic_cast<DetectorPostParam *>(post_->getParam());
+  base::Status setVersion(int version) {
+    DetectorPostParam *param =
+        dynamic_cast<DetectorPostParam *>(post_->getParam());
     param->version_ = version;
     return base::kStatusCodeOk;
   }
@@ -430,13 +442,13 @@ class NNDEPLOY_CC_API DetectorGraph : public dag::Graph {
     std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs);
     return post_outputs;
   }
-  private:
-    dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
-    infer::Infer *infer_ = nullptr;  ///< Inference node pointer
-    dag::Node *post_ = nullptr; 
 
+ private:
+  dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
+  infer::Infer *infer_ = nullptr;  ///< Inference node pointer
+  dag::Node *post_ = nullptr;
 };
-}
-}
+}  // namespace ocr
+}  // namespace nndeploy
 
 #endif

@@ -28,8 +28,8 @@ namespace ocr {
  */
 class NNDEPLOY_CC_API OCRResult : public base::Param {
  public:
-  OCRResult() {};
-  virtual ~OCRResult() {};
+  OCRResult(){};
+  virtual ~OCRResult(){};
 
   // 文本检测结果：每个检测到的文本区域的边界框坐标
   // 每个数组包含8个整数：[x1, y1, x2, y2, x3, y3, x4, y4] 表示四个顶点坐标

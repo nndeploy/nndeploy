@@ -1,18 +1,17 @@
 #pragma once
 
+#include <cstring>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <ostream>
 #include <vector>
-#include "opencv2/core.hpp"
-#include "opencv2/imgproc.hpp"
-
-#include <cstring>
-#include <fstream>
-#include <numeric>
 
 #include "nndeploy/ocr/clipper.h"
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
 
 namespace nndeploy {
 namespace ocr {
@@ -42,7 +41,7 @@ class PostProcessor {
 
   std::vector<std::vector<std::vector<int>>> FilterTagDetRes(
       std::vector<std::vector<std::vector<int>>> boxes,
-      const std::array<int, 4>& det_img_info);
+      const std::array<int, 4> &det_img_info);
 
  private:
   static bool XsortInt(std::vector<int> a, std::vector<int> b);
