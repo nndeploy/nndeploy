@@ -34,10 +34,6 @@ target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
 # NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 
-# ✅ 新增：链接 yaml-cpp
-find_package(yaml-cpp REQUIRED)
-target_link_libraries(${PLUGIN_BINARY} yaml-cpp)
-
 # install
 if(SYSTEM.Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})

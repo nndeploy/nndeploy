@@ -4,9 +4,7 @@
 namespace nndeploy {
 namespace ocr {
 
-
 REGISTER_NODE("nndeploy::ocr::DrawDetectorBox", DrawDetectorBox);
 
-
-}  // namespace detect
+}  // namespace ocr
 }  // namespace nndeploy
