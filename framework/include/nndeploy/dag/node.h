@@ -114,6 +114,11 @@ class NNDEPLOY_CC_API Node {
   std::vector<std::string> getOutputNames();
   std::string getInputName(int index = 0);
   std::string getOutputName(int index = 0);
+  int getInputIndex(const std::string &name);
+  int getOutputIndex(const std::string &name);
+  int getInputCount();
+  int getOutputCount();
+
   virtual base::Status setInputName(const std::string &name, int index = 0);
   virtual base::Status setOutputName(const std::string &name, int index = 0);
   virtual base::Status setInputNames(const std::vector<std::string> &names);
@@ -137,6 +142,43 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setParam(const std::string &key,
                                 const std::string &value);
 
+  virtual base::Any &createResourceWithoutState(const std::string &key);
+  virtual base::Status addResourceWithoutState(const std::string &key,
+                                               const base::Any &value);
+  virtual base::Any &getResourceWithoutState(const std::string &key);
+  template <typename T>
+  base::Status setResourceWithoutState(const std::string &key, const T *value) {
+    base::Any &any = this->getResourceWithoutState(key);
+    any.construct<T *>(value);
+    return base::kStatusCodeOk;
+  }
+  template <typename T>
+  T *getResourceWithoutState(const std::string &key) {
+    base::Any &any = this->getResourceWithoutState(key);
+    if (any.empty()) {
+      return nullptr;
+    }
+    return base::get<T *>(any);
+  }
+
+  virtual Edge *createResourceWithState(const std::string &key);
+  virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
+  virtual Edge* getResourceWithState(const std::string &key);
+  template <typename T>
+  base::Status setResourceWithState(const std::string &key, const T *value) {
+    Edge* edge = this->getResourceWithState(key);
+    edge->set<T>(value);
+    return base::kStatusCodeOk;
+  }
+  template <typename T>
+  T *getResourceWithState(const std::string &key) {
+    Edge* edge = this->getResourceWithState(key);
+    if (edge == nullptr) {
+      return nullptr;
+    }
+    return edge->get<T>(this);
+  }
+
   base::Status setVersion(const std::string &version);
   std::string getVersion();
 
@@ -159,8 +201,11 @@ class NNDEPLOY_CC_API Node {
   base::Status clearIoParams();
   std::vector<std::string> getIoParams();
 
-  base::Status setDropdownParams(const std::map<std::string, std::vector<std::string>> &dropdown_params);
-  base::Status addDropdownParam(const std::string &dropdown_param, const std::vector<std::string> &dropdown_values);
+  base::Status setDropdownParams(
+      const std::map<std::string, std::vector<std::string>> &dropdown_params);
+  base::Status addDropdownParam(
+      const std::string &dropdown_param,
+      const std::vector<std::string> &dropdown_values);
   base::Status removeDropdownParam(const std::string &dropdown_param);
   base::Status clearDropdownParams();
   std::map<std::string, std::vector<std::string>> getDropdownParams();
@@ -183,6 +228,23 @@ class NNDEPLOY_CC_API Node {
 
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);
+
+  template <typename T>
+  T *getInputData(int index = 0) {
+    Edge *edge = getInput(index);
+    if (edge == nullptr) {
+      return nullptr;
+    }
+    return edge->get<T>(this);
+  }
+  template <typename T>
+  base::Status setOutputData(T *obj, int index = 0, bool is_external = true) {
+    Edge *edge = getOutput(index);
+    if (edge == nullptr) {
+      return base::kStatusCodeErrorNullParam;
+    }
+    return edge->set<T>(obj, is_external);
+  }
 
   std::vector<Edge *> getAllInput();
   std::vector<Edge *> getAllOutput();

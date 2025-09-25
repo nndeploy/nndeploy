@@ -47,6 +47,7 @@ namespace llm {
 
 /**
  * @brief SampleParam - Sample节点的参数配置
+ * @wangzhaode
  */
 class NNDEPLOY_CC_API SampleParam : public base::Param {
  public:
@@ -70,6 +71,8 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
       1.02;  // panalize repeated ngram with a multiplied ngram_factor.
   float max_penalty = 10.0f;
   std::string sampler = "temperature";  // "greedy", "temperature".
+  std::vector<std::string> mixed_samplers = {"topK", "tfs",   "typical",
+                                            "topP", "min_p", "temperature"};
 
   using base::Param::serialize;
   virtual base::Status serialize(
@@ -94,32 +97,38 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
  * 9. ngram - N-gram重复惩罚，对重复的n-gram序列进行惩罚
  *
  * 输入：
- * - inputs[0]: device::Tensor - 模型输出的logits张量，形状为[batch_size, vocab_size]
+ * - inputs[0]: device::Tensor - 模型输出的logits张量，形状为[batch_size,
+ * vocab_size]
  * - inputs[1]: std::vector<int> - 已生成的token序列（用于重复惩罚）
  *
  * 输出：
  * - outputs[0]: int - 采样得到的下一个token ID
  * - outputs[1]: float - 采样概率（可选）
  */
-class NNDEPLOY_CC_API Sample : public dag::Node {
+class NNDEPLOY_CC_API Sampler : public dag::Node {
  public:
-  Sample(const std::string& name, std::vector<dag::Edge*> inputs,
+ Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
          std::vector<dag::Edge*> outputs);
-  virtual ~Sample();
-
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual ~Sampler();
 
   virtual base::Status run();
 
-  virtual base::Status defaultParam();
+  int sample(device::Tensor* logits);
 
-  using dag::Node::serialize;
-  virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override;
-  using dag::Node::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override;
+  struct SubsetLogits penalty(struct SubsetLogits superset);
+  struct SubsetLogits topK(struct SubsetLogits superset);
+  struct SubsetLogits topP(struct SubsetLogits superset);
+  struct SubsetLogits minP(struct SubsetLogits superset);
+  struct SubsetLogits tfs(struct SubsetLogits superset);
+  struct SubsetLogits typical(struct SubsetLogits superset);
+  struct SubsetLogits mixed(struct SubsetLogits subset);
+  struct SubsetLogits subsetSampler(std::string sampler_type,
+                                    struct SubsetLogits subset);
+  int handleSelect(struct SubsetLogits subset);
+
+ protected:
+  std::vector<int> prefill_tokens_;
+  std::vector<int> history_tokens_;
 };
 
 }  // namespace llm

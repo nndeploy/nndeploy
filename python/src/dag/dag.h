@@ -14,6 +14,24 @@
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
+  
+struct PyObjectWrapper {
+  PyObject *obj;  // 指向Python对象的指针
+
+  // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
+  PyObjectWrapper(PyObject *o) : obj(o) {
+    // py::gil_scoped_acquire acquire;
+    Py_INCREF(obj);
+    // py::gil_scoped_release release;
+  }
+
+  // 析构函数:减少引用计数,允许Python回收对象
+  ~PyObjectWrapper() {
+    py::gil_scoped_acquire acquire;
+    Py_DECREF(obj);
+    // py::gil_scoped_release release;
+  }
+};
 
 template <typename Base = Node>
 class PyNode : public Base {

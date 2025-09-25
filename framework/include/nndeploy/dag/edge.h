@@ -150,9 +150,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     return abstact_edge_->getGraphOutput<T>();
   }
 
-
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     this->setTypeInfo<T>();
     return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
   }

@@ -78,6 +78,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
   EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
 
+  // delete edge
+  base::Status deleteEdge(Edge *edge);
+
   // get edge
   Edge *getEdge(const std::string &name);
   std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
@@ -103,6 +106,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status addNode(Node *node, bool is_external = true);
   base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
+  // delete node
+  base::Status deleteNode(Node *node);
+
   // get node
   Node *getNode(const std::string &name);
   Node *getNode(int index);
@@ -117,6 +123,11 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *getInputNode(int index);
   Node *getOutputNode(int index);
   Node *getInferNode(int index);
+
+  base::Status connect(Node *predecessor, Node *successor,
+                       int predecessor_port = 0, int successor_port = 0);
+  base::Status disconnect(Node *predecessor, Node *successor,
+                          int predecessor_port = 0, int successor_port = 0);
 
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatus();
   std::map<std::string, std::shared_ptr<RunStatus>>
@@ -187,6 +198,15 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   bool isForwardApiOk();
   base::Status toStaticGraph();
+
+  // global resource
+  virtual base::Any &createResourceWithoutState(const std::string &key);
+  virtual base::Status addResourceWithoutState(const std::string &key,
+                                               const base::Any &value);
+  virtual base::Any &getResourceWithoutState(const std::string &key);
+  // virtual Edge *createResourceWithState(const std::string &key);
+  virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
+  virtual Edge *getResourceWithState(const std::string &key);
 
   // create node
   // Not recommended api
@@ -378,6 +398,20 @@ class NNDEPLOY_CC_API Graph : public Node {
    * 注：value为节点值的value
    */
   std::map<std::string, std::map<std::string, std::string>> node_value_map_;
+  /**
+   * @brief 全局资源（无状态）
+   * @details
+   * 用于存储全局资源
+   * 例如tokenizer_encode和tokenizer_decode阶段，可以共享同一个tokenizer_cpp
+   */
+  std::map<std::string, base::Any> resource_without_state_;
+  /**
+   * @brief 全局资源（有状态）
+   * @details
+   * 用于存储全局资源
+   * 例如 sample 阶段需要使用的 history_tokens
+   */
+  std::map<std::string, Edge *> resource_with_state_;
 };
 
 template <typename T, typename... Args,

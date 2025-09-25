@@ -248,6 +248,42 @@ std::string Node::getOutputName(int index) {
   return output_type_info_[index]->getEdgeName();
 }
 
+int Node::getInputIndex(const std::string &name) {
+  for (int i = 0; i < input_type_info_.size(); i++) {
+    if (input_type_info_[i]->getEdgeName() == name) {
+      return i;
+    }
+  }
+  for (int i = 0; i < inputs_.size(); i++) {
+    if (inputs_[i]->getName() == name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int Node::getOutputIndex(const std::string &name) {
+  for (int i = 0; i < output_type_info_.size(); i++) {
+    if (output_type_info_[i]->getEdgeName() == name) {
+      return i;
+    }
+  }
+  for (int i = 0; i < outputs_.size(); i++) {
+    if (outputs_[i]->getName() == name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int Node::getInputCount() {
+  return std::max(input_type_info_.size(), inputs_.size());
+}
+
+int Node::getOutputCount() {
+  return std::max(output_type_info_.size(), outputs_.size());
+}
+
 base::Status Node::setInputName(const std::string &name, int index) {
   if (index < 0 || index >= input_type_info_.size()) {
     NNDEPLOY_LOGE("index is out of range.\n");
@@ -363,6 +399,73 @@ base::Status Node::setParam(const std::string &key, const std::string &value) {
   return base::kStatusCodeOk;
 }
 
+base::Any &Node::createResourceWithoutState(const std::string &key) {
+  if (graph_ == nullptr) {
+    base::Any any;
+    return any;
+  } else {
+    return graph_->createResourceWithoutState(key);
+  }
+}
+
+base::Status Node::addResourceWithoutState(const std::string &key,
+                                            const base::Any &value) {
+  if (graph_ == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr and is_graph_ is false.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  } else {
+    return graph_->addResourceWithoutState(key, value);
+  }
+}
+
+base::Any &Node::getResourceWithoutState(const std::string &key) {
+  if (graph_ == nullptr) {
+    base::Any any;
+    return any;
+  } else {
+    return graph_->getResourceWithoutState(key);
+  }
+}
+
+Edge *Node::createResourceWithState(const std::string &key) {
+  if (graph_ == nullptr) {
+    return nullptr;
+  } else {
+    // 指定为某类特殊的边，用于在图中传递数据
+    // @zuiren
+    Edge *edge = new Edge(key);
+    edge->setParallelType(parallel_type_);
+    std::vector<Node *> producers = {this};
+    edge->increaseProducers(producers);
+    edge->construct();
+    auto queue_max_size = graph_->getEdgeQueueMaxSize();
+    edge->setQueueMaxSize(queue_max_size);
+    graph_->addResourceWithState(key, edge);
+    return edge;
+  }
+}
+base::Status Node::addResourceWithState(const std::string &key, Edge *edge) {
+  if (graph_ == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr and is_graph_ is false.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  } else {
+    return graph_->addResourceWithState(key, edge);
+  }
+}
+Edge *Node::getResourceWithState(const std::string &key) {
+  if (graph_ == nullptr) {
+    return nullptr;
+  } else {
+    Edge *edge = graph_->getResourceWithState(key);
+    if (edge != nullptr) {
+      std::vector<Node *> consumers = {this};
+      edge->increaseConsumers(consumers);
+      edge->construct();
+    }
+    return edge;
+  }
+}
+
 base::Status Node::setVersion(const std::string &version) {
   version_ = version;
   return base::kStatusCodeOk;
@@ -434,11 +537,14 @@ base::Status Node::clearIoParams() {
 }
 std::vector<std::string> Node::getIoParams() { return io_params_; }
 
-base::Status Node::setDropdownParams(const std::map<std::string, std::vector<std::string>> &dropdown_params) {
+base::Status Node::setDropdownParams(
+    const std::map<std::string, std::vector<std::string>> &dropdown_params) {
   dropdown_params_ = dropdown_params;
   return base::kStatusCodeOk;
 }
-base::Status Node::addDropdownParam(const std::string &dropdown_param, const std::vector<std::string> &dropdown_values) {
+base::Status Node::addDropdownParam(
+    const std::string &dropdown_param,
+    const std::vector<std::string> &dropdown_values) {
   dropdown_params_[dropdown_param] = dropdown_values;
   return base::kStatusCodeOk;
 }
@@ -453,7 +559,9 @@ base::Status Node::clearDropdownParams() {
   dropdown_params_.clear();
   return base::kStatusCodeOk;
 }
-std::map<std::string, std::vector<std::string>> Node::getDropdownParams() { return dropdown_params_; }
+std::map<std::string, std::vector<std::string>> Node::getDropdownParams() {
+  return dropdown_params_;
+}
 
 base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
@@ -1063,16 +1171,20 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("ui_params_", ui_params, allocator);
   rapidjson::Value io_params(rapidjson::kArrayType);
   for (auto &io_param : io_params_) {
-    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator), allocator);
+    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator),
+                       allocator);
   }
   json.AddMember("io_params_", io_params, allocator);
   rapidjson::Value dropdown_params(rapidjson::kObjectType);
   for (auto &dropdown_param : dropdown_params_) {
     rapidjson::Value dropdown_values(rapidjson::kArrayType);
     for (auto &dropdown_value : dropdown_param.second) {
-      dropdown_values.PushBack(rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
+      dropdown_values.PushBack(
+          rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
     }
-    dropdown_params.AddMember(rapidjson::Value(dropdown_param.first.c_str(), allocator), dropdown_values, allocator);
+    dropdown_params.AddMember(
+        rapidjson::Value(dropdown_param.first.c_str(), allocator),
+        dropdown_values, allocator);
   }
   json.AddMember("dropdown_params_", dropdown_params, allocator);
 
@@ -1330,10 +1442,12 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   //     }
   //   }
   // }
-  // if (json.HasMember("dropdown_params_") && json["dropdown_params_"].IsObject()) {
+  // if (json.HasMember("dropdown_params_") &&
+  // json["dropdown_params_"].IsObject()) {
   //   dropdown_params_.clear();
   //   auto &dropdown_params_obj = json["dropdown_params_"];
-  //   for (auto it = dropdown_params_obj.MemberBegin(); it != dropdown_params_obj.MemberEnd(); ++it) {
+  //   for (auto it = dropdown_params_obj.MemberBegin(); it !=
+  //   dropdown_params_obj.MemberEnd(); ++it) {
   //     if (it->value.IsArray()) {
   //       std::vector<std::string> dropdown_values;
   //       for (int i = 0; i < it->value.Size(); i++) {
