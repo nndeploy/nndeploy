@@ -1,10 +1,6 @@
 [简体中文](README.md) | English
 
-<h3 align="center">
-nndeploy: A Workflow-based Multi-platform AI Inference and Deployment Framework
-</h3>
-
-<p align="center">
+<p align="left">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux" style="height: 16px;">
 </a>
@@ -25,6 +21,18 @@ nndeploy: A Workflow-based Multi-platform AI Inference and Deployment Framework
 </a>
 </p>
 
+<h1 align="center">
+nndeploy
+</h1>
+
+nndeploy is a workflow-based multi-platform AI inference deployment framework that makes AI algorithm deployment as simple as building blocks!
+
+It features visual workflow design with rich built-in algorithm nodes, allowing users to quickly build professional AI applications through drag-and-drop operations without writing complex code.
+
+Supports Python/C++ custom node development with automatic integration into the visual interface without requiring frontend code.
+
+Built workflows can be exported as JSON configuration files with one click, supporting Python/C++ API loading and execution. Integrates mainstream inference engines and deep optimization strategies to ensure optimal performance, supporting one-time development and multi-platform deployment across Linux, Windows, macOS, Android, and iOS.
+
 ---
 
 <p align="center">
@@ -33,12 +41,6 @@ nndeploy: A Workflow-based Multi-platform AI Inference and Deployment Framework
     <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
   </picture>
 </p>
-
-**Core Concept**: You only need to write algorithm node logic in familiar Python or C++, and the framework automatically generates visual nodes without front-end hassle. For non-AI developers, we provide out-of-the-box algorithm nodes including LLMs, Stable Diffusion, detection, segmentation, etc. AI applications can be built by drag-and-drop, and we will keep deploying more high-value AI algorithms.
-
-**Complete pipeline from workflow to production**: The visually built workflow can be exported as a JSON config file with one click, and run directly via Python/C++ APIs. The framework integrates mainstream inference engines such as Torch, TensorRT, OpenVINO, CoreML, MNN, AscendCL, RKNN, and deep performance optimization strategies. It supports deployment to cloud servers, desktop, mobile, and edge devices, offering both high development efficiency and production-grade performance.
-
-nndeploy aims to let you turn AI algorithm ideas in your mind into high-performance production-ready applications in the shortest path.
 
 ---
 
@@ -111,24 +113,6 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 ## Features
 
-### **Algorithm Ecosystem**
-
-We currently support 100+ mainstream AI models including LLMs, AIGC generation, face swapping, object detection, segmentation, etc. We will keep deploying more high-value AI algorithms to build a rich multi-platform AI inference ecosystem for various industries and innovative applications.
-
-| Application | Available Models | Supported Platforms | Notes |
-|-------------|------------------|----------------------|-------|
-| **LLM** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS | |
-| **Image Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4 etc | Linux/Windows/macOS | Text-to-image, image-to-image, inpainting base on **diffusers** |
-| **Face Swap** | **deep-live-cam** | Linux/Windows/macOS | |
-| **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
-| **Object Tracking** | FairMot | Linux/Windows/macOS/Android/iOS | |
-| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS | |
-| **Classification** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS | |
-| **API LLM** | OPENAI, DeepSeek, Moonshot | Linux/Windows/macOS | |
-| **API AIGC** | OPENAI | Linux/Windows/macOS | |
-
-> If you need a specific model deployed, let us know via [issue](https://github.com/nndeploy/nndeploy/issues).
-
 ### **Easy to Use**
 
 - **Visual Workflow**: Deploy AI algorithms via drag-and-drop. Adjust all node parameters visually and preview results instantly.
@@ -160,7 +144,23 @@ We currently support 100+ mainstream AI models including LLMs, AIGC generation, 
 - **Memory Optimization**: Zero-copy, memory pool, memory reuse strategies.
 - **High-performance Ops**: Built-in C++/CUDA/Ascend C/SIMD optimized nodes.
 
-## Demos
+## **Algorithm Ecosystem**
+
+We currently support 100+ mainstream AI models including LLMs, AIGC generation, face swapping, object detection, segmentation, etc. We will keep deploying more high-value AI algorithms to build a rich multi-platform AI inference ecosystem for various industries and innovative applications.
+
+| Application | Available Models | Supported Platforms | Notes |
+|-------------|------------------|----------------------|-------|
+| **LLM** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS | |
+| **Image Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4 etc | Linux/Windows/macOS | Text-to-image, image-to-image, inpainting base on **diffusers** |
+| **Face Swap** | **deep-live-cam** | Linux/Windows/macOS | |
+| **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
+| **Object Tracking** | FairMot | Linux/Windows/macOS/Android/iOS | |
+| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS | |
+| **Classification** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS | |
+| **API LLM** | OPENAI, DeepSeek, Moonshot | Linux/Windows/macOS | |
+| **API AIGC** | OPENAI | Linux/Windows/macOS | |
+
+> If you need a specific model deployed, let us know via [issue](https://github.com/nndeploy/nndeploy/issues).
 
 ### YOLO Visual Tuning & One-click Deployment
 
