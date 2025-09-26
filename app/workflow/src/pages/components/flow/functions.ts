@@ -4,8 +4,8 @@ import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import lodash from 'lodash'
 
-function getNodeRegistry(form: any, nodeList: INodeEntity[]) {
-  const registryKey = form.values['key_']
+function getNodeRegistry(registryKey: any, nodeList: INodeEntity[]) {
+  //const registryKey = form.values['key_']
   const nodeRegistry = nodeList.find(item => item.key_ == registryKey)
   return nodeRegistry!
 
@@ -18,7 +18,7 @@ function isNumberArrayFields(fieldNames: string[]): boolean {
   const numberArrayFields = ["scale_", "mean_", "std_"];
   return numberArrayFields.includes(lastFieldName);
 }
-export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEntity[], paramTypes: IParamTypes): IFieldType {
+export function getFieldType(fieldNames: string[], registryKey: any, nodeList: INodeEntity[], paramTypes: IParamTypes): IFieldType {
 
   var result: IFieldType = {
     isArray: false,
@@ -33,7 +33,7 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
     let j = 0;
   }
 
-  const nodeRegistry = getNodeRegistry(form, nodeList)
+  const nodeRegistry = getNodeRegistry(registryKey, nodeList)
 
   let fieldValue: any = nodeRegistry
   let fieldName = ''

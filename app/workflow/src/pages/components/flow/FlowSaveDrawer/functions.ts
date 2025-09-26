@@ -523,17 +523,7 @@ export function transferBusinessContentToDesignContent(
     process: (businessNode: IBusinessNode) => void
   ) {
     process(businessNode);
-    // if (
-    //   businessNode.node_repository_ &&
-    //   businessNode.node_repository_.length > 0
-    // ) {
-    //   let nodeRepositories = businessNode.node_repository_
-    //     ? businessNode.node_repository_
-    //     : [];
-    //   nodeRepositories.forEach((childBusinssNode) => {
-    //     businessNodeIterate(childBusinssNode, process);
-    //   });
-    // }
+  
   }
 
   function getAllOutputNameMap() {

@@ -9,7 +9,7 @@ export const CommentNodeRegistry: FlowNodeRegistry = {
     renderKey: WorkflowNodeType.Comment,
     size: {
       width: 200,
-      height: 150,
+      height: 250,
     },
   },
   formMeta: {

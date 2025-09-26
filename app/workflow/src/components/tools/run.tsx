@@ -12,7 +12,6 @@ import { apiWorkFlowRunStop } from '../../pages/Layout/Design/WorkFlow/api';
  */
 export function Run() {
   //const [isRunning, setRunning] = useState(false);
-  const runningService = useService(RunningService);
 
   const flowEnviroment = useFlowEnviromentContext()
 

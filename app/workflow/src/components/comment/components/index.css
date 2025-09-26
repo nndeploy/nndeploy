@@ -12,7 +12,8 @@
 .workflow-comment-container {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    /* align-items: flex-start;  */
+    align-items: stretch;
     justify-content: flex-start;
     width: 100%;
     height: 100%;
@@ -20,7 +21,22 @@
     outline: 1px solid;
     padding: 6px 2px 6px 10px;
     overflow: hidden;
+    gap: 5px;
+
+   
 }
+ .comment-content-area{
+      flex: 1; 
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      /* //overflow-y: auto; */
+
+    }
+    .comment-operte-area{
+      display: flex;
+      justify-content: flex-end;
+    }
 
 .workflow-comment-drag-area {
     position: absolute;

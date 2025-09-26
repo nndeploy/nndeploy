@@ -62,18 +62,6 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
     }
   }, [])
 
-  // const { node } = useNodeRender();
-  // const form = getNodeForm(node)!
-  // if (!form) {
-  //   console.log('form', form)
-  //   let j = 0
-  //   return <></>
-  // } else[
-  //   console.log('form', form)
-  // ]
-  //  const nodeName = form.getValueIn('name_')
-
-
 
   const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}&returnMimeType=image`
 
@@ -130,7 +118,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
                         return true
                       })
                     }} />
-                    <img src={previewUrl}
+                    <img src={previewUrl} alt=""
                     //style={{ maxWidth: '100%' }}
                     />
                   </div>
@@ -151,7 +139,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
                   event.stopPropagation();
                   setPreviewVisible(true)
                 }} />
-                <img src={previewUrl} style={{ maxWidth: '100%' }} />
+                <img src={previewUrl} style={{ maxWidth: '100%' }} alt="" />
               </div>
             </div>
         }
@@ -187,7 +175,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
         <div className={classNames( 'model-content')}>
           <div className={classNames("preview-image-modal")}>
 
-            <img src={previewUrl} style={{ maxWidth: '100%' }} />
+            <img src={previewUrl} style={{ maxWidth: '100%' }} alt=""/>
           </div>
         </div>
 

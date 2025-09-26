@@ -1,0 +1,29 @@
+.io-type-container {
+
+  background: #f6f6f6bb;
+  width: 216px;
+  height: 216px;
+  min-height: 216px;
+  max-height: 216px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .io-type-input-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .io-type-output-container {
+
+
+    justify-content: center;
+    align-items: center;
+
+
+  }
+}

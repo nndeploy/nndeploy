@@ -1,10 +1,11 @@
 import { IconDownload, IconExpand } from "@douyinfe/semi-icons"
 import { IconChangelog } from "@douyinfe/semi-icons-lab"
-import { Badge, IconButton, List, Modal, Popover, Tooltip } from "@douyinfe/semi-ui"
+import { Badge, IconButton, List, Modal, Popover, Progress, Tooltip } from "@douyinfe/semi-ui"
 import { useEffect, useState } from "react";
-import './index.less'
+import styles from './index.module.scss'
 import { useFlowEnviromentContext } from "../../../context/flow-enviroment-context";
 import { getNodeForm, useClientContext } from "@flowgram.ai/free-layout-editor";
+import { IDownloadProgress } from "../../../pages/components/flow/entity";
 
 const Download: React.FC<any> = (props) => {
 
@@ -16,7 +17,9 @@ const Download: React.FC<any> = (props) => {
 
   const flowEnviroment = useFlowEnviromentContext()
 
-  const { downloadModalList, downloadModalVisible, setDownloadModalVisible } = flowEnviroment
+  const { downloadModalList, downloadModalVisible, setDownloadModalVisible, runInfo } = flowEnviroment
+
+  const {downloadProgress} = runInfo
 
 
   async function onDownload() {
@@ -41,6 +44,22 @@ const Download: React.FC<any> = (props) => {
 
   function handleCancel() {
     setDownloadModalVisible(false)
+  }
+
+  function getDownloadInfo(modelName: string) {
+
+     let nameParts = modelName.split(':')
+     let name = nameParts[nameParts.length - 1]
+
+    const downloadInfo =  downloadProgress[name] ? downloadProgress[name] : {
+      filename: name,
+      percent: 0,
+      downloaded: 0,
+      elapsed: 0,
+      total: 0
+    }
+    return <Progress percent={downloadInfo?.percent || 0} showInfo={true} aria-label="download progress" />
+    
   }
 
 
@@ -72,18 +91,28 @@ const Download: React.FC<any> = (props) => {
       onOk={startDownload}
       onCancel={handleCancel}
       maskClosable={false}
-      className="download-model"
-     // modal={false}
+      className={styles['download-model']}
+      // modal={false}
       //mask = {true}
-     
-      
+
+
       width={700}
     //okButtonProps={{ size: 'small', type: 'warning' }}
     //cancelButtonProps={{ size: 'small', disabled: true }}
     >
-      
+
       <ol>
-      {downloadModalList.map(item => <li className="model-item" key={item}>{item}</li>)}
+        {downloadModalList.map(item => {
+
+          return <li className={styles["model-item"]} key={item}>
+            <div className={styles["model-name"]}> {item}</div>
+            {
+             
+             getDownloadInfo(item)
+              
+            }
+          </li>
+        })}
       </ol>
     </Modal>
   </>

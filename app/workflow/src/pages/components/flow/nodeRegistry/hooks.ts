@@ -18,14 +18,17 @@ export function usePropertiesEdit(
   fieldName: string,
   parentPaths: string[],
   value: any,
-  form: any,
+  //form: any,
+  registryKey:string,
   nodeList: any,
   paramTypes: any,
   onChange?: (value: any) => void
 ) {
   // Get drilldown (array.items.items...)
 
-  const fieldType = getFieldType([...parentPaths, fieldName], form, nodeList, paramTypes)
+   //const registryKey = form.values['key_']
+
+  const fieldType = getFieldType([...parentPaths, fieldName], registryKey, nodeList, paramTypes)
 
   const isDrilldownObject = fieldType.isArray || fieldType.componentType == 'object';
 
