@@ -42,9 +42,18 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
       return
     }
 
-    getFileContent(value)
+    if (direction === 'input') {
+      getFileContent(value)
+      return
+    } else if (direction === 'output') {
+      if (runResult == 'success') {
+        getFileContent(value)
+      } else {
+        setFileContent('')
+      }
+    }
 
-  }, [value])
+  }, [value, runResult])
 
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
