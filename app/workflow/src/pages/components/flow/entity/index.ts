@@ -13,9 +13,9 @@ export interface IFlowNodesRunningStatus {
 export interface IOutputResource {
   // path: { name: string, path: string }[],
   // text: { name: string, text: string }[]
-  type: 'memory', 
+  type: 'memory',
   content: {
-    [nodeName:string]:string
+    [nodeName: string]: string
   }
   time: number
 
@@ -31,14 +31,23 @@ export interface ILog {
 
 }
 
-
-export interface IRunInfo{
+export interface IDownloadProgress {
+  filename: string,
+  percent: number,
+  downloaded: number,
+  elapsed: number,
+  total: number
+}
+export interface IRunInfo {
   isRunning: boolean
-  result :  ''| 'error'| 'success', 
-  runningTaskId: string; 
-  log: ILog; 
-  outputResource: IOutputResource, 
-  flowNodesRunningStatus: IFlowNodesRunningStatus, 
+  result: '' | 'error' | 'success',
+  runningTaskId: string;
+  downloadProgress: {
+    [fileName: string]: IDownloadProgress
+  }
+  log: ILog;
+  outputResource: IOutputResource,
+  flowNodesRunningStatus: IFlowNodesRunningStatus,
   time: number,
 
 }

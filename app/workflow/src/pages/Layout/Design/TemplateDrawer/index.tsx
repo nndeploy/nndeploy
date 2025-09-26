@@ -30,7 +30,7 @@ const TemplateDrawer: React.FC<ITemplateDrawerProps> = (props) => {
 
   return (
     <SideSheet visible={visible} onCancel={props.onCancel} placement="left" className={'templateDrawer'}
-
+    title={<>&nbsp;</>}
       width={'100%'}
       getPopupContainer={() => {
 

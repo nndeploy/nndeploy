@@ -20,6 +20,7 @@ import { PropertyEdit } from '../nodeRegistry/propertyEdit';
 const { Text } = Typography;
 
 interface NodeEntityFormProps {
+  
   nodeEntity: INodeEntity;
 
   nodeList: INodeEntity[],
@@ -37,6 +38,8 @@ interface NodeEntityFormProps {
 export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
   const { nodeEntity, visible, onClose, onSave, paramTypes, nodeList } = props
+
+  const registryKey = nodeEntity.key_;
 
   //const readonly = !useIsSidebar();
 
@@ -84,10 +87,10 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
     "is_time_profile_",
     "is_debug_",
     "is_external_stream_",
-   // "param_",
-   // "inputs_",
-   // "outputs_",
-   // "node_repository_",
+    // "param_",
+    // "inputs_",
+    // "outputs_",
+    // "node_repository_",
     'is_dynamic_input_',
     'is_dynamic_output_'
   ];
@@ -115,6 +118,8 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
             formRef.current = form;
 
+             
+
             return <form
               onSubmit={e => {
                 e.preventDefault();
@@ -137,7 +142,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
                             // onChange={(value) => {
                             //   form.setValueIn(fieldName, value)
                             // }}
-
+                            fieldNameLabel={fieldName}
                             value={field.value}
 
                             onChange={(value) => {
@@ -151,7 +156,8 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
                             showLine={false}
                             topField={true}
 
-                            form={form}
+                            //form={form}
+                            registryKey={registryKey}
                             nodeList={nodeList}
                             paramTypes={paramTypes}
                             isLast={index == basicFields.length - 1}
@@ -376,7 +382,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
           nodeEntity={childEditingNode}
           nodeList={nodeList}
           paramTypes={paramTypes}
-
+        
           visible={childDrawerVisible}
           onClose={closeChildEditor}
           onSave={handleChildSave}
@@ -387,6 +393,7 @@ export const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 };
 
 interface NodeRepositoryEditorProps {
+  registryKey: string;
   node_repository_?: INodeEntity[];
   nodeList: INodeEntity[],
   paramTypes: IParamTypes,
@@ -416,7 +423,7 @@ const updateNodeInList = (list: INodeEntity[], updatedNode: INodeEntity): INodeE
  */
 const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
 
-  const { nodeList, paramTypes, node_repository_, onUpdate } = props
+  const { nodeList, paramTypes, node_repository_, onUpdate, registryKey } = props
 
   const [selectedNode, setSelectedNode] = useState<INodeEntity | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -458,6 +465,7 @@ const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
           onSave={handleSave}
           nodeList={nodeList}
           paramTypes={paramTypes}
+         
         />
       )}
     </div>

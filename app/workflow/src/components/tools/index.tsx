@@ -1,11 +1,9 @@
 import { useState, useEffect, forwardRef, useRef, useImperativeHandle } from 'react';
 
-import { useRefresh } from '@flowgram.ai/free-layout-editor';
-import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { Tooltip, IconButton, Divider, Button } from '@douyinfe/semi-ui';
-import { IconUndo, IconRedo, IconSetting } from '@douyinfe/semi-icons';
+import { useRefresh, useClientContext } from '@flowgram.ai/free-layout-editor';
+import { Tooltip, IconButton, Divider } from '@douyinfe/semi-ui';
+import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
 
-import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
 import { SwitchLine } from './switch-line';
 import { ToolContainer, ToolSection } from './styles';
@@ -18,11 +16,10 @@ import { Interactive } from './interactive';
 import { FitView } from './fit-view';
 import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
-import { IconConfig } from '@douyinfe/semi-icons-lab';
-import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
 import { Config } from './config';
 import Log from './log';
 import Download from './download';
+import { WebUI } from './webui';
 
 export interface AutoLayoutHandle {
   autoLayout: () => void;
@@ -87,7 +84,7 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
             onClick={() => history.redo()}
           />
         </Tooltip>
-       
+
         <Download />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         {/* <AddNode disabled={playground.config.readonly} />
@@ -105,7 +102,8 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
         <Config />
         <Save disabled={playground.config.readonly} />
         <Run />
-         <Log />
+        <Log />
+        <WebUI />
       </ToolSection>
     </ToolContainer>
   );

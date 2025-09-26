@@ -36,7 +36,7 @@ export const CommentRender: FC<{
   const { width, height, onResize } = useSize({ width: 200, height: 180 });
   const { overflow, updateOverflow } = useOverflow({ model, height });
 
-  const [language, setLanguage] = useState('text');
+  const [language, setLanguage] = useState('markdown');
 
   return (
     <div

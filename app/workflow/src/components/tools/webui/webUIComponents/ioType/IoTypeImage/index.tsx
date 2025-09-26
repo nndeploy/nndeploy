@@ -1,4 +1,4 @@
-import { Upload, Typography, Image, Modal, Button } from "@douyinfe/semi-ui";
+import { Upload, Typography, Image, Modal, Button, Spin } from "@douyinfe/semi-ui";
 import { customRequestArgs, FileItem } from "@douyinfe/semi-ui/lib/es/upload";
 import { IconDelete, IconEyeOpened, IconPlus } from "@douyinfe/semi-icons";
 import { apiImageSave } from "./api";
@@ -7,17 +7,28 @@ import { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { getNodeForm, useNodeRender } from "@flowgram.ai/free-layout-editor";
 import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
+import { getIoTypeFieldName, getIoTypeFieldValue, setNodeFieldValue } from "../../../functions";
+import lodash from 'lodash'
+import { Map } from 'immutable';
+import UiParams from "../../uiParams";
 
 const { Text } = Typography;
 
 
-interface IoTypeTextFileProps {
-  value: any;
+export interface IoTypeProps {
+  // value: any;
   direction: 'input' | 'output';
-  onChange: (value: string) => void;
+  onChange: (node: any) => void;
+  node: any,
+  className: string
 }
-const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
-  const { value, onChange, direction } = props;
+const IoTypeImage: React.FC<IoTypeProps> = (props) => {
+  const {
+    //value,
+    onChange, direction, node, className } = props;
+
+
+  const value = getIoTypeFieldValue(node)
 
 
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -29,7 +40,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
+  const ioFieldName = getIoTypeFieldName(node)
 
 
   useEffect(() => {
@@ -74,7 +85,10 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
 
     const response = await apiImageSave(formData)
     if (response.flag === 'success') {
-      onChange(response.result.saved_path)
+
+      const newNode = setNodeFieldValue(node, ioFieldName, response.result.saved_path)
+
+      onChange(newNode)
     }
 
   }
@@ -84,13 +98,17 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
 
   return (
     <>
-      <div className={styles["io-type-container"]}>
+      <div className={classNames(styles["io-type-container"])}>
 
         {
           direction === 'input' ?
 
             <div className={classNames(styles['io-type-input-container'])}>
-              <div className={classNames(styles["upload-area"], { [styles.hasImage]: !!value })}
+
+              {/* <UiParams {...props} className={classNames(styles['ui-params'])}/> */}
+
+
+              <div className={classNames(styles["upload-area"],)}
                 ref={dropZoneRef}
                 onClick={(event) => {
                   event.stopPropagation();
@@ -98,48 +116,60 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
                     fileInputRef.current.click();
                   }
                 }}>
-                {value ?
-                  <div className={styles["image-container"]}>
 
-                    <IconDelete size="extra-large" className={styles["icon-delete"]}
-                      onClick={(event) => {
+                <div className={classNames(styles["image-container"], { [styles.hasImage]: !!value })}>
+                  {
+                    value ? <>
+                      <IconDelete size="extra-large" className={styles["icon-delete"]}
+                        onClick={(event) => {
+                          debugger
+                          event.stopPropagation();
+                          event.nativeEvent.stopImmediatePropagation();
+                          const newNode = setNodeFieldValue(node, ioFieldName, '')
+
+                          onChange(newNode)
+                        }}
+                      />
+
+                      <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                         debugger
                         event.stopPropagation();
-                        event.nativeEvent.stopImmediatePropagation();
-                        onChange('')
-                      }}
-                    />
+                        setPreviewVisible(oldValue => {
 
-                    <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
-                      debugger
-                      event.stopPropagation();
-                      setPreviewVisible(oldValue => {
+                          return true
+                        })
+                      }} />
+                      <img src={previewUrl} alt=""
+                      //style={{ maxWidth: '100%' }}
+                      />
+                    </> : <IconPlus size="extra-large" />
+                  }
 
-                        return true
-                      })
-                    }} />
-                    <img src={previewUrl} alt=""
-                    //style={{ maxWidth: '100%' }}
-                    />
-                  </div>
-                  : <>
-                    <IconPlus size="extra-large" />
+                </div>
 
-                  </>
-                }
+
 
                 <input type="file" id="fileInput" hidden ref={fileInputRef} />
               </div>
             </div>
             :
-            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
-              <div className={styles["image-container"]}>
+            <div className={classNames(styles['io-type-output-container'])}>
+
+              {/* <UiParams {...props} className={classNames(styles['ui-params'])}/> */}
+              <div className={classNames(styles["image-container"], { [styles.hasImage]: runResult == 'success' && !!value })}>
                 <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                   debugger
                   event.stopPropagation();
                   setPreviewVisible(true)
                 }} />
-                <img src={previewUrl} style={{ maxWidth: '100%' }} alt="" />
+                {
+
+                  runInfo.isRunning ? <div className={styles.spin}>
+                    <Spin size="middle" />
+                  </div> :
+                    runResult == 'success' ? <img src={previewUrl} alt="" /> : <></>
+                }
+
               </div>
             </div>
         }
@@ -172,10 +202,10 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
           </Button>,
         ]}
       >
-        <div className={classNames( 'model-content')}>
+        <div className={classNames('model-content')}>
           <div className={classNames("preview-image-modal")}>
 
-            <img src={previewUrl} style={{ maxWidth: '100%' }} alt=""/>
+            <img src={previewUrl} style={{ maxWidth: '100%' }} alt="" />
           </div>
         </div>
 
