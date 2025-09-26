@@ -1,5 +1,5 @@
 //
-//  sample.hpp
+//  sample.cpp
 //
 //  Created by MNN on 2023/09/25.
 //  ZhaodeWang
@@ -37,11 +37,13 @@ struct SubsetLogits {
       delete logits;
     }
   }
-  
+
   // 拷贝构造函数
-  SubsetLogits(const SubsetLogits& other) 
-      : index(other.index), is_external(true), 
-        logits(other.logits), is_subset(other.is_subset) {}
+  SubsetLogits(const SubsetLogits& other)
+      : index(other.index),
+        is_external(true),
+        logits(other.logits),
+        is_subset(other.is_subset) {}
 
   // 赋值运算符重载
   SubsetLogits& operator=(const SubsetLogits& other) {
@@ -242,7 +244,8 @@ base::Status SampleParam::serialize(
                  allocator);
   rapidjson::Value mixed_samplers_array(rapidjson::kArrayType);
   for (const auto& sampler : mixed_samplers) {
-    mixed_samplers_array.PushBack(rapidjson::Value(sampler.c_str(), allocator), allocator);
+    mixed_samplers_array.PushBack(rapidjson::Value(sampler.c_str(), allocator),
+                                  allocator);
   }
   json.AddMember("mixed_samplers", mixed_samplers_array, allocator);
 
@@ -316,7 +319,7 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
 
 // Sample
 Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
-                std::vector<dag::Edge*> outputs)
+                 std::vector<dag::Edge*> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::llm::Sampler";
   desc_ =
@@ -343,23 +346,21 @@ Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
 Sampler::~Sampler() {}
 
 base::Status Sampler::run() {
-  // auto logits = this->getInput<device::Tensor>(0);
-  // auto prefill_tokens = this->getInput<tokenizer::TokenizerIds>(1);
+  auto logits = inputs_[0]->get<device::Tensor>(this);
+  history_tokens_ =
+      this->getResourceWithState<std::vector<int>>("history_tokens");
+  int batch_size = logits->getShape()[0];
 
-  // tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
+  tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
+  out_token->ids_.resize(batch_size);
 
-  // auto history_tokens_ids = prefill_tokens->ids[0];
-  // if (prefill_tokens_ != history_tokens_ids) {
-  //   history_tokens_.clear();
-  //   history_tokens_ = history_tokens_ids;
-  //   out_token->ids.push_back(history_tokens);
-  // }
+  auto sampled_token_id = sample(logits);
+  out_token->ids_[0].push_back(sampled_token_id);
 
-  // auto sampled_token_id = sample(logits);
-  // tokenizer::TokenizerIds *sampled_token = new tokenizer::TokenizerIds();
-  // sampled_token->ids[0].push_back(sampled_token_id);
+  // push back to history tokens
+  history_tokens_->push_back(sampled_token_id);
 
-  // this->setOutput(sampled_token, 0, false);
+  this->setOutputData(out_token, 0, false);
   return base::kStatusCodeOk;
 }
 
@@ -538,7 +539,7 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
   penalty = std::min(penalty,
                      (dynamic_cast<SampleParam*>(param_.get()))->max_penalty);
   // initialization
-  std::vector<int>& prev = history_tokens_;
+  std::vector<int>& prev = *history_tokens_;
   std::unordered_map<int, float> penalty_map;
   // 1. local ngram info, reversed order
   std::vector<int> ngram_info(ngram - 1);

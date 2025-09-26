@@ -439,7 +439,7 @@ endif()
 # copy python module to python/nndeploy/
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "")
 # if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
-#     if (SYSTEM.Windows)
+#     if (SYSTEM_Windows)
 #         # Windows系统下的处理:
 #         # 1. 添加一个构建后命令,在目标${BINARY}构建完成后执行
 #         # 2. 使用CMAKE的copy_if_different命令复制文件
@@ -469,7 +469,7 @@ endif()
 # configure_file(${ROOT_PATH}/python/setup.py.cfg ${PROJECT_SOURCE_DIR}/python/setup.py)
 
 # install
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 else()
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})

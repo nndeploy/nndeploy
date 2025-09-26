@@ -47,7 +47,7 @@ else()
     message(STATUS "ascendc_kernel_cmake does not exist, please check whether the cann package is installed.")
   endif()
 
-  if(SYSTEM.Windows)
+  if(SYSTEM_Windows)
     set(BIN_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/bin)
     link_directories(${BIN_PATH})
   endif()

@@ -14,7 +14,7 @@ elseif (ENABLE_NNDEPLOY_ONNX STREQUAL "ON")
   #   set(ONNX_CUSTOM_PROTOC_EXECUTABLE ${PROJECT_SOURCE_DIR}/build/protoc)
   # endif()
   
-  if(SYSTEM.Windows)
+  if(SYSTEM_Windows)
     set(ONNX_CUSTOM_PROTOC_EXECUTABLE ${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}/protoc.exe)
   else()
     set(ONNX_CUSTOM_PROTOC_EXECUTABLE ${PROJECT_SOURCE_DIR}/build/protoc)

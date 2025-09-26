@@ -72,7 +72,7 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
   float max_penalty = 10.0f;
   std::string sampler = "temperature";  // "greedy", "temperature".
   std::vector<std::string> mixed_samplers = {"topK", "tfs",   "typical",
-                                            "topP", "min_p", "temperature"};
+                                             "topP", "min_p", "temperature"};
 
   using base::Param::serialize;
   virtual base::Status serialize(
@@ -107,8 +107,8 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
  */
 class NNDEPLOY_CC_API Sampler : public dag::Node {
  public:
- Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
-         std::vector<dag::Edge*> outputs);
+  Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
+          std::vector<dag::Edge*> outputs);
   virtual ~Sampler();
 
   virtual base::Status run();
@@ -127,8 +127,7 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
   int handleSelect(struct SubsetLogits subset);
 
  protected:
-  std::vector<int> prefill_tokens_;
-  std::vector<int> history_tokens_;
+  std::vector<int>* history_tokens_;
 };
 
 }  // namespace llm
