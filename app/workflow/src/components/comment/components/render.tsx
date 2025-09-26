@@ -20,7 +20,7 @@ import { ContentDragArea } from './content-drag-area';
 import { CommentContainer } from './container';
 import { BorderArea } from './border-area';
 import { Switch } from '@douyinfe/semi-ui';
-import CodeBlock from '../../../pages/components/flow/nodeRegistry/CodeBlock';
+import CodeBlock from '../../../pages/components/CodeBlock';
 
 export const CommentRender: FC<{
   node: WorkflowNodeEntity;

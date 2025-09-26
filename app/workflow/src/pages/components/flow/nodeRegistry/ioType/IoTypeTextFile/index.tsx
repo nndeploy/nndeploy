@@ -186,7 +186,14 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
           </div>
           :
           <div className={classNames(styles['io-type-output-container'])} >
-            {value && runResult == 'success' && <div className={styles['preview']} >
+
+
+            {value && fileContent && <div className={styles['preview']} onClick={(event) => {
+              event.stopPropagation();
+            }}>{fileContent}</div>
+            }
+            {
+              value && runResult == 'success' &&
               <div className={classNames(styles['file-item-info'])} >
 
                 <span className={styles.fileName}>{downloadFileName} </span>
@@ -200,8 +207,6 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
                 </Button>
 
               </div>
-
-            </div>
 
             }
           </div>

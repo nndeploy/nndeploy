@@ -202,7 +202,7 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
             </div>
             <div className={classNames(styles['file-download-info'])} >
 
-              <span className={styles.fileName}>{downloadFileName} </span>
+              <span className={styles.fileName}>xx{downloadFileName}yy </span>
               {/* <span className={styles.fileSize}>{fileInfo.size} </span> */}
               <Button theme='light'
                 disabled={runResult != 'success'}
@@ -213,8 +213,6 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
               </Button>
 
             </div>
-
-
           </div>
 
       }
