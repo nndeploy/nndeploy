@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_
-#define _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_
+#ifndef _NNDEPLOY_TOKENIZER_TOKENIZER_H_
+#define _NNDEPLOY_TOKENIZER_TOKENIZER_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"

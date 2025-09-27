@@ -3,6 +3,7 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+#include "dag/dag.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
@@ -12,23 +13,23 @@ namespace nndeploy {
 namespace dag {
 
 // PyObjectWrapper 结构体用于包装和管理Python对象的生命周期
-struct PyObjectWrapper {
-  PyObject* obj;  // 指向Python对象的指针
+// struct PyObjectWrapper {
+//   PyObject* obj;  // 指向Python对象的指针
 
-  // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
-  PyObjectWrapper(PyObject* o) : obj(o) {
-    // py::gil_scoped_acquire acquire;
-    Py_INCREF(obj);
-    // py::gil_scoped_release release;
-  }
+//   // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
+//   PyObjectWrapper(PyObject* o) : obj(o) {
+//     // py::gil_scoped_acquire acquire;
+//     Py_INCREF(obj);
+//     // py::gil_scoped_release release;
+//   }
 
-  // 析构函数:减少引用计数,允许Python回收对象
-  ~PyObjectWrapper() {
-    py::gil_scoped_acquire acquire;
-    Py_DECREF(obj);
-    // py::gil_scoped_release release;
-  }
-};
+//   // 析构函数:减少引用计数,允许Python回收对象
+//   ~PyObjectWrapper() {
+//     py::gil_scoped_acquire acquire;
+//     Py_DECREF(obj);
+//     // py::gil_scoped_release release;
+//   }
+// };
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   py::class_<Edge>(m, "Edge", py::dynamic_attr())
@@ -376,9 +377,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                 throw std::runtime_error("Failed to set cv::Mat");
               }
               return status;
-#else 
+#else
               NNDEPLOY_LOGE("set cv::Mat is not supported");
-              base::Status status = base::StatusCode::kStatusCodeErrorNotSupport;
+              base::Status status =
+                  base::StatusCode::kStatusCodeErrorNotSupport;
               return status;
 #endif
             } else if (py::isinstance<device::Tensor>(obj)) {

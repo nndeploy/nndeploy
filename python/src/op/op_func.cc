@@ -80,6 +80,300 @@ device::Tensor* reluFunc(device::Tensor* input) {
   return output;
 }
 
+device::Tensor* hardsigmoidFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("hardsigmoid.output");
+  base::Status status = op::hardsigmoid(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::hardsigmoid failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* seluFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("selu.output");
+  base::Status status = op::selu(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::selu failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* tanhFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("tanh.output");
+  base::Status status = op::tanh(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::tanh failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* absFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("abs.output");
+  base::Status status = op::abs(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::abs failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* acosFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("acos.output");
+  base::Status status = op::acos(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::acos failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* asinFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("asin.output");
+  base::Status status = op::asin(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::asin failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* atanFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("atan.output");
+  base::Status status = op::atan(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::atan failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* ceilFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("ceil.output");
+  base::Status status = op::ceil(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::ceil failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* cosFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("cos.output");
+  base::Status status = op::cos(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::cos failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* coshFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("cosh.output");
+  base::Status status = op::cosh(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::cosh failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* erfFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("erf.output");
+  base::Status status = op::erf(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::erf failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* expFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("exp.output");
+  base::Status status = op::exp(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::exp failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* floorFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("floor.output");
+  base::Status status = op::floor(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::floor failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* logFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("log.output");
+  base::Status status = op::log(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::log failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* reciprocalFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("reciprocal.output");
+  base::Status status = op::reciprocal(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::reciprocal failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* roundFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("round.output");
+  base::Status status = op::round(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::round failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* signFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("sign.output");
+  base::Status status = op::sign(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::sign failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* sinFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("sin.output");
+  base::Status status = op::sin(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::sin failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* sinhFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("sinh.output");
+  base::Status status = op::sinh(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::sinh failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* sqrtFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("sqrt.output");
+  base::Status status = op::sqrt(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::sqrt failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* tanFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("tan.output");
+  base::Status status = op::tan(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::tan failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* reshapeFunc(device::Tensor* input, device::Tensor* shape,
                             std::shared_ptr<ir::ReshapeParam> param) {
   std::stringstream ss;

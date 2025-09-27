@@ -266,6 +266,14 @@ class Node(_C.dag.Node):
     def get_output(self, index: int = 0):
         """Get output at the specified index."""
         return (super().get_output(index))
+    
+    def get_input_data(self, index: int = 0):
+        """Get input data at the specified index."""
+        return super().get_input_data(index)
+    
+    def set_output_data(self, output, index: int = 0, is_external: bool = True):
+        """Set output data at the specified index."""
+        return super().set_output_data(output, index, is_external)
         
     def get_all_input(self):
         """Get all inputs of the node."""

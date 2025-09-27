@@ -11,6 +11,21 @@ file(GLOB PLUGIN_SOURCE
   "${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/*.cc"
 )
 
+if (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "OFF")
+else()
+  file(GLOB_RECURSE TOKENIZER_MNN_SOURCE
+    "${PLUGIN_ROOT_PATH}/include/nndeploy/tokenizer/tokenizer_mnn/*.h"
+    "${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/tokenizer_mnn/*.cc"
+  )
+  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${TOKENIZER_MNN_SOURCE})
+endif()
+
+# file(GLOB TOKENIZER_MNN_SOURCE
+#     "${PLUGIN_ROOT_PATH}/include/nndeploy/tokenizer/tokenizer_mnn/*.h"
+#     "${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/tokenizer_mnn/*.cc"
+#   )
+# set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${TOKENIZER_MNN_SOURCE})
+
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   file(GLOB_RECURSE TOKENIZER_CPP_SOURCE
     "${PLUGIN_ROOT_PATH}/include/nndeploy/tokenizer/tokenizer_cpp/*.h"

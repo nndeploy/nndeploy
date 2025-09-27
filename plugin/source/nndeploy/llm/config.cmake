@@ -6,7 +6,7 @@ set(PLUGIN_OBJECT)
 set(PLUGIN_BINARY nndeploy_plugin_llm)
 
 # SOURCE
-file(GLOB PLUGIN_SOURCE
+file(GLOB_RECURSE PLUGIN_SOURCE
   "${PLUGIN_ROOT_PATH}/include/nndeploy/llm/*.h"
   "${PLUGIN_ROOT_PATH}/source/nndeploy/llm/*.cc"
 )

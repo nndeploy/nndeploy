@@ -76,7 +76,7 @@ def _save(file: UploadFile, target_dir: str) -> UploadResponse:
     message = f"file {dst.name} has been uploaded successfully"
     result = {
         "filename": file.filename,
-        "saved_path": str(dst.resolve()),
+        "saved_path": dst.relative_to(Path.cwd()) if dst.is_relative_to(Path.cwd()) else dst,
         "size": dst.stat().st_size,
         "uploaded_at": datetime.utcnow(),
         "extension": (dst.suffix or "unknown").lstrip(".")

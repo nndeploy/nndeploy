@@ -69,6 +69,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_output_names", &Node::getOutputNames)
       .def("get_input_name", &Node::getInputName, py::arg("index") = 0)
       .def("get_output_name", &Node::getOutputName, py::arg("index") = 0)
+      .def("get_input_index", &Node::getInputIndex, py::arg("name"))
+      .def("get_output_index", &Node::getOutputIndex, py::arg("name"))
+      .def("get_input_count", &Node::getInputCount)
+      .def("get_output_count", &Node::getOutputCount)
       .def("set_input_name", &Node::setInputName, py::arg("name"),
            py::arg("index") = 0)
       .def("set_output_name", &Node::setOutputName, py::arg("name"),
@@ -139,6 +143,191 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_output", &Node::getOutput, py::arg("index") = 0,
            py::return_value_policy::reference,
            py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_input_data",
+          [](Node &node, int index = 0) -> py::object {
+            Edge *edge = node.getInput(index);
+            if (edge == nullptr) {
+              return py::object(py::none());
+            }
+            // 尝试获取不同类型的数据
+            if (auto *tensor = edge->getTensor(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(tensor);
+            } else if (auto *buffer = edge->getBuffer(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(buffer);
+            } else if (auto *param = edge->getParam(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(param);
+            }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+            else if (auto *mat = edge->getCvMat(&node)) {
+              py::gil_scoped_acquire acquire;
+              if (mat == nullptr) {
+                return py::object(py::array());  // 返回空数组
+              }
+
+              std::string format;
+              switch (mat->depth()) {
+                case CV_8U:
+                  format = "B";
+                  break;
+                case CV_8S:
+                  format = "b";
+                  break;
+                case CV_16U:
+                  format = "H";
+                  break;
+                case CV_16S:
+                  format = "h";
+                  break;
+                case CV_32S:
+                  format = "i";
+                  break;
+                case CV_32F:
+                  format = "f";
+                  break;
+                case CV_64F:
+                  format = "d";
+                  break;
+                default:
+                  throw std::runtime_error("Unsupported cv::Mat data type");
+              }
+
+              std::vector<ssize_t> shape;
+              std::vector<ssize_t> strides;
+
+              if (mat->channels() == 1) {
+                // 单通道图像
+                shape = {static_cast<ssize_t>(mat->rows),
+                         static_cast<ssize_t>(mat->cols)};
+                strides = {static_cast<ssize_t>(mat->step[0]),
+                           static_cast<ssize_t>(mat->elemSize1())};
+              } else {
+                // 多通道图像
+                shape = {static_cast<ssize_t>(mat->rows),
+                         static_cast<ssize_t>(mat->cols),
+                         static_cast<ssize_t>(mat->channels())};
+                strides = {
+                    static_cast<ssize_t>(mat->step[0]),
+                    static_cast<ssize_t>(mat->elemSize1() * mat->channels()),
+                    static_cast<ssize_t>(mat->elemSize1())};
+              }
+
+              return py::object(
+                  py::array(py::buffer_info(mat->data,         // 数据指针
+                                            mat->elemSize1(),  // 单个元素大小
+                                            format,            // 数据格式
+                                            shape.size(),      // 维度数
+                                            shape,             // 形状
+                                            strides            // 步长
+                                            )));
+            }
+#endif
+            else if (auto *obj = edge->get<PyObject>(&node)) {
+              if (!obj) {
+                return py::object(py::none());
+              }
+              return py::reinterpret_borrow<py::object>(obj);
+            }
+            return py::object(py::none());
+          },
+          py::arg("index") = 0, py::return_value_policy::reference,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "set_output_data",
+          [](Node &node, py::object obj, int index = 0,
+             bool is_external = true) -> base::Status {
+            Edge *edge = node.getOutput(index);
+            if (edge == nullptr) {
+              return base::kStatusCodeErrorNullParam;
+            }
+            auto *wrapper = new PyObjectWrapper(obj.ptr());
+            // 检查输入对象类型
+            if (py::isinstance<py::array>(obj)) {
+              // numpy array类型
+              auto buffer = obj.cast<py::array>();
+              //        // 获取numpy数组的维度和形状
+              py::buffer_info info = buffer.request();
+              char kind = info.format.front();
+              int channels = (info.ndim == 3) ? info.shape[2] : 1;
+              int cv_depth;
+#ifdef ENABLE_NNDEPLOY_OPENCV
+              // 根据numpy数组的数据类型和每个元素的大小来确定OpenCV的数据类型
+              switch (kind) {
+                case 'B':
+                  cv_depth = CV_8U;
+                  break;
+                case 'b':
+                  cv_depth = CV_8S;
+                  break;
+                case 'H':
+                  cv_depth = CV_16U;
+                  break;
+                case 'h':
+                  cv_depth = CV_16S;
+                  break;
+                case 'i':
+                  cv_depth = CV_32S;
+                  break;
+                case 'f':
+                  cv_depth = CV_32F;
+                  break;
+                case 'd':
+                  cv_depth = CV_64F;
+                  break;
+                default:
+                  throw std::runtime_error("Unsupported data type kind: " +
+                                           std::string(1, kind));
+              }
+              int type = CV_MAKETYPE(cv_depth, channels);
+              cv::Mat *mat =
+                  new cv::Mat(info.shape[0], info.shape[1], type, info.ptr);
+              base::Status status = edge->set4py(wrapper, mat, false);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set cv::Mat");
+              }
+              return status;
+#else
+              NNDEPLOY_LOGE("set cv::Mat is not supported");
+              base::Status status =
+                  base::StatusCode::kStatusCodeErrorNotSupport;
+              return status;
+#endif
+            } else if (py::isinstance<device::Tensor>(obj)) {
+              // Tensor类型
+              auto *tensor = obj.cast<device::Tensor *>();
+              base::Status status = edge->set4py(wrapper, tensor);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set device::Tensor");
+              }
+              return status;
+            } else if (py::isinstance<device::Buffer>(obj)) {
+              // Buffer类型
+              auto *buffer = obj.cast<device::Buffer *>();
+              base::Status status = edge->set4py(wrapper, buffer);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set device::Buffer");
+              }
+              return status;
+            } else if (py::isinstance<base::Param>(obj)) {
+              // Param类型
+              auto param = obj.cast<std::shared_ptr<base::Param>>();
+              base::Status status = edge->set4py(wrapper, param.get());
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set base::Param");
+              }
+              return status;
+            } else {
+              base::Status status = edge->set4py(wrapper, obj.ptr());
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set base::Param");
+              }
+              return status;
+            }
+          },
+          py::arg("obj"), py::arg("index") = 0, py::arg("is_external") = true)
       .def("get_all_input", &Node::getAllInput,
            py::return_value_policy::reference,
            py::call_guard<py::gil_scoped_release>())

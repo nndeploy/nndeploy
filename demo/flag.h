@@ -81,7 +81,12 @@ DECLARE_bool(is_path);
  *  "path/to/model,path/to/params"
  */
 DECLARE_string(model_value);
+DECLARE_string(classifier_model_value);
 
+DECLARE_string(detector_model_value);
+
+DECLARE_string(recognizer_model_value);
+DECLARE_string(character_txt_value);
 /**
  * @brief Construct a new declare string object
  * @note
@@ -218,6 +223,9 @@ DECLARE_string(library_path);
  *  "input_0,input_1"
  */
 DECLARE_string(model_inputs);
+DECLARE_string(classifier_model_inputs);
+DECLARE_string(recognizer_model_inputs);
+DECLARE_string(detector_model_inputs);
 
 /**
  * @brief Construct a new declare string object
@@ -226,6 +234,9 @@ DECLARE_string(model_inputs);
  *  "output_0,output_1"
  */
 DECLARE_string(model_outputs);
+DECLARE_string(classifier_model_outputs);
+DECLARE_string(recognizer_model_outputs);
+DECLARE_string(detector_model_outputs);
 
 void showUsage();
 
@@ -235,6 +246,10 @@ base::DeviceType getDeviceType();
 base::ModelType getModelType();
 bool isPath();
 std::vector<std::string> getModelValue();
+std::vector<std::string> getClassifierModelValue();
+std::vector<std::string> getRecognizerModelValue();
+std::vector<std::string> getDetectorModelValue();
+std::string getCharacterTxtValue();
 base::EncryptType getEncryptType();
 std::string getLicense();
 base::CodecType getCodecType();
@@ -254,6 +269,12 @@ std::vector<std::string> getAllFileFromDir(std::string dir_path);
 
 std::vector<std::string> getModelInputs();
 std::vector<std::string> getModelOutputs();
+std::vector<std::string> getClassifierModelInputs();
+std::vector<std::string> getRecognizerModelInputs();
+std::vector<std::string> getDetectorModelInputs();
+std::vector<std::string> getClassifierModelOutputs();
+std::vector<std::string> getRecognizerModelOutputs();
+std::vector<std::string> getDetectorModelOutputs();
 
 }  // namespace demo
 }  // namespace nndeploy

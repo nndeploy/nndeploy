@@ -17,13 +17,13 @@ struct hash<nndeploy::base::DeviceType> {
 namespace nndeploy {
 namespace kernel {
 
-enum class UnaryKernelType : int {
+enum UnaryKernelType : int {
 
   // activation kernel
   kKernelTypeElu = 0,
   kKernelTypeCelu,
   kKernelTypeRelu,
-  kKernelTypeGelu,
+  // kKernelTypeGelu,
   kKernelTypeHardSwish,
   kKernelTypeHardSigmoid,
   kKernelTypeHardShrink,
@@ -52,8 +52,8 @@ enum class UnaryKernelType : int {
   kKernelTypeCeil,
   kKernelTypeCos,
   kKernelTypeCosh,
-  kKernelTypeDigamma,
-  kKernelTypeTrigamma,
+  // kKernelTypeDigamma,
+  // kKernelTypeTrigamma,
   kKernelTypeErf,
   kKernelTypeErfc,
   kKernelTypeExp,
@@ -79,7 +79,7 @@ enum class UnaryKernelType : int {
   kKernelTypeSqrt,
   kKernelTypeSquare,
   kKernelTypeTan,
-  kKernelTypeTrunc,
+  // kKernelTypeTrunc,
   kKernelTypeNotEqualZero,
 
   // logical kernel
@@ -148,7 +148,7 @@ bool IsClassRegistered(Key key) {
 }
 
 template <typename FactoryType, typename... Args>
-static std::unique_ptr<typename FactoryType::PrimitiveType> NewKernel(
+static std::unique_ptr<typename FactoryType::KernelType> NewKernel(
     base::DeviceType device_type, Args&&... args) {
   if (!IsClassRegistered<base::DeviceType, FactoryType>(device_type)) {
     return nullptr;

@@ -21,19 +21,13 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 from PIL import Image, ImageFilter, ImageOps
 
-from .support_models import supported_text2image_models
-from .support_models import supported_image2image_models
-from .support_models import supported_inpainting_models
-from .support_models import supported_text2audio_models
-from .support_models import supported_unconditional_audio_models
-from .support_models import supported_unconditional_image_models
-from .support_models import supported_image2text_models
-from .support_models import supported_text_variation_models
-from .support_models import supported_text_to_3d_models
-from .support_models import supported_image_to_3d_models
-from .support_models import supported_value_guided_planning_models
-from .support_models import supported_visualcloze_models
-from .support_models import supported_misc_models
+from .diffusers_info.pretrain_model_paths import get_text2image_pipelines_pretrained_model_paths
+from .diffusers_info.pretrain_model_paths import get_image2image_pipelines_pretrained_model_paths
+from .diffusers_info.pretrain_model_paths import get_inpainting_pipelines_pretrained_model_paths
+
+from diffusers.utils import logging
+
+logging.set_verbosity_info()
 
 def get_scheduler(pipeline, scheduler, scheduler_kwargs):
     if scheduler == "default":
@@ -94,10 +88,12 @@ class Text2Image(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
+                
+            print("Text2Image pipeline:", self.pipeline)
             
             # Memory optimization
             if self.enable_sequential_cpu_offload:
-                self.pipeline.reset_device_map()
+                # self.pipeline.reset_device_map()
                 try:
                     self.pipeline.enable_sequential_cpu_offload()
                     self.enable_model_cpu_offload = False 
@@ -157,15 +153,31 @@ class Text2Image(nndeploy.dag.Node):
             
             num_images_per_prompt = latent.shape[0]
             
-            result = self.pipeline(
-                prompt=prompt,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                latents=latent,
-                guidance_rescale=self.guidance_rescale
-            )
+            # 检查pipeline是否支持guidance_rescale参数
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                # print("Pipeline supports guidance_rescale parameter")
+                result = self.pipeline(
+                    prompt=prompt,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    latents=latent,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                # print("Pipeline does not support guidance_rescale parameter")
+                result = self.pipeline(
+                    prompt=prompt,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    latents=latent,
+                )
                             
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
@@ -183,7 +195,7 @@ class Text2Image(nndeploy.dag.Node):
         try:
             # Add required parameters
             self.add_required_param("pretrained_model_name_or_path")
-            self.add_dropdown_param("pretrained_model_name_or_path", supported_text2image_models)
+            self.add_dropdown_param("pretrained_model_name_or_path", get_text2image_pipelines_pretrained_model_paths())
             # Get base class serialization
             base_json = super().serialize()
             json_obj = json.loads(base_json)
@@ -305,6 +317,8 @@ class Image2Image(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors
                 )
+                
+            print("Image2Image pipeline:", self.pipeline)
 
             # Memory optimization
             if self.enable_sequential_cpu_offload:
@@ -384,17 +398,32 @@ class Image2Image(nndeploy.dag.Node):
                 generator = torch.Generator(device=device)
                 generator.manual_seed(self.generator_seed)
 
-            result = self.pipeline(
-                prompt=prompt,
-                image=source_image,
-                strength=self.strength,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                generator=generator,
-                guidance_rescale=self.guidance_rescale
-            )
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                )
 
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
@@ -413,7 +442,7 @@ class Image2Image(nndeploy.dag.Node):
         try:
             # Add required parameters
             self.add_required_param("pretrained_model_name_or_path")
-            self.add_dropdown_param("pretrained_model_name_or_path", supported_image2image_models)
+            self.add_dropdown_param("pretrained_model_name_or_path", get_image2image_pipelines_pretrained_model_paths())
             # Get base class serialization
             base_json = super().serialize()
             json_obj = json.loads(base_json)
@@ -539,6 +568,8 @@ class Inpainting(nndeploy.dag.Node):
                     torch_dtype=get_torch_dtype(self.torch_dtype),
                     use_safetensors=self.use_safetensors,
                 )
+            
+            print("Inpainting pipeline:", self.pipeline)
 
             # Memory optimization
             if self.enable_sequential_cpu_offload and hasattr(self.pipeline, "enable_sequential_cpu_offload"):
@@ -617,18 +648,34 @@ class Inpainting(nndeploy.dag.Node):
                 generator.manual_seed(self.generator_seed)
 
             # Inference
-            result = self.pipeline(
-                prompt=prompt,
-                image=source_image,
-                mask_image=mask_image,
-                strength=self.strength,
-                num_inference_steps=self.num_inference_steps,
-                guidance_scale=self.guidance_scale,
-                negative_prompt=negative_prompt,
-                num_images_per_prompt=num_images_per_prompt,
-                generator=generator,
-                guidance_rescale=self.guidance_rescale
-            )
+            import inspect
+            pipeline_call_signature = inspect.signature(self.pipeline.__call__)
+            supports_guidance_rescale = 'guidance_rescale' in pipeline_call_signature.parameters
+            if supports_guidance_rescale:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    mask_image=mask_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                    guidance_rescale=self.guidance_rescale
+                )
+            else:
+                result = self.pipeline(
+                    prompt=prompt,
+                    image=source_image,
+                    mask_image=mask_image,
+                    strength=self.strength,
+                    num_inference_steps=self.num_inference_steps,
+                    guidance_scale=self.guidance_scale,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=num_images_per_prompt,
+                    generator=generator,
+                )
 
             # Set output to output edges
             min_len = min(len(result.images), len(self.get_all_output()))
@@ -647,7 +694,7 @@ class Inpainting(nndeploy.dag.Node):
         try:
             # Add required parameters
             self.add_required_param("pretrained_model_name_or_path")
-            self.add_dropdown_param("pretrained_model_name_or_path", supported_inpainting_models)
+            self.add_dropdown_param("pretrained_model_name_or_path", get_inpainting_pipelines_pretrained_model_paths())
             # Get base class serialization
             base_json = super().serialize()
             json_obj = json.loads(base_json)

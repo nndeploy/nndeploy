@@ -409,6 +409,67 @@ EdgeWrapper *Graph::addEdgeSharedPtr(std::shared_ptr<Edge> edge) {
   return edge_wrapper;
 }
 
+base::Status Graph::deleteEdge(Edge *edge) {
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge, "edge is null!");
+
+  // 查找要删除的边
+  EdgeWrapper *edge_wrapper_to_delete = nullptr;
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ == edge) {
+      edge_wrapper_to_delete = edge_wrapper;
+      break;
+    }
+  }
+
+  if (edge_wrapper_to_delete == nullptr) {
+    NNDEPLOY_LOGE("edge not found in repository!");
+    return base::kStatusCodeErrorDag;
+  }
+
+  // 找到消费者节点和生产者节点
+  for (auto consumer : edge_wrapper_to_delete->consumers_) {
+    auto count = consumer->node_->getInputCount();
+    for (int i = 0; i < count; ++i) {
+      if (consumer->node_->getInput(i) == edge_wrapper_to_delete->edge_) {
+        consumer->node_->setInput(nullptr, i);
+        break;
+      }
+    }
+  }
+  for (auto producer : edge_wrapper_to_delete->producers_) {
+    auto count = producer->node_->getOutputCount();
+    for (int i = 0; i < count; ++i) {
+      if (producer->node_->getOutput(i) == edge_wrapper_to_delete->edge_) {
+        producer->node_->setOutput(nullptr, i);
+        break;
+      }
+    }
+  }
+
+  // 从edge_repository_中删除
+  edge_repository_.erase(std::find(edge_repository_.begin(),
+                                   edge_repository_.end(),
+                                   edge_wrapper_to_delete));
+
+  // 从used_edge_names_中删除
+  used_edge_names_.erase(edge_wrapper_to_delete->name_);
+
+  // 从shared_edge_repository_中删除（按照名称查找）
+  auto shared_it = std::find_if(
+      shared_edge_repository_.begin(), shared_edge_repository_.end(),
+      [&edge_wrapper_to_delete](std::shared_ptr<Edge> wrapper) {
+        return wrapper->getName() == edge_wrapper_to_delete->name_;
+      });
+  if (shared_it != shared_edge_repository_.end()) {
+    shared_edge_repository_.erase(shared_it);
+  }
+
+  // 删除EdgeWrapper
+  delete edge_wrapper_to_delete;
+
+  return base::kStatusCodeOk;
+}
+
 base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
                               bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge, "edge is null!");
@@ -663,6 +724,57 @@ base::Status Graph::addNodeSharedPtr(std::shared_ptr<Node> node) {
   return status;
 }
 
+base::Status Graph::deleteNode(Node *node) {
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node);
+  if (node_wrapper == nullptr) {
+    NNDEPLOY_LOGE("can't find node_wrapper!");
+    return base::kStatusCodeOk;
+  }
+  // # 更新edge_repository_，将EdgeWrapper中的消费者生产者移除
+  for (auto edge_wrapper : edge_repository_) {
+    auto c_it = std::find(edge_wrapper->consumers_.begin(),
+                          edge_wrapper->consumers_.end(), node_wrapper);
+    if (c_it != edge_wrapper->consumers_.end()) {
+      edge_wrapper->consumers_.erase(c_it);
+    }
+    auto p_it = std::find(edge_wrapper->producers_.begin(),
+                          edge_wrapper->producers_.end(), node_wrapper);
+    if (p_it != edge_wrapper->producers_.end()) {
+      edge_wrapper->producers_.erase(p_it);
+    }
+  }
+  // # 更新used_node_names_，将node的name从used_node_names_中删除
+  used_node_names_.erase(node_wrapper->name_);
+  // # 更新shared_node_repository_，将node从shared_node_repository_中删除
+  auto shared_it = std::find_if(
+      shared_node_repository_.begin(), shared_node_repository_.end(),
+      [node](const std::shared_ptr<Node> &ptr) { return ptr.get() == node; });
+  if (shared_it != shared_node_repository_.end()) {
+    shared_node_repository_.erase(shared_it);
+  }
+  // # 更新node_repository_，将NodeWrapper中的前驱和后继移除
+  for (auto node_wrapper : node_repository_) {
+    auto p_it = std::find(node_wrapper->predecessors_.begin(),
+                          node_wrapper->predecessors_.end(), node_wrapper);
+    if (p_it != node_wrapper->predecessors_.end()) {
+      node_wrapper->predecessors_.erase(p_it);
+    }
+    auto s_it = std::find(node_wrapper->successors_.begin(),
+                          node_wrapper->successors_.end(), node_wrapper);
+    if (s_it != node_wrapper->successors_.end()) {
+      node_wrapper->successors_.erase(s_it);
+    }
+  }
+  // # 更新node_repository_，将NodeWrapper从node_repository_中删除
+  node_repository_.erase(std::find(node_repository_.begin(),
+                                   node_repository_.end(), node_wrapper));
+
+  // # 删除NodeWrapper
+  delete node_wrapper;
+
+  return base::kStatusCodeOk;
+}
+
 Node *Graph::getNode(const std::string &name) {
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->name_ == name) {
@@ -796,6 +908,147 @@ Node *Graph::getInferNode(int index) {
     }
   }
   return nullptr;
+}
+
+base::Status Graph::connect(Node *predecessor, Node *successor,
+                            int predecessor_port, int successor_port) {
+  // 判断节点和端口是否存在
+  if (predecessor == nullptr || successor == nullptr) {
+    NNDEPLOY_LOGE("predecessor or successor is nullptr!\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  auto pre_wrapper = findNodeWrapper(node_repository_, predecessor);
+  if (pre_wrapper == nullptr) {
+    NNDEPLOY_LOGE("predecessor not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  auto suc_wrapper = findNodeWrapper(node_repository_, successor);
+  if (suc_wrapper == nullptr) {
+    NNDEPLOY_LOGE("successor not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  // 检查前驱节点的输出端口是否有效
+  if (predecessor_port < 0 ||
+      predecessor_port >= predecessor->getOutputCount()) {
+    NNDEPLOY_LOGE("predecessor_port[%d] is invalid, node[%s] has %d outputs!\n",
+                  predecessor_port, predecessor->getName().c_str(),
+                  (int)predecessor->getOutputCount());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  // 检查后继节点的输入端口是否有效
+  if (successor_port < 0 || successor_port >= successor->getInputCount()) {
+    NNDEPLOY_LOGE("successor_port[%d] is invalid, node[%s] has %d inputs!\n",
+                  successor_port, successor->getName().c_str(),
+                  (int)successor->getInputCount());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  Edge *predecessor_output = predecessor->getOutput(predecessor_port);
+  if (predecessor_output == nullptr) {  // 输出边不存在
+    // # 创建边，添加消费者和生产者
+    std::string output_name =
+        predecessor->getName() + "@output_" + std::to_string(predecessor_port);
+    predecessor_output = this->createEdge(output_name);
+  }
+  EdgeWrapper *output_wrapper =
+      findEdgeWrapper(edge_repository_, predecessor_output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(predecessor_output);
+  }
+  // # 给边添加生产者和消费者
+  insertUnique(output_wrapper->producers_, pre_wrapper);
+  insertUnique(output_wrapper->consumers_, suc_wrapper);
+  // # 更新node_repository_，添加前驱和后继
+  insertUnique(pre_wrapper->successors_, suc_wrapper);
+  insertUnique(suc_wrapper->predecessors_, pre_wrapper);
+
+  return base::kStatusCodeOk;
+}
+base::Status Graph::disconnect(Node *predecessor, Node *successor,
+                               int predecessor_port, int successor_port) {
+  // # 判断节点和端口是否存在
+  // 判断节点和端口是否存在
+  if (predecessor == nullptr || successor == nullptr) {
+    NNDEPLOY_LOGE("predecessor or successor is nullptr!\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  auto pre_wrapper = findNodeWrapper(node_repository_, predecessor);
+  if (pre_wrapper == nullptr) {
+    NNDEPLOY_LOGE("predecessor not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  auto suc_wrapper = findNodeWrapper(node_repository_, successor);
+  if (suc_wrapper == nullptr) {
+    NNDEPLOY_LOGE("successor not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  // 检查前驱节点的输出端口是否有效
+  if (predecessor_port < 0 ||
+      predecessor_port >= predecessor->getOutputCount()) {
+    NNDEPLOY_LOGE("predecessor_port[%d] is invalid, node[%s] has %d outputs!\n",
+                  predecessor_port, predecessor->getName().c_str(),
+                  (int)predecessor->getOutputCount());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  // 检查后继节点的输入端口是否有效
+  if (successor_port < 0 || successor_port >= successor->getInputCount()) {
+    NNDEPLOY_LOGE("successor_port[%d] is invalid, node[%s] has %d inputs!\n",
+                  successor_port, successor->getName().c_str(),
+                  (int)successor->getInputCount());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // # 判断边是否存在
+  Edge *po = predecessor->getOutput(predecessor_port);
+  if (po == nullptr) {
+    NNDEPLOY_LOGI("predecessor_output not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  EdgeWrapper *predecessor_output = findEdgeWrapper(edge_repository_, po);
+  if (predecessor_output == nullptr) {
+    NNDEPLOY_LOGI("predecessor_output not found!");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // # 1 to 1
+  if (predecessor_output->producers_.size() == 1 &&
+      predecessor_output->consumers_.size() == 1 &&
+      predecessor_output->producers_[0] == pre_wrapper &&
+      predecessor_output->consumers_[0] == suc_wrapper) {
+    return deleteEdge(po);
+  }
+
+  // #
+  if (predecessor_output->consumers_.size() > 1) {
+    auto iter = std::find(predecessor_output->consumers_.begin(),
+                          predecessor_output->consumers_.end(), suc_wrapper);
+    if (iter != predecessor_output->consumers_.end()) {
+      auto input_num = successor->getInputCount();
+      bool is_delete = true;
+      for (int i = 0; i < input_num; ++i) {
+        if (i == successor_port) {
+          continue;
+        }
+        auto input = successor->getInput(i);
+        if (input == nullptr) {
+          continue;
+        }
+        auto input_wrapper = findEdgeWrapper(edge_repository_, input);
+        if (input_wrapper->producers_.size() >= 1 &&
+            input_wrapper->producers_[0] == pre_wrapper) {
+          is_delete = false;
+          break;
+        }
+      }
+      if (is_delete) {
+        predecessor_output->consumers_.erase(iter);
+      }
+    }
+    successor->setInput(nullptr, successor_port);
+  }
+
+  return base::kStatusCodeOk;
 }
 
 std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatus() {
@@ -1722,6 +1975,75 @@ base::Status Graph::toStaticGraph() {
   }
   this->setTraceFlag(false);
   return status;
+}
+
+base::Any &Graph::createResourceWithoutState(const std::string &key) {
+  if (graph_ == nullptr) {
+    if (resource_without_state_.find(key) == resource_without_state_.end()) {
+      resource_without_state_[key] = base::Any();
+    } else {
+      NNDEPLOY_LOGE("global resource without state[%s] already exists!\n",
+                    key.c_str());
+    }
+    return resource_without_state_[key];
+  } else {
+    return graph_->createResourceWithoutState(key);
+  }
+}
+
+base::Status Graph::addResourceWithoutState(const std::string &key,
+                                            const base::Any &value) {
+  if (graph_ == nullptr) {
+    if (resource_without_state_.find(key) != resource_without_state_.end()) {
+      NNDEPLOY_LOGE("global resource without state[%s] already exists!\n",
+                    key.c_str());
+    }
+    resource_without_state_[key] = value;
+    return base::kStatusCodeOk;
+  } else {
+    return graph_->addResourceWithoutState(key, value);
+  }
+}
+
+base::Any &Graph::getResourceWithoutState(const std::string &key) {
+  if (graph_ == nullptr) {
+    if (resource_without_state_.find(key) == resource_without_state_.end()) {
+      NNDEPLOY_LOGE("global resource without state[%s] not found!\n",
+                    key.c_str());
+      base::Any any;
+      return any;
+    }
+    return resource_without_state_[key];
+  } else {
+    return graph_->getResourceWithoutState(key);
+  }
+}
+
+base::Status Graph::addResourceWithState(const std::string &key,
+                                           Edge *value) {
+  if (graph_ == nullptr) {
+    if (resource_with_state_.find(key) != resource_with_state_.end()) {
+      NNDEPLOY_LOGE("global resource without state[%s] already exists!\n",
+                    key.c_str());
+      delete resource_with_state_[key];
+    }
+    resource_with_state_[key] = value;
+    return base::kStatusCodeOk;
+  } else {
+    return graph_->addResourceWithState(key, value);
+  }
+}
+
+Edge *Graph::getResourceWithState(const std::string &key) {
+  if (graph_ == nullptr) {
+    if (resource_with_state_.find(key) == resource_with_state_.end()) {
+      NNDEPLOY_LOGE("global resource with state[%s] not found!\n", key.c_str());
+      return nullptr;
+    }
+    return resource_with_state_[key];
+  } else {
+    return graph_->getResourceWithState(key);
+  }
 }
 
 base::Status Graph::removeUnusedNodeAndEdge() {

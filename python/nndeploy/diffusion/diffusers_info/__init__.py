@@ -1,0 +1,6 @@
+
+try:
+    from .pretrain_model_paths import get_text2image_pipelines_pretrained_model_paths, get_image2image_pipelines_pretrained_model_paths, get_inpainting_pipelines_pretrained_model_paths, get_multi_modal_pipelines_pretrained_model_paths, get_text2video_pipelines_pretrained_model_paths, get_video2video_pipelines_pretrained_model_paths, get_image2video_pipelines_pretrained_model_paths, get_unconditional_image_pipelines_pretrained_model_paths, get_unconditional_text_pipelines_pretrained_model_paths, get_unconditional_audio_pipelines_pretrained_model_paths
+except:
+    print("diffusion info pretrain model paths import error")
+    pass
