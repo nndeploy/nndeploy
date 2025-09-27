@@ -17,165 +17,181 @@
 namespace nndeploy {
 namespace base {
 
-template <typename T, typename Key = const void *>
-class SpmcRing {
-  static_assert(std::is_trivially_copyable<T>::value,
-                "T should be trivially copyable or a pointer type.");
+struct DefaultBasePolicy {
+  std::size_t operator()(std::size_t head, std::size_t min_tail,
+                         bool has_consumers) const {
+    return has_consumers ? min_tail : head;
+  }
+};
 
+template <class Slot, class BasePolicy = DefaultBasePolicy>
+class SpmcRingCore {
  public:
-  struct ConsumerState {
-    std::atomic<uint64_t> rseq{0};
-    std::atomic<bool> consumed_once{false};
-  };
-  explicit SpmcRing(uint64_t capacity = 1) { set_capacity(capacity); }
+  SpmcRingCore(std::size_t cap, BasePolicy bp = {})
+      : cap_(cap), mask_(cap - 1), buf_(cap), base_(bp) {
+    assert(cap >= 2 && (cap_ & mask_) == 0);
+  }
+  SpmcRingCore(const SpmcRingCore &) = delete;
+  SpmcRingCore &operator=(const SpmcRingCore &) = delete;
 
-  void set_capacity(uint64_t cap) {
-    if (cap == 0) cap = 1;
-    // 向上取 2^k，便于位运算取模
-    uint64_t p2 = 1;
-    while (p2 < cap) p2 <<= 1;
-    capacity_ = p2;
-    mask_ = capacity_ - 1;
-    ring_.assign(capacity_, Slot{});
-    write_seq_.store(0, std::memory_order_relaxed);
-    published_seq_.store(0, std::memory_order_relaxed);
+  bool push(const Slot &v) {
+    return push_impl([&](std::optional<Slot> &s) { s.emplace(v); });
   }
 
-  uint64_t capacity() const { return capacity_; }
-
-  void register_consumer(Key k, bool start_from_latest = true) {
-    uint64_t start = start_from_latest
-                         ? published_seq_.load(std::memory_order_relaxed)
-                         : write_seq_.load(std::memory_order_relaxed);
-    auto &st = readers_[k];
-    st.rseq.store(start, std::memory_order_relaxed);
-    st.consumed_once.store(false, std::memory_order_relaxed);
+  bool push(Slot &&v) {
+    return push_impl([&](std::optional<Slot> &s) { s.emplace(std::move(v)); });
   }
 
-  void unregister_consumer(Key k) { readers_.erase(k); }
+  bool pop(std::size_t cid, Slot &out) {
+    std::size_t t = tails_[cid].load(std::memory_order_relaxed);
+    std::size_t h = head_.load(std::memory_order_acquire);
+    if (h <= t) return false;
+    out = *buf_[t & mask_];
+    tails_[cid].store(t + 1, std::memory_order_release);
+    return true;
+  }
 
-  bool try_push(const T &v) {
-    uint64_t w = write_seq_.load(std::memory_order_relaxed);
-    uint64_t min_r = min_reader_seq_acquire();
-    if (w - min_r >= capacity_) return false;  // full
+  std::size_t add_tails(std::size_t start_seq) {
+    // tails_.push_back(std::atomic<std::size_t>(start_seq));
+    tails_.emplace_back(start_seq);
+    return tails_.size() - 1;
+  }
 
-    ring_[w & mask_].payload = v;
+  std::size_t head() const { return head_.load(std::memory_order_acquire); }
+  std::size_t oldest() const {
+    auto h = head();
+    return (h > cap_) ? (h - cap_) : 0;
+  }
+  std::size_t cap() const { return cap_; }
+
+ private:
+  template <class F>
+  bool push_impl(F &&write_into_optional) {
+    std::size_t h = head_.load(std::memory_order_relaxed);
+    auto [min_tail, has] = min_tail_relaxed_();
+    std::size_t base = base_(h, min_tail, has);
+    if (h - base >= cap_) return false;
+
+    auto &opt = buf_[h & mask_];
+    write_into_optional(opt);
+
     std::atomic_thread_fence(std::memory_order_release);
-    published_seq_.store(w + 1, std::memory_order_release);
-    write_seq_.store(w + 1, std::memory_order_relaxed);
-    cv_not_empty_.notify_all();
+    head_.store(h + 1, std::memory_order_release);
     return true;
   }
 
-  bool push_blocking(const T &v) {
-    if (try_push(v)) return true;
-    std::unique_lock<std::mutex> lk(mtx_);
-    cv_not_full_.wait(lk, [&] {
-      if (terminate_.load(std::memory_order_acquire)) return true;
-      uint64_t w = write_seq_.load(std::memory_order_relaxed);
-      uint64_t min_r = min_reader_seq_acquire();
-      return (w - min_r) < capacity_;
-    });
-    if (terminate_.load(std::memory_order_acquire)) return false;
-    return try_push(v);
-  }
-
-  bool has_new(Key k) const {
-    auto it = readers_.find(k);
-    if (it == readers_.end()) return false;
-    uint64_t r = it->second.rseq.load(std::memory_order_relaxed);
-    uint64_t p = published_seq_.load(std::memory_order_acquire);
-    return p > r;
-  }
-
-  bool read_next(Key k, T &out, bool sticky = true,
-                 bool blocking_first = true) {
-    auto it = readers_.find(k);
-    if (it == readers_.end()) {
-      register_consumer(k, /*start_from_latest=*/true);
-      it = readers_.find(k);
+  std::pair<std::size_t, bool> min_tail_relaxed_() const {
+    if (tails_.empty()) return {0, false};
+    std::size_t m = tails_[0].load(std::memory_order_relaxed);
+    for (std::size_t i = 1; i < tails_.size(); ++i) {
+      auto t = tails_[i].load(std::memory_order_relaxed);
+      if (t < m) m = t;
     }
-    auto &st = it->second;
-
-    uint64_t r = st.rseq.load(std::memory_order_relaxed);
-    uint64_t p = published_seq_.load(std::memory_order_acquire);
-    if (p > r) {
-      out = ring_[r & mask_].payload;
-      st.rseq.store(r + 1, std::memory_order_release);
-      st.consumed_once.store(true, std::memory_order_release);
-      cv_not_full_.notify_all();
-      return true;
-    }
-    if (sticky && st.consumed_once.load(std::memory_order_acquire)) {
-      uint64_t last = (r ? r - 1 : 0);
-      out = ring_[last & mask_].payload;
-      return false;  // 复用旧帧：返回 false 表示“非新”
-    }
-    if (!blocking_first) return false;
-
-    // 等首帧
-    std::unique_lock<std::mutex> lk(mtx_);
-    cv_not_empty_.wait(lk, [&] {
-      if (terminate_.load(std::memory_order_acquire)) return true;
-      uint64_t rr = st.rseq.load(std::memory_order_relaxed);
-      uint64_t pp = published_seq_.load(std::memory_order_acquire);
-      return pp > rr;
-    });
-    if (terminate_.load(std::memory_order_acquire)) return false;
-
-    r = st.rseq.load(std::memory_order_relaxed);
-    out = ring_[r & mask_].payload;
-    st.rseq.store(r + 1, std::memory_order_release);
-    st.consumed_once.store(true, std::memory_order_release);
-    cv_not_full_.notify_all();
-    return true;
+    return {m, true};
   }
 
-  bool consumed_once(Key k) const {
-    auto it = readers_.find(k);
-    return it != readers_.end() &&
-           it->second.consumed_once.load(std::memory_order_acquire);
+ private:
+  std::size_t cap_, mask_;
+  std::vector<std::optional<Slot>> buf_;
+  std::atomic<std::size_t> head_{0};
+  std::deque<std::atomic<std::size_t>> tails_;
+
+  BasePolicy base_;
+};
+
+struct FromOldest {
+  static std::size_t start(std::size_t head, std::size_t oldest) {
+    (void)head;
+    return oldest;
+  }
+};
+
+struct FromLatest {
+  static std::size_t start(std::size_t head, std::size_t /*oldest*/) {
+    return head;
+  }
+};
+
+template <class Slot, class BasePolicy, class StartPolicy = FromOldest>
+class SpmcRingQueue {
+ public:
+  SpmcRingQueue(std::size_t cap, BasePolicy bp = {})
+      : core_(cap, std::move(bp)) {}
+
+  std::size_t add() {
+    return core_.add_tails(StartPolicy::start(core_.head(), core_.oldest()));
   }
 
-  void request_terminate() {
-    terminate_.store(true, std::memory_order_release);
+  bool try_push(const Slot &v) {
+    if (closed()) return false;
+    bool ok = core_.push(v);
+    if (ok) cv_not_empty_.notify_all();
+    return ok;
+  }
+  bool try_push(Slot &&v) {
+    if (closed()) return false;
+    bool ok = core_.push(std::move(v));
+    if (ok) cv_not_empty_.notify_all();
+    return ok;
+  }
+
+  bool push(Slot v) {
+    for (;;) {
+      if (closed()) return false;
+      if (core_.push(v)) {
+        cv_not_empty_.notify_all();
+        return true;
+      }
+      std::unique_lock<std::mutex> lk(mu_);
+      // cv_not_full_.wait(lk, [&] { return closed() || likely_not_full_(); });
+      cv_not_full_.wait(lk);
+    }
+  }
+
+  bool try_pop(std::size_t cid, Slot &out) {
+    bool ok = core_.pop(cid, out);
+    if (ok) cv_not_full_.notify_all();
+    return ok;
+  }
+
+  bool pop(std::size_t cid, Slot &out) {
+    for (;;) {
+      if (core_.pop(cid, out)) {
+        cv_not_full_.notify_all();
+        return true;
+      }
+      std::unique_lock<std::mutex> lk(mu_);
+      if (closed()) {
+        // 关闭后尝试最后再读一次；仍然没有就退出
+        if (!core_.pop(cid, out)) return false;
+        cv_not_full_.notify_all();
+        return true;
+      }
+      // 被生产者写入或其他消费者提交时唤醒
+      cv_not_empty_.wait(lk);
+    }
+  }
+
+  void close() {
+    closed_.store(true, std::memory_order_release);
     cv_not_empty_.notify_all();
     cv_not_full_.notify_all();
   }
-
-  bool terminated() const { return terminate_.load(std::memory_order_acquire); }
+  bool closed() const { return closed_.load(std::memory_order_acquire); }
+  size_t cap() const { return core_.cap(); }
+  size_t head() const { return core_.head(); }
+  size_t oldest() const { return core_.oldest(); }
 
  private:
-  struct Slot {
-    T payload{};
-  };
-
-  uint64_t min_reader_seq_acquire() const {
-    uint64_t m = std::numeric_limits<uint64_t>::max();
-    for (auto &kv : readers_) {
-      uint64_t r = kv.second.rseq.load(std::memory_order_acquire);
-      if (r < m) m = r;
-    }
-    return (readers_.empty() ? write_seq_.load(std::memory_order_relaxed) : m);
+  bool likely_not_full_() const {
+    return (core_.head() - core_.oldest()) < core_.cap() || closed();
   }
 
  private:
-  // ring
-  std::vector<Slot> ring_;
-  uint64_t capacity_{1};
-  uint64_t mask_{0};
-
-  // seq
-  std::atomic<uint64_t> write_seq_{0};
-  std::atomic<uint64_t> published_seq_{0};
-
-  // readers
-  std::unordered_map<Key, ConsumerState> readers_;
-
-  // waits
-  mutable std::mutex mtx_;
+  SpmcRingCore<Slot, BasePolicy> core_;
+  std::atomic<bool> closed_{false};
+  std::mutex mu_;
   std::condition_variable cv_not_full_, cv_not_empty_;
-  std::atomic<bool> terminate_{false};
 };
 
 }  // namespace base

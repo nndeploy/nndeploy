@@ -304,12 +304,6 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   int consumers_count_ = 0;
 };
 
-class NNDEPLOY_CC_API FreebackDataPacket : public DataPacket {
- public:
-  FreebackDataPacket();
-  ~FreebackDataPacket() override;
-};
-
 }  // namespace dag
 }  // namespace nndeploy
 
