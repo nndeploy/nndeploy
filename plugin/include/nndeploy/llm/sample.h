@@ -54,10 +54,19 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
   SampleParam() = default;
   virtual ~SampleParam() = default;
 
-  int max_new_tokens = 512;
-  int max_all_tokens = 2048;
-  std::string type = "temperature";
-  std::string select_type = "temperature";
+  //  * 1. greedy - 贪婪采样，选择概率最高的token
+  //  * 2. temperature - 温度采样，通过温度参数控制随机性
+  //  * 3. topK - Top-K采样，从概率最高的K个token中采样
+  //  * 4. topP - Top-P采样（核采样），从累积概率达到P的token集合中采样
+  //  * 5. minP - Min-P采样，过滤掉概率低于阈值的token
+  //  * 6. tfs - Tail Free Sampling，基于二阶导数的采样方法
+  //  * 7. typical - Typical采样，基于信息论的采样方法
+  //  * 8. penalty - 重复惩罚采样，对重复token进行惩罚
+  //  * 9. ngram - N-gram重复惩罚，对重复的n-gram序列进行惩罚
+  std::string sampler =
+      "temperature";  // "greedy", "temperature", "topK", "topP", "minP", "tfs",
+                      // "typical", "penalty", "ngram".
+
   float temperature = 0.8;
   int topK = 40;
   float topP = 0.9;
@@ -70,9 +79,8 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
   float ngram_factor =
       1.02;  // panalize repeated ngram with a multiplied ngram_factor.
   float max_penalty = 10.0f;
-  std::string sampler = "temperature";  // "greedy", "temperature".
   std::vector<std::string> mixed_samplers = {"topK", "tfs",   "typical",
-                                             "topP", "min_p", "temperature"};
+                                             "topP", "minP", "temperature"};
 
   using base::Param::serialize;
   virtual base::Status serialize(
@@ -99,11 +107,9 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
  * 输入：
  * - inputs[0]: device::Tensor - 模型输出的logits张量，形状为[batch_size,
  * vocab_size]
- * - inputs[1]: std::vector<int> - 已生成的token序列（用于重复惩罚）
  *
  * 输出：
  * - outputs[0]: int - 采样得到的下一个token ID
- * - outputs[1]: float - 采样概率（可选）
  */
 class NNDEPLOY_CC_API Sampler : public dag::Node {
  public:
@@ -125,9 +131,6 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
   struct SubsetLogits subsetSampler(std::string sampler_type,
                                     struct SubsetLogits subset);
   int handleSelect(struct SubsetLogits subset);
-
- protected:
-  std::vector<int>* history_tokens_;
 };
 
 }  // namespace llm

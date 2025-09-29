@@ -8,6 +8,8 @@
 #ifndef DISKEMBEDDING_hpp
 #define DISKEMBEDDING_hpp
 
+#include "nndeploy/base/file.h"
+#include "nndeploy/base/file_loader.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -16,8 +18,6 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/file.h"
-#include "nndeploy/base/file_loader.h"
 
 namespace MNN {
 namespace Transformer {
@@ -26,7 +26,8 @@ typedef void (*DequantFunction)(const uint8_t*, float*, float, float, int);
 
 class DiskEmbedding {
  public:
-  explicit DiskEmbedding(std::string fileName = "") {};
+  explicit DiskEmbedding(std::vector<int64_t> tie_embeddings, int hidden_size,
+                         std::string fileName);
   ~DiskEmbedding() {}
   void embedding(const std::vector<int>& input_ids, float* ptr);
 
@@ -34,7 +35,7 @@ class DiskEmbedding {
   void seek_read(uint8_t* dst, size_t size, size_t offset);
   std::unique_ptr<uint8_t[]> mAlpha = nullptr;
   std::unique_ptr<uint8_t[]> mWeight = nullptr;
-  std::unique_ptr<base::FileLoader> mFile;
+  std::unique_ptr<nndeploy::base::FileLoader> mFile;
   DequantFunction mDequantFunc;
   int mHiddenSize, mTokenSize;
   float mOffset = 0.0f;

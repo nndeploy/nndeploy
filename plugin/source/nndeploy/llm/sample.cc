@@ -219,17 +219,18 @@ int packSoftmax(device::Tensor* logits, std::vector<IndexScore>& index_scores,
 // SampleParam
 base::Status SampleParam::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addDropdownParam(
+      "sampler", {"greedy", "temperature", "topK", "topP", "minP", "tfs",
+                  "typical", "penalty", "ngram"});
   base::Status status = base::Param::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("SampleParam::serialize failed\n");
     return status;
   }
 
-  json.AddMember("max_new_tokens", max_new_tokens, allocator);
-  json.AddMember("max_all_tokens", max_all_tokens, allocator);
-  json.AddMember("type", rapidjson::Value(type.c_str(), allocator), allocator);
-  json.AddMember("select_type",
-                 rapidjson::Value(select_type.c_str(), allocator), allocator);
+  json.AddMember("sampler", rapidjson::Value(sampler.c_str(), allocator),
+                 allocator);
+
   json.AddMember("temperature", temperature, allocator);
   json.AddMember("topK", topK, allocator);
   json.AddMember("topP", topP, allocator);
@@ -240,8 +241,7 @@ base::Status SampleParam::serialize(
   json.AddMember("ngram", ngram, allocator);
   json.AddMember("ngram_factor", ngram_factor, allocator);
   json.AddMember("max_penalty", max_penalty, allocator);
-  json.AddMember("sampler", rapidjson::Value(sampler.c_str(), allocator),
-                 allocator);
+
   rapidjson::Value mixed_samplers_array(rapidjson::kArrayType);
   for (const auto& sampler : mixed_samplers) {
     mixed_samplers_array.PushBack(rapidjson::Value(sampler.c_str(), allocator),
@@ -259,17 +259,8 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
     return status;
   }
 
-  if (json.HasMember("max_new_tokens") && json["max_new_tokens"].IsInt()) {
-    max_new_tokens = json["max_new_tokens"].GetInt();
-  }
-  if (json.HasMember("max_all_tokens") && json["max_all_tokens"].IsInt()) {
-    max_all_tokens = json["max_all_tokens"].GetInt();
-  }
-  if (json.HasMember("type") && json["type"].IsString()) {
-    type = json["type"].GetString();
-  }
-  if (json.HasMember("select_type") && json["select_type"].IsString()) {
-    select_type = json["select_type"].GetString();
+  if (json.HasMember("sampler") && json["sampler"].IsString()) {
+    sampler = json["sampler"].GetString();
   }
   if (json.HasMember("temperature") && json["temperature"].IsFloat()) {
     temperature = json["temperature"].GetFloat();
@@ -300,9 +291,6 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
   }
   if (json.HasMember("max_penalty") && json["max_penalty"].IsFloat()) {
     max_penalty = json["max_penalty"].GetFloat();
-  }
-  if (json.HasMember("sampler") && json["sampler"].IsString()) {
-    sampler = json["sampler"].GetString();
   }
   if (json.HasMember("mixed_samplers") && json["mixed_samplers"].IsArray()) {
     mixed_samplers.clear();
@@ -339,7 +327,6 @@ Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
       "- outputs[0]: TokenizerIds containing sampled token ID\n";
   param_ = std::make_shared<SampleParam>();
   this->setInputTypeInfo<device::Tensor>("logits");
-  this->setInputTypeInfo<tokenizer::TokenizerIds>("prefill_tokens");
   this->setOutputTypeInfo<tokenizer::TokenizerIds>("sampled_token");
 }
 
@@ -347,8 +334,6 @@ Sampler::~Sampler() {}
 
 base::Status Sampler::run() {
   auto logits = inputs_[0]->get<device::Tensor>(this);
-  history_tokens_ =
-      this->getResourceWithState<std::vector<int>>("history_tokens");
   int batch_size = logits->getShape()[0];
 
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
@@ -356,9 +341,6 @@ base::Status Sampler::run() {
 
   auto sampled_token_id = sample(logits);
   out_token->ids_[0].push_back(sampled_token_id);
-
-  // push back to history tokens
-  history_tokens_->push_back(sampled_token_id);
 
   this->setOutputData(out_token, 0, false);
   return base::kStatusCodeOk;
@@ -539,7 +521,7 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
   penalty = std::min(penalty,
                      (dynamic_cast<SampleParam*>(param_.get()))->max_penalty);
   // initialization
-  std::vector<int>& prev = *history_tokens_;
+  std::vector<int>& prev = *(this->getResourceWithState<std::vector<int>>("history_tokens"));
   std::unordered_map<int, float> penalty_map;
   // 1. local ngram info, reversed order
   std::vector<int> ngram_info(ngram - 1);
@@ -634,9 +616,9 @@ struct SubsetLogits Sampler::subsetSampler(std::string sampler_type,
 }
 
 int Sampler::handleSelect(struct SubsetLogits subset) {
-  if ((dynamic_cast<SampleParam*>(param_.get()))->select_type == "greedy") {
+  if ((dynamic_cast<SampleParam*>(param_.get()))->sampler == "greedy") {
     return argmaxSelect(subset);
-  } else if ((dynamic_cast<SampleParam*>(param_.get()))->select_type ==
+  } else if ((dynamic_cast<SampleParam*>(param_.get()))->sampler ==
              "temperature") {
     return reSoftmaxSelect(
         subset, (dynamic_cast<SampleParam*>(param_.get()))->temperature);
@@ -649,7 +631,7 @@ int Sampler::sample(device::Tensor* logits) {
   struct SubsetLogits subset = createSubsetLogits(logits);
   // process subsetSampler
   SampleParam* sample_param = dynamic_cast<SampleParam*>(param_.get());
-  subset = subsetSampler(sample_param->type, subset);
+  subset = subsetSampler(sample_param->sampler, subset);
   // select token from the subset
   int res = handleSelect(subset);
   return res;

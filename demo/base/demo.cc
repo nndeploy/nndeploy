@@ -22,6 +22,21 @@ int main(int argc, char* argv[]) {
   std::string d = nndeploy::base::get<std::string>(c);
   std::cout << d << std::endl;
 
+  // 测试传入一个智能指针
+  std::shared_ptr<int> ptr = std::make_shared<int>(42);
+  nndeploy::base::Any smart_ptr_any;
+  smart_ptr_any.construct<std::shared_ptr<int>>(ptr);
+  std::shared_ptr<int> retrieved_ptr = nndeploy::base::get<std::shared_ptr<int>>(smart_ptr_any);
+  std::cout << "智能指针值: " << *retrieved_ptr << std::endl;
+
+  // 测试传入一个指针
+  int* ptr2 = new int(43);
+  nndeploy::base::Any ptr_any;
+  ptr_any.construct<int*>(ptr2);
+  int* retrieved_ptr2 = nndeploy::base::get<int*>(ptr_any);
+  std::cout << "指针值: " << *retrieved_ptr2 << std::endl;
+  delete retrieved_ptr2;
+
   // 报错
   // int e = nndeploy::base::unsafeGet<int>(c);
   // std::cout << e << std::endl;

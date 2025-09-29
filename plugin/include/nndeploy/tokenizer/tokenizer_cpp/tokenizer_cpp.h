@@ -91,7 +91,7 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
   int32_t tokenToId(const std::string& token);
 
  private:
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
+  std::shared_ptr<tokenizers::Tokenizer> tokenizer_;
 };
 
 /**
@@ -159,7 +159,7 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
   std::string idToToken(int32_t token_id);
 
  private:
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
+  std::shared_ptr<tokenizers::Tokenizer> tokenizer_;
 };
 
 }  // namespace tokenizer

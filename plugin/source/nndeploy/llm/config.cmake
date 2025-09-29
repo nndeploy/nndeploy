@@ -8,8 +8,12 @@ set(PLUGIN_BINARY nndeploy_plugin_llm)
 # SOURCE
 file(GLOB_RECURSE PLUGIN_SOURCE
   "${PLUGIN_ROOT_PATH}/include/nndeploy/llm/*.h"
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/llm/*.hpp"
   "${PLUGIN_ROOT_PATH}/source/nndeploy/llm/*.cc"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/llm/*.cpp"
 )
+
+# message(STATUS "PLUGIN_SOURCE: ${PLUGIN_SOURCE}")
 
 # # TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})

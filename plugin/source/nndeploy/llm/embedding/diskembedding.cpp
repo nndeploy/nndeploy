@@ -35,63 +35,51 @@ void DiskEmbedding::seek_read(uint8_t* dst, size_t size, size_t offset) {
   mFile->read((char*)dst, size);
 }
 
-// DiskEmbedding::DiskEmbedding(const std::shared_ptr<LlmConfig>& config,
-//                              std::string fileName) {
-//   auto tie_embeddings = config->tie_embeddings();
-//   mHiddenSize = config->hidden_size();
-//   if (tie_embeddings.size() == 5) {
-//     mWeightOffset = tie_embeddings[0];
-//     mQuantBit = tie_embeddings[3];
-//     mQuantBlock = tie_embeddings[4];
-//     if (mWeightOffset == 0) {
-//       // embedding_int8/4.bin
-//       if (fileName.empty()) {
-//         fileName = config->embedding_file();
-//       }
-//     } else {
-//       fileName = config->llm_weight();
-//     }
-//     mFile.reset(new FileLoader(fileName.c_str(), true));
-//     mTokenSize = mHiddenSize * mQuantBit / 8;
-//     // TODO: optimize dequant function
-//     if (mQuantBit != 16) {
-//       if (mQuantBlock == 0) {
-//         mBlockNum = 1;
-//         mQuantBlock = mHiddenSize;  // be used for mDequantFunc.
-//       } else {
-//         mBlockNum = mHiddenSize / mQuantBlock;
-//       }
-//       mDequantFunc = mQuantBit == 8 ? q81_dequant_ref : q41_dequant_ref;
-//       auto a_offset = tie_embeddings[1];
-//       auto alpha_size = tie_embeddings[2];
-//       size_t oc = (a_offset - mWeightOffset) / mHiddenSize * (8 / mQuantBit);
+DiskEmbedding::DiskEmbedding(std::vector<int64_t> tie_embeddings,
+                             int hidden_size, std::string fileName) {
+  mHiddenSize = hidden_size;
+  if (tie_embeddings.size() == 5) {
+    mWeightOffset = tie_embeddings[0];
+    mQuantBit = tie_embeddings[3];
+    mQuantBlock = tie_embeddings[4];
+    mFile.reset(new nndeploy::base::FileLoader(fileName.c_str(), true));
+    mTokenSize = mHiddenSize * mQuantBit / 8;
+    // TODO: optimize dequant function
+    if (mQuantBit != 16) {
+      if (mQuantBlock == 0) {
+        mBlockNum = 1;
+        mQuantBlock = mHiddenSize;  // be used for mDequantFunc.
+      } else {
+        mBlockNum = mHiddenSize / mQuantBlock;
+      }
+      mDequantFunc = mQuantBit == 8 ? q81_dequant_ref : q41_dequant_ref;
+      auto a_offset = tie_embeddings[1];
+      auto alpha_size = tie_embeddings[2];
+      size_t oc = (a_offset - mWeightOffset) / mHiddenSize * (8 / mQuantBit);
 
-//       mAlpha.reset(new uint8_t[alpha_size]);
-//       seek_read(mAlpha.get(), alpha_size, a_offset);
-//       mOffset = -(1 << (mQuantBit - 1));
-//       if (alpha_size == sizeof(float) * mBlockNum * oc) {
-//         mAsymc = false;
-//       } else {
-//         MNN_ASSERT(alpha_size == 2 * sizeof(float) * mBlockNum * oc);
-//         mAsymc = true;
-//         auto alphaPtr = (float*)mAlpha.get();
-//         for (int i = 0; i < mBlockNum * oc; ++i) {
-//           alphaPtr[2 * i] = alphaPtr[2 * i] + alphaPtr[2 * i + 1] * mOffset;
-//         }
-//       }
-//     }
-//   } else {
-//     if (fileName.empty()) {
-//       fileName = config->embedding_file();
-//     }
-//     mTokenSize = mHiddenSize * sizeof(int16_t);
-//     mFile.reset(new FileLoader(fileName.c_str(), true));
-//   }
-//   if (mFile == nullptr || (!mFile->valid())) {
-//     MNN_ERROR("Failed to open embedding file!\n");
-//   }
-//   mWeight.reset(new uint8_t[mTokenSize]);
-// }
+      mAlpha.reset(new uint8_t[alpha_size]);
+      seek_read(mAlpha.get(), alpha_size, a_offset);
+      mOffset = -(1 << (mQuantBit - 1));
+      if (alpha_size == sizeof(float) * mBlockNum * oc) {
+        mAsymc = false;
+      } else {
+        NNDEPLOY_ASSERT(alpha_size == 2 * sizeof(float) * mBlockNum * oc);
+        mAsymc = true;
+        auto alphaPtr = (float*)mAlpha.get();
+        for (int i = 0; i < mBlockNum * oc; ++i) {
+          alphaPtr[2 * i] = alphaPtr[2 * i] + alphaPtr[2 * i + 1] * mOffset;
+        }
+      }
+    }
+  } else {
+    mTokenSize = mHiddenSize * sizeof(int16_t);
+    mFile.reset(new nndeploy::base::FileLoader(fileName.c_str(), true));
+  }
+  if (mFile == nullptr || (!mFile->valid())) {
+    NNDEPLOY_LOGE("Failed to open embedding file!\n");
+  }
+  mWeight.reset(new uint8_t[mTokenSize]);
+}
 
 void DiskEmbedding::embedding(const std::vector<int>& input_ids, float* dst) {
   std::unordered_map<int, int> cache_tokens;

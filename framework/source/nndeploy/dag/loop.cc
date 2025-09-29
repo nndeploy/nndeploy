@@ -23,10 +23,12 @@
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string &name) : Graph(name) {}
+Loop::Loop(const std::string &name) : Graph(name) { is_loop_ = true; }
 Loop::Loop(const std::string &name, std::vector<dag::Edge *> inputs,
            std::vector<dag::Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
+    : Graph(name, inputs, outputs) {
+  is_loop_ = true;
+}
 Loop::~Loop() {}
 
 base::Status Loop::init() {

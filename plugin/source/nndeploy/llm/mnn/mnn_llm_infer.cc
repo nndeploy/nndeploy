@@ -14,23 +14,10 @@
  * - 流式生成
  */
 
-#include "nndeploy/llm/infer/mnn_llm_infer.h"
+#include "nndeploy/llm/mnn/mnn_llm_infer.h"
 
 namespace nndeploy {
 namespace llm {
-
-// MnnLlmInferParam 实现
-base::Status MnnLlmInferParam::serialize(
-    rapidjson::Value& json,
-    rapidjson::Document::AllocatorType& allocator) {
-  // TODO: 实现参数序列化
-  return base::kStatusCodeOk;
-}
-
-base::Status MnnLlmInferParam::deserialize(rapidjson::Value& json) {
-  // TODO: 实现参数反序列化
-  return base::kStatusCodeOk;
-}
 
 // MnnLlmInfer 实现
 MnnLlmInfer::MnnLlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,

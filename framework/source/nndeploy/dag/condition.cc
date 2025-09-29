@@ -22,10 +22,14 @@
 namespace nndeploy {
 namespace dag {
 
-Condition::Condition(const std::string &name) : Graph(name) {}
+Condition::Condition(const std::string &name) : Graph(name) {
+  is_condition_ = true;
+}
 Condition::Condition(const std::string &name, std::vector<Edge *> inputs,
                      std::vector<Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
+    : Graph(name, inputs, outputs) {
+  is_condition_ = true;
+}
 Condition::~Condition() {}
 
 base::Status Condition::init() {
@@ -65,7 +69,7 @@ base::Status Condition::deinit() {
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
-  
+
   return status;
 }
 
@@ -142,8 +146,7 @@ base::Status Condition::executor() {
 }
 
 base::Status Condition::serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) {
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
   base::Status status = Graph::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize node failed\n");

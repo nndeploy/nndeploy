@@ -1,5 +1,5 @@
 //
-//  tokenizer.hpp
+//  embedding.cpp
 //
 //  Created by MNN on 2023/09/25.
 //  ZhaodeWang
@@ -19,7 +19,8 @@
  *    在另外的文件种实现mnn代码的功能，这两个作为门面类，调用函数
  *
  * 讨论：
- * 1. 是否可以把genPastKeyValue、genAttentionMask、genPositionIds挪到llm_infer种实现
+ * 1.
+ * 是否可以把genPastKeyValue、genAttentionMask、genPositionIds挪到llm_infer种实现
  * 2. Embedding在prifill和decode阶段共用一份embedding权重，如何优化？
  * 3. 如何实现diskembedding
  */
@@ -47,6 +48,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/tokenizer/tokenizer.h"
+#include "nndeploy/llm/embedding/diskembedding.hpp"
 
 namespace nndeploy {
 namespace llm {
@@ -66,9 +68,22 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
   // 嵌入权重文件路径
   std::string embedding_weight_path_ = "";
   // 量化相关参数
-  int quant_bit_ = 4;
   bool use_quantization_ = false;
-  
+  //
+  int weight_offset_ = 0;
+  //
+  int a_offset_ = 0;
+  int alpha_size_ = 0;
+  // 量化比特数
+  int quant_bit_ = 8;
+  // 量化块大小
+  int quant_block_ = 0;
+
+  // other
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
+  std::string share_disk_embedding_key_ = "disk_embedding";
+
   using base::Param::serialize;
   virtual base::Status serialize(
       rapidjson::Value& json,
@@ -79,19 +94,20 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
 
 /**
  * @brief Embedding - 词嵌入节点
- * 
+ *
  * 将输入的token ID序列转换为对应的嵌入向量表示
- * 
+ *
  * 输入：
  * - inputs[0]: TokenizerIds - 包含token ID序列的数据结构
- * 
+ *
  * 输出：
- * - outputs[0]: device::Tensor - 嵌入向量张量，形状为[batch_size, seq_len, hidden_size]
+ * - outputs[0]: device::Tensor - 嵌入向量张量，形状为[batch_size, seq_len,
+ * hidden_size]
  */
 class NNDEPLOY_CC_API Embedding : public dag::Node {
  public:
   Embedding(const std::string& name, std::vector<dag::Edge*> inputs,
-                std::vector<dag::Edge*> outputs);
+            std::vector<dag::Edge*> outputs);
   virtual ~Embedding();
 
   virtual base::Status init();
@@ -99,17 +115,8 @@ class NNDEPLOY_CC_API Embedding : public dag::Node {
 
   virtual base::Status run();
 
-  virtual base::Status defaultParam();
-
-  using dag::Node::serialize;
-  virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override;
-  using dag::Node::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override;
-
  private:
-  bool is_first_;
+  std::shared_ptr<MNN::Transformer::DiskEmbedding> disk_embedding_;
 };
 
 }  // namespace llm

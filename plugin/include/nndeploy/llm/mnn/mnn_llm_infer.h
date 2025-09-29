@@ -14,8 +14,8 @@
  * - 流式生成
  */
 
-#ifndef _NNDEPLOY_LLM_MNN_LLM_INFER_H_
-#define _NNDEPLOY_LLM_MNN_LLM_INFER_H_
+#ifndef _NNDEPLOY_LLM_MNN_MNN_LLM_INFER_H_
+#define _NNDEPLOY_LLM_MNN_MNN_LLM_INFER_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -39,43 +39,6 @@
 
 namespace nndeploy {
 namespace llm {
-
-/**
- * @brief MnnLlmInferParam - MNN LLM推理参数配置
- */
-class NNDEPLOY_CC_API MnnLlmInferParam : public base::Param {
- public:
-  MnnLlmInferParam() = default;
-  virtual ~MnnLlmInferParam() = default;
-
-  // 模型配置
-  std::vector<std::string> model_path_ = {};           // 模型文件路径
-  
-  // 模型结构参数
-  int vocab_size_ = 32000;                // 词汇表大小
-  int hidden_size_ = 4096;                // 隐藏层维度
-  int num_layers_ = 32;                   // Transformer层数
-  int num_heads_ = 32;                    // 注意力头数
-  int max_seq_len_ = 2048;                // 最大序列长度
-  
-  // 性能优化参数
-  int batch_size_ = 1;                    // 批处理大小
-  int num_threads_ = 4;                   // 线程数
-  bool use_kv_cache_ = true;              // 是否使用KV缓存
-  bool use_quantization_ = false;         // 是否使用量化
-  int quant_bit_ = 4;                     // 量化位数
-  
-  // 设备配置
-  std::string device_type_ = "CPU";       // 设备类型：CPU/GPU/NPU
-  int device_id_ = 0;                     // 设备ID
-  
-  using base::Param::serialize;
-  virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override;
-  using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override;
-};
 
 /**
  * @brief MnnLlmInfer - MNN LLM推理节点
