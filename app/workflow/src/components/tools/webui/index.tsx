@@ -60,7 +60,7 @@ export function WebUI() {
         //style={{ backgroundColor: 'rgba(255, 179, 171, 0.3)', borderRadius: '8px' }}
         style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
       >
-        webui
+        Webui
       </Button>
       <SideSheet
         width={"100%"}

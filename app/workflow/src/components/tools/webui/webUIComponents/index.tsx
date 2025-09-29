@@ -299,7 +299,7 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
         </div>
       </div >
       <div className="semi-sidesheet-footer">
-        <Button type="tertiary" onClick={() => props.onSure()}>sure</Button>
+        <Button type="tertiary" onClick={() => props.onSure()}>confirm</Button>
         <Button type="tertiary" onClick={() => props.onClose()}>
           close
         </Button>
