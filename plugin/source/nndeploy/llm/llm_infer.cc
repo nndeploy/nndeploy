@@ -19,8 +19,8 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/tokenizer/tokenizer.h"
 #include "nndeploy/llm/abstract_llm_infer.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
 namespace llm {
@@ -38,7 +38,8 @@ LlmInfer::LlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
 LlmInfer::~LlmInfer() {}
 
 base::Status LlmInfer::init() {
-  llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_, is_prefill_);
+  llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
+                                    is_prefill_);
   if (llm_infer_ == nullptr) {
     NNDEPLOY_LOGE("LlmInfer::init failed\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -134,7 +135,8 @@ llm::AbstractLlmInfer* LlmInfer::createLlmInfer(std::vector<dag::Edge*> inputs,
                                                 const std::string& infer_key,
                                                 const std::string& model_key,
                                                 bool is_prefill) {
-  auto creator = LlmInferFactory::getInstance()->getCreator(infer_key, model_key);
+  auto creator =
+      LlmInferFactory::getInstance()->getCreator(infer_key, model_key);
   if (creator == nullptr) {
     NNDEPLOY_LOGE("create llm infer failed\n");
     return nullptr;

@@ -47,8 +47,8 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/tokenizer/tokenizer.h"
 #include "nndeploy/llm/embedding/diskembedding.hpp"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
 namespace llm {
@@ -61,8 +61,6 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
   EmbeddingParam() = default;
   virtual ~EmbeddingParam() = default;
 
-  // 词汇表大小
-  int vocab_size_ = 32000;
   // 隐藏层维度
   int hidden_size_ = 4096;
   // 嵌入权重文件路径

@@ -63,7 +63,7 @@ def parse_args(argv=None):
                         help='path to clang-format binary')
     parser.add_argument('-e', '--extensions', dest='extensions',
                         help='comma-delimited list of extensions used to glob source files',
-                        default="cc,h") # "c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++"
+                        default="c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++") # "c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++"
     parser.add_argument('-style',
                         help='formatting style',
                         default="file")

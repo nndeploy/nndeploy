@@ -26,17 +26,125 @@
 namespace nndeploy {
 namespace llm {
 
-struct NNDEPLOY_CC_API QwenConfig {
-  int layer_nums_;
-  int hidden_size_;
+struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
+  DefaultLlmInferParam() = default;
+  virtual ~DefaultLlmInferParam() {
+    if (embedding_param_ != nullptr) {
+      delete embedding_param_;
+      embedding_param_ = nullptr;
+    }
+    if (inference_param_ != nullptr) {
+      delete inference_param_;
+      inference_param_ = nullptr;
+    }
+  }
+  // embedding
+  bool is_embedding_ = false;
+  EmbeddingParam* embedding_param_ = nullptr;
+  // infer
+  base::InferenceType inference_type_ = base::kInferenceTypeOnnxRuntime;
+  InferenceParam* inference_param_ = nullptr;
+  // model
+  int layer_nums_ = 24;
   int max_seq_len_;
-  std::string model_value_;
-  std::string embedding_file_;
   std::vector<int32_t> kv_init_shape_;
+  base::DataType attention_mask_data_type_ = base::dataTypeOf<float>();
+  string attention_type_ = "full";
+
+  using base::Param::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value& json,
+      rapidjson::Document::AllocatorType& allocator) override {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("DefaultLlmInferParam::serialize failed\n");
+      return status;
+    }
+    //
+    json.AddMember("is_embedding_", is_embedding_, allocator);
+    if (is_embedding_ && embedding_param_ != nullptr) {
+      rapidjson::Value embedding_param_value;
+      embedding_param_->serialize(embedding_param_value, allocator);
+      json.AddMember("embedding_param_", embedding_param_value, allocator);
+    }
+    //
+    std::string inference_type_str =
+        base::inferenceTypeToString(inference_type_);
+    json.AddMember("inference_type_", inference_type_str, allocator);
+    if (inference_param_ == nullptr) {
+      inference_param_ = createInferenceParam(inference_type_);
+      if (inference_param_ == nullptr) {
+        inference_param_ = new inference::InferenceParam(inference_type_);
+      }
+    }
+    rapidjson::Value inference_param_value;
+    inference_param_->serialize(inference_param_value, allocator);
+    json.AddMember("inference_param_", inference_param_value, allocator);
+    //
+    json.AddMember("layer_nums_", layer_nums_, allocator);
+    json.AddMember("max_seq_len_", max_seq_len_, allocator);
+    json.AddMember("kv_init_shape_", kv_init_shape_, allocator);
+    json.AddMember("attention_mask_data_type_", attention_mask_data_type_,
+                   allocator);
+    json.AddMember("attention_type_", attention_type_, allocator);
+    return base::kStatusCodeOk;
+  }
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value& json) override {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("DefaultLlmInferParam::deserialize failed\n");
+      return status;
+    }
+    //
+    if (json.HasMember("is_embedding_") && json["is_embedding_"].IsBool()) {
+      is_embedding_ = json["is_embedding_"].GetBool();
+    }
+    if (is_embedding_ && json.HasMember("embedding_param_") && json["embedding_param_"].IsObject()) {
+      if (embedding_param_ == nullptr) {
+        embedding_param_ = new EmbeddingParam();
+      }
+      embedding_param_->deserialize(json["embedding_param_"]);
+    }
+    //
+    if (json.HasMember("inference_type_") && json["inference_type_"].IsString()) {
+      inference_type_ = base::stringToInferenceType(json["inference_type_"].GetString());
+    }
+    if (inference_param_ == nullptr) {
+      inference_param_ = createInferenceParam(inference_type_);
+      if (inference_param_ == nullptr) {
+        inference_param_ = new inference::InferenceParam(inference_type_);
+      }
+    }
+    rapidjson::Value inference_param_value;
+    inference_param_->deserialize(json["inference_param_"]);
+    // model
+    if (json.HasMember("layer_nums_") && json["layer_nums_"].IsInt()) {
+      layer_nums_ = json["layer_nums_"].GetInt();
+    }
+    if (json.HasMember("max_seq_len_") && json["max_seq_len_"].IsInt()) {
+      max_seq_len_ = json["max_seq_len_"].GetInt();
+    }
+    if (json.HasMember("kv_init_shape_") && json["kv_init_shape_"].IsArray()) {
+      kv_init_shape_.clear();
+      const rapidjson::Value& kv_init_shape_array = json["kv_init_shape_"];
+      for (rapidjson::SizeType i = 0; i < kv_init_shape_array.Size(); i++) {
+        kv_init_shape_.push_back(kv_init_shape_array[i].GetInt());
+      }
+    }
+    if (json.HasMember("attention_mask_data_type_") && json["attention_mask_data_type_"].IsString()) {
+      attention_mask_data_type_ = base::stringToDataType(json["attention_mask_data_type_"].GetString());
+    }
+    if (json.HasMember("attention_type_") && json["attention_type_"].IsString()) {
+      attention_type_ = json["attention_type_"].GetString();
+    }
+    return base::kStatusCodeOk;
+  }
 };
 
-extern NNDEPLOY_CC_API QwenConfig parseConfig(const std::string& file_path) {
-  QwenConfig config;
+extern NNDEPLOY_CC_API DefaultLlmInferParam
+parseConfig(const std::string& file_path) {
+  DefaultLlmInferParam config;
 
   std::ifstream ifs(file_path);
   if (!ifs.is_open()) {
@@ -63,10 +171,6 @@ extern NNDEPLOY_CC_API QwenConfig parseConfig(const std::string& file_path) {
 
   config.model_value_ = llm_config["model_path"].GetString();
   config.embedding_file_ = llm_config["embedding_file"].GetString();
-  config.tokenizer_json_ = llm_config["tokenizer_json"].GetString();
-  config.tokenizer_txt_ = llm_config["tokenizer_txt"].GetString();
-  config.prompt_template_ = llm_config["prompt_template"].GetString();
-  config.prompt_ = llm_config["prompt"].GetString();
 
   rapidjson::Value& key_value_shape = llm_config["key_value_shape"];
   for (size_t i = 0; i < key_value_shape.Size(); i++) {
@@ -101,7 +205,7 @@ class DefaultLlmInfer : AbstractLlmInfer {
 
   virtual base::Status init() {
     // 解析参数
-    QwenConfig config = parseConfig(config_path_[0]);
+    DefaultLlmInferParam config = parseConfig(config_path_[0]);
 
     // 创建输入边
     std::vector<dag::Edge*> input_edges;

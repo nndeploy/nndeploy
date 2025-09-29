@@ -3,8 +3,7 @@
 namespace nndeploy {
 namespace llm {
 
-Decode::Decode(const std::string& name,
-               std::vector<dag::Edge*> inputs,
+Decode::Decode(const std::string& name, std::vector<dag::Edge*> inputs,
                std::vector<dag::Edge*> outputs)
     : dag::Loop(name, inputs, outputs),
       decode_token_node_(nullptr),
@@ -45,8 +44,8 @@ base::Status Decode::make(const dag::NodeDesc& tokenizer,
   return base::kStatusCodeOk;
 }
 
-base::Status Decode::serialize(
-    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+base::Status Decode::serialize(rapidjson::Value& json,
+                               rapidjson::Document::AllocatorType& allocator) {
   // TODO: 实现序列化
   // 1. 调用父类序列化方法
   // 2. 序列化特有的参数

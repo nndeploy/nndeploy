@@ -18,7 +18,7 @@ namespace llm {
 class Decode : public dag::Loop {
  public:
   Decode(const std::string& name, std::vector<dag::Edge*> inputs,
-                  std::vector<dag::Edge*> outputs);
+         std::vector<dag::Edge*> outputs);
   virtual ~Decode();
 
   virtual base::Status defaultParam();
@@ -45,4 +45,3 @@ class Decode : public dag::Loop {
 }  // namespace nndeploy
 
 #endif
-

@@ -521,7 +521,8 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
   penalty = std::min(penalty,
                      (dynamic_cast<SampleParam*>(param_.get()))->max_penalty);
   // initialization
-  std::vector<int>& prev = *(this->getResourceWithState<std::vector<int>>("history_tokens"));
+  std::vector<int>& prev =
+      *(this->getResourceWithState<std::vector<int>>("history_tokens"));
   std::unordered_map<int, float> penalty_map;
   // 1. local ngram info, reversed order
   std::vector<int> ngram_info(ngram - 1);

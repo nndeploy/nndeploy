@@ -79,7 +79,7 @@ class NNDEPLOY_CC_API SampleParam : public base::Param {
   float ngram_factor =
       1.02;  // panalize repeated ngram with a multiplied ngram_factor.
   float max_penalty = 10.0f;
-  std::vector<std::string> mixed_samplers = {"topK", "tfs",   "typical",
+  std::vector<std::string> mixed_samplers = {"topK", "tfs",  "typical",
                                              "topP", "minP", "temperature"};
 
   using base::Param::serialize;

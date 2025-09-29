@@ -63,7 +63,7 @@ std::vector<dag::Edge*> Prefill::forward(dag::Edge* input) {
   // 3. embedding向量通过推理节点进行预填充推理
   // 4. 推理结果通过采样节点生成输出token
   // 5. 返回输出边集合
-  std::vector<dag::Edge *> outputs;
+  std::vector<dag::Edge*> outputs;
   return outputs;
 }
 
