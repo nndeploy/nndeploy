@@ -27,7 +27,7 @@
 namespace nndeploy {
 namespace llm {
 
-class AbstractLlmInfer : dag::CompositeNode {
+class AbstractLlmInfer : public dag::CompositeNode {
  public:
   AbstractLlmInfer(const std::string &name) : dag::CompositeNode(name) {
     key_ = "nndeploy::llm::LlmInfer";
@@ -73,7 +73,7 @@ class AbstractLlmInfer : dag::CompositeNode {
   }
 
   device::Tensor *genPastKeyValue(const std::vector<int32_t> &kv_init_shape,
-                                  base::DeviceType device_type) {
+                                  base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     device::Device *device = device::getDevice(device_type);
     device::TensorDesc past_kv_desc;
     past_kv_desc.data_type_ = base::dataTypeOf<float>();
@@ -87,7 +87,7 @@ class AbstractLlmInfer : dag::CompositeNode {
   device::Tensor *genPositionIds(int seq_len, int all_seq_len,
                                  base::DataType data_type,
                                  base::DataFormat data_format,
-                                 base::DeviceType device_type) {
+                                 base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     device::Device *device = device::getDevice(device_type);
     device::TensorDesc position_ids_desc;
     position_ids_desc.data_type_ = data_type;
@@ -113,7 +113,7 @@ class AbstractLlmInfer : dag::CompositeNode {
   device::Tensor *genAttentionMask(int seq_len, int all_seq_len,
                                    base::DataType data_type,
                                    base::DataFormat data_format,
-                                   base::DeviceType device_type) {
+                                   base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     int kv_seq_len = all_seq_len + seq_len;
     if (seq_len == 1) kv_seq_len = seq_len;
 
@@ -138,6 +138,140 @@ class AbstractLlmInfer : dag::CompositeNode {
     }
 
     return attention_mask;
+  }
+
+  using dag::CompositeNode::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) override {
+    // 调用父类的序列化方法
+    base::Status status = dag::CompositeNode::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+
+    // 序列化 is_prefill_
+    json.AddMember("is_prefill", is_prefill_, allocator);
+
+    // 序列化 config_path_
+    rapidjson::Value config_path_array(rapidjson::kArrayType);
+    for (const auto &path : config_path_) {
+      rapidjson::Value path_value;
+      path_value.SetString(path.c_str(), path.length(), allocator);
+      config_path_array.PushBack(path_value, allocator);
+    }
+    json.AddMember("config_path", config_path_array, allocator);
+
+    // 序列化 model_key_
+    rapidjson::Value model_key_value;
+    model_key_value.SetString(model_key_.c_str(), model_key_.length(),
+                              allocator);
+    json.AddMember("model_key", model_key_value, allocator);
+
+    // 序列化 infer_key_
+    rapidjson::Value infer_key_value;
+    infer_key_value.SetString(infer_key_.c_str(), infer_key_.length(),
+                              allocator);
+    json.AddMember("infer_key", infer_key_value, allocator);
+
+    // 序列化输入输出名称
+    rapidjson::Value input_ids_name_value;
+    input_ids_name_value.SetString(input_ids_name_.c_str(),
+                                   input_ids_name_.length(), allocator);
+    json.AddMember("input_ids_name", input_ids_name_value, allocator);
+
+    rapidjson::Value attention_mask_name_value;
+    attention_mask_name_value.SetString(
+        attention_mask_name_.c_str(), attention_mask_name_.length(), allocator);
+    json.AddMember("attention_mask_name", attention_mask_name_value, allocator);
+
+    rapidjson::Value position_ids_name_value;
+    position_ids_name_value.SetString(position_ids_name_.c_str(),
+                                      position_ids_name_.length(), allocator);
+    json.AddMember("position_ids_name", position_ids_name_value, allocator);
+
+    rapidjson::Value past_key_values_name_value;
+    past_key_values_name_value.SetString(past_key_values_name_.c_str(),
+                                         past_key_values_name_.length(),
+                                         allocator);
+    json.AddMember("past_key_values_name", past_key_values_name_value,
+                   allocator);
+
+    rapidjson::Value logits_name_value;
+    logits_name_value.SetString(logits_name_.c_str(), logits_name_.length(),
+                                allocator);
+    json.AddMember("logits_name", logits_name_value, allocator);
+
+    rapidjson::Value presents_name_value;
+    presents_name_value.SetString(presents_name_.c_str(),
+                                  presents_name_.length(), allocator);
+    json.AddMember("presents_name", presents_name_value, allocator);
+
+    return base::kStatusCodeOk;
+  }
+  using dag::CompositeNode::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json) override {
+    // 调用父类的反序列化方法
+    base::Status status = dag::CompositeNode::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+
+    // 反序列化 is_prefill_
+    if (json.HasMember("is_prefill") && json["is_prefill"].IsBool()) {
+      is_prefill_ = json["is_prefill"].GetBool();
+    }
+
+    // 反序列化 config_path_
+    if (json.HasMember("config_path") && json["config_path"].IsArray()) {
+      config_path_.clear();
+      const rapidjson::Value &config_path_array = json["config_path"];
+      for (rapidjson::SizeType i = 0; i < config_path_array.Size(); i++) {
+        if (config_path_array[i].IsString()) {
+          config_path_.push_back(config_path_array[i].GetString());
+        }
+      }
+    }
+
+    // 反序列化 model_key_
+    if (json.HasMember("model_key") && json["model_key"].IsString()) {
+      model_key_ = json["model_key"].GetString();
+    }
+
+    // 反序列化 infer_key_
+    if (json.HasMember("infer_key") && json["infer_key"].IsString()) {
+      infer_key_ = json["infer_key"].GetString();
+    }
+
+    // 反序列化输入输出名称
+    if (json.HasMember("input_ids_name") && json["input_ids_name"].IsString()) {
+      input_ids_name_ = json["input_ids_name"].GetString();
+    }
+
+    if (json.HasMember("attention_mask_name") &&
+        json["attention_mask_name"].IsString()) {
+      attention_mask_name_ = json["attention_mask_name"].GetString();
+    }
+
+    if (json.HasMember("position_ids_name") &&
+        json["position_ids_name"].IsString()) {
+      position_ids_name_ = json["position_ids_name"].GetString();
+    }
+
+    if (json.HasMember("past_key_values_name") &&
+        json["past_key_values_name"].IsString()) {
+      past_key_values_name_ = json["past_key_values_name"].GetString();
+    }
+
+    if (json.HasMember("logits_name") && json["logits_name"].IsString()) {
+      logits_name_ = json["logits_name"].GetString();
+    }
+
+    if (json.HasMember("presents_name") && json["presents_name"].IsString()) {
+      presents_name_ = json["presents_name"].GetString();
+    }
+
+    return base::kStatusCodeOk;
   }
 
  protected:

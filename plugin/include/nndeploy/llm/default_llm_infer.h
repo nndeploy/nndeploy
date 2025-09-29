@@ -22,34 +22,26 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/llm/abstract_llm_infer.h"
+#include "nndeploy/llm/embedding.h"
 
 namespace nndeploy {
 namespace llm {
 
 struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
   DefaultLlmInferParam() = default;
-  virtual ~DefaultLlmInferParam() {
-    if (embedding_param_ != nullptr) {
-      delete embedding_param_;
-      embedding_param_ = nullptr;
-    }
-    if (inference_param_ != nullptr) {
-      delete inference_param_;
-      inference_param_ = nullptr;
-    }
-  }
+  virtual ~DefaultLlmInferParam() = default;
   // embedding
   bool is_embedding_ = false;
-  EmbeddingParam* embedding_param_ = nullptr;
+  std::shared_ptr<EmbeddingParam> embedding_param_ = nullptr;
   // infer
   base::InferenceType inference_type_ = base::kInferenceTypeOnnxRuntime;
-  InferenceParam* inference_param_ = nullptr;
+  std::shared_ptr<inference::InferenceParam> inference_param_ = nullptr;
   // model
   int layer_nums_ = 24;
   int max_seq_len_;
   std::vector<int32_t> kv_init_shape_;
   base::DataType attention_mask_data_type_ = base::dataTypeOf<float>();
-  string attention_type_ = "full";
+  std::string attention_type_ = "full";
 
   using base::Param::serialize;
   virtual base::Status serialize(
@@ -70,11 +62,14 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
     //
     std::string inference_type_str =
         base::inferenceTypeToString(inference_type_);
-    json.AddMember("inference_type_", inference_type_str, allocator);
+    json.AddMember("inference_type_",
+                   rapidjson::Value(inference_type_str.c_str(), allocator),
+                   allocator);
     if (inference_param_ == nullptr) {
-      inference_param_ = createInferenceParam(inference_type_);
+      inference_param_ = inference::createInferenceParam(inference_type_);
       if (inference_param_ == nullptr) {
-        inference_param_ = new inference::InferenceParam(inference_type_);
+        inference_param_ =
+            std::make_shared<inference::InferenceParam>(inference_type_);
       }
     }
     rapidjson::Value inference_param_value;
@@ -83,10 +78,20 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
     //
     json.AddMember("layer_nums_", layer_nums_, allocator);
     json.AddMember("max_seq_len_", max_seq_len_, allocator);
-    json.AddMember("kv_init_shape_", kv_init_shape_, allocator);
-    json.AddMember("attention_mask_data_type_", attention_mask_data_type_,
+    rapidjson::Value kv_init_shape_array(rapidjson::kArrayType);
+    for (auto dim : kv_init_shape_) {
+      kv_init_shape_array.PushBack(dim, allocator);
+    }
+    json.AddMember("kv_init_shape_", kv_init_shape_array, allocator);
+    std::string attention_mask_data_type_str =
+        base::dataTypeToString(attention_mask_data_type_);
+    json.AddMember(
+        "attention_mask_data_type_",
+        rapidjson::Value(attention_mask_data_type_str.c_str(), allocator),
+        allocator);
+    json.AddMember("attention_type_",
+                   rapidjson::Value(attention_type_.c_str(), allocator),
                    allocator);
-    json.AddMember("attention_type_", attention_type_, allocator);
     return base::kStatusCodeOk;
   }
   using base::Param::deserialize;
@@ -100,20 +105,24 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
     if (json.HasMember("is_embedding_") && json["is_embedding_"].IsBool()) {
       is_embedding_ = json["is_embedding_"].GetBool();
     }
-    if (is_embedding_ && json.HasMember("embedding_param_") && json["embedding_param_"].IsObject()) {
+    if (is_embedding_ && json.HasMember("embedding_param_") &&
+        json["embedding_param_"].IsObject()) {
       if (embedding_param_ == nullptr) {
-        embedding_param_ = new EmbeddingParam();
+        embedding_param_ = std::make_shared<EmbeddingParam>();
       }
       embedding_param_->deserialize(json["embedding_param_"]);
     }
     //
-    if (json.HasMember("inference_type_") && json["inference_type_"].IsString()) {
-      inference_type_ = base::stringToInferenceType(json["inference_type_"].GetString());
+    if (json.HasMember("inference_type_") &&
+        json["inference_type_"].IsString()) {
+      inference_type_ =
+          base::stringToInferenceType(json["inference_type_"].GetString());
     }
     if (inference_param_ == nullptr) {
-      inference_param_ = createInferenceParam(inference_type_);
+      inference_param_ = inference::createInferenceParam(inference_type_);
       if (inference_param_ == nullptr) {
-        inference_param_ = new inference::InferenceParam(inference_type_);
+        inference_param_ =
+            std::make_shared<inference::InferenceParam>(inference_type_);
       }
     }
     rapidjson::Value inference_param_value;
@@ -132,62 +141,23 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
         kv_init_shape_.push_back(kv_init_shape_array[i].GetInt());
       }
     }
-    if (json.HasMember("attention_mask_data_type_") && json["attention_mask_data_type_"].IsString()) {
-      attention_mask_data_type_ = base::stringToDataType(json["attention_mask_data_type_"].GetString());
+    if (json.HasMember("attention_mask_data_type_") &&
+        json["attention_mask_data_type_"].IsString()) {
+      attention_mask_data_type_ =
+          base::stringToDataType(json["attention_mask_data_type_"].GetString());
     }
-    if (json.HasMember("attention_type_") && json["attention_type_"].IsString()) {
+    if (json.HasMember("attention_type_") &&
+        json["attention_type_"].IsString()) {
       attention_type_ = json["attention_type_"].GetString();
     }
     return base::kStatusCodeOk;
   }
 };
 
-extern NNDEPLOY_CC_API DefaultLlmInferParam
-parseConfig(const std::string& file_path) {
-  DefaultLlmInferParam config;
-
-  std::ifstream ifs(file_path);
-  if (!ifs.is_open()) {
-    NNDEPLOY_LOGE("Could not open %s:\n", file_path.c_str());
-    return config;
-  }
-
-  // read json data to content
-  std::string content((std::istreambuf_iterator<char>(ifs)),
-                      std::istreambuf_iterator<char>());
-  ifs.close();
-
-  rapidjson::Document llm_config;
-  llm_config.Parse(content.c_str());
-  if (llm_config.HasParseError()) {
-    NNDEPLOY_LOGE("Error parsing JSON file%s:\n", file_path.c_str());
-    return config;
-  }
-
-  // parse data
-  config.layer_nums_ = llm_config["layer_nums"].GetInt();
-  config.hidden_size_ = llm_config["hidden_size"].GetInt();
-  config.max_seq_len_ = llm_config["max_seq_len"].GetInt();
-
-  config.model_value_ = llm_config["model_path"].GetString();
-  config.embedding_file_ = llm_config["embedding_file"].GetString();
-
-  rapidjson::Value& key_value_shape = llm_config["key_value_shape"];
-  for (size_t i = 0; i < key_value_shape.Size(); i++) {
-    config.kv_init_shape_.push_back(key_value_shape[i].GetInt());
-  }
-
-  config.kv_init_shape_.insert(config.kv_init_shape_.begin(),
-                               config.layer_nums_);
-  for (auto& s : config.kv_init_shape_) NNDEPLOY_LOGI("%d,", s);
-  NNDEPLOY_LOGI("]\n");
-
-  return config;
-}
-
-class DefaultLlmInfer : AbstractLlmInfer {
+class DefaultLlmInfer : public AbstractLlmInfer {
  public:
   DefaultLlmInfer(const std::string& name) : AbstractLlmInfer(name) {
+    param_ = std::make_shared<DefaultLlmInferParam>();
     key_ = "nndeploy::llm::DefaultLlmInfer";
     desc_ =
         "LLM default pipeline: input_ids -> "
@@ -196,6 +166,7 @@ class DefaultLlmInfer : AbstractLlmInfer {
   DefaultLlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
                   std::vector<dag::Edge*> outputs)
       : AbstractLlmInfer(name, inputs, outputs) {
+    param_ = std::make_shared<DefaultLlmInferParam>();
     key_ = "nndeploy::llm::DefaultLlmInfer";
     desc_ =
         "LLM default pipeline: input_ids -> "
@@ -205,7 +176,9 @@ class DefaultLlmInfer : AbstractLlmInfer {
 
   virtual base::Status init() {
     // 解析参数
-    DefaultLlmInferParam config = parseConfig(config_path_[0]);
+    if (!config_path_.empty()) {
+      parseConfig(config_path_[0]);
+    }
 
     // 创建输入边
     std::vector<dag::Edge*> input_edges;
@@ -234,13 +207,16 @@ class DefaultLlmInfer : AbstractLlmInfer {
     }
 
     // 创建embedding节点
-    if (config.embedding_file_ != "") {
-      embedding_node_ = dynamic_cast<Embedding*>(this->createNode<Embedding>(
-          "embedding_node", {inputs_[0]}, {input_ids_edge}));
+    DefaultLlmInferParam* default_llm_infer_param =
+        dynamic_cast<DefaultLlmInferParam*>(param_.get());
+    if (default_llm_infer_param->is_embedding_) {
+      dag::NodeDesc desc("embedding_node", {inputs_[0]->getName()},
+                         {input_ids_edge_->getName()});
+      embedding_node_ =
+          dynamic_cast<Embedding*>(this->createNode<Embedding>(desc));
       // 参数设置开始
-      PrefillEmbeddingParam* embedding_param =
-          dynamic_cast<PrefillEmbeddingParam*>(embedding_node_->getParam());
-      embedding_param->embedding_file_ = config.embedding_file_;
+      auto embedding_param = default_llm_infer_param->embedding_param_;
+      embedding_node_->setParamSharedPtr(embedding_param);
       // 参数设置结束
       embedding_node_->init();
     } else {
@@ -250,15 +226,19 @@ class DefaultLlmInfer : AbstractLlmInfer {
     }
 
     // 创建infer节点
-    llm_infer_ = dynamic_cast<infer::Infer*>(
-        this->createNode<infer::Infer>("llm_infer", input_edges, output_edges));
+    std::vector<std::string> input_names;
+    std::vector<std::string> output_names;
+    for (auto input : input_edges) {
+      input_names.push_back(input->getName());
+    }
+    for (auto output : output_edges) {
+      output_names.push_back(output->getName());
+    }
+    dag::NodeDesc desc("llm_infer", input_names, output_names);
+    llm_infer_ = dynamic_cast<infer::Infer*>(this->createInfer<infer::Infer>(
+        desc, default_llm_infer_param->inference_type_));
     // 参数设置开始
-    inference::InferenceParam* inference_param =
-        (inference::InferenceParam*)(llm_infer_->getParam());
-    inference_param->is_path_ = true;
-    inference_param->inference_type_ = base::kInferenceTypeOnnxRuntime;
-    inference_param->model_type_ = base::kModelTypeOnnx;
-    inference_param->model_value_ = {config.model_value_};
+    llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
     // 参数设置结束
     llm_infer_->init();
     return base::kStatusCodeOk;
@@ -266,14 +246,14 @@ class DefaultLlmInfer : AbstractLlmInfer {
 
   virtual base::Status deinit() {
     if (embedding_node_ != nullptr) {
-      embedding_node_->deinit();
+      auto status = embedding_node_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "embedding_node_ deinit failed!");
       delete embedding_node_;
       embedding_node_ = nullptr;
     }
     if (llm_infer_ != nullptr) {
-      llm_infer_->deinit();
+      auto status = llm_infer_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "llm_infer_ deinit failed!");
       delete llm_infer_;
@@ -291,21 +271,40 @@ class DefaultLlmInfer : AbstractLlmInfer {
   }
 
   virtual base::Status prefill() {
+    DefaultLlmInferParam* default_llm_infer_param =
+        dynamic_cast<DefaultLlmInferParam*>(param_.get());
+    // 全局的history_token
+    tokenizer::TokenizerIds* ids =
+        (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    std::vector<int32_t>* history_tokens =
+        new std::vector<int32_t>(ids->ids_[0]);
+    dag::Edge* history_tokens_edge =
+        this->createResourceWithState("history_tokens");
+    history_tokens_edge->set(history_tokens, false);
+
+    auto seq_len = ids->ids_[0].size();
+    auto all_seq_len = all_seq_len_;
+    auto attention_mask_data_type = base::dataTypeOf<float>();
+    auto attention_mask_data_format = base::DataFormat::kDataFormatS1D;
+    auto position_ids_data_type = base::dataTypeOf<int>();
+    auto position_ids_data_format = base::DataFormat::kDataFormatNC;
+
     // 给输入边数据
     if (attention_mask_edge_ != nullptr) {
       auto attention_mask =
-          genAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
-                           embedding_param->data_format_);
+          genAttentionMask(seq_len, all_seq_len, attention_mask_data_type,
+                           attention_mask_data_format);
       attention_mask_edge_->set(attention_mask, false);
     }
     if (position_ids_edge_ != nullptr) {
-      auto position_ids = genPositionIds(seq_len, all_seq_len,
-                                         embedding_param->posid_data_type_,
-                                         embedding_param->data_format_);
+      auto position_ids =
+          genPositionIds(seq_len, all_seq_len, position_ids_data_type,
+                         position_ids_data_format);
       position_ids_edge_->set(position_ids, false);
     }
     if (past_key_values_edge_ != nullptr) {
-      auto past_kv = genPastKeyValue(embedding_param->kv_init_shape_);
+      auto kv_init_shape = default_llm_infer_param->kv_init_shape_;
+      auto past_kv = genPastKeyValue(kv_init_shape);
       past_key_values_edge_->set(past_kv, false);
     }
 
@@ -318,27 +317,45 @@ class DefaultLlmInfer : AbstractLlmInfer {
     }
 
     // 全局tensor资源
-    device::Tensor* presents =
-        (device::Tensor*)llm_infer_->getOutput(1)->getTensor(llm_infer_);
-
-    // 全局的history_token
-    tokenizer::TokenizerIds* history_token =
-        (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    if (presents_edge_ != nullptr) {
+      device::Tensor* presents =
+          (device::Tensor*)presents_edge_->getTensor(llm_infer_);
+      presents->setName("past_key_values");
+      dag::Edge* past_key_values_edge =
+          this->createResourceWithState("past_key_values");
+      past_key_values_edge->set(presents, false);
+    }
 
     return base::kStatusCodeOk;
   }
   virtual base::Status decode() {  // 执行embedding节点和infer节点
 
+    tokenizer::TokenizerIds* ids =
+        (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    std::vector<int32_t>* history_tokens =
+        this->getResourceWithState<std::vector<int32_t>>("history_tokens");
+    history_tokens->push_back(ids->ids_[0][0]);
+
+    auto seq_len = ids->ids_[0].size();
+    all_seq_len_ = history_tokens->size();
+    auto all_seq_len = all_seq_len_;
+    auto attention_mask_data_type = base::dataTypeOf<float>();
+    auto attention_mask_data_format = base::DataFormat::kDataFormatS1D;
+    auto position_ids_data_type = base::dataTypeOf<int>();
+    auto position_ids_data_format = base::DataFormat::kDataFormatNC;
+
+    gen_seq_len_++;
+
     if (attention_mask_edge_ != nullptr) {
       auto attention_mask =
-          genAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
-                           embedding_param->data_format_);
+          genAttentionMask(seq_len, all_seq_len, attention_mask_data_type,
+                           attention_mask_data_format);
       attention_mask_edge_->set(attention_mask, false);
     }
     if (position_ids_edge_ != nullptr) {
-      auto position_ids = genPositionIds(seq_len, all_seq_len,
-                                         embedding_param->posid_data_type_,
-                                         embedding_param->data_format_);
+      auto position_ids =
+          genPositionIds(seq_len, all_seq_len, position_ids_data_type,
+                         position_ids_data_format);
       position_ids_edge_->set(position_ids, false);
     }
 
@@ -356,12 +373,24 @@ class DefaultLlmInfer : AbstractLlmInfer {
     }
 
     // 全局tensor资源
-    device::Tensor* presents =
-        (device::Tensor*)llm_infer_->getOutput(1)->getTensor(llm_infer_);
+    if (presents_edge_ != nullptr) {
+      device::Tensor* presents =
+          (device::Tensor*)presents_edge_->getTensor(llm_infer_);
+      presents->setName("past_key_values");
+      this->setResourceWithState("past_key_values", presents);
+    }
 
-    // 全局的history_token
-    tokenizer::TokenizerIds* history_token =
-        (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status parseConfig(const std::string& file_path) {
+    base::Status status = base::kStatusCodeOk;
+    if (param_ != nullptr) {
+      DefaultLlmInferParam* default_llm_infer_param =
+          dynamic_cast<DefaultLlmInferParam*>(param_.get());
+      default_llm_infer_param->loadFile(file_path);
+    }
+    return status;
   }
 
  private:
@@ -376,7 +405,11 @@ class DefaultLlmInfer : AbstractLlmInfer {
   // 输出边
   dag::Edge* logits_edge_ = nullptr;
   dag::Edge* presents_edge_ = nullptr;
-}
+
+  //
+  int all_seq_len_ = 0;
+  int gen_seq_len_ = 0;
+};
 
 }  // namespace llm
 }  // namespace nndeploy

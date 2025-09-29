@@ -167,8 +167,12 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
   virtual Edge* getResourceWithState(const std::string &key);
   template <typename T>
-  base::Status setResourceWithState(const std::string &key, const T *value) {
+  base::Status setResourceWithState(const std::string &key, T *value) {
     Edge* edge = this->getResourceWithState(key);
+    if (edge == nullptr) {
+      NNDEPLOY_LOGE("edge is nullptr in setResourceWithState.\n");
+      return base::kStatusCodeErrorDag;
+    }
     edge->set<T>(value);
     return base::kStatusCodeOk;
   }
