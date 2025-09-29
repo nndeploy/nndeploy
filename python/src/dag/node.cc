@@ -6,6 +6,12 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
 
+// Windows compatibility: define ssize_t if not available
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
