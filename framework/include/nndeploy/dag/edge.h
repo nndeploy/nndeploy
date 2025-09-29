@@ -66,6 +66,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Status setParallelType(const base::ParallelType &paralle_type);
   base::ParallelType getParallelType();
 
+  bool empty();
+
   base::Status construct();
 
   base::Status set(device::Buffer *buffer, bool is_external = true);

@@ -74,11 +74,16 @@ class NNDEPLOY_CC_API LlmInfer : public dag::CompositeNode {
   // config_path
   std::vector<std::string> config_path_;
   // qwen or llama...
-  std::string model_key_;
+  std::string model_key_ = "Qwen";
   // llm::DefaultLlmInfer or llm::MnnLlmInfer
-  std::string infer_key_;
+  std::string infer_key_ = "DefaultLlmInfer";
   // llm::AbstractLlmInfer
   llm::AbstractLlmInfer* llm_infer_ = nullptr;
+
+  // model inputs
+  std::vector<std::string> model_inputs_ = {"input_ids", "attention_mask", "position_ids", "past_key_values"};
+  // model outputs
+  std::vector<std::string> model_outputs_ = {"logits", "presents"};
 };
 
 }  // namespace llm

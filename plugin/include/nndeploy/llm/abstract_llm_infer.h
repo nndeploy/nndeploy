@@ -32,7 +32,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
   AbstractLlmInfer(const std::string &name) : dag::CompositeNode(name) {
     key_ = "nndeploy::llm::LlmInfer";
     desc_ =
-        "LLM abstract pipeline: input_ids -> "
+        "LLM abstract pipeline: input_tokens -> "
         "inference -> [logits]";
     this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
     this->setOutputTypeInfo<device::Tensor>("output_logits");
@@ -42,7 +42,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
       : dag::CompositeNode(name, inputs, outputs) {
     key_ = "nndeploy::llm::LlmInfer";
     desc_ =
-        "LLM abstract pipeline: input_ids -> "
+        "LLM abstract pipeline: input_tokens -> "
         "inference -> [logits]";
     this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
     this->setOutputTypeInfo<device::Tensor>("output_logits");
@@ -72,8 +72,9 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
-  device::Tensor *genPastKeyValue(const std::vector<int32_t> &kv_init_shape,
-                                  base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
+  device::Tensor *genPastKeyValue(
+      const std::vector<int32_t> &kv_init_shape,
+      base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     device::Device *device = device::getDevice(device_type);
     device::TensorDesc past_kv_desc;
     past_kv_desc.data_type_ = base::dataTypeOf<float>();
@@ -84,10 +85,10 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return past_kv;
   }
 
-  device::Tensor *genPositionIds(int seq_len, int all_seq_len,
-                                 base::DataType data_type,
-                                 base::DataFormat data_format,
-                                 base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
+  device::Tensor *genPositionIds(
+      int seq_len, int all_seq_len, base::DataType data_type,
+      base::DataFormat data_format,
+      base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     device::Device *device = device::getDevice(device_type);
     device::TensorDesc position_ids_desc;
     position_ids_desc.data_type_ = data_type;
@@ -110,10 +111,10 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return position_ids;
   }
 
-  device::Tensor *genAttentionMask(int seq_len, int all_seq_len,
-                                   base::DataType data_type,
-                                   base::DataFormat data_format,
-                                   base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
+  device::Tensor *genAttentionMask(
+      int seq_len, int all_seq_len, base::DataType data_type,
+      base::DataFormat data_format,
+      base::DeviceType device_type = base::kDeviceTypeCodeCpu) {
     int kv_seq_len = all_seq_len + seq_len;
     if (seq_len == 1) kv_seq_len = seq_len;
 
@@ -175,37 +176,21 @@ class AbstractLlmInfer : public dag::CompositeNode {
     json.AddMember("infer_key", infer_key_value, allocator);
 
     // 序列化输入输出名称
-    rapidjson::Value input_ids_name_value;
-    input_ids_name_value.SetString(input_ids_name_.c_str(),
-                                   input_ids_name_.length(), allocator);
-    json.AddMember("input_ids_name", input_ids_name_value, allocator);
+    // 序列化模型输入
+    rapidjson::Value model_inputs(rapidjson::kArrayType);
+    for (const auto &input : model_inputs_) {
+      model_inputs.PushBack(rapidjson::Value(input.c_str(), allocator),
+                            allocator);
+    }
+    json.AddMember("model_inputs", model_inputs, allocator);
 
-    rapidjson::Value attention_mask_name_value;
-    attention_mask_name_value.SetString(
-        attention_mask_name_.c_str(), attention_mask_name_.length(), allocator);
-    json.AddMember("attention_mask_name", attention_mask_name_value, allocator);
-
-    rapidjson::Value position_ids_name_value;
-    position_ids_name_value.SetString(position_ids_name_.c_str(),
-                                      position_ids_name_.length(), allocator);
-    json.AddMember("position_ids_name", position_ids_name_value, allocator);
-
-    rapidjson::Value past_key_values_name_value;
-    past_key_values_name_value.SetString(past_key_values_name_.c_str(),
-                                         past_key_values_name_.length(),
-                                         allocator);
-    json.AddMember("past_key_values_name", past_key_values_name_value,
-                   allocator);
-
-    rapidjson::Value logits_name_value;
-    logits_name_value.SetString(logits_name_.c_str(), logits_name_.length(),
-                                allocator);
-    json.AddMember("logits_name", logits_name_value, allocator);
-
-    rapidjson::Value presents_name_value;
-    presents_name_value.SetString(presents_name_.c_str(),
-                                  presents_name_.length(), allocator);
-    json.AddMember("presents_name", presents_name_value, allocator);
+    // 序列化模型输出
+    rapidjson::Value model_outputs(rapidjson::kArrayType);
+    for (const auto &output : model_outputs_) {
+      model_outputs.PushBack(rapidjson::Value(output.c_str(), allocator),
+                             allocator);
+    }
+    json.AddMember("model_outputs", model_outputs, allocator);
 
     return base::kStatusCodeOk;
   }
@@ -243,32 +228,25 @@ class AbstractLlmInfer : public dag::CompositeNode {
       infer_key_ = json["infer_key"].GetString();
     }
 
-    // 反序列化输入输出名称
-    if (json.HasMember("input_ids_name") && json["input_ids_name"].IsString()) {
-      input_ids_name_ = json["input_ids_name"].GetString();
+    // 反序列化模型输入
+    if (json.HasMember("model_inputs") && json["model_inputs"].IsArray()) {
+      model_inputs_.clear();
+      const rapidjson::Value &model_inputs = json["model_inputs"];
+      for (rapidjson::SizeType i = 0; i < model_inputs.Size(); i++) {
+        if (model_inputs[i].IsString()) {
+          model_inputs_.push_back(model_inputs[i].GetString());
+        }
+      }
     }
-
-    if (json.HasMember("attention_mask_name") &&
-        json["attention_mask_name"].IsString()) {
-      attention_mask_name_ = json["attention_mask_name"].GetString();
-    }
-
-    if (json.HasMember("position_ids_name") &&
-        json["position_ids_name"].IsString()) {
-      position_ids_name_ = json["position_ids_name"].GetString();
-    }
-
-    if (json.HasMember("past_key_values_name") &&
-        json["past_key_values_name"].IsString()) {
-      past_key_values_name_ = json["past_key_values_name"].GetString();
-    }
-
-    if (json.HasMember("logits_name") && json["logits_name"].IsString()) {
-      logits_name_ = json["logits_name"].GetString();
-    }
-
-    if (json.HasMember("presents_name") && json["presents_name"].IsString()) {
-      presents_name_ = json["presents_name"].GetString();
+    // 反序列化模型输出
+    if (json.HasMember("model_outputs") && json["model_outputs"].IsArray()) {
+      model_outputs_.clear();
+      const rapidjson::Value &model_outputs = json["model_outputs"];
+      for (rapidjson::SizeType i = 0; i < model_outputs.Size(); i++) {
+        if (model_outputs[i].IsString()) {
+          model_outputs_.push_back(model_outputs[i].GetString());
+        }
+      }
     }
 
     return base::kStatusCodeOk;
@@ -284,14 +262,11 @@ class AbstractLlmInfer : public dag::CompositeNode {
   // llm::DefaultLlmInfer or llm::MnnLlmInfer
   std::string infer_key_;
 
-  // 输入
-  std::string input_ids_name_ = "input_ids";
-  std::string attention_mask_name_ = "attention_mask";
-  std::string position_ids_name_ = "position_ids";
-  std::string past_key_values_name_ = "past_key_values";
-  // 输出
-  std::string logits_name_ = "logits";
-  std::string presents_name_ = "presents";
+  // model inputs
+  std::vector<std::string> model_inputs_ = {"input_ids", "attention_mask",
+                                            "position_ids", "past_key_values"};
+  // model outputs
+  std::vector<std::string> model_outputs_ = {"logits", "presents"};
 };
 
 // 前向声明

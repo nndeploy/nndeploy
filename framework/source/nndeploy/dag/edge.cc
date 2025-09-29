@@ -47,6 +47,13 @@ base::Status Edge::setQueueMaxSize(int queue_max_size) {
 }
 int Edge::getQueueMaxSize() { return queue_max_size_; }
 
+bool Edge::empty() {
+  if (abstact_edge_ == nullptr) {
+    return true;
+  }
+  return abstact_edge_->empty();
+}
+
 base::Status Edge::construct() { return abstact_edge_->construct(); }
 
 base::Status Edge::set(device::Buffer *buffer, bool is_external) {
@@ -262,7 +269,7 @@ std::vector<Node *> Edge::getConsumers() {
   if (abstact_edge_ == nullptr) {
     return std::vector<Node *>();
   }
-  
+
   std::vector<Node *> consumers = abstact_edge_->getConsumers();
   std::vector<Node *> result;
   for (auto consumer : consumers) {
@@ -271,7 +278,7 @@ std::vector<Node *> Edge::getConsumers() {
       continue;
     }
     result.push_back(consumer);
-  } 
+  }
 
   return result;
 }

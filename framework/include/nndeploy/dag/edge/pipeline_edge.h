@@ -35,6 +35,8 @@ class PipelineEdge : public AbstractEdge {
 
   virtual base::Status setQueueMaxSize(int queue_max_size);
 
+  virtual bool empty();
+
   virtual base::Status construct();
 
   virtual base::Status set(device::Buffer *buffer, bool is_external);

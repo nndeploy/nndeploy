@@ -31,6 +31,7 @@ LlmInfer::LlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
     : dag::CompositeNode(name, inputs, outputs) {
   key_ = "nndeploy::llm::LlmInfer";
   desc_ = "LlmInfer: LLM inference CompositeNode";
+  this->setDynamicInput(true);
   this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
   this->setOutputTypeInfo<device::Tensor>("output_logits");
 }
@@ -45,16 +46,29 @@ base::Status LlmInfer::init() {
     return base::kStatusCodeErrorInvalidParam;
   }
   llm_infer_->setConfigPath(config_path_);
+  if (llm_infer_->getInitialized()) {
+    return base::kStatusCodeOk;
+  }
+  if (llm_infer_->checkInterruptStatus() == true) {
+    llm_infer_->setRunningFlag(false);
+    return base::kStatusCodeNodeInterrupt;
+  }
+  llm_infer_->setInitializedFlag(false);
   base::Status status = llm_infer_->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("LlmInfer::init failed\n");
     return status;
   }
+  llm_infer_->setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 
 base::Status LlmInfer::deinit() {
   if (llm_infer_ != nullptr) {
+    if (llm_infer_->getInitialized()) {
+      llm_infer_->deinit();
+      llm_infer_->setInitializedFlag(false);
+    }
     delete llm_infer_;
     llm_infer_ = nullptr;
   }
@@ -62,11 +76,17 @@ base::Status LlmInfer::deinit() {
 }
 
 base::Status LlmInfer::run() {
+  llm_infer_->setRunningFlag(true);
+  if (llm_infer_->checkInterruptStatus() == true) {
+    llm_infer_->setRunningFlag(false);
+    return base::kStatusCodeNodeInterrupt;
+  }
   base::Status status = llm_infer_->run();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("LlmInfer::run failed\n");
     return status;
   }
+  llm_infer_->setRunningFlag(false);
   return base::kStatusCodeOk;
 }
 
@@ -91,6 +111,22 @@ base::Status LlmInfer::serialize(
     config_paths.PushBack(rapidjson::Value(path.c_str(), allocator), allocator);
   }
   json.AddMember("config_path", config_paths, allocator);
+
+  // 序列化模型输入
+  rapidjson::Value model_inputs(rapidjson::kArrayType);
+  for (const auto& input : model_inputs_) {
+    model_inputs.PushBack(rapidjson::Value(input.c_str(), allocator),
+                          allocator);
+  }
+  json.AddMember("model_inputs", model_inputs, allocator);
+
+  // 序列化模型输出
+  rapidjson::Value model_outputs(rapidjson::kArrayType);
+  for (const auto& output : model_outputs_) {
+    model_outputs.PushBack(rapidjson::Value(output.c_str(), allocator),
+                           allocator);
+  }
+  json.AddMember("model_outputs", model_outputs, allocator);
 
   return status;
 }
@@ -123,6 +159,27 @@ base::Status LlmInfer::deserialize(rapidjson::Value& json) {
     for (rapidjson::SizeType i = 0; i < config_paths.Size(); i++) {
       if (config_paths[i].IsString()) {
         config_path_.push_back(config_paths[i].GetString());
+      }
+    }
+  }
+
+  // 反序列化模型输入
+  if (json.HasMember("model_inputs") && json["model_inputs"].IsArray()) {
+    model_inputs_.clear();
+    const rapidjson::Value& model_inputs = json["model_inputs"];
+    for (rapidjson::SizeType i = 0; i < model_inputs.Size(); i++) {
+      if (model_inputs[i].IsString()) {
+        model_inputs_.push_back(model_inputs[i].GetString());
+      }
+    }
+  }
+  // 反序列化模型输出
+  if (json.HasMember("model_outputs") && json["model_outputs"].IsArray()) {
+    model_outputs_.clear();
+    const rapidjson::Value& model_outputs = json["model_outputs"];
+    for (rapidjson::SizeType i = 0; i < model_outputs.Size(); i++) {
+      if (model_outputs[i].IsString()) {
+        model_outputs_.push_back(model_outputs[i].GetString());
       }
     }
   }

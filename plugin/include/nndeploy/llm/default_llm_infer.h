@@ -28,8 +28,6 @@ namespace nndeploy {
 namespace llm {
 
 struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
-  DefaultLlmInferParam() = default;
-  virtual ~DefaultLlmInferParam() = default;
   // embedding
   bool is_embedding_ = false;
   std::shared_ptr<EmbeddingParam> embedding_param_ = nullptr;
@@ -38,7 +36,7 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
   std::shared_ptr<inference::InferenceParam> inference_param_ = nullptr;
   // model
   int layer_nums_ = 24;
-  int max_seq_len_;
+  int max_seq_len_ = 2048;  // TODO
   std::vector<int32_t> kv_init_shape_;
   base::DataType attention_mask_data_type_ = base::dataTypeOf<float>();
   std::string attention_type_ = "full";
@@ -160,8 +158,8 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     param_ = std::make_shared<DefaultLlmInferParam>();
     key_ = "nndeploy::llm::DefaultLlmInfer";
     desc_ =
-        "LLM default pipeline: input_ids -> "
-        "inference -> [logits, past_key_values]";
+        "LLM default pipeline: input_tokens -> "
+        "inference -> [logits]";
   }
   DefaultLlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
                   std::vector<dag::Edge*> outputs)
@@ -169,8 +167,8 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     param_ = std::make_shared<DefaultLlmInferParam>();
     key_ = "nndeploy::llm::DefaultLlmInfer";
     desc_ =
-        "LLM default pipeline: input_ids -> "
-        "inference -> [logits, past_key_values]";
+        "LLM default pipeline: input_tokens -> "
+        "inference -> [logits]";
   }
   virtual ~DefaultLlmInfer() {}
 
@@ -181,27 +179,33 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
 
     // 创建输入边
+    input_ids_name_ = model_inputs_[0];
     std::vector<dag::Edge*> input_edges;
     input_ids_edge_ = this->createEdge(input_ids_name_);
     input_edges.push_back(input_ids_edge_);
-    if (!attention_mask_name_.empty()) {
+    if (model_inputs_.size() > 1) {
+      attention_mask_name_ = model_inputs_[1];
       attention_mask_edge_ = this->createEdge(attention_mask_name_);
       input_edges.push_back(attention_mask_edge_);
     }
-    if (!position_ids_name_.empty()) {
+    if (model_inputs_.size() > 2) {
+      position_ids_name_ = model_inputs_[2];
       position_ids_edge_ = this->createEdge(position_ids_name_);
       input_edges.push_back(position_ids_edge_);
     }
-    if (!past_key_values_name_.empty()) {
+    if (model_inputs_.size() > 3) {
+      past_key_values_name_ = model_inputs_[3];
       past_key_values_edge_ = this->createEdge(past_key_values_name_);
       input_edges.push_back(past_key_values_edge_);
     }
 
     // 创建输出边
     std::vector<dag::Edge*> output_edges;
+    logits_name_ = model_outputs_[0];
     logits_edge_ = outputs_[0];
     output_edges.push_back(logits_edge_);
-    if (!presents_name_.empty()) {
+    if (model_outputs_.size() > 1) {
+      presents_name_ = model_outputs_[1];
       presents_edge_ = this->createEdge(presents_name_);
       output_edges.push_back(presents_edge_);
     }
@@ -235,12 +239,23 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       output_names.push_back(output->getName());
     }
     dag::NodeDesc desc("llm_infer", input_names, output_names);
-    llm_infer_ = dynamic_cast<infer::Infer*>(this->createInfer<infer::Infer>(
-        desc, default_llm_infer_param->inference_type_));
-    // 参数设置开始
-    llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
-    // 参数设置结束
-    llm_infer_->init();
+    auto infer = this->getResourceWithoutState<infer::Infer*>("llm_infer");
+    if (infer == nullptr) {
+      llm_infer_ = dynamic_cast<infer::Infer*>(this->createInfer<infer::Infer>(
+          desc, default_llm_infer_param->inference_type_));
+      // 参数设置开始
+      llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
+      // TODO
+      // llm_infer_->shareInference(llm_infer_);
+      // 参数设置结束
+      llm_infer_->init();
+      this->setResourceWithState("llm_infer", llm_infer_);
+    } else {
+      llm_infer_ =
+          dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(desc));
+      infer->shareInference(llm_infer_);
+      llm_infer_->init();
+    }
     return base::kStatusCodeOk;
   }
 
@@ -317,21 +332,24 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
 
     // 全局tensor资源
-    if (presents_edge_ != nullptr) {
+    if (presents_edge_ != nullptr && past_key_values_edge_ != nullptr) {
       device::Tensor* presents =
           (device::Tensor*)presents_edge_->getTensor(llm_infer_);
-      presents->setName("past_key_values");
+      presents->setName(past_key_values_edge_->getName());
       dag::Edge* past_key_values_edge =
-          this->createResourceWithState("past_key_values");
+          this->createResourceWithState(past_key_values_edge_->getName());
       past_key_values_edge->set(presents, false);
     }
 
     return base::kStatusCodeOk;
   }
   virtual base::Status decode() {  // 执行embedding节点和infer节点
-
-    tokenizer::TokenizerIds* ids =
-        (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    tokenizer::TokenizerIds* ids = nullptr;
+    if (inputs_[1]->empty()) {
+      ids = (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
+    } else {
+      ids = (tokenizer::TokenizerIds*)inputs_[1]->getParam(this);
+    }
     std::vector<int32_t>* history_tokens =
         this->getResourceWithState<std::vector<int32_t>>("history_tokens");
     history_tokens->push_back(ids->ids_[0][0]);
@@ -360,8 +378,8 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
 
     if (past_key_values_edge_ != nullptr) {
-      auto past_kv =
-          this->getResourceWithState<device::Tensor>("past_key_values");
+      auto past_kv = this->getResourceWithState<device::Tensor>(
+          past_key_values_edge_->getName());
       past_key_values_edge_->set(past_kv, true);
     }
 
@@ -373,11 +391,11 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
 
     // 全局tensor资源
-    if (presents_edge_ != nullptr) {
+    if (presents_edge_ != nullptr && past_key_values_edge_ != nullptr) {
       device::Tensor* presents =
           (device::Tensor*)presents_edge_->getTensor(llm_infer_);
-      presents->setName("past_key_values");
-      this->setResourceWithState("past_key_values", presents);
+      presents->setName(past_key_values_edge_->getName());
+      this->setResourceWithState(past_key_values_edge_->getName(), presents);
     }
 
     return base::kStatusCodeOk;
@@ -398,11 +416,17 @@ class DefaultLlmInfer : public AbstractLlmInfer {
   infer::Infer* llm_infer_;
 
   // 输入边
+  std::string input_ids_name_ = "input_ids";
+  std::string attention_mask_name_ = "attention_mask";
+  std::string position_ids_name_ = "position_ids";
+  std::string past_key_values_name_ = "past_key_values";
   dag::Edge* input_ids_edge_ = nullptr;
   dag::Edge* attention_mask_edge_ = nullptr;
   dag::Edge* position_ids_edge_ = nullptr;
   dag::Edge* past_key_values_edge_ = nullptr;
   // 输出边
+  std::string logits_name_ = "logits";
+  std::string presents_name_ = "presents";
   dag::Edge* logits_edge_ = nullptr;
   dag::Edge* presents_edge_ = nullptr;
 
