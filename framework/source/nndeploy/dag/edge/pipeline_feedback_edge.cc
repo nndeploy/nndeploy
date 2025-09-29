@@ -1,253 +1,245 @@
-// #include "nndeploy/dag/edge/pipeline_feedback_edge.h"
+#include "nndeploy/dag/edge/pipeline_feedback_edge.h"
 
-// #include "nndeploy/dag/edge/data_packet.h"
+#include "nndeploy/dag/edge/data_packet.h"
 
-// namespace nndeploy {
-// namespace dag {
+namespace nndeploy {
+namespace dag {
 
-// TypeEdgeRegister<TypeEdgeCreator<PipelineFeedbackEdge>>
-//     g_pipeline_edge_register(base::kEdgeTypePipelineFeedback);
+TypeEdgeRegister<TypeEdgeCreator<PipelineFeedbackEdge>>
+    g_pipeline_feedback_edge_register(base::kEdgeTypePipelineFeedback);
 
-// PipelineFeedbackEdge::PipelineFeedbackEdge(base::ParallelType pt)
-//     : AbstractEdge(pt) {}
+PipelineFeedbackEdge::PipelineFeedbackEdge(base::ParallelType type)
+    : AbstractEdge(type) {}
 
-// static inline const void* key_from_node(const Node* n) {
-//   return static_cast<const void*>(n);
-// }
+PipelineFeedbackEdge::~PipelineFeedbackEdge() {}
 
-// base::Status PipelineFeedbackEdge::construct() {
-//   // 计算消费者数量（包含 graph output 的 nullptr）
-//   consumers_size_ = static_cast<int>(consumers_.size());
+base::Status PipelineFeedbackEdge::setQueueMaxSize(int q) {
+  if (q <= 0) q = 2;
+  std::size_t value = round_up_pow2(static_cast<std::size_t>(q));
+  if (ring_) {
+    NNDEPLOY_LOGE("queue already constructed.\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  queue_max_size_ = value;
+  return base::kStatusCodeOk;
+}
 
-//   // 重新配置 ring 容量并注册所有消费者
-//   ring_.set_capacity(
-//       queue_max_size_ > 0 ? static_cast<uint64_t>(queue_max_size_) : 1);
+base::Status PipelineFeedbackEdge::construct() {
+  if (!ring_) ring_.reset(new Ring(queue_max_size_));
+  consumer_size_ = static_cast<int>(consumers_.size());
+  return base::kStatusCodeOk;
+}
 
-//   states_.clear();
-//   for (auto* c : consumers_) {
-//     // ring 以“key”区分消费者，这里直接用 Node*（nullptr 代表图输出）
-//     ring_.register_consumer(c, /*start_from_latest=*/true);
+base::Status PipelineFeedbackEdge::set(device::Buffer *buffer,
+                                       bool is_external) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
+  base::Status status = slot->set(buffer, is_external);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Set data packet error.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  return status;
+}
 
-//     ConsumerState st{};
-//     st.cur = nullptr;
-//     st.committed = false;
-//     st.cid = 0;  // 未使用，仅占位
-//     states_.emplace(c, st);
-//   }
+device::Buffer *PipelineFeedbackEdge::create(device::Device *device,
+                                             const device::BufferDesc &desc) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
 
-//   return base::kStatusCodeOk;
-// }
+  device::Buffer *ret_value = slot->create(device, desc);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
+                                     "Pipeline feedback edge create failed.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return nullptr;
+  }
 
-// base::Status PipelineFeedbackEdge::setQueueMaxSize(int q) {
-//   if (q <= 0) q = 1;
-//   queue_max_size_ = q;
+  return ret_value;
+}
 
-//   // 更改容量会 reset ring，需要重注 readers
-//   // 这里直接复用 construct()
-//   return construct();
-// }
+device::Buffer *PipelineFeedbackEdge::getBuffer(const Node *node) {
+  Slot slot = nullptr;
+  if (!ring_->pop(node, slot)) {
+    NNDEPLOY_LOGE("Get data packet failed.\n");
+    return nullptr;
+  }
+  return slot->getBuffer();
+}
 
-// base::Status PipelineFeedbackEdge::set(device::Buffer* buf, bool external) {
-//   auto* dp = new FeedbackDataPacket();
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp,
-//                                        "alloc FeedbackDataPacket failed.\n");
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+#ifdef ENABLE_NNDEPLOY_OPENCV
 
-//   base::Status s = dp->set(buf, external);
-//   NNDEPLOY_RETURN_ON_NEQ(s, base::kStatusCodeOk, "dp->set(buffer)
-//   failed.\n");
+base::Status PipelineFeedbackEdge::set(cv::Mat *cv_mat, bool is_external) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
+  base::Status status = slot->set(cv_mat, is_external);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Set data packet error.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  return status;
+}
 
-//   if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//     // 终止状态下 push 可能失败，回收
-//     delete dp;
-//     return base::kStatusCodeErrorInvalidValue;
-//   }
-//   return base::kStatusCodeOk;
-// }
+cv::Mat *PipelineFeedbackEdge::create(int rows, int cols, int type,
+                                      const cv::Vec3b &value) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
 
-// device::Buffer* PipelineFeedbackEdge::create(device::Device* dev,
-//                                              const device::BufferDesc& desc)
-//                                              {
-//   // 仅创建，不入环，待 notifyWritten
-//   auto* dp = new FeedbackDataPacket();
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "alloc FeedbackDataPacket
-//   failed.\n");
+  cv::Mat *ret_value = slot->create(rows, cols, type, value);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
+                                     "Pipeline feedback edge create failed.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return nullptr;
+  }
 
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+  return ret_value;
+}
 
-//   device::Buffer* b = dp->create(dev, desc);
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(b, "dp->create(buffer) failed.\n");
+cv::Mat *PipelineFeedbackEdge::getCvMat(const Node *node) {
+  Slot slot = nullptr;
+  if (!ring_->pop(node, slot)) {
+    NNDEPLOY_LOGE("Get data packet failed.\n");
+    return nullptr;
+  }
+  return slot->getCvMat();
+}
 
-//   pending_packets_.push_back(dp);
-//   return b;
-// }
+#endif
 
-// bool PipelineFeedbackEdge::notifyWritten(device::Buffer* buf) {
-//   // 在 pending 中查找匹配包，置 written 并入环
-//   for (auto it = pending_packets_.rbegin(); it != pending_packets_.rend();
-//        ++it) {
-//     FeedbackDataPacket* dp = *it;
-//     if (dp->notifyWritten(buf)) {
-//       if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//         // push 失败（终止），回收并移除
-//         delete dp;
-//         pending_packets_.erase(std::next(it).base());
-//         return false;
-//       }
-//       pending_packets_.erase(std::next(it).base());
-//       return true;
-//     }
-//   }
-//   NNDEPLOY_LOGE("notifyWritten(buffer=%p) not found pending packet.\n", buf);
-//   return false;
-// }
+base::Status PipelineFeedbackEdge::set(device::Tensor *tensor,
+                                       bool is_external) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
+  base::Status status = slot->set(tensor, is_external);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Set data packet error.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  return status;
+}
 
-// base::Status PipelineFeedbackEdge::set(device::Tensor* ten, bool external) {
-//   auto* dp = new FeedbackDataPacket();
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp,
-//                                        "alloc FeedbackDataPacket failed.\n");
+device::Tensor *PipelineFeedbackEdge::create(device::Device *device,
+                                             const device::TensorDesc &desc,
+                                             const std::string &name) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
 
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+  device::Tensor *ret_value = slot->create(device, desc, name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
+                                     "Pipeline feedback edge create failed.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return nullptr;
+  }
 
-//   base::Status s = dp->set(ten, external);
-//   NNDEPLOY_RETURN_ON_NEQ(s, base::kStatusCodeOk, "dp->set(tensor)
-//   failed.\n");
+  return ret_value;
+}
 
-//   if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//     delete dp;
-//     return base::kStatusCodeErrorInvalidValue;
-//   }
-//   return base::kStatusCodeOk;
-// }
+device::Tensor *PipelineFeedbackEdge::getTensor(const Node *node) {
+  Slot slot = nullptr;
+  if (!ring_->pop(node, slot)) {
+    NNDEPLOY_LOGE("Get data packet failed.\n");
+    return nullptr;
+  }
+  return slot->getTensor();
+}
 
-// device::Tensor* PipelineFeedbackEdge::create(device::Device* dev,
-//                                              const device::TensorDesc& desc,
-//                                              const std::string& name) {
-//   auto* dp = new FeedbackDataPacket();
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "alloc FeedbackDataPacket
-//   failed.\n");
+base::Status PipelineFeedbackEdge::set(base::Param *param, bool is_external) {
+  Slot slot = std::make_shared<DataPacket>();
+  this->increaseIndex();
+  slot->setIndex(index_);
+  base::Status status = slot->set(param, is_external);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Set data packet error.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  return status;
+}
 
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+base::Param *PipelineFeedbackEdge::getParam(const Node *node) {
+  Slot slot = nullptr;
+  if (!ring_->pop(node, slot)) {
+    NNDEPLOY_LOGE("Get data packet failed.\n");
+    return nullptr;
+  }
+  return slot->getParam();
+}
 
-//   device::Tensor* t = dp->create(dev, desc, name);
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(t, "dp->create(tensor) failed.\n");
+base::Status PipelineFeedbackEdge::takeDataPacket(DataPacket *data_packet) {
+  Slot slot = std::make_shared<DataPacket>();
+  base::Status status = slot->takeDataPacket(data_packet);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Set data packet error.\n");
+  if (!ring_->push(std::move(slot))) {
+    NNDEPLOY_LOGE("Queue closed during push slot.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  return status;
+}
 
-//   pending_packets_.push_back(dp);
-//   return t;
-// }
+DataPacket *PipelineFeedbackEdge::getDataPacket(const Node *node) {
+  Slot slot = nullptr;
+  if (!ring_->pop(node, slot)) {
+    NNDEPLOY_LOGE("Get data packet failed.\n");
+    return nullptr;
+  }
+  return slot.get();
+}
 
-// bool PipelineFeedbackEdge::notifyWritten(device::Tensor* ten) {
-//   for (auto it = pending_packets_.rbegin(); it != pending_packets_.rend();
-//        ++it) {
-//     FeedbackDataPacket* dp = *it;
-//     if (dp->notifyWritten(ten)) {
-//       if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//         delete dp;
-//         pending_packets_.erase(std::next(it).base());
-//         return false;
-//       }
-//       pending_packets_.erase(std::next(it).base());
-//       return true;
-//     }
-//   }
-//   NNDEPLOY_LOGE("notifyWritten(tensor=%p) not found pending packet.\n", ten);
-//   return false;
-// }
+int64_t PipelineFeedbackEdge::getIndex(const Node *node) {
+  return ring_->find_cid(node);
+}
+//=====================================================================
+bool PipelineFeedbackEdge::notifyWritten(device::Buffer *buffer) {
+  return true;
+}
+#ifdef ENABLE_NNDEPLOY_OPENCV
+bool PipelineFeedbackEdge::notifyWritten(cv::Mat *cv_mat) { return true; }
+#endif
+bool PipelineFeedbackEdge::notifyWritten(device::Tensor *tensor) {
+  return true;
+}
+bool PipelineFeedbackEdge::notifyWritten(base::Param *param) { return true; }
+bool PipelineFeedbackEdge::notifyWritten(void *anything) { return true; }
 
-// base::Status PipelineFeedbackEdge::set(base::Param* p, bool external) {
-//   auto* dp = new FeedbackDataPacket();
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp,
-//                                        "alloc FeedbackDataPacket failed.\n");
+device::Buffer *PipelineFeedbackEdge::getGraphOutputBuffer() { return nullptr; }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+cv::Mat *PipelineFeedbackEdge::getGraphOutputCvMat() { return nullptr; }
+#endif
+device::Tensor *PipelineFeedbackEdge::getGraphOutputTensor() { return nullptr; }
+base::Param *PipelineFeedbackEdge::getGraphOutputParam() { return nullptr; }
 
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+DataPacket *PipelineFeedbackEdge::getGraphOutputDataPacket() { return nullptr; }
 
-//   base::Status s = dp->set(p, external);
-//   NNDEPLOY_RETURN_ON_NEQ(s, base::kStatusCodeOk, "dp->set(param) failed.\n");
+int64_t PipelineFeedbackEdge::getGraphOutputIndex() { return 0; }
 
-//   if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//     delete dp;
-//     return base::kStatusCodeErrorInvalidValue;
-//   }
-//   return base::kStatusCodeOk;
-// }
+int PipelineFeedbackEdge::getPosition(const Node *node) { return 0; }
 
-// bool PipelineFeedbackEdge::notifyWritten(base::Param* p) {
-//   for (auto it = pending_packets_.rbegin(); it != pending_packets_.rend();
-//        ++it) {
-//     FeedbackDataPacket* dp = *it;
-//     if (dp->notifyWritten(p)) {
-//       if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//         delete dp;
-//         pending_packets_.erase(std::next(it).base());
-//         return false;
-//       }
-//       pending_packets_.erase(std::next(it).base());
-//       return true;
-//     }
-//   }
-//   NNDEPLOY_LOGE("notifyWritten(param=%p) not found pending packet.\n", p);
-//   return false;
-// }
+int PipelineFeedbackEdge::getGraphOutputPosition() {
+  return getPosition(nullptr);
+}
 
-// #ifdef ENABLE_NNDEPLOY_OPENCV
-// base::Status PipelineFeedbackEdge::set(cv::Mat* m, bool external) {
-//   auto* dp = new FeedbackDataPacket(consumers_size_);
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp,
-//                                        "alloc FeedbackDataPacket failed.\n");
+bool PipelineFeedbackEdge::requestTerminate() { return true; }
 
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
+base::EdgeUpdateFlag PipelineFeedbackEdge::update(const Node *node) {
+  return base::kEdgeUpdateFlagComplete;
+}
+//=====================================================================
 
-//   base::Status s = dp->set(m, external);
-//   NNDEPLOY_RETURN_ON_NEQ(s, base::kStatusCodeOk, "dp->set(cv::Mat)
-//   failed.\n");
-
-//   if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//     delete dp;
-//     return base::kStatusCodeErrorInvalidState;
-//   }
-//   return base::kStatusCodeOk;
-// }
-
-// cv::Mat* PipelineFeedbackEdge::create(int rows, int cols, int type,
-//                                       const cv::Vec3b& value) {
-//   auto* dp = new FeedbackDataPacket(consumers_size_);
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "alloc FeedbackDataPacket
-//   failed.\n");
-
-//   this->increaseIndex();
-//   dp->setIndex(this->index_);
-
-//   cv::Mat* m = dp->create(rows, cols, type, value);
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(m, "dp->create(cv::Mat) failed.\n");
-
-//   pending_packets_.push_back(dp);
-//   return m;
-// }
-
-// bool PipelineFeedbackEdge::notifyWritten(cv::Mat* m) {
-//   for (auto it = pending_packets_.rbegin(); it != pending_packets_.rend();
-//        ++it) {
-//     FeedbackDataPacket* dp = *it;
-//     if (dp->notifyWritten(m)) {
-//       if (!ring_.push_blocking(static_cast<void*>(dp))) {
-//         delete dp;
-//         pending_packets_.erase(std::next(it).base());
-//         return false;
-//       }
-//       pending_packets_.erase(std::next(it).base());
-//       return true;
-//     }
-//   }
-//   NNDEPLOY_LOGE("notifyWritten(cv::Mat=%p) not found pending packet.\n", m);
-//   return false;
-// }
-// #endif
-
-// }  // namespace dag
-// }  // namespace nndeploy
+}  // namespace dag
+}  // namespace nndeploy

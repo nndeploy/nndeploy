@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "nndeploy/base/spmc_ring.h"
+#include "nndeploy/dag/node.h"
 
 using namespace nndeploy;
 using namespace base;
@@ -23,9 +24,10 @@ struct FeedbackDataPacket {
 };
 
 // 环里放“共享所有权”的异构包：最省心
-using Slot = std::variant<std::shared_ptr<DataPacket>,
-                          std::shared_ptr<PipelineDataPacket>,
-                          std::shared_ptr<FeedbackDataPacket>>;
+// using Slot = std::variant<std::shared_ptr<DataPacket>,
+//                           std::shared_ptr<PipelineDataPacket>,
+//                           std::shared_ptr<FeedbackDataPacket>>;
+using Slot = std::shared_ptr<DataPacket>;
 
 // 用 core/queue 里的默认背压策略：无消费者时不背压；有消费者看最慢 tail
 struct DefaultBasePolicy2 {
@@ -37,11 +39,11 @@ struct DefaultBasePolicy2 {
 
 int main() {
   constexpr std::size_t CAP = 1024;  // 容量=2^k
-  constexpr int N = 20000;           // 发送多少条
+  constexpr int N = 5;               // 发送多少条
   constexpr int C = 3;               // 消费者数
 
   // 队列：从“最老仍可读”开始回放，保证每个消费者能读到环里全部历史
-  SpmcRingQueue<Slot, DefaultBasePolicy2> q(CAP);
+  SpmcRingQueue<Slot, dag::Node*, DefaultBasePolicy2> q(CAP);
 
   // 注册消费者
   std::vector<std::size_t> cids;
@@ -56,24 +58,20 @@ int main() {
   std::vector<std::thread> ct;
   for (int ci = 0; ci < C; ++ci) {
     ct.emplace_back([&, ci] {
-      Slot s;
+      Slot s = nullptr;  // shared_ptr 时写：Slot s;
       while (q.pop(cids[ci], s)) {
-        // 校验单调递增（每个消费者各自有序）
-        int id = -1;
-        std::visit([&](auto& sp) { id = sp->id; }, s);
-        if (last_id[ci] + 1 != id && last_id[ci] != -1) {
+        int id = s->id;  // shared_ptr 时写：int id = s->id;
+
+        if (last_id[ci] != -1 && id != last_id[ci] + 1) {
           std::cerr << "[C" << ci << "] out-of-order: last=" << last_id[ci]
                     << " now=" << id << "\n";
           std::exit(2);
         }
         last_id[ci] = id;
         got[ci].fetch_add(1, std::memory_order_relaxed);
-
-        // 模拟处理耗时（可注释）
+        // 可选：处理耗时
         // std::this_thread::sleep_for(std::chrono::microseconds(10));
       }
-      // 退出时再把队列里可能剩下的一口气吃完（pop 返回 false 说明已 close
-      // 且读尽了）
     });
   }
 
@@ -82,18 +80,7 @@ int main() {
   std::thread p([&] {
     for (int i = 0; i < N; ++i) {
       // 轮流塞三种类型
-      Slot s;
-      switch (i % 3) {
-        case 0:
-          s = std::make_shared<DataPacket>(DataPacket{i});
-          break;
-        case 1:
-          s = std::make_shared<PipelineDataPacket>(PipelineDataPacket{i});
-          break;
-        default:
-          s = std::make_shared<FeedbackDataPacket>(FeedbackDataPacket{i});
-          break;
-      }
+      Slot s = std::make_shared<DataPacket>(DataPacket{i});
 
       // 阻塞 push：保证不丢
       if (!q.push(std::move(s))) {

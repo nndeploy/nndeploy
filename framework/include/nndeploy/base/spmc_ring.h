@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <limits>
 #include <mutex>
+#include <optional>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -34,13 +35,8 @@ class SpmcRingCore {
   SpmcRingCore(const SpmcRingCore &) = delete;
   SpmcRingCore &operator=(const SpmcRingCore &) = delete;
 
-  bool push(const Slot &v) {
-    return push_impl([&](std::optional<Slot> &s) { s.emplace(v); });
-  }
-
-  bool push(Slot &&v) {
-    return push_impl([&](std::optional<Slot> &s) { s.emplace(std::move(v)); });
-  }
+  bool push(const Slot &v) { return push_impl(v); }
+  bool push(Slot &&v) { return push_impl(std::move(v)); }
 
   bool pop(std::size_t cid, Slot &out) {
     std::size_t t = tails_[cid].load(std::memory_order_relaxed);
@@ -52,7 +48,6 @@ class SpmcRingCore {
   }
 
   std::size_t add_tails(std::size_t start_seq) {
-    // tails_.push_back(std::atomic<std::size_t>(start_seq));
     tails_.emplace_back(start_seq);
     return tails_.size() - 1;
   }
@@ -65,16 +60,14 @@ class SpmcRingCore {
   std::size_t cap() const { return cap_; }
 
  private:
-  template <class F>
-  bool push_impl(F &&write_into_optional) {
+  template <class V>
+  bool push_impl(V &&v) {
     std::size_t h = head_.load(std::memory_order_relaxed);
-    auto [min_tail, has] = min_tail_relaxed_();
-    std::size_t base = base_(h, min_tail, has);
+    std::pair<std::size_t, bool> mt = min_tail_relaxed_();
+    std::size_t base = base_(h, mt.first, mt.second);
     if (h - base >= cap_) return false;
 
-    auto &opt = buf_[h & mask_];
-    write_into_optional(opt);
-
+    buf_[h & mask_] = std::forward<V>(v);
     std::atomic_thread_fence(std::memory_order_release);
     head_.store(h + 1, std::memory_order_release);
     return true;
@@ -112,7 +105,8 @@ struct FromLatest {
   }
 };
 
-template <class Slot, class BasePolicy, class StartPolicy = FromOldest>
+template <class Slot, class Key = const void *,
+          class BasePolicy = DefaultBasePolicy, class StartPolicy = FromOldest>
 class SpmcRingQueue {
  public:
   SpmcRingQueue(std::size_t cap, BasePolicy bp = {})
@@ -120,6 +114,27 @@ class SpmcRingQueue {
 
   std::size_t add() {
     return core_.add_tails(StartPolicy::start(core_.head(), core_.oldest()));
+  }
+
+  std::size_t enroll(Key key) {
+    std::lock_guard<std::mutex> lk(reg_mu_);
+    auto it = key2cid_.find(key);
+    if (it != key2cid_.end()) return it->second;
+    std::size_t cid = add();
+    key2cid_[key] = cid;
+    return cid;
+  }
+
+  void unroll(Key key) {
+    std::lock_guard<std::mutex> lk(reg_mu_);
+    key2cid_.erase(key);
+  }
+
+  std::size_t find_cid(Key key) const {
+    std::lock_guard<std::mutex> lk(reg_mu_);
+    std::size_t npos = std::numeric_limits<std::size_t>::max();
+    auto it = key2cid_.find(key);
+    return it == key2cid_.end() ? npos : it->second;
   }
 
   bool try_push(const Slot &v) {
@@ -143,7 +158,6 @@ class SpmcRingQueue {
         return true;
       }
       std::unique_lock<std::mutex> lk(mu_);
-      // cv_not_full_.wait(lk, [&] { return closed() || likely_not_full_(); });
       cv_not_full_.wait(lk);
     }
   }
@@ -162,14 +176,21 @@ class SpmcRingQueue {
       }
       std::unique_lock<std::mutex> lk(mu_);
       if (closed()) {
-        // 关闭后尝试最后再读一次；仍然没有就退出
         if (!core_.pop(cid, out)) return false;
         cv_not_full_.notify_all();
         return true;
       }
-      // 被生产者写入或其他消费者提交时唤醒
       cv_not_empty_.wait(lk);
     }
+  }
+
+  bool try_pop(Key key, Slot &out) {
+    std::size_t cid = enroll(key);
+    return try_pop(cid, out);
+  }
+  bool pop(Key key, Slot &out) {
+    std::size_t cid = enroll(key);
+    return pop(cid, out);
   }
 
   void close() {
@@ -192,6 +213,9 @@ class SpmcRingQueue {
   std::atomic<bool> closed_{false};
   std::mutex mu_;
   std::condition_variable cv_not_full_, cv_not_empty_;
+
+  mutable std::mutex reg_mu_;
+  std::unordered_map<Key, std::size_t> key2cid_;
 };
 
 }  // namespace base
