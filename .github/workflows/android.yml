@@ -27,6 +27,8 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - '.github/workflows/android.yml'
+  release:
+    types: [created, published]  
 
 # Environment variables definition
 env:
@@ -110,13 +112,15 @@ jobs:
           cd build
           ninja -j$(nproc)
           ninja install
-          # 跳过 cpack，因为 Android 交叉编译的二进制文件与主机架构不兼容
-          # cpack 在打包时会运行 RPM 的 brp-strip 脚本，该脚本使用主机的 strip 工具
-          # 但主机的 strip (x86_64) 无法处理 Android arm64 架构的二进制文件
-          # 错误：Unable to recognise the format of the input file
-          # 解决方案：手动创建 tar.gz 包替代 cpack
-          # cpack
-          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-android-arm64-v8a.tar.gz {} +
+          # 使用 Android NDK 的 strip 工具进行 cpack 打包
+          # 设置 CPACK_STRIP_FILES 为 false 以避免使用主机的 strip 工具
+          # 或者使用 Android NDK 提供的 strip 工具
+          export ANDROID_STRIP=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+          cpack -D CPACK_STRIP_FILES=OFF
+          # 如果 cpack 仍有问题，则手动创建 tar.gz 包作为备选方案
+          if [ ! -f *.tar.gz ]; then
+            find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-android-arm64-v8a.tar.gz {} +
+          fi
           ls -la
           echo "Android arm64-v8a architecture API21 compilation completed (with OpenCV support)"
           
@@ -134,7 +138,7 @@ jobs:
         # startsWith() function checks if the string starts with the specified prefix
         # 'refs/tags/' is the reference format prefix for Git tags
         # Therefore this condition ensures Release Assets upload only occurs when pushing tags (like v1.0.0)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |
