@@ -3,11 +3,17 @@
 
 name: Windows  # Workflow name, displayed in GitHub Actions interface
 
+permissions:
+  contents: write  # Allow creating Release and uploading files
+  packages: write  # If package publishing is needed
+  actions: read    # Read Actions status
+
 # Trigger condition configuration
 on:
   # Triggered when code is pushed to specified branches
   push:
     branches: [main, develop, 'feature/**']
+    tags: ['v*', 'release-*']
     paths:  # Only trigger build when files in the following paths change
       - 'framework/**'     # Framework core code directory
       - 'plugin/**'        # Plugin extension code directory

@@ -3,10 +3,16 @@
 
 name: Android  # Workflow name
 
+permissions:
+  contents: write  # Allow creating Release and uploading files
+  packages: write  # If package publishing is needed
+  actions: read    # Read Actions status
+
 # Trigger condition configuration
 on:
   push:
     branches: [main, develop, 'feature/**']
+    tags: ['v*', 'release-*']
     paths:
       - 'framework/**'
       - 'plugin/**'
@@ -142,6 +148,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/*.tar.gz
+            build/*.tar.gz         
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,10 +3,16 @@
 
 name: iOS  # Workflow name
 
+permissions:
+  contents: write  # Allow creating Release and uploading files
+  packages: write  # If package publishing is needed
+  actions: read    # Read Actions status
+
 # Trigger condition configuration
 on:
   push:
     branches: [main, develop, 'feature/**']
+    tags: ['v*', 'release-*']
     paths:
       - 'framework/**'
       - 'plugin/**'
@@ -102,10 +108,6 @@ jobs:
           ninja install
           # 使用 CPack 生成 iOS 安装包
           cpack -C Release
-          # 如果 cpack 失败，则手动创建 tar.gz 包作为备选方案
-          if [ ! -f *.tar.gz ]; then
-            find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-ios-arm64.tar.gz {} +
-          fi
           ls -la
           echo "iOS arm64 architecture compilation completed (with OpenCV support)"
           
