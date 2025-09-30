@@ -17,7 +17,8 @@ if platform.system() == "Windows":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # MNN version
-MNN_VER = "2.4.0"
+# MNN_VER = "2.4.0"
+MNN_VER = "3.2.4"
 
 # 获取当前执行目录
 WORKSPACE = Path(os.getcwd())

@@ -91,6 +91,8 @@ jobs:
       # Download and setup Android OpenCV
       - name: Download and setup Android OpenCV
         run: |
+          cd tool/script
+          python install_mnn.py
           cd $HOME
           wget -O opencv-android.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-android-sdk.zip
           unzip opencv-android.zip
@@ -102,7 +104,8 @@ jobs:
       - name: Configure build
         run: |
           mkdir build
-          cp cmake/config_minimal.cmake build/config.cmake
+          # cp cmake/config_minimal.cmake build/config.cmake
+          cp cmake/config_android.cmake build/config.cmake
           cd build
           cmake -G Ninja \
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
@@ -123,10 +126,6 @@ jobs:
           # 或者使用 Android NDK 提供的 strip 工具
           export ANDROID_STRIP=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
           cpack -D CPACK_STRIP_FILES=OFF
-          # 如果 cpack 仍有问题，则手动创建 tar.gz 包作为备选方案
-          if [ ! -f *.tar.gz ]; then
-            find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-android-arm64-v8a.tar.gz {} +
-          fi
           ls -la
           echo "Android arm64-v8a architecture API21 compilation completed (with OpenCV support)"
           

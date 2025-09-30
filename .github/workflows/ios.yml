@@ -77,6 +77,8 @@ jobs:
       # Download and setup iOS OpenCV
       - name: Download and setup iOS OpenCV
         run: |
+          cd tool/script
+          python install_mnn.py
           cd $HOME
           wget -O opencv-ios.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-ios-framework.zip
           unzip opencv-ios.zip
@@ -88,7 +90,8 @@ jobs:
       - name: Configure build
         run: |
           mkdir build
-          cp cmake/config_minimal.cmake build/config.cmake
+          # cp cmake/config_minimal.cmake build/config.cmake
+          cp cmake/config_ios.cmake build/config.cmake
           cd build
           cmake -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \

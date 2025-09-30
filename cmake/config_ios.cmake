@@ -47,7 +47,6 @@ set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, 
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF) # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
-# set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/github/public/MNN/project/android/build_64") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "tool/script/third_party/mnn3.2.4") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # Whether to enable INFERENCE TVM, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # Whether to enable INFERENCE PADDLELITE, default is OFF
@@ -66,9 +65,9 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
 set(ENABLE_NNDEPLOY_OPENCV ON) # Whether to link the third-party OpenCV library, default is ON
-set(NNDEPLOY_OPENCV_LIBS opencv_java4) # Link all OpenCV libraries by default
+set(NNDEPLOY_OPENCV_LIBS) # Link all OpenCV libraries by default
 
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF) # Whether to enable IR, default is OFF
+# set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF) # Whether to enable safetensors-cpp, default is OFF
 
 set(ENABLE_NNDEPLOY_INFERENCE_DEFAULT ON) # 
 
@@ -77,5 +76,3 @@ set(ENABLE_NNDEPLOY_PLUGIN ON) # Whether to enable plugin, default is OFF
 set(ENABLE_NNDEPLOY_DEMO ON) # Whether to enable language model plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_PYTHON OFF) # Whether to enable text-to-image plugin, default is OFF
-
-set(ENABLE_NNDEPLOY_FFI_JAVA ON) # Whether to enable FFI Java, default is OFF
