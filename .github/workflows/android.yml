@@ -61,6 +61,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      # Step Update Python dependencies
+      - name: Update Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine requests pathlib cython
           
       # Setup Rust toolchain
       - name: Setup Rust toolchain
@@ -92,7 +98,7 @@ jobs:
       - name: Download and setup Android OpenCV
         run: |
           cd tool/script
-          python install_mnn.py
+          python install_mnn.py --system Android --machine arm64
           cd $HOME
           wget -O opencv-android.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-android-sdk.zip
           unzip opencv-android.zip

@@ -10,6 +10,8 @@ import requests
 import platform
 from pathlib import Path
 
+
+
 # 设置标准输出编码为UTF-8，解决Windows下中文输出问题
 if platform.system() == "Windows":
     import io
@@ -34,10 +36,10 @@ MNN_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 os.chdir(MNN_BUILD_DIR)
 
 # 根据平台确定下载URL和文件名
-def get_download_info():
+def get_download_info(system, machine):
     """根据当前平台返回对应的下载信息"""
-    system = platform.system()
-    machine = platform.machine()
+    # system = platform.system()
+    # machine = platform.machine()
     
     if system == "Windows":
         if machine == "AMD64" or machine == "x86_64":
@@ -75,7 +77,27 @@ def get_download_info():
     return url, filename
 
 # 获取下载信息
-url, filename = get_download_info()
+# 允许外部指定系统和架构信息，如果未指定则使用当前平台信息
+import argparse
+
+# 解析命令行参数
+parser = argparse.ArgumentParser(description='Install MNN precompiled library')
+parser.add_argument('--system', type=str, help='Target system (Windows, Linux, Darwin, Android, iOS)')
+parser.add_argument('--machine', type=str, help='Target machine architecture (x86_64, arm64, etc.)')
+args = parser.parse_args()
+
+# 如果命令行指定了系统和架构，使用指定的值；否则使用当前平台信息
+if args.system:
+    system = args.system
+else:
+    system = platform.system()
+
+if args.machine:
+    machine = args.machine
+else:
+    machine = platform.machine()
+
+url, filename = get_download_info(system, machine)
 
 # 下载MNN预编译版本
 print(f"Downloading MNN {MNN_VER}...")
@@ -166,6 +188,11 @@ shutil.copytree("mnn", MNN_INSTALL_DIR, symlinks=True)
 # 验证安装
 include_dir = MNN_INSTALL_DIR / "include"
 lib_dir = MNN_INSTALL_DIR / "lib"
+if system == "Android" and machine == "arm64":
+    if machine == "armeabi-v7a":
+        lib_dir = MNN_INSTALL_DIR / "armeabi-v7a"
+    else:
+        lib_dir = MNN_INSTALL_DIR / "arm64-v8a"    
 bin_dir = MNN_INSTALL_DIR / "bin"
 
 # 创建lib和bin目录
@@ -197,19 +224,20 @@ print(f"Binary directory: {bin_dir} - {'exists' if bin_dir.exists() else 'not fo
 
 if include_dir.exists():
     print("Header files:")
-    for header in include_dir.glob("**/*.h"):
-        print(f"  {header.relative_to(include_dir)}")
+    for header in include_dir.rglob("*"):
+        if header.is_file():
+            print(f"  {header.relative_to(include_dir)}")
 
 if lib_dir.exists():
     print("Library files:")
-    for lib_file in lib_dir.iterdir():
+    for lib_file in lib_dir.rglob("*"):
         if lib_file.is_file():
-            print(f"  {lib_file.name}")
+            print(f"  {lib_file.relative_to(lib_dir)}")
 
 if bin_dir.exists():
     print("Binary files:")
-    for bin_file in bin_dir.iterdir():
+    for bin_file in bin_dir.rglob("*"):
         if bin_file.is_file():
-            print(f"  {bin_file.name}")
+            print(f"  {bin_file.relative_to(bin_dir)}")
 
 print(f"MNN {MNN_VER} installation completed!")
