@@ -17,26 +17,19 @@ class Prefill : public dag::Graph {
  public:
   Prefill(const std::string& name, std::vector<dag::Edge*> inputs,
           std::vector<dag::Edge*> outputs);
+  Prefill(const std::string& name);
   virtual ~Prefill();
 
-  virtual base::Status defaultParam();
-
   virtual base::Status make(const dag::NodeDesc& tokenizer,
-                            const dag::NodeDesc& embedding,
                             const dag::NodeDesc& infer,
                             const dag::NodeDesc& sample);
-
-  virtual base::Status serialize(rapidjson::Value& json,
-                                 rapidjson::Document::AllocatorType& allocator);
-  virtual base::Status deserialize(rapidjson::Value& json);
 
   virtual std::vector<dag::Edge*> forward(dag::Edge* input) override;
 
  private:
   dag::Node* prefill_token_node_;
-  dag::Node* prefill_embedding_node_;
   dag::Node* prefill_infer_node_;
-  dag::Node* prefill_sample_node_;
+  dag::Node* prefill_sampler_node_;
 };
 
 }  // namespace llm

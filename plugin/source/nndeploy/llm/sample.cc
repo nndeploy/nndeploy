@@ -638,7 +638,7 @@ int Sampler::sample(device::Tensor* logits) {
   return res;
 }
 
-REGISTER_NODE("nndeploy::llm::Samplerr", Sampler);
+REGISTER_NODE("nndeploy::llm::Sampler", Sampler);
 
 }  // namespace llm
 }  // namespace nndeploy

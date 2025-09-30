@@ -1076,6 +1076,8 @@ bool Node::isInputsChanged(std::vector<Edge *> inputs) {
   return false;
 }
 
+base::Status Node::toStaticGraph() { return base::kStatusCodeOk; }
+
 std::vector<std::string> Node::getRealOutputsName() {
   std::vector<std::string> real_outputs_name;
   if (!outputs_.empty()) {

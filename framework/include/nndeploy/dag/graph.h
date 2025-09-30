@@ -197,7 +197,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Edge *> trace(Edge *input);
 
   bool isForwardApiOk();
-  base::Status toStaticGraph();
+  virtual base::Status toStaticGraph();
 
   // global resource
   virtual base::Status addResourceWithoutState(const std::string &key,

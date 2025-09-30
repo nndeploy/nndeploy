@@ -528,12 +528,8 @@ def get_node_json(node_key: str):
     
     # print(node)   
     is_graph = node.get_graph_flag()
-    is_graph_type = isinstance(node, _C.dag.Graph)
     
-    if is_graph and not is_graph_type:
-        print(f"node key[{node.get_key()}] is graph, but not export python graph type")
-        return ""
-    if is_graph and is_graph_type:
+    if is_graph:
         # print(node)        
         node.set_inner_flag(True)
         status = node.to_static_graph()

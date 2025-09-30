@@ -176,6 +176,10 @@ class PyNode : public Base {
                            input);
   }
 
+  base::Status toStaticGraph() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
+  }
+
   std::vector<std::string> getRealOutputsName() override {
     PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base,
                            "get_real_outputs_name", getRealOutputsName);
@@ -338,6 +342,10 @@ class PyGraph : public Base {
 
   virtual void setTraceFlag(bool flag) override {
     PYBIND11_OVERRIDE_NAME(void, Base, "set_trace_flag", setTraceFlag, flag);
+  }
+
+  base::Status toStaticGraph() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
   }
 
   virtual base::Status serialize(

@@ -425,6 +425,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::overload_cast<std::vector<Edge *> &>(&Node::checkOutputs),
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
+      .def("to_static_graph", &Node::toStaticGraph,
+           py::return_value_policy::reference)
       .def("get_real_outputs_name", &Node::getRealOutputsName)
       .def("serialize",
            py::overload_cast<rapidjson::Value &,

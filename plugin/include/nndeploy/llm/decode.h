@@ -21,24 +21,20 @@ class Decode : public dag::Loop {
          std::vector<dag::Edge*> outputs);
   virtual ~Decode();
 
-  virtual base::Status defaultParam();
-
   virtual base::Status make(const dag::NodeDesc& tokenizer,
-                            const dag::NodeDesc& embedding,
                             const dag::NodeDesc& infer,
                             const dag::NodeDesc& sample);
 
-  virtual base::Status serialize(rapidjson::Value& json,
-                                 rapidjson::Document::AllocatorType& allocator);
-  virtual base::Status deserialize(rapidjson::Value& json);
-
   virtual int loops() override;
+
+  //   virtual base::Status run() override;
+
+  virtual std::vector<dag::Edge*> forward(dag::Edge* input) override;
 
  private:
   dag::Node* decode_token_node_;
-  dag::Node* decode_embedding_node_;
   dag::Node* decode_infer_node_;
-  dag::Node* decode_sample_node_;
+  dag::Node* decode_sampler_node_;
 };
 
 }  // namespace llm

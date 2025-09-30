@@ -367,6 +367,8 @@ class NNDEPLOY_CC_API Node {
   bool checkOutputs(std::vector<Edge *> &outputs);
   bool isInputsChanged(std::vector<Edge *> inputs);
 
+  virtual base::Status toStaticGraph();
+
   virtual std::vector<std::string> getRealOutputsName();
 
   // to json
