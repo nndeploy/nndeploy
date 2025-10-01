@@ -193,6 +193,10 @@ include_dir = MNN_INSTALL_DIR / "include"
 lib_dir = MNN_INSTALL_DIR / "lib"  
 bin_dir = MNN_INSTALL_DIR / "bin"
 
+# 从all_libs中移除include_dir、lib_dir和bin_dir
+all_libs = [lib for lib in all_libs if lib not in [include_dir, lib_dir, bin_dir]]
+print(f"all_libs: {all_libs}")
+
 # 创建lib和bin目录
 lib_dir.mkdir(parents=True, exist_ok=True)
 bin_dir.mkdir(parents=True, exist_ok=True)
