@@ -121,9 +121,9 @@ jobs:
           cd build
           ninja -j$(nproc)
           ninja install
-          # 使用 Android NDK 的 strip 工具进行 cpack 打包
-          # 设置 CPACK_STRIP_FILES 为 false 以避免使用主机的 strip 工具
-          # 或者使用 Android NDK 提供的 strip 工具
+          # Use Android NDK strip tool for cpack packaging
+          # Set CPACK_STRIP_FILES to false to avoid using host strip tool
+          # Or use the strip tool provided by Android NDK
           export ANDROID_STRIP=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
           cpack -D CPACK_STRIP_FILES=OFF
           ls -la
