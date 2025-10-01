@@ -63,8 +63,6 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
-# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
-# set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
 set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0_Android") # Whether to link the third-party OpenCV library, default is ON
 set(NNDEPLOY_OPENCV_LIBS opencv_java4) # Link all OpenCV libraries by default
 
