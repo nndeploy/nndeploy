@@ -186,13 +186,11 @@ if MNN_INSTALL_DIR.exists():
 shutil.copytree("mnn", MNN_INSTALL_DIR, symlinks=True)
 
 # 验证安装
+all_libs = MNN_INSTALL_DIR.rglob("*")
+print(f"all_libs: {all_libs}")
+
 include_dir = MNN_INSTALL_DIR / "include"
-lib_dir = MNN_INSTALL_DIR / "lib"
-if system == "Android" and machine == "arm64":
-    if machine == "armeabi-v7a":
-        lib_dir = MNN_INSTALL_DIR / "armeabi-v7a"
-    else:
-        lib_dir = MNN_INSTALL_DIR / "arm64-v8a"    
+lib_dir = MNN_INSTALL_DIR / "lib"  
 bin_dir = MNN_INSTALL_DIR / "bin"
 
 # 创建lib和bin目录
@@ -201,9 +199,10 @@ bin_dir.mkdir(parents=True, exist_ok=True)
 
 # 拷贝动态库文件到相应目录
 print("Copying dynamic libraries...")
-for item in MNN_INSTALL_DIR.rglob("*"):
+for item in all_libs:
+    print(f"item: {item}")
     if item.is_file():
-        if platform.system() == "Windows":
+        if system == "Windows":
             # Windows平台：.dll文件拷贝到bin目录，.lib文件拷贝到lib目录
             if item.suffix == '.dll':
                 shutil.copy2(item, bin_dir, follow_symlinks=False)
@@ -211,6 +210,23 @@ for item in MNN_INSTALL_DIR.rglob("*"):
             elif item.suffix == '.lib':
                 shutil.copy2(item, lib_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to lib directory")
+        elif system == "Android":
+            if item.suffix in ['.so', '.dylib'] or '.so.' in item.name:
+               # 检查文件路径中是否包含架构信息，拷贝到对应的架构目录
+               if "armeabi-v7a" in str(item):
+                   target_lib_dir = MNN_INSTALL_DIR / "lib" / "armeabi-v7a"
+                   target_lib_dir.mkdir(parents=True, exist_ok=True)
+                   shutil.copy2(item, target_lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to armeabi-v7a lib directory")
+               elif "arm64-v8a" in str(item):
+                   target_lib_dir = MNN_INSTALL_DIR / "lib" / "arm64-v8a"
+                   target_lib_dir.mkdir(parents=True, exist_ok=True)
+                   shutil.copy2(item, target_lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to arm64-v8a lib directory")
+               else:
+                   # 如果没有架构信息，拷贝到默认的lib目录
+                   shutil.copy2(item, lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to lib directory")
         else:
             # Linux/macOS平台：.so/.dylib文件拷贝到lib目录
             if item.suffix in ['.so', '.dylib'] or '.so.' in item.name:

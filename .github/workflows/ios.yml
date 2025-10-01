@@ -84,20 +84,15 @@ jobs:
       - name: Download and setup iOS OpenCV
         run: |
           cd tool/script
-          python install_mnn.py --system iOS --machine arm64
-          cd $HOME
-          wget -O opencv-ios.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-ios-framework.zip
-          unzip opencv-ios.zip
-          mv opencv2.framework opencv-ios-framework
-          echo "OpenCV for iOS downloaded and extracted to: $HOME/opencv-ios-framework"
-          ls -la $HOME/opencv-ios-framework/
+          python install_mnn.py --system iOS
+          python mobile_install_opencv.py --system iOS
           
       # Configure CMake build environment
       - name: Configure build
         run: |
           mkdir build
-          # cp cmake/config_minimal.cmake build/config.cmake
-          cp cmake/config_ios.cmake build/config.cmake
+          cp cmake/config_minimal.cmake build/config.cmake
+          # cp cmake/config_ios.cmake build/config.cmake
           cd build
           cmake -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \
@@ -105,7 +100,6 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ env.IOS_DEPLOYMENT_TARGET }} \
             -DCMAKE_IOS_INSTALL_COMBINED=YES \
             -DCMAKE_BUILD_TYPE=Release \
-            -DOpenCV_DIR=$HOME/opencv-ios-framework \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ..
       
