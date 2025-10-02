@@ -182,14 +182,17 @@ print(f"Installing to target directory: {MNN_INSTALL_DIR}")
 if MNN_INSTALL_DIR.exists():
     shutil.rmtree(MNN_INSTALL_DIR)
 
-# 拷贝整个目录
-shutil.copytree("mnn", MNN_INSTALL_DIR, symlinks=True)
-
-# 验证安装
-all_libs = MNN_INSTALL_DIR.rglob("*")
+# 拷贝下载的MNN目录到build目录
+MNN_DOWNLOAD_DIR = MNN_BUILD_DIR / "mnn"
+all_libs = MNN_DOWNLOAD_DIR.rglob("*")
 print(f"all_libs: {all_libs}")
 
+# 拷贝头文件
 include_dir = MNN_INSTALL_DIR / "include"
+if not include_dir.exists():
+    include_dir.mkdir(parents=True, exist_ok=True)
+shutil.copytree(MNN_DOWNLOAD_DIR / "include", include_dir, symlinks=True, dirs_exist_ok=True)
+
 lib_dir = MNN_INSTALL_DIR / "lib"  
 bin_dir = MNN_INSTALL_DIR / "bin"
 
