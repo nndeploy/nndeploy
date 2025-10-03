@@ -27,9 +27,9 @@ class Prefill : public dag::Graph {
   virtual std::vector<dag::Edge*> forward(dag::Edge* input) override;
 
  private:
-  dag::Node* prefill_token_node_;
-  dag::Node* prefill_infer_node_;
-  dag::Node* prefill_sampler_node_;
+  dag::Node* prefill_token_node_ = nullptr;
+  llm::LlmInfer* prefill_infer_node_ = nullptr;
+  dag::Node* prefill_sampler_node_ = nullptr;
 };
 
 }  // namespace llm

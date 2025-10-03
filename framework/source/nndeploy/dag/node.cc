@@ -610,6 +610,22 @@ base::Status Node::setOutput(Edge *output, int index) {
   return base::kStatusCodeOk;
 }
 
+base::Status Node::setIterInput(Edge *input, int index) {
+  if (input == nullptr) {
+    NNDEPLOY_LOGE("input is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  if (index == -1) {
+    inputs_.emplace_back(input);
+  } else {
+    if (index >= inputs_.size()) {
+      inputs_.resize(index + 1);
+    }
+    inputs_[index] = input;
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status Node::setInputs(std::vector<Edge *> inputs) {
   // if (inputs.empty()) {
   //   NNDEPLOY_LOGE("inputs is empty.\n");

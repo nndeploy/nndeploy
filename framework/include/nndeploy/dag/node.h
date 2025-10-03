@@ -218,6 +218,7 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
+  virtual base::Status setIterInput(Edge *input, int index = -1);
 
   virtual base::Status setInputs(std::vector<Edge *> inputs);
   virtual base::Status setOutputs(std::vector<Edge *> outputs);

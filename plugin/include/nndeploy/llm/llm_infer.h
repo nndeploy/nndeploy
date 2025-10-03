@@ -51,6 +51,11 @@ class NNDEPLOY_CC_API LlmInfer : public dag::CompositeNode {
            std::vector<dag::Edge*> outputs);
   virtual ~LlmInfer();
 
+  virtual base::Status setPrefill(bool is_prefill);
+  virtual int getMaxSeqLen() {
+    return llm_infer_->getMaxSeqLen();
+  }
+
   virtual base::Status init();
   virtual base::Status deinit();
 

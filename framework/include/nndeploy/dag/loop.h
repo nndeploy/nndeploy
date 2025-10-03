@@ -28,10 +28,22 @@ class NNDEPLOY_CC_API Loop : public Graph {
        std::vector<dag::Edge *> outputs);
   virtual ~Loop();
 
+  virtual base::Status initStart(){
+     return base::kStatusCodeOk;
+  }
+  virtual base::Status initEnd(){
+     return base::kStatusCodeOk;
+  }
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual int loops() = 0;
+  virtual base::Status iterBefore() {
+     return base::kStatusCodeOk;
+  }
+  virtual base::Status iterAfter() {
+     return base::kStatusCodeOk;
+  }
   virtual base::Status run();
 
  protected:

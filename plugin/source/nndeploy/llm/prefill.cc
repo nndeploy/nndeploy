@@ -11,12 +11,13 @@ Prefill::Prefill(const std::string& name, std::vector<dag::Edge*> inputs,
   key_ = "nndeploy::llm::Prefill";
   desc_ = "Prefill: Prefill pipeline";
 
-  this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
+  this->setInputTypeInfo<tokenizer::TokenizerText>("input_text");
   this->setOutputTypeInfo<tokenizer::TokenizerIds>("output_tokens");
 
   prefill_token_node_ =
       this->createNode<tokenizer::TokenizerEncodeCpp>("token_node");
-  prefill_infer_node_ = this->createNode<llm::LlmInfer>("prefill_infer");
+  prefill_infer_node_ = dynamic_cast<llm::LlmInfer*>(this->createNode<llm::LlmInfer>("prefill_infer"));
+  prefill_infer_node_->setPrefill(true);
   prefill_sampler_node_ =
       this->createNode<Sampler>("prefill_sampler_node");
 }
@@ -24,12 +25,13 @@ Prefill::Prefill(const std::string& name) : dag::Graph(name) {
   key_ = "nndeploy::llm::Prefill";
   desc_ = "Prefill: Prefill pipeline";
 
-  this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
+  this->setInputTypeInfo<tokenizer::TokenizerText>("input_text");
   this->setOutputTypeInfo<tokenizer::TokenizerIds>("output_tokens");
 
   prefill_token_node_ =
       this->createNode<tokenizer::TokenizerEncodeCpp>("token_node");
-  prefill_infer_node_ = this->createNode<llm::LlmInfer>("prefill_infer");
+  prefill_infer_node_ = dynamic_cast<llm::LlmInfer*>(this->createNode<llm::LlmInfer>("prefill_infer"));
+  prefill_infer_node_->setPrefill(true);
   prefill_sampler_node_ =
       this->createNode<Sampler>("prefill_sampler_node");
 }

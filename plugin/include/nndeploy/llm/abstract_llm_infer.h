@@ -72,6 +72,10 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
+  virtual int getMaxSeqLen() {
+    return std::numeric_limits<int>::max();
+  }
+
   device::Tensor *genPastKeyValue(
       const std::vector<int32_t> &kv_init_shape,
       base::DeviceType device_type = base::kDeviceTypeCodeCpu) {

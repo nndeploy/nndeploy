@@ -38,6 +38,11 @@ LlmInfer::LlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
 
 LlmInfer::~LlmInfer() {}
 
+base::Status LlmInfer::setPrefill(bool is_prefill) {
+  is_prefill_ = is_prefill;
+  return base::kStatusCodeOk;
+}
+
 base::Status LlmInfer::init() {
   llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
                                     is_prefill_);
