@@ -119,6 +119,8 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
 
   virtual base::Status run();
 
+  int32_t sampleOld(device::Tensor* logits);
+
   int sample(device::Tensor* logits);
 
   struct SubsetLogits penalty(struct SubsetLogits superset);

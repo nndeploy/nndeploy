@@ -34,6 +34,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
     desc_ =
         "LLM abstract pipeline: input_tokens -> "
         "inference -> [logits]";
+    this->setDynamicInput(true);
     this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
     this->setOutputTypeInfo<device::Tensor>("output_logits");
   }
@@ -44,6 +45,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
     desc_ =
         "LLM abstract pipeline: input_tokens -> "
         "inference -> [logits]";
+    this->setDynamicInput(true);
     this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
     this->setOutputTypeInfo<device::Tensor>("output_logits");
   }
@@ -72,9 +74,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
-  virtual int getMaxSeqLen() {
-    return std::numeric_limits<int>::max();
-  }
+  virtual int getMaxSeqLen() { return std::numeric_limits<int>::max(); }
 
   device::Tensor *genPastKeyValue(
       const std::vector<int32_t> &kv_init_shape,

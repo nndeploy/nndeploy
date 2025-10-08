@@ -55,6 +55,10 @@ base::Status Decode::initEnd() {
 
 base::Status Decode::iterAfter() {
   auto decode_sampler_node_output_ = decode_sampler_node_->getOutput(0);
+  if (decode_sampler_node_output_->empty()) {
+    NNDEPLOY_LOGE("Decode iterAfter decode_sampler_node_output_ is empty\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
   decode_infer_node_->setIterInput(decode_sampler_node_output_, 1);
   return base::kStatusCodeOk;
 }
@@ -64,7 +68,7 @@ std::vector<dag::Edge*> Decode::forward(dag::Edge* input) {
   for (int i = 0; i < this->loops(); i++) {
     output = (*decode_infer_node_)(input);
     output = (*decode_sampler_node_)(output);
-    decode_infer_node_->setIterInput(output[0], 1);
+    // decode_infer_node_->setIterInput(output[0], 1);
     output.push_back(input);
     output = (*decode_token_node_)(output);
     output = (*stream_out_node_)(output);
@@ -113,6 +117,11 @@ int Decode::loops() {
   if (inputs_[0]->empty()) {
     NNDEPLOY_LOGE("Decode loops is 1\n");
     return 1;
+  }
+  static int loops_count = 0;
+  loops_count++;
+  if (loops_count > 120) {
+    return -1;
   }
   if (isStop()) {
     NNDEPLOY_LOGE("Decode loops is -1\n");
@@ -181,6 +190,11 @@ base::Status Decode::serialize(rapidjson::Value& json,
   json.AddMember("tokenizer_txt_",
                  rapidjson::Value(tokenizer_txt_.c_str(), allocator),
                  allocator);
+  rapidjson::Value stop_texts_array(rapidjson::kArrayType);
+  for (const auto& stop_text : stop_texts_) {
+    stop_texts_array.PushBack(rapidjson::Value(stop_text.c_str(), allocator), allocator);
+  }
+  json.AddMember("stop_texts_", stop_texts_array, allocator);
   return status;
 }
 
@@ -191,6 +205,13 @@ base::Status Decode::deserialize(rapidjson::Value& json) {
   }
   if (json.HasMember("tokenizer_txt_") && json["tokenizer_txt_"].IsString()) {
     tokenizer_txt_ = json["tokenizer_txt_"].GetString();
+  }
+  if (json.HasMember("stop_texts_") && json["stop_texts_"].IsArray()) {
+    stop_texts_.clear();
+    const rapidjson::Value& stop_texts_array = json["stop_texts_"];
+    for (const auto& stop_text : stop_texts_array.GetArray()) {
+      stop_texts_.push_back(stop_text.GetString());
+    }
   }
   return status;
 }

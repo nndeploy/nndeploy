@@ -93,7 +93,8 @@ class GraphRunner:
             nndeploy.base.time_point_end("deserialize_" + name)
 
             self.graph.set_time_profile_flag(True)
-            self.graph.set_debug_flag(False)
+            if args is not None and args.debug:
+                self.graph.set_debug_flag(True)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
 

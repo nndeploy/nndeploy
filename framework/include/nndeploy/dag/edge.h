@@ -133,7 +133,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
       std::unique_lock<std::mutex> lock(type_info_mutex_);
       type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
     }
-    if (!type_info_->isType<T>()) {
+    if (type_info_ != nullptr && !type_info_->isType<T>()) {
       // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
@@ -145,7 +145,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
       std::unique_lock<std::mutex> lock(type_info_mutex_);
       type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
     }
-    if (!type_info_->isType<T>()) {
+    if (type_info_ != nullptr && !type_info_->isType<T>()) {
       // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
@@ -188,12 +188,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     if (type_info_ == nullptr) {
       type_info_ = std::make_shared<EdgeTypeInfo>();
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
-      // type_info_->getTypeName().c_str());
     } else {
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
-      // type_info_->getTypeName().c_str());
     }
     if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
       type_info_cv_.notify_all();

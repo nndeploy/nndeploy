@@ -371,6 +371,7 @@ base::Status Node::setParam(base::Param *param) {
 }
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
+    NNDEPLOY_LOGI("Node [%s]::setParamSharedPtr param\n", name_.c_str());
     return param->copyTo(param_.get());
   } else {
     param_ = param;
@@ -407,7 +408,7 @@ base::Status Node::setParam(const std::string &key, const std::string &value) {
 
 base::Status Node::addResourceWithoutState(const std::string &key,
                                            const base::Any &value) {
-  NNDEPLOY_LOGI("addResourceWithoutState: %s\n", key.c_str());
+  // NNDEPLOY_LOGI("addResourceWithoutState: %s\n", key.c_str());
   if (graph_ != nullptr) {
     return graph_->addResourceWithoutState(key, value);
   } else if (composite_node_ != nullptr) {
@@ -419,7 +420,7 @@ base::Status Node::addResourceWithoutState(const std::string &key,
 }
 
 base::Any &Node::getResourceWithoutState(const std::string &key) {
-  NNDEPLOY_LOGI("getResourceWithoutState: %s\n", key.c_str());
+  // NNDEPLOY_LOGI("getResourceWithoutState: %s\n", key.c_str());
   if (graph_ != nullptr) {
     return graph_->getResourceWithoutState(key);
   } else if (composite_node_ != nullptr) {
@@ -440,10 +441,10 @@ Edge *Node::createResourceWithState(const std::string &key) {
     Edge *edge = new Edge(key);
     edge->setParallelType(parallel_type_);
     std::vector<Node *> producers = {this};
-    edge->increaseProducers(producers);
-    edge->construct();
     auto queue_max_size = graph_->getEdgeQueueMaxSize();
     edge->setQueueMaxSize(queue_max_size);
+    edge->increaseProducers(producers);
+    edge->construct();
     graph_->addResourceWithState(key, edge);
     return edge;
   } else if (composite_node_ != nullptr) {
@@ -473,7 +474,7 @@ Edge *Node::getResourceWithState(const std::string &key) {
     }
     return edge;
   } else if (composite_node_ != nullptr) {
-    return composite_node_->createResourceWithState(key);
+    return composite_node_->getResourceWithState(key);
   } else {
     NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
     return nullptr;
@@ -622,6 +623,8 @@ base::Status Node::setIterInput(Edge *input, int index) {
       inputs_.resize(index + 1);
     }
     inputs_[index] = input;
+    NNDEPLOY_LOGI("node[%s] inputs's size: %d, setIterInput index: %d, input: %p\n",
+           name_.c_str(), inputs_.size(), index, input);
   }
   return base::kStatusCodeOk;
 }

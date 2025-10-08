@@ -72,14 +72,19 @@ base::Status EmbeddingParam::deserialize(rapidjson::Value& json) {
     return status;
   }
 
+  NNDEPLOY_LOGI("EmbeddingParam::deserialize json: %s\n", json.GetString());
   // 反序列化隐藏层维度
   if (json.HasMember("hidden_size") && json["hidden_size"].IsInt()) {
+    NNDEPLOY_LOGI("EmbeddingParam::deserialize hidden_size: %d\n",
+                  json["hidden_size"].GetInt());
     hidden_size_ = json["hidden_size"].GetInt();
   }
 
   // 反序列化嵌入权重文件路径
   if (json.HasMember("embedding_weight_path") &&
       json["embedding_weight_path"].IsString()) {
+    NNDEPLOY_LOGI("EmbeddingParam::deserialize embedding_weight_path: %s\n",
+                  json["embedding_weight_path"].GetString());
     embedding_weight_path_ = json["embedding_weight_path"].GetString();
   }
 

@@ -52,14 +52,13 @@ class NNDEPLOY_CC_API LlmInfer : public dag::CompositeNode {
   virtual ~LlmInfer();
 
   virtual base::Status setPrefill(bool is_prefill);
-  virtual int getMaxSeqLen() {
-    return llm_infer_->getMaxSeqLen();
-  }
+  virtual int getMaxSeqLen();
 
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual base::Status run();
+  virtual base::Status setIterInput(dag::Edge* input, int index);
 
   using dag::CompositeNode::serialize;
   virtual base::Status serialize(
@@ -86,7 +85,8 @@ class NNDEPLOY_CC_API LlmInfer : public dag::CompositeNode {
   llm::AbstractLlmInfer* llm_infer_ = nullptr;
 
   // model inputs
-  std::vector<std::string> model_inputs_ = {"input_ids", "attention_mask", "position_ids", "past_key_values"};
+  std::vector<std::string> model_inputs_ = {"input_ids", "attention_mask",
+                                            "position_ids", "past_key_values"};
   // model outputs
   std::vector<std::string> model_outputs_ = {"logits", "presents"};
 };

@@ -43,6 +43,10 @@ base::Status LlmInfer::setPrefill(bool is_prefill) {
   return base::kStatusCodeOk;
 }
 
+int LlmInfer::getMaxSeqLen() {
+  return llm_infer_->getMaxSeqLen();
+}
+
 base::Status LlmInfer::init() {
   llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
                                     is_prefill_);
@@ -93,6 +97,15 @@ base::Status LlmInfer::run() {
   }
   llm_infer_->setRunningFlag(false);
   return base::kStatusCodeOk;
+}
+
+base::Status LlmInfer::setIterInput(dag::Edge* input, int index) {
+  base::Status status = dag::Node::setIterInput(input, index);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::setIterInput failed\n");
+    return status;
+  }
+  return llm_infer_->setIterInput(input, index);
 }
 
 base::Status LlmInfer::serialize(
@@ -213,6 +226,7 @@ llm::AbstractLlmInfer* LlmInfer::createLlmInfer(std::vector<dag::Edge*> inputs,
     NNDEPLOY_LOGE("create llm infer failed\n");
     return nullptr;
   }
+  this->addNode(llm_infer);
 
   llm_infer->setModelKey(model_key);
   llm_infer->setInferKey(infer_key);

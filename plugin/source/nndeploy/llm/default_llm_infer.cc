@@ -27,5 +27,7 @@ namespace llm {
 
 REGISTER_NODE("nndeploy::llm::DefaultLlmInfer", DefaultLlmInfer);
 
+REGISTER_LLM_INFER("DefaultLlmInfer", "Qwen", DefaultLlmInfer);
+
 }  // namespace llm
 }  // namespace nndeploy
