@@ -1,14 +1,14 @@
 
 set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX lib)
 
-if(SYSTEM.Android)
+if(SYSTEM_Android)
   list(APPEND NNDEPLOY_SYSTEM_LIBRARY log)
-  set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX ${ANDROID_ABI})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX lib/${ANDROID_ABI})
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,common-page-size=16384 -Wl,-z,max-page-size=16384")
-elseif(SYSTEM.Linux)
-elseif(SYSTEM.Darwin)
-elseif(SYSTEM.iOS)
-elseif(SYSTEM.Windows)
+elseif(SYSTEM_Linux)
+elseif(SYSTEM_Darwin)
+elseif(SYSTEM_iOS)
+elseif(SYSTEM_Windows)
 endif()
 
 # ################### common ####################

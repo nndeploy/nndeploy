@@ -21,13 +21,21 @@
 //     background-color: var(--semi-color-fill-0);
 //   }
 // }
-.download-model{
-  .model-item{
-    word-break: break-all;
+.download-model {
+  .model-item {
+
     margin: 4px 0px;
     padding: 8px;
-    &:hover{
+
+    &:hover {
       background-color: #eee;
     }
+
+    .model-name {
+      word-break: break-all;
+      margin-bottom: 1.0em;
+
+    }
+
   }
 }

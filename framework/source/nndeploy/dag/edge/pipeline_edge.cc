@@ -11,6 +11,10 @@ TypeEdgeRegister<TypeEdgeCreator<PipelineEdge>> g_pipeline_edge_register(
 PipelineEdge::PipelineEdge(base::ParallelType paralle_type)
     : AbstractEdge(paralle_type) {}
 
+bool PipelineEdge::empty() {
+  return data_packets_.empty() || data_packets_.back()->empty();
+}
+
 PipelineEdge::~PipelineEdge() {
   consumers_size_ = 0;
 

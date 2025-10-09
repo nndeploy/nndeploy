@@ -22,7 +22,7 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpMul::run() {
-  // 实现乘法运算
+  // 实现支持广播的乘法运算
   device::Tensor* input1 = inputs_[0];
   device::Tensor* input2 = inputs_[1];
   device::Tensor* output = outputs_[0];
@@ -30,33 +30,78 @@ base::Status OpMul::run() {
   // 获取输入张量的形状
   base::IntVector input1_shape = input1->getShape();
   base::IntVector input2_shape = input2->getShape();
-
-  // 检查输入形状是否相同
-  if (input1_shape.size() != input2_shape.size()) {
-    NNDEPLOY_LOGE("Input tensors do not have the same number of dimensions.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-
-  for (size_t i = 0; i < input1_shape.size(); ++i) {
-    if (input1_shape[i] != input2_shape[i]) {
-      NNDEPLOY_LOGE("Input tensors do not have the same shape.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-  }
+  base::IntVector output_shape = output->getShape();
 
   // 获取输入和输出张量的数据指针
   float* input1_data = reinterpret_cast<float*>(input1->getData());
   float* input2_data = reinterpret_cast<float*>(input2->getData());
   float* output_data = reinterpret_cast<float*>(output->getData());
 
-  // 计算总元素数量
+  // 计算输出张量的总元素数量
   size_t total_elements = std::accumulate(
-      input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
+      output_shape.begin(), output_shape.end(), 1, std::multiplies<size_t>());
 
-  // 执行逐元素乘法运算
-  for (size_t i = 0; i < total_elements; ++i) {
-    output_data[i] = input1_data[i] * input2_data[i];
+  // 计算各维度的步长
+  std::vector<size_t> input1_strides(input1_shape.size());
+  std::vector<size_t> input2_strides(input2_shape.size());
+  std::vector<size_t> output_strides(output_shape.size());
+
+  // 计算输入1的步长
+  if (!input1_shape.empty()) {
+    input1_strides[input1_shape.size() - 1] = 1;
+    for (int i = input1_shape.size() - 2; i >= 0; --i) {
+      input1_strides[i] = input1_strides[i + 1] * input1_shape[i + 1];
+    }
   }
+
+  // 计算输入2的步长
+  if (!input2_shape.empty()) {
+    input2_strides[input2_shape.size() - 1] = 1;
+    for (int i = input2_shape.size() - 2; i >= 0; --i) {
+      input2_strides[i] = input2_strides[i + 1] * input2_shape[i + 1];
+    }
+  }
+
+  // 计算输出的步长
+  if (!output_shape.empty()) {
+    output_strides[output_shape.size() - 1] = 1;
+    for (int i = output_shape.size() - 2; i >= 0; --i) {
+      output_strides[i] = output_strides[i + 1] * output_shape[i + 1];
+    }
+  }
+
+  // 执行支持广播的逐元素乘法运算
+  for (size_t linear_idx = 0; linear_idx < total_elements; ++linear_idx) {
+    // 将线性索引转换为多维索引
+    std::vector<size_t> multi_idx(output_shape.size());
+    size_t temp_idx = linear_idx;
+    for (int i = output_shape.size() - 1; i >= 0; --i) {
+      multi_idx[i] = temp_idx % output_shape[i];
+      temp_idx /= output_shape[i];
+    }
+
+    // 计算输入1的索引（支持广播）
+    size_t input1_idx = 0;
+    int input1_dim_offset = output_shape.size() - input1_shape.size();
+    for (size_t i = 0; i < input1_shape.size(); ++i) {
+      size_t output_dim_idx = i + input1_dim_offset;
+      size_t coord = (input1_shape[i] == 1) ? 0 : multi_idx[output_dim_idx];
+      input1_idx += coord * input1_strides[i];
+    }
+
+    // 计算输入2的索引（支持广播）
+    size_t input2_idx = 0;
+    int input2_dim_offset = output_shape.size() - input2_shape.size();
+    for (size_t i = 0; i < input2_shape.size(); ++i) {
+      size_t output_dim_idx = i + input2_dim_offset;
+      size_t coord = (input2_shape[i] == 1) ? 0 : multi_idx[output_dim_idx];
+      input2_idx += coord * input2_strides[i];
+    }
+
+    // 执行乘法运算
+    output_data[linear_idx] = input1_data[input1_idx] * input2_data[input2_idx];
+  }
+
   return base::kStatusCodeOk;
 }
 

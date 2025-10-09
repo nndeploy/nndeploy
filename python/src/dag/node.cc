@@ -6,6 +6,12 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
 
+// Windows compatibility: define ssize_t if not available
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
@@ -419,6 +425,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::overload_cast<std::vector<Edge *> &>(&Node::checkOutputs),
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
+      .def("to_static_graph", &Node::toStaticGraph,
+           py::return_value_policy::reference)
       .def("get_real_outputs_name", &Node::getRealOutputsName)
       .def("serialize",
            py::overload_cast<rapidjson::Value &,

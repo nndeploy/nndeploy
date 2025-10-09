@@ -31,7 +31,7 @@ else()
     set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${FULL_LIB_NAME})    
   endforeach()
 
-  if(SYSTEM.Windows)
+  if(SYSTEM_Windows)
     set(BIN_PATH ${ENABLE_NNDEPLOY_INFERENCE_NCNN}/bin)
     link_directories(${BIN_PATH})
   endif()

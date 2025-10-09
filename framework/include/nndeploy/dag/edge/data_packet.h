@@ -34,6 +34,8 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   DataPacket();
   virtual ~DataPacket();
 
+  virtual bool empty();
+
   virtual base::Status set(device::Buffer *buffer, bool is_external);
   device::Buffer *create(device::Device *device,
                          const device::BufferDesc &desc);

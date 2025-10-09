@@ -8,8 +8,12 @@ set(PLUGIN_BINARY nndeploy_plugin_llm)
 # SOURCE
 file(GLOB_RECURSE PLUGIN_SOURCE
   "${PLUGIN_ROOT_PATH}/include/nndeploy/llm/*.h"
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/llm/*.hpp"
   "${PLUGIN_ROOT_PATH}/source/nndeploy/llm/*.cc"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/llm/*.cpp"
 )
+
+# message(STATUS "PLUGIN_SOURCE: ${PLUGIN_SOURCE}")
 
 # # TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
@@ -36,7 +40,7 @@ target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_tokenizer)
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 
 # # install
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
   install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/llm DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 else()

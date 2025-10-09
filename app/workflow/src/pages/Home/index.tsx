@@ -11,6 +11,7 @@ import { Typography } from '@douyinfe/semi-ui';
 import { useNavigate, useNavigation } from "react-router-dom";
 import { IWorkFlowShortEntity } from "../../entity";
 import Header from "../Layout/Design/header";
+import CodeBlock from "../components/CodeBlock";
 const { Text, Paragraph } = Typography;
 
 export default function Home() {
@@ -118,9 +119,9 @@ export default function Home() {
                   </div>
 
                   <div className={classNames("item-content")}>
-                   
-                      <div className="title">{item.name_}</div>
-                  
+
+                    <div className="title">{item.name_}</div>
+
                     <div className="developer">{item.developer_ ?? 'unknown developer'}</div>
 
                     <div className="desc">
@@ -190,8 +191,11 @@ export default function Home() {
       >
         <div className={'tip-content'}>
 
-
-          <pre>{item?.requirements_}</pre>
+          <CodeBlock
+            code={item?.requirements_!}
+            language={'markdown'}
+          />
+          {/* <pre>{item?.requirements_}</pre> */}
         </div>
 
       </Modal>

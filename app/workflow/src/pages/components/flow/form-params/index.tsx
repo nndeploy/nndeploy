@@ -18,6 +18,7 @@ export function FormParams() {
   const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
   const form = useForm()
+   const registryKey = form.values['key_']
 
   //console.log('form.values', form.values);
 
@@ -46,7 +47,7 @@ export function FormParams() {
       //fieldPath = 'param_.input_shape_[0]'
     }
 
-    const fieldType = getFieldType([...parentPaths, fieldName], form, nodeList, paramTypes)
+    const fieldType = getFieldType([...parentPaths, fieldName], registryKey, nodeList, paramTypes)
 
 
 
@@ -213,170 +214,6 @@ export function FormParams() {
 
           return renderField(key, ['param_'])
 
-          if (key == 'version_') {
-            var i = 0;
-          }
-          if (key == 'required_params_') {
-            return <></>
-          }
-
-          const fieldType = getFieldType(['param_', key], form, nodeList, paramTypes)
-          if (key == 'model_value_') {
-            let j = 0
-          }
-
-          if (fieldType.isArray) {
-            return (
-              <div className="number-array-field">
-                <div className="field-label">{key} {isRequiredField(key) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}</div>
-                <div className="filed-array-items">
-                  <FieldArray name={`param_.${key}`}>
-                    {({ field }) => (
-                      <>
-                        {field.map((child, index) => (
-                          <Field key={child.name} name={child.name}>
-                            {({
-                              field: childField,
-                              fieldState: childState,
-                            }) => (
-                              <div className="expression-field" style={{ width: '100%' }}
-                              >
-                                <>
-                                  {
-
-                                    fieldType.componentType == 'boolean' ?
-                                      <Switch checked={!!childField.value}
-                                        //label='开关(Switch)' 
-                                        onChange={(value: boolean) => {
-                                          childField.onChange(value)
-                                        }} />
-                                      : fieldType.componentType == 'select' ?
-                                        <Select
-
-                                          value={childField.value as number}
-                                          style={{ width: '100%' }}
-                                          optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                            return {
-                                              label: item,
-                                              value: item
-                                            }
-                                          })}
-
-                                          onChange={(value) => {
-                                            childField.onChange(value)
-                                          }}
-
-                                        >
-
-                                        </Select> :
-
-                                        <FxExpression
-                                          value={childField.value as number}
-                                          fieldType={fieldType}
-                                          onChange={(v) => childField.onChange(v)}
-                                          icon={
-                                            <Button
-                                              theme="borderless"
-                                              icon={<IconCrossCircleStroked />}
-                                              onClick={() => field.delete(index)}
-                                            />
-                                          }
-                                          hasError={
-                                            Object.keys(childState?.errors || {})
-                                              .length > 0
-                                          }
-                                          readonly={readonly}
-                                        />
-
-
-                                  }
-                                  <Feedback
-                                    errors={childState?.errors}
-                                    invalid={childState?.invalid}
-                                  />
-                                </>
-                              </div>
-                            )}
-                          </Field>
-                        ))}
-                        {!readonly && (
-                          <div>
-                            <Button
-                              theme="borderless"
-                              icon={<IconPlus />}
-                              onClick={() => field.append(0)}
-                            >
-                              Add
-                            </Button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </FieldArray>
-                </div>
-              </div>
-            );
-          } else if (fieldType.componentType == 'object') { // 如果是对象类型 
-            let k = 0
-            return <div className="object-field">
-              <div className="field-label">
-                {key} {isRequiredField(key) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
-              </div>
-
-            </div>
-          }
-          return (
-            <Field key={key} name={`param_.${key}`} defaultValue={property}>
-              {({ field, fieldState }) => {
-
-                return <FormItem
-                  name={key}
-                  type={"string" as string}
-                  labelWidth={138}
-                  required={isRequiredField(key)}
-                >
-                  <>
-                    {
-
-                      fieldType.componentType == 'boolean' ?
-                        <Switch checked={!!field.value}
-                          //label='开关(Switch)' 
-                          onChange={(value: boolean) => {
-                            field.onChange(value)
-                          }} />
-                        : fieldType.componentType == 'select' ?
-                          <Select
-                            style={{ width: '100%' }}
-
-                            value={field.value}
-
-                            onChange={(value) => {
-                              field.onChange(value)
-                            }}
-                            optionList={paramTypes[fieldType.selectKey!].map(item => {
-                              return {
-                                label: item,
-                                value: item
-                              }
-                            })}>
-
-                          </Select> :
-                          <FxExpression
-                            value={field.value}
-                            fieldType={fieldType}
-                            onChange={field.onChange}
-                            readonly={readonly}
-                            hasError={Object.keys(fieldState?.errors || {}).length > 0}
-                            icon={<></>}
-                          />
-                    }
-                  </>
-                  <Feedback errors={fieldState?.errors} />
-                </FormItem>
-              }
-              }
-            </Field>
-          );
         });
         return <>{content}</>;
       }}

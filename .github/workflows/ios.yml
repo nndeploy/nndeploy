@@ -3,10 +3,16 @@
 
 name: iOS  # Workflow name
 
+permissions:
+  contents: write  # Allow creating Release and uploading files
+  packages: write  # If package publishing is needed
+  actions: read    # Read Actions status
+
 # Trigger condition configuration
 on:
   push:
     branches: [main, develop, 'feature/**']
+    tags: ['v*', 'release-*']
     paths:
       - 'framework/**'
       - 'plugin/**'
@@ -27,6 +33,8 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - '.github/workflows/ios.yml'
+  release:
+    types: [created, published]  
 
 # Environment variables definition
 env:
@@ -51,6 +59,12 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
+
+      # Step Update Python dependencies
+      - name: Update Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybind11 setuptools wheel twine requests pathlib cython
           
       # Setup Rust toolchain
       - name: Setup Rust toolchain
@@ -69,18 +83,16 @@ jobs:
       # Download and setup iOS OpenCV
       - name: Download and setup iOS OpenCV
         run: |
-          cd $HOME
-          wget -O opencv-ios.zip https://github.com/opencv/opencv/releases/download/${{ env.OPENCV_VERSION }}/opencv-${{ env.OPENCV_VERSION }}-ios-framework.zip
-          unzip opencv-ios.zip
-          mv opencv2.framework opencv-ios-framework
-          echo "OpenCV for iOS downloaded and extracted to: $HOME/opencv-ios-framework"
-          ls -la $HOME/opencv-ios-framework/
+          cd tool/script
+          python install_mnn.py --system iOS
+          python mobile_install_opencv.py --system iOS
           
       # Configure CMake build environment
       - name: Configure build
         run: |
           mkdir build
           cp cmake/config_minimal.cmake build/config.cmake
+          # cp cmake/config_ios.cmake build/config.cmake
           cd build
           cmake -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS \
@@ -88,7 +100,6 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ env.IOS_DEPLOYMENT_TARGET }} \
             -DCMAKE_IOS_INSTALL_COMBINED=YES \
             -DCMAKE_BUILD_TYPE=Release \
-            -DOpenCV_DIR=$HOME/opencv-ios-framework \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ..
       
@@ -98,8 +109,8 @@ jobs:
           cd build
           ninja -j$(sysctl -n hw.ncpu)
           ninja install
-          # cpack
-          # find . -name "nndeploy_*" -type f -exec tar -czf nndeploy-ios-arm64.tar.gz {} +
+          # 使用 CPack 生成 iOS 安装包
+          cpack -C Release
           ls -la
           echo "iOS arm64 architecture compilation completed (with OpenCV support)"
           
@@ -112,7 +123,7 @@ jobs:
 
       # Add Release Assets upload step
       - name: Upload package to Release Assets
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |

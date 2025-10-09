@@ -34,6 +34,8 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
   virtual base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
 
+  virtual base::Status shareInference(Infer *infer);
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -50,6 +52,7 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
 
  private:
   base::InferenceType type_ = base::kInferenceTypeNotSupport;
+  bool own_inference_ = true;
   std::shared_ptr<inference::Inference> inference_ = nullptr;
 
   std::set<std::string> inference_input_names_;

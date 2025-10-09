@@ -3,11 +3,17 @@
 
 name: macOS  # Workflow name, displayed in GitHub Actions interface
 
+permissions:
+  contents: write  # Allow creating Release and uploading files
+  packages: write  # If package publishing is needed
+  actions: read    # Read Actions status
+
 # Trigger condition configuration
 on:
   # Triggered when code is pushed to specified branches
   push:
     branches: [main, develop, 'feature/**']
+    tags: ['v*', 'release-*']
     paths:  # Only trigger build when files in the following paths change
       - 'framework/**'     # Framework core code directory
       - 'plugin/**'        # Plugin extension code directory
@@ -29,6 +35,8 @@ on:
       - 'cmake/**'         # CMake configuration file directory
       - 'CMakeLists.txt'   # Main CMake build file
       - '.github/workflows/macos.yml'  # Current workflow file
+  release:
+    types: [created, published]  
 
 # Job definition
 jobs:
@@ -127,7 +135,7 @@ jobs:
 
       # Step 11: Upload to Release Assets (only when pushing tags)
       - name: Upload package to Release Assets
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |

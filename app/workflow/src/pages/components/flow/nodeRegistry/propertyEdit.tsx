@@ -4,7 +4,7 @@ import { usePropertiesEdit } from "./hooks";
 import classNames from "classnames";
 import { IconButton, Input, InputNumber, Select, Switch } from "@douyinfe/semi-ui";
 import { IconAddChildren } from "../../json-schema-editor/styles";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import lodash from 'lodash'
 import { useNodeRender, WorkflowNodePortsData } from "@flowgram.ai/free-layout-editor";
 import Section from "@douyinfe/semi-ui/lib/es/form/section";
@@ -14,6 +14,7 @@ import { INodeEntity } from "../../../Node/entity";
 export function PropertyEdit(
   props: {
     fieldName: string,
+    fieldNameLabel: ReactNode,
     parentPaths: string[],
     value: any,
     isArrayItem?: boolean,
@@ -25,19 +26,25 @@ export function PropertyEdit(
     isLast: boolean,
     topField?: boolean
 
-    form: any,
+    //form: any,
+    registryKey: string,
     nodeList: any,
     paramTypes: any
   }) {
-  let { fieldName, parentPaths, value,
+  let {
+    fieldName, fieldNameLabel, parentPaths, value,
     isArrayItem = false,
     onChange: onChangeProps, onRemove, showLine = false,
     isLast = false,
     topField = false,
-    form
-    , nodeList,
+    registryKey,
+    //form
+    nodeList,
     paramTypes
   } = props
+
+
+
 
   //isArrayItem = false
 
@@ -48,13 +55,15 @@ export function PropertyEdit(
   function isHiddenField(fieldName: string) {
 
 
-    const hiddenFields = ['io_params_', 'dropdown_params_', 'required_params_', 'ui_params_']
+    const hiddenFields = ['io_params_', 'dropdown_params_', 'required_params_',
+      // 'ui_params_'
+    ]
     if (hiddenFields.includes(fieldName)) {
 
       return true
     }
 
-    let is_dynamic_input_ = getFieldType(['is_dynamic_input_'], form, nodeList, paramTypes)?.originValue;
+    let is_dynamic_input_ = getFieldType(['is_dynamic_input_'], registryKey, nodeList, paramTypes)?.originValue;
 
     if (fieldName == 'inputs_') {
       return !is_dynamic_input_
@@ -62,7 +71,7 @@ export function PropertyEdit(
 
 
 
-    let is_dynamic_output_ = getFieldType(['is_dynamic_output_'], form, nodeList, paramTypes)?.originValue;
+    let is_dynamic_output_ = getFieldType(['is_dynamic_output_'], registryKey, nodeList, paramTypes)?.originValue;
     if (fieldName == 'outputs_') {
       return !is_dynamic_output_
     }
@@ -86,9 +95,9 @@ export function PropertyEdit(
 
     let required_params: string[] = []
     if (parentPaths.includes('param_')) {
-      required_params = getFieldType(['param_', 'required_params_'], form, nodeList, paramTypes)?.originValue;
+      required_params = getFieldType(['param_', 'required_params_'], registryKey, nodeList, paramTypes)?.originValue;
     } else {
-      required_params = getFieldType(['required_params_'], form, nodeList, paramTypes)?.originValue;
+      required_params = getFieldType(['required_params_'], registryKey, nodeList, paramTypes)?.originValue;
     }
     if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
       return true
@@ -104,10 +113,10 @@ export function PropertyEdit(
   }
 
 
-  const fieldType = getFieldType([...parentPaths, fieldName], form, nodeList, paramTypes)
+  const fieldType = getFieldType([...parentPaths, fieldName], registryKey, nodeList, paramTypes)
 
   const { propertyList, isDrilldownObject, onAddProperty, onAddObjectProperty, onRemoveProperty, onEditProperty } =
-    usePropertiesEdit(fieldName, parentPaths, value, form, nodeList, paramTypes,
+    usePropertiesEdit(fieldName, parentPaths, value, registryKey, nodeList, paramTypes,
 
       onChangeProps
     )
@@ -146,7 +155,7 @@ export function PropertyEdit(
           <NodeRepositoryEditor node_repository_={repositories as INodeEntity[]}
             nodeList={nodeList} paramTypes={paramTypes}
 
-
+            registryKey = {registryKey}
             onUpdate={(values) => {
               //console.log(values)
               props.onChange(values)
@@ -172,7 +181,7 @@ export function PropertyEdit(
 
                   {
 
-                    isTopField ? fieldName : <Input
+                    isTopField ? fieldNameLabel : <Input
                       value={fieldName}
                       required={isRequiredField(fieldName)}
 
@@ -232,6 +241,7 @@ export function PropertyEdit(
 
               return <PropertyEdit
                 fieldName={index + ""}
+                fieldNameLabel={index + ""}
                 parentPaths={[...parentPaths, fieldName]}
                 key={_property.key}
                 value={value[index]} //_property.value
@@ -248,7 +258,7 @@ export function PropertyEdit(
                 }}
                 isLast={index === propertyList.length - 1}
                 showLine={true}
-                form={form}
+                registryKey={registryKey}
                 nodeList={nodeList}
                 paramTypes={paramTypes}
               />
@@ -268,7 +278,7 @@ export function PropertyEdit(
             <div className="UIName object">
               {
 
-                isTopField ? fieldName : <Input
+                isTopField ? fieldNameLabel : <Input
                   value={fieldName}
                   required={isRequiredField(fieldName)}
 
@@ -280,64 +290,68 @@ export function PropertyEdit(
               {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
             </div>
           }
-          <div className="UIActions">
-            {
-              fieldName == 'param_' ? <></> :
+          {
+            fieldName == 'param_' || isTopField ? <></> :
+              <div className="UIActions">
+                {
+                  fieldName == 'param_' ? <></> :
 
-                <IconButton
-                  size="small"
-                  theme="borderless"
-                  icon={<IconAddChildren />}
-                  onClick={() => {
-                    //onAddProperty();
-                    //onAddProperty(fieldType.originValue)
-
-
-                    let prefix = ''
-
-                    let max_number = 0;
-                    let temp = value
-                    const keys = Object.keys(fieldType.originValue);
-
-                    let firstKey = keys[0]
-
-                    prefix = firstKey.split('_')[0]
-
-                    keys.map(name => {
-                      let parts = name.split('_')
+                    <IconButton
+                      size="small"
+                      theme="borderless"
+                      icon={<IconAddChildren />}
+                      onClick={() => {
+                        //onAddProperty();
+                        //onAddProperty(fieldType.originValue)
 
 
-                      if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
-                        let temp = new Number(parts[parts.length - 1]).valueOf()
-                        if (max_number < temp) {
-                          max_number = temp
-                        }
-                      }
-                    })
+                        let prefix = ''
 
-                    let fieldName = prefix + '_' + (max_number + 1)
+                        let max_number = 0;
+                        let temp = value
+                        const keys = Object.keys(fieldType.originValue);
 
+                        let firstKey = keys[0]
 
-                    const firstValue = fieldType.originValue[firstKey];
-                    onAddObjectProperty(fieldName, firstValue)
+                        prefix = firstKey.split('_')[0]
 
-                  }}
-                />
-            }
-            {isTopField ? <></> :
-              <IconButton
-                size="small"
-                theme="borderless"
-                icon={<IconMinus size="small" />}
-                onClick={onRemove}
-              />
-            }
+                        keys.map(name => {
+                          let parts = name.split('_')
 
 
+                          if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
+                            let temp = new Number(parts[parts.length - 1]).valueOf()
+                            if (max_number < temp) {
+                              max_number = temp
+                            }
+                          }
+                        })
+
+                        let fieldName = prefix + '_' + (max_number + 1)
+
+
+                        const firstValue = fieldType.originValue[firstKey];
+                        onAddObjectProperty(fieldName, firstValue)
+
+                      }}
+                    />
+                }
+                {isTopField ? <></> :
+                  <IconButton
+                    size="small"
+                    theme="borderless"
+                    icon={<IconMinus size="small" />}
+                    onClick={onRemove}
+                  />
+                }
 
 
 
-          </div>
+
+
+              </div>
+          }
+
         </div>
       </div >
       <div className={classNames('UICollapsible', { 'collapsed': collapse })}>
@@ -349,6 +363,7 @@ export function PropertyEdit(
             }
             return <PropertyEdit
               fieldName={_property.name}
+              fieldNameLabel={_property.name}
               parentPaths={[...parentPaths, fieldName]}
               // key={_property.key}
               value={value[_property.name]} //_property.value
@@ -365,7 +380,7 @@ export function PropertyEdit(
               }}
               isLast={index === propertyList.length - 1}
               showLine={true}
-              form={form}
+              registryKey={registryKey}
               nodeList={nodeList}
               paramTypes={paramTypes}
             />
@@ -402,13 +417,13 @@ export function PropertyEdit(
           }}
 
           onSearch={(value) => {
-            
-             if (value ){
-              
-              if( !fieldType.selectOptions?.some(opt => opt === value)) {
-                setSelectOptions(prev => [...(fieldType.selectOptions ?? []), value ]);
+
+            if (value) {
+
+              if (!fieldType.selectOptions?.some(opt => opt === value)) {
+                setSelectOptions(prev => [...(fieldType.selectOptions ?? []), value]);
               }
-            }else{
+            } else {
               setSelectOptions(fieldType.selectOptions ?? [])
             }
           }}
@@ -445,7 +460,7 @@ export function PropertyEdit(
           isArrayItem ? <></> :
             <div className="UIName">
 
-              {isTopField ? fieldName : <Input
+              {isTopField ? fieldNameLabel : <Input
                 value={fieldName}
                 required={isRequiredField(fieldName)}
 
@@ -460,31 +475,21 @@ export function PropertyEdit(
         <div className="UIComponent">
           {component}
         </div>
-        <div className="UIActions">
-          {/* <IconButton
-              size="small"
-              theme="borderless"
-              icon={<IconAddChildren />}
-              onClick={() => {
-                //onAddProperty();
-               onAddProperty(fieldType.originValue)
+        {
+          isTopField ? <></> :
+            <div className="UIActions">
 
-              }}
-            /> */}
+              <IconButton
+                size="small"
+                theme="borderless"
+                icon={<IconMinus size="small" />}
+                onClick={onRemove}
+              />
 
-          {
-            isTopField ? <></>
-              : <>
-                <IconButton
-                  size="small"
-                  theme="borderless"
-                  icon={<IconMinus size="small" />}
-                  onClick={onRemove}
-                />
-              </>
-          }
 
-        </div>
+
+            </div>
+        }
       </div>
     </div>
   }

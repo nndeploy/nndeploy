@@ -2,11 +2,11 @@
 
 /**
  * @brief MNN LLM推理引擎封装
- * 
+ *
  * 基于MNN框架实现的大语言模型推理引擎，提供完整的LLM推理能力
  * 参考MNN transformers/llm/engine实现
- * 
- * 
+ *
+ *
  * 支持特性：
  * - 量化推理（INT4/INT8）
  * - 动态批处理
@@ -14,8 +14,8 @@
  * - 流式生成
  */
 
-#ifndef _NNDEPLOY_LLM_MNN_LLM_INFER_H_
-#define _NNDEPLOY_LLM_MNN_LLM_INFER_H_
+#ifndef _NNDEPLOY_LLM_MNN_MNN_LLM_INFER_H_
+#define _NNDEPLOY_LLM_MNN_MNN_LLM_INFER_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -41,50 +41,13 @@ namespace nndeploy {
 namespace llm {
 
 /**
- * @brief MnnLlmInferParam - MNN LLM推理参数配置
- */
-class NNDEPLOY_CC_API MnnLlmInferParam : public base::Param {
- public:
-  MnnLlmInferParam() = default;
-  virtual ~MnnLlmInferParam() = default;
-
-  // 模型配置
-  std::vector<std::string> model_path_ = {};           // 模型文件路径
-  
-  // 模型结构参数
-  int vocab_size_ = 32000;                // 词汇表大小
-  int hidden_size_ = 4096;                // 隐藏层维度
-  int num_layers_ = 32;                   // Transformer层数
-  int num_heads_ = 32;                    // 注意力头数
-  int max_seq_len_ = 2048;                // 最大序列长度
-  
-  // 性能优化参数
-  int batch_size_ = 1;                    // 批处理大小
-  int num_threads_ = 4;                   // 线程数
-  bool use_kv_cache_ = true;              // 是否使用KV缓存
-  bool use_quantization_ = false;         // 是否使用量化
-  int quant_bit_ = 4;                     // 量化位数
-  
-  // 设备配置
-  std::string device_type_ = "CPU";       // 设备类型：CPU/GPU/NPU
-  int device_id_ = 0;                     // 设备ID
-  
-  using base::Param::serialize;
-  virtual base::Status serialize(
-      rapidjson::Value& json,
-      rapidjson::Document::AllocatorType& allocator) override;
-  using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value& json) override;
-};
-
-/**
  * @brief MnnLlmInfer - MNN LLM推理节点
- * 
+ *
  * 基于MNN框架的大语言模型推理节点，提供完整的文本生成能力
- * 
+ *
  * 输入：
  * - inputs[0]: std::string - 输入文本提示词
- * 
+ *
  * 输出：
  * - outputs[0]: std::string - 生成的文本内容
  * - outputs[1]: std::vector<float> - 生成概率分布（可选）
@@ -114,33 +77,35 @@ class NNDEPLOY_CC_API MnnLlmInfer : public dag::Node {
   base::Status loadModel();
   base::Status loadTokenizer();
   base::Status initInferenceEngine();
-  
+
   // 推理流程方法
   base::Status tokenize(const std::string& text, std::vector<int>& token_ids);
-  base::Status embedding(const std::vector<int>& token_ids, device::Tensor* embeddings);
+  base::Status embedding(const std::vector<int>& token_ids,
+                         device::Tensor* embeddings);
   base::Status transformerInfer(device::Tensor* input, device::Tensor* output);
   base::Status generateToken(device::Tensor* logits, int& next_token);
   base::Status detokenize(const std::vector<int>& token_ids, std::string& text);
-  
+
   // 辅助方法
   base::Status updateKVCache(device::Tensor* key, device::Tensor* value);
   base::Status applyTemperature(device::Tensor* logits, float temperature);
-  base::Status topKTopPSampling(device::Tensor* logits, int top_k, float top_p, int& token);
-  
+  base::Status topKTopPSampling(device::Tensor* logits, int top_k, float top_p,
+                                int& token);
+
  private:
   // MNN相关成员
-  void* mnn_session_;                     // MNN推理会话
-  void* mnn_interpreter_;                 // MNN解释器
-  void* tokenizer_;                       // tokenizer实例
-  
+  void* mnn_session_;      // MNN推理会话
+  void* mnn_interpreter_;  // MNN解释器
+  void* tokenizer_;        // tokenizer实例
+
   // 模型状态
-  bool is_initialized_;                   // 是否已初始化
-  std::vector<device::Tensor*> kv_cache_; // KV缓存
-  int current_seq_len_;                   // 当前序列长度
-  
+  bool is_initialized_;                    // 是否已初始化
+  std::vector<device::Tensor*> kv_cache_;  // KV缓存
+  int current_seq_len_;                    // 当前序列长度
+
   // 性能统计
-  double total_inference_time_;           // 总推理时间
-  int total_tokens_generated_;            // 总生成token数
+  double total_inference_time_;  // 总推理时间
+  int total_tokens_generated_;   // 总生成token数
 };
 
 }  // namespace llm

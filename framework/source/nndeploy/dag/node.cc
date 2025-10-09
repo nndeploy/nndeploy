@@ -1,5 +1,6 @@
 #include "nndeploy/dag/node.h"
 
+#include "nndeploy/dag/composite_node.h"
 #include "nndeploy/dag/graph.h"
 
 namespace nndeploy {
@@ -350,6 +351,11 @@ base::Status Node::setGraph(Graph *graph) {
   return base::kStatusCodeOk;
 }
 Graph *Node::getGraph() { return graph_; }
+base::Status Node::setCompositeNode(CompositeNode *composite_node) {
+  composite_node_ = composite_node;
+  return base::kStatusCodeOk;
+}
+CompositeNode *Node::getCompositeNode() { return composite_node_; }
 
 base::Status Node::setDeviceType(base::DeviceType device_type) {
   device_type_ = device_type;
@@ -365,6 +371,7 @@ base::Status Node::setParam(base::Param *param) {
 }
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
+    NNDEPLOY_LOGI("Node [%s]::setParamSharedPtr param\n", name_.c_str());
     return param->copyTo(param_.get());
   } else {
     param_ = param;
@@ -399,63 +406,66 @@ base::Status Node::setParam(const std::string &key, const std::string &value) {
   return base::kStatusCodeOk;
 }
 
-base::Any &Node::createResourceWithoutState(const std::string &key) {
-  if (graph_ == nullptr) {
-    base::Any any;
-    return any;
-  } else {
-    return graph_->createResourceWithoutState(key);
-  }
-}
-
 base::Status Node::addResourceWithoutState(const std::string &key,
-                                            const base::Any &value) {
-  if (graph_ == nullptr) {
-    NNDEPLOY_LOGE("graph is nullptr and is_graph_ is false.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  } else {
+                                           const base::Any &value) {
+  // NNDEPLOY_LOGI("addResourceWithoutState: %s\n", key.c_str());
+  if (graph_ != nullptr) {
     return graph_->addResourceWithoutState(key, value);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->addResourceWithoutState(key, value);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return base::kStatusCodeErrorInvalidParam;
   }
 }
 
 base::Any &Node::getResourceWithoutState(const std::string &key) {
-  if (graph_ == nullptr) {
-    base::Any any;
-    return any;
-  } else {
+  // NNDEPLOY_LOGI("getResourceWithoutState: %s\n", key.c_str());
+  if (graph_ != nullptr) {
     return graph_->getResourceWithoutState(key);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->getResourceWithoutState(key);
+  } else {
+    static base::Any empty_any;  // 静态变量，生命周期持续到程序结束
+    NNDEPLOY_LOGE(
+        "Both graph_ and composite_node_ are nullptr in "
+        "createResourceWithoutState\n");
+    return empty_any;
   }
 }
 
 Edge *Node::createResourceWithState(const std::string &key) {
-  if (graph_ == nullptr) {
-    return nullptr;
-  } else {
+  if (graph_ != nullptr) {
     // 指定为某类特殊的边，用于在图中传递数据
     // @zuiren
     Edge *edge = new Edge(key);
     edge->setParallelType(parallel_type_);
     std::vector<Node *> producers = {this};
-    edge->increaseProducers(producers);
-    edge->construct();
     auto queue_max_size = graph_->getEdgeQueueMaxSize();
     edge->setQueueMaxSize(queue_max_size);
+    edge->increaseProducers(producers);
+    edge->construct();
     graph_->addResourceWithState(key, edge);
     return edge;
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->createResourceWithState(key);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return nullptr;
   }
 }
 base::Status Node::addResourceWithState(const std::string &key, Edge *edge) {
-  if (graph_ == nullptr) {
+  if (graph_ != nullptr) {
+    return graph_->addResourceWithState(key, edge);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->addResourceWithState(key, edge);
+  } else {
     NNDEPLOY_LOGE("graph is nullptr and is_graph_ is false.\n");
     return base::kStatusCodeErrorInvalidParam;
-  } else {
-    return graph_->addResourceWithState(key, edge);
   }
 }
 Edge *Node::getResourceWithState(const std::string &key) {
-  if (graph_ == nullptr) {
-    return nullptr;
-  } else {
+  if (graph_ != nullptr) {
     Edge *edge = graph_->getResourceWithState(key);
     if (edge != nullptr) {
       std::vector<Node *> consumers = {this};
@@ -463,6 +473,11 @@ Edge *Node::getResourceWithState(const std::string &key) {
       edge->construct();
     }
     return edge;
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->getResourceWithState(key);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return nullptr;
   }
 }
 
@@ -592,6 +607,24 @@ base::Status Node::setOutput(Edge *output, int index) {
       return base::kStatusCodeErrorInvalidParam;
     }
     outputs_[index] = output;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setIterInput(Edge *input, int index) {
+  if (input == nullptr) {
+    NNDEPLOY_LOGE("input is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  if (index == -1) {
+    inputs_.emplace_back(input);
+  } else {
+    if (index >= inputs_.size()) {
+      inputs_.resize(index + 1);
+    }
+    inputs_[index] = input;
+    NNDEPLOY_LOGI("node[%s] inputs's size: %d, setIterInput index: %d, input: %p\n",
+           name_.c_str(), inputs_.size(), index, input);
   }
   return base::kStatusCodeOk;
 }
@@ -1092,6 +1125,8 @@ bool Node::isInputsChanged(std::vector<Edge *> inputs) {
   return false;
 }
 
+base::Status Node::toStaticGraph() { return base::kStatusCodeOk; }
+
 std::vector<std::string> Node::getRealOutputsName() {
   std::vector<std::string> real_outputs_name;
   if (!outputs_.empty()) {
@@ -1344,6 +1379,15 @@ base::Status Node::serialize(rapidjson::Value &json,
                    allocator);
     json.AddMember("is_inner_", is_inner_, allocator);
   }
+  if (is_loop_) {
+    json.AddMember("is_loop_", is_loop_, allocator);
+  }
+  if (is_condition_) {
+    json.AddMember("is_condition_", is_condition_, allocator);
+  }
+  if (is_composite_node_) {
+    json.AddMember("is_composite_node_", is_composite_node_, allocator);
+  }
 
   // 写入节点类型
   std::string node_type_str = nodeTypeToString(node_type_);
@@ -1508,6 +1552,17 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // 读取布尔标志
   if (json.HasMember("is_inner_") && json["is_inner_"].IsBool()) {
     is_inner_ = json["is_inner_"].GetBool();
+  }
+
+  if (json.HasMember("is_loop_") && json["is_loop_"].IsBool()) {
+    is_loop_ = json["is_loop_"].GetBool();
+  }
+  if (json.HasMember("is_condition_") && json["is_condition_"].IsBool()) {
+    is_condition_ = json["is_condition_"].GetBool();
+  }
+  if (json.HasMember("is_composite_node_") &&
+      json["is_composite_node_"].IsBool()) {
+    is_composite_node_ = json["is_composite_node_"].GetBool();
   }
 
   if (json.HasMember("is_time_profile_") && json["is_time_profile_"].IsBool()) {

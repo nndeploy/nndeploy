@@ -51,7 +51,7 @@ class NNDEPLOY_CC_API PromptParam : public base::Param {
   std::string assistant_token_ = "[/INST]";
   std::string system_token_ = "<<SYS>>";
   std::string system_end_token_ = "<</SYS>>";
-  
+
   using base::Param::serialize;
   virtual base::Status serialize(
       rapidjson::Value& json,
@@ -62,13 +62,14 @@ class NNDEPLOY_CC_API PromptParam : public base::Param {
 
 /**
  * @brief Prompt - 提示词处理节点
- * 
+ *
  * 负责处理和格式化输入的提示词，支持多种对话格式和模板
- * 
+ *
  * 输入：
  * - inputs[0]: std::string - 原始用户输入文本
- * - inputs[1]: std::vector<std::pair<std::string, std::string>> (可选) - 对话历史
- * 
+ * - inputs[1]: std::vector<std::pair<std::string, std::string>> (可选) -
+ * 对话历史
+ *
  * 输出：
  * - outputs[0]: std::string - 格式化后的完整提示词
  */
@@ -94,19 +95,20 @@ class NNDEPLOY_CC_API Prompt : public dag::Node {
 
  private:
   // 格式化聊天模式的提示词
-  std::string formatChatPrompt(const std::string& user_input,
-                               const std::vector<std::pair<std::string, std::string>>& history);
-  
+  std::string formatChatPrompt(
+      const std::string& user_input,
+      const std::vector<std::pair<std::string, std::string>>& history);
+
   // 格式化指令模式的提示词
   std::string formatInstructPrompt(const std::string& user_input);
-  
+
   // 格式化原始模式的提示词
   std::string formatRawPrompt(const std::string& user_input);
-  
+
   // 处理对话历史
   std::vector<std::pair<std::string, std::string>> processHistory(
       const std::vector<std::pair<std::string, std::string>>& history);
-  
+
   // 对话历史缓存
   std::vector<std::pair<std::string, std::string>> history_cache_;
 };

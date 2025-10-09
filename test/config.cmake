@@ -25,7 +25,7 @@ function(add_test TEST_NAME TEST_SOURCES)
   # THIRD_PARTY_LIBRARY
   target_link_libraries(${TEST_NAME} ${THIRD_PARTY_LIBRARY}) 
   # install
-  if(SYSTEM.Windows)
+  if(SYSTEM_Windows)
     install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_TEST_PATH})
   else() 
     install(TARGETS ${TEST_NAME} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_TEST_PATH})

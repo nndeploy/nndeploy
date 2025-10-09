@@ -27,6 +27,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
 
   virtual base::Status setQueueMaxSize(int queue_max_size) = 0;
 
+  virtual bool empty() = 0;
+
   virtual base::Status construct() = 0;
 
   virtual base::Status set(device::Buffer *buffer, bool is_external) = 0;

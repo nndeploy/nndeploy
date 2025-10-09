@@ -26,6 +26,7 @@ namespace dag {
 
 class Node;
 class Graph;
+class CompositeNode;
 
 class NNDEPLOY_CC_API NodeDesc {
  public:
@@ -126,6 +127,8 @@ class NNDEPLOY_CC_API Node {
 
   base::Status setGraph(Graph *graph);
   Graph *getGraph();
+  base::Status setCompositeNode(CompositeNode *composite_node);
+  CompositeNode *getCompositeNode();
 
   virtual base::Status setDeviceType(base::DeviceType device_type);
   virtual base::DeviceType getDeviceType();
@@ -142,31 +145,34 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setParam(const std::string &key,
                                 const std::string &value);
 
-  virtual base::Any &createResourceWithoutState(const std::string &key);
   virtual base::Status addResourceWithoutState(const std::string &key,
                                                const base::Any &value);
   virtual base::Any &getResourceWithoutState(const std::string &key);
   template <typename T>
-  base::Status setResourceWithoutState(const std::string &key, const T *value) {
+  base::Status setResourceWithoutState(const std::string &key, T value) {
     base::Any &any = this->getResourceWithoutState(key);
-    any.construct<T *>(value);
+    any.construct<T>(value);
     return base::kStatusCodeOk;
   }
   template <typename T>
-  T *getResourceWithoutState(const std::string &key) {
+  T getResourceWithoutState(const std::string &key) {
     base::Any &any = this->getResourceWithoutState(key);
     if (any.empty()) {
-      return nullptr;
+      return T();
     }
-    return base::get<T *>(any);
+    return base::get<T>(any);
   }
 
   virtual Edge *createResourceWithState(const std::string &key);
   virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
   virtual Edge* getResourceWithState(const std::string &key);
   template <typename T>
-  base::Status setResourceWithState(const std::string &key, const T *value) {
+  base::Status setResourceWithState(const std::string &key, T *value) {
     Edge* edge = this->getResourceWithState(key);
+    if (edge == nullptr) {
+      NNDEPLOY_LOGE("edge is nullptr in setResourceWithState.\n");
+      return base::kStatusCodeErrorDag;
+    }
     edge->set<T>(value);
     return base::kStatusCodeOk;
   }
@@ -212,6 +218,7 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
+  virtual base::Status setIterInput(Edge *input, int index = -1);
 
   virtual base::Status setInputs(std::vector<Edge *> inputs);
   virtual base::Status setOutputs(std::vector<Edge *> outputs);
@@ -361,6 +368,8 @@ class NNDEPLOY_CC_API Node {
   bool checkOutputs(std::vector<Edge *> &outputs);
   bool isInputsChanged(std::vector<Edge *> inputs);
 
+  virtual base::Status toStaticGraph();
+
   virtual std::vector<std::string> getRealOutputsName();
 
   // to json
@@ -407,6 +416,7 @@ class NNDEPLOY_CC_API Node {
   std::map<std::string, Edge *> internal_outputs_;
 
   Graph *graph_ = nullptr;
+  CompositeNode *composite_node_ = nullptr;
 
  protected:
   bool constructed_ = false;
@@ -423,6 +433,9 @@ class NNDEPLOY_CC_API Node {
   bool is_trace_ = false;  // 序列为json时，一定是静态图
   bool traced_ = false;
   bool is_graph_ = false;
+  bool is_loop_ = false;
+  bool is_condition_ = false;
+  bool is_composite_node_ = false;
 
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
   IOType io_type_ = IOType::kIOTypeNone;

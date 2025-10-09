@@ -62,21 +62,22 @@
     display: grid;
     grid-template-columns: auto 1fr;
 
-    
+
 
     &.shrink {
       padding-left: 10px;
       margin-top: 10px;
     }
 
-    .node_repositories{
+    .node_repositories {
       grid-column: span 2;
     }
 
     .UIPropertyLeft {
       grid-column: 1;
       position: relative;
-      &.isHidden{
+
+      &.isHidden {
         display: none;
       }
 
@@ -92,6 +93,7 @@
           //   $isLast ? '12px': '0px'
           // }
           bottom: 14px; //orgigin 0
+
           &.isLast {
             bottom: 12px;
           }
@@ -117,7 +119,7 @@
       .UICollapseTrigger {
         cursor: pointer;
         margin-right: 5px;
-        margin-top:3px; //added by zzh
+        margin-top: 3px; //added by zzh
       }
 
     }
@@ -126,7 +128,7 @@
       grid-column: 2;
       margin-bottom: 10px;
 
-      &.isHidden{
+      &.isHidden {
         display: none;
       }
 
@@ -146,21 +148,32 @@
           justify-content: space-between;
 
           .UIName {
-            flex-basis: 140px;
+            //flex-basis: 140px;
             display: flex;
-           // flex-shrink: 0;
-           &.object{
-            flex: 1;
-           }
-            &.array{
-            flex: 1;
-           }
+            min-width: 0;
+            max-width: 290px;
+
+            // flex-shrink: 0;
+            &.object {
+              flex: 1;
+            }
+
+            &.array {
+              flex: 1;
+            }
 
           }
-          .UIComponent{
+
+          .UIComponent {
             flex: 1;
             flex-shrink: 1;
             min-width: 0;
+
+
+            .semi-select-selection-text {
+              flex-basis: 150px;
+            }
+
 
           }
 
@@ -171,9 +184,11 @@
           }
         }
       }
-      .UICollapsible{
+
+      .UICollapsible {
         display: block;
-        &.collapsed{
+
+        &.collapsed {
           display: none;
         }
       }

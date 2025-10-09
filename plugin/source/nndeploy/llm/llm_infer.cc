@@ -14,246 +14,228 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/loop.h"
-#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/llm/abstract_llm_infer.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
 namespace llm {
 
-device::Tensor* genPastKeyValue(base::IntVector shape, base::DataType data_type,
-                                base::DataFormat data_format,
-                                base::DeviceType device_type) {
-  // TODO: 实现past key value张量的生成
-  // 1. 根据shape创建张量
-  // 2. 初始化为零值或适当的初始值
-  // 3. 返回创建的张量指针
-  return nullptr;
+// LlmInfer 实现
+LlmInfer::LlmInfer(const std::string& name, std::vector<dag::Edge*> inputs,
+                   std::vector<dag::Edge*> outputs)
+    : dag::CompositeNode(name, inputs, outputs) {
+  key_ = "nndeploy::llm::LlmInfer";
+  desc_ = "LlmInfer: LLM inference CompositeNode";
+  this->setDynamicInput(true);
+  this->setInputTypeInfo<tokenizer::TokenizerIds>("input_tokens");
+  this->setOutputTypeInfo<device::Tensor>("output_logits");
 }
 
-device::Tensor* genAttentionMask(base::IntVector shape,
-                                 base::DataType data_type,
-                                 base::DataFormat data_format,
-                                 base::DeviceType device_type) {
-  // TODO: 实现attention mask张量的生成
-  // 1. 根据shape创建张量
-  // 2. 填充适当的mask值（通常是0和-inf）
-  // 3. 返回创建的张量指针
-  return nullptr;
+LlmInfer::~LlmInfer() {}
+
+base::Status LlmInfer::setPrefill(bool is_prefill) {
+  is_prefill_ = is_prefill;
+  return base::kStatusCodeOk;
 }
 
-device::Tensor* genAttentionMask(int seq_len, int all_seq_len,
-                                 base::DataType data_type,
-                                 base::DataFormat data_format,
-                                 base::DeviceType device_type) {
-  // TODO: 根据序列长度生成attention mask
-  // 1. 计算mask的shape [batch_size, 1, seq_len, all_seq_len]
-  // 2. 生成下三角mask或因果mask
-  // 3. 返回创建的张量指针
-  return nullptr;
+int LlmInfer::getMaxSeqLen() {
+  return llm_infer_->getMaxSeqLen();
 }
 
-device::Tensor* genPositionIds(int seq_len, int all_seq_len,
-                               base::DataType data_type,
-                               base::DataFormat data_format,
-                               base::DeviceType device_type) {
-  // TODO: 根据序列长度生成position ids
-  // 1. 创建shape为[batch_size, seq_len]的张量
-  // 2. 填充位置编码值（通常是0, 1, 2, ...）
-  // 3. 返回创建的张量指针
-  return nullptr;
+base::Status LlmInfer::init() {
+  llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
+                                    is_prefill_);
+  if (llm_infer_ == nullptr) {
+    NNDEPLOY_LOGE("LlmInfer::init failed\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  llm_infer_->setConfigPath(config_path_);
+  if (llm_infer_->getInitialized()) {
+    return base::kStatusCodeOk;
+  }
+  if (llm_infer_->checkInterruptStatus() == true) {
+    llm_infer_->setRunningFlag(false);
+    return base::kStatusCodeNodeInterrupt;
+  }
+  llm_infer_->setInitializedFlag(false);
+  base::Status status = llm_infer_->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::init failed\n");
+    return status;
+  }
+  llm_infer_->setInitializedFlag(true);
+  return base::kStatusCodeOk;
 }
 
-device::Tensor* genPositionIds(base::IntVector shape, base::DataType data_type,
-                               base::DataFormat data_format,
-                               base::DeviceType device_type) {
-  // TODO: 根据指定shape生成position ids
-  // 1. 根据shape创建张量
-  // 2. 填充位置编码值
-  // 3. 返回创建的张量指针
-  return nullptr;
+base::Status LlmInfer::deinit() {
+  if (llm_infer_ != nullptr) {
+    if (llm_infer_->getInitialized()) {
+      llm_infer_->deinit();
+      llm_infer_->setInitializedFlag(false);
+    }
+    delete llm_infer_;
+    llm_infer_ = nullptr;
+  }
+  return base::kStatusCodeOk;
 }
 
-// LllmInferParam 实现
-LllmInferParam::LllmInferParam() {
-  // TODO: 初始化默认参数
+base::Status LlmInfer::run() {
+  llm_infer_->setRunningFlag(true);
+  if (llm_infer_->checkInterruptStatus() == true) {
+    llm_infer_->setRunningFlag(false);
+    return base::kStatusCodeNodeInterrupt;
+  }
+  base::Status status = llm_infer_->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::run failed\n");
+    return status;
+  }
+  llm_infer_->setRunningFlag(false);
+  return base::kStatusCodeOk;
 }
 
-LllmInferParam::~LllmInferParam() {
-  // TODO: 清理资源
+base::Status LlmInfer::setIterInput(dag::Edge* input, int index) {
+  base::Status status = dag::Node::setIterInput(input, index);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::setIterInput failed\n");
+    return status;
+  }
+  return llm_infer_->setIterInput(input, index);
 }
 
-base::Status LllmInferParam::serialize(
+base::Status LlmInfer::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
-  // TODO: 实现参数序列化
-  // 1. 将所有参数写入json对象
-  // 2. 处理各种数据类型的序列化
-  return base::kStatusCodeOk;
+  base::Status status = dag::CompositeNode::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::serialize failed\n");
+    return status;
+  }
+
+  // 序列化基本配置参数
+  json.AddMember("is_prefill", is_prefill_, allocator);
+  json.AddMember("model_key", rapidjson::Value(model_key_.c_str(), allocator),
+                 allocator);
+  json.AddMember("infer_key", rapidjson::Value(infer_key_.c_str(), allocator),
+                 allocator);
+
+  // 序列化配置路径数组
+  rapidjson::Value config_paths(rapidjson::kArrayType);
+  for (const auto& path : config_path_) {
+    config_paths.PushBack(rapidjson::Value(path.c_str(), allocator), allocator);
+  }
+  json.AddMember("config_path", config_paths, allocator);
+
+  // 序列化模型输入
+  rapidjson::Value model_inputs(rapidjson::kArrayType);
+  for (const auto& input : model_inputs_) {
+    model_inputs.PushBack(rapidjson::Value(input.c_str(), allocator),
+                          allocator);
+  }
+  json.AddMember("model_inputs", model_inputs, allocator);
+
+  // 序列化模型输出
+  rapidjson::Value model_outputs(rapidjson::kArrayType);
+  for (const auto& output : model_outputs_) {
+    model_outputs.PushBack(rapidjson::Value(output.c_str(), allocator),
+                           allocator);
+  }
+  json.AddMember("model_outputs", model_outputs, allocator);
+
+  return status;
 }
 
-base::Status LllmInferParam::deserialize(rapidjson::Value& json) {
-  // TODO: 实现参数反序列化
-  // 1. 从json对象读取参数
-  // 2. 验证参数有效性
-  // 3. 设置到对应的成员变量
-  return base::kStatusCodeOk;
-}
-
-base::Status LllmInferParam::set(const std::string& key, base::Any& any) {
-  // TODO: 实现参数设置
-  // 1. 根据key识别参数类型
-  // 2. 从Any对象中提取值
-  // 3. 设置到对应的成员变量
-  return base::kStatusCodeOk;
-}
-
-base::Status LllmInferParam::get(const std::string& key, base::Any& any) {
-  // TODO: 实现参数获取
-  // 1. 根据key找到对应参数
-  // 2. 将参数值包装到Any对象中
-  // 3. 返回给调用者
-  return base::kStatusCodeOk;
-}
-
-// PrefillLlmInfer 实现
-PrefillLlmInfer::PrefillLlmInfer(const std::string& name,
-                                 std::vector<dag::Edge*> inputs,
-                                 std::vector<dag::Edge*> outputs)
-    : dag::CompositeNode(name, inputs, outputs), infer_node_(nullptr) {
-  // TODO: 初始化预填充推理节点
-}
-
-PrefillLlmInfer::~PrefillLlmInfer() {
-  // TODO: 清理资源
-}
-
-base::Status PrefillLlmInfer::init() {
-  // TODO: 实现初始化逻辑
-  // 1. 创建或获取推理引擎实例
-  // 2. 加载模型权重
-  // 3. 配置推理参数
-  // 4. 初始化内部节点和边
-  return base::kStatusCodeOk;
-}
-
-base::Status PrefillLlmInfer::deinit() {
-  // TODO: 实现反初始化逻辑
-  // 1. 释放推理引擎资源
-  // 2. 清理内部节点和边
-  // 3. 释放内存
-  return base::kStatusCodeOk;
-}
-
-base::Status PrefillLlmInfer::run() {
-  // TODO: 实现预填充推理逻辑
-  // 1. 获取输入embedding张量
-  // 2. 生成attention mask和position ids
-  // 3. 执行预填充推理
-  // 4. 输出logits和past key values
-  return base::kStatusCodeOk;
-}
-
-base::Status PrefillLlmInfer::defaultParam() {
-  // TODO: 设置默认参数
-  // 1. 设置默认的推理引擎类型
-  // 2. 设置默认的模型类型
-  // 3. 设置其他默认配置
-  return base::kStatusCodeOk;
-}
-
-base::Status PrefillLlmInfer::serialize(
-    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
-  // TODO: 实现序列化
-  // 1. 调用父类序列化方法
-  // 2. 序列化特有的参数
-  return dag::CompositeNode::serialize(json, allocator);
-}
-
-base::Status PrefillLlmInfer::deserialize(rapidjson::Value& json) {
+base::Status LlmInfer::deserialize(rapidjson::Value& json) {
   // TODO: 实现反序列化
-  // 1. 调用父类反序列化方法
-  // 2. 反序列化特有的参数
-  return dag::CompositeNode::deserialize(json);
+  base::Status status = dag::CompositeNode::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("LlmInfer::deserialize failed\n");
+    return status;
+  }
+
+  // 反序列化基本配置参数
+  if (json.HasMember("is_prefill") && json["is_prefill"].IsBool()) {
+    is_prefill_ = json["is_prefill"].GetBool();
+  }
+
+  if (json.HasMember("model_key") && json["model_key"].IsString()) {
+    model_key_ = json["model_key"].GetString();
+  }
+
+  if (json.HasMember("infer_key") && json["infer_key"].IsString()) {
+    infer_key_ = json["infer_key"].GetString();
+  }
+
+  // 反序列化配置路径数组
+  if (json.HasMember("config_path") && json["config_path"].IsArray()) {
+    config_path_.clear();
+    const rapidjson::Value& config_paths = json["config_path"];
+    for (rapidjson::SizeType i = 0; i < config_paths.Size(); i++) {
+      if (config_paths[i].IsString()) {
+        config_path_.push_back(config_paths[i].GetString());
+      }
+    }
+  }
+
+  // 反序列化模型输入
+  if (json.HasMember("model_inputs") && json["model_inputs"].IsArray()) {
+    model_inputs_.clear();
+    const rapidjson::Value& model_inputs = json["model_inputs"];
+    for (rapidjson::SizeType i = 0; i < model_inputs.Size(); i++) {
+      if (model_inputs[i].IsString()) {
+        model_inputs_.push_back(model_inputs[i].GetString());
+      }
+    }
+  }
+  // 反序列化模型输出
+  if (json.HasMember("model_outputs") && json["model_outputs"].IsArray()) {
+    model_outputs_.clear();
+    const rapidjson::Value& model_outputs = json["model_outputs"];
+    for (rapidjson::SizeType i = 0; i < model_outputs.Size(); i++) {
+      if (model_outputs[i].IsString()) {
+        model_outputs_.push_back(model_outputs[i].GetString());
+      }
+    }
+  }
+
+  return status;
 }
 
-// DecodeLlmInfer 实现
-DecodeLlmInfer::DecodeLlmInfer(const std::string& name,
-                               std::vector<dag::Edge*> inputs,
-                               std::vector<dag::Edge*> outputs)
-    : dag::CompositeNode(name, inputs, outputs),
-      is_share_prefill_infer_(false),
-      infer_node_(nullptr) {
-  // TODO: 初始化解码推理节点
+llm::AbstractLlmInfer* LlmInfer::createLlmInfer(std::vector<dag::Edge*> inputs,
+                                                std::vector<dag::Edge*> outputs,
+                                                const std::string& infer_key,
+                                                const std::string& model_key,
+                                                bool is_prefill) {
+  auto creator =
+      LlmInferFactory::getInstance()->getCreator(infer_key, model_key);
+  if (creator == nullptr) {
+    NNDEPLOY_LOGE("create llm infer failed\n");
+    return nullptr;
+  }
+
+  std::string is_prefill_str = is_prefill ? "prefill" : "decode";
+  std::string name =
+      name_ + "@" + infer_key + "@" + model_key + "@" + is_prefill_str;
+  llm::AbstractLlmInfer* llm_infer =
+      creator->createLlmInfer(name, inputs, outputs);
+  if (llm_infer == nullptr) {
+    NNDEPLOY_LOGE("create llm infer failed\n");
+    return nullptr;
+  }
+  this->addNode(llm_infer);
+
+  llm_infer->setModelKey(model_key);
+  llm_infer->setInferKey(infer_key);
+  llm_infer->setPrefill(is_prefill);
+
+  return llm_infer;
 }
 
-DecodeLlmInfer::~DecodeLlmInfer() {
-  // TODO: 清理资源
-}
-
-base::Status DecodeLlmInfer::init() {
-  // TODO: 实现初始化逻辑
-  // 1. 如果共享预填充推理引擎，则复用
-  // 2. 否则创建新的推理引擎实例
-  // 3. 配置解码阶段的特殊参数
-  // 4. 初始化内部节点和边
-  return base::kStatusCodeOk;
-}
-
-base::Status DecodeLlmInfer::deinit() {
-  // TODO: 实现反初始化逻辑
-  // 1. 如果不是共享模式，释放推理引擎资源
-  // 2. 清理内部节点和边
-  // 3. 释放内存
-  return base::kStatusCodeOk;
-}
-
-base::Status DecodeLlmInfer::run() {
-  // TODO: 实现解码推理逻辑
-  // 1. 获取输入embedding张量
-  // 2. 获取或生成past key values
-  // 3. 生成当前步的attention mask和position ids
-  // 4. 执行解码推理
-  // 5. 输出新的logits
-  return base::kStatusCodeOk;
-}
-
-base::Status DecodeLlmInfer::defaultParam() {
-  // TODO: 设置默认参数
-  // 1. 设置默认的推理引擎类型
-  // 2. 设置默认的模型类型
-  // 3. 设置解码阶段特有的默认配置
-  return base::kStatusCodeOk;
-}
-
-base::Status DecodeLlmInfer::serialize(
-    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
-  // TODO: 实现序列化
-  // 1. 调用父类序列化方法
-  // 2. 序列化特有的参数
-  return dag::CompositeNode::serialize(json, allocator);
-}
-
-base::Status DecodeLlmInfer::deserialize(rapidjson::Value& json) {
-  // TODO: 实现反序列化
-  // 1. 调用父类反序列化方法
-  // 2. 反序列化特有的参数
-  return dag::CompositeNode::deserialize(json);
-}
-
-void DecodeLlmInfer::setSharedInferNode(dag::Node* infer_node) {
-  // TODO: 设置共享的推理节点
-  // 1. 保存推理节点指针
-  // 2. 设置共享标志
-  // 3. 配置共享模式的特殊参数
-  infer_node_ = infer_node;
-  is_share_prefill_infer_ = (infer_node != nullptr);
-}
-
-REGISTER_NODE("nndeploy::llm::PrefillLlmInfer", PrefillLlmInfer);
-REGISTER_NODE("nndeploy::llm::DecodeLlmInfer", DecodeLlmInfer);
+REGISTER_NODE("nndeploy::llm::LlmInfer", LlmInfer);
 
 }  // namespace llm
 }  // namespace nndeploy

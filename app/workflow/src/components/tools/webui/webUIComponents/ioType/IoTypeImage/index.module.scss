@@ -1,0 +1,168 @@
+.io-type-container {
+
+
+  background: #f6f6f6bb;
+  width: 216px;
+  height: 216px;
+  min-height: 216px;
+  max-height: 216px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .io-type-input-container {
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .ui-params {
+      margin-bottom: .5em;
+    }
+
+
+
+
+    .upload-area {
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      transition: border 0.3s;
+
+
+    }
+
+    .upload-area.dragover {
+      border-color: #0066ff;
+    }
+
+
+  }
+
+  .io-type-output-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+  }
+
+  .image-container {
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    justify-content: center;
+    //width: 50%;
+    margin: auto;
+
+    border-radius: 8px;
+    padding: 8px;
+    //background: #f6f6f6;
+
+    position: relative;
+    width: 216px;
+    height: 216px;
+    min-height: 216px;
+    max-height: 216px;
+    box-sizing: border-box;
+
+    .spin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1
+    }
+
+    &.hasImage {
+      &:hover {
+        &:before {
+          visibility: visible;
+        }
+
+        .icon-view {
+          visibility: visible;
+        }
+
+        .icon-delete {
+          visibility: visible;
+        }
+      }
+    }
+
+    &:before {
+      visibility: hidden;
+      background-color: var(--semi-color-overlay-bg);
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+
+    }
+
+    // &:hover {
+    //   &:before {
+    //     visibility: visible;
+    //   }
+
+    //   .icon-view {
+    //     visibility: visible;
+    //   }
+
+    //   .icon-delete {
+    //     visibility: visible;
+    //   }
+    // }
+
+
+
+
+    &>img {
+      max-width: 100%;
+      max-height: 100%;
+      margin: auto;
+      //width: 200px;
+
+    }
+
+    .icon-view {
+      visibility: hidden;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+    .icon-delete {
+      visibility: hidden;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      z-index: 10;
+
+      &:hover {
+        color: white;
+      }
+    }
+
+  }
+}

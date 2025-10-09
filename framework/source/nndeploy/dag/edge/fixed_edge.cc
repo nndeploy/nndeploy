@@ -19,6 +19,13 @@ base::Status FixedEdge::setQueueMaxSize(int queue_max_size) {
   return base::kStatusCodeOk;
 }
 
+bool FixedEdge::empty() {
+  if (data_packet_ == nullptr) {
+    return true;
+  }
+  return data_packet_->empty();
+}
+
 base::Status FixedEdge::construct() { return base::kStatusCodeOk; }
 
 base::Status FixedEdge::set(device::Buffer *buffer, bool is_external) {

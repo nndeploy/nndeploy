@@ -28,6 +28,8 @@ def parse_args():
     
     # dump
     parser.add_argument("--dump", action="store_true", default=False, required=False)
+    # debug
+    parser.add_argument("--debug", action="store_true", default=False, required=False)
     
     # plugin
     parser.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
@@ -44,6 +46,7 @@ class GraphRunnerArgs:
         self.node_param = []
         self.parallel_type = ""
         self.dump = False
+        self.debug = False
         self.plugin = []
         
     def parse_args(self):
@@ -60,6 +63,7 @@ class GraphRunnerArgs:
         
         self.parallel_type = args.parallel_type
         self.dump = args.dump
+        self.debug = args.debug
 
 
 def main():

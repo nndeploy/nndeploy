@@ -27,6 +27,7 @@ import nndeploy.dag
 
 from nndeploy.dag.node import add_global_import_lib, import_global_import_lib
 from nndeploy import get_type_enum_json
+from .download_progress_handler import DownloadProgressHandler
 from .utils import extract_encode_output_paths, _handle_urls
 from .frontend import FrontendManager
 from .template import WorkflowTemplateManager
@@ -1152,10 +1153,83 @@ class NnDeployServer:
             await asyncio.sleep(poll)
         return False
 
+    # async def _download_models_task(self, task_id: str, graph_json: dict):
+    #     token = set_task_id(task_id)
+    #     try:
+    #         await self._wait_ws_binding(task_id, timeout=10.0)
+    #         with scoped_stdio_to_logging("model-download"):
+    #             logging.info("model download task started")
+
+    #             result = await asyncio.to_thread(
+    #                 run_func_in_copied_context,
+    #                 _handle_urls, graph_json, self.args.resources
+    #             )
+    #             logging.info("model download task finished: %s", result)
+    #             self.notify_download_done(task_id, success=True, result=result, error=None)
+    #     except Exception as e:
+    #         logging.exception("model download task failed")
+    #         self.notify_download_done(task_id, success=False, result=None, error=str(e))
+    #     finally:
+    #         reset_task_id(token)
+
+        # download progress notify (WS)
+    def notify_download_progress(self, task_id: str, ev: dict):
+        """
+        Broadcast a single download progress event to all sockets bound to `task_id`.
+
+        Expected `ev` example (from DownloadProgressHandler):
+        {
+            "phase": "progress" | "done" | "error",
+            "filename": "detect/yolo11s.sim.onnx",
+            "downloaded": 1048576,
+            "total": 37958400,
+            "percent": 2.76,
+            "elapsed": 1.23,
+            "logger": "model-download" | "modelscope",
+            ... # (optional) task_id, bps, eta, etc.
+        }
+        """
+        payload = {
+            "flag": "success",
+            "message": "download progress",
+            "result": {
+                "task_id": task_id,
+                "type": "download_progress",
+                "detail": ev
+            }
+        }
+
+        ws_set = self.task_ws_map.get(task_id, set())
+        if not ws_set:
+            return
+
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                try:
+                    asyncio.run_coroutine_threadsafe(self._broadcast(payload, ws), self.loop)
+                except Exception as e:
+                    logging.warning(f"[notify_download_progress] schedule send failed: {e}")
+            else:
+                logging.warning("[notify_download_progress] Event loop not ready or not running")
+
+
     async def _download_models_task(self, task_id: str, graph_json: dict):
         token = set_task_id(task_id)
+        handler = None
         try:
             await self._wait_ws_binding(task_id, timeout=10.0)
+
+            loop = asyncio.get_running_loop()
+            def emit_cb(ev):
+                self.notify_download_progress(task_id, ev)
+
+            handler = DownloadProgressHandler(loop, emit_cb, logger_names=("model-download", "modelscope"))
+            loggers = [logging.getLogger("model-download"), logging.getLogger("modelscope")]
+            for lg in loggers:
+                lg.addHandler(handler)
+                lg.setLevel(logging.INFO)
+                lg.propagate = True
+
             with scoped_stdio_to_logging("model-download"):
                 logging.info("model download task started")
 
@@ -1163,10 +1237,24 @@ class NnDeployServer:
                     run_func_in_copied_context,
                     _handle_urls, graph_json, self.args.resources
                 )
+
                 logging.info("model download task finished: %s", result)
                 self.notify_download_done(task_id, success=True, result=result, error=None)
+
         except Exception as e:
             logging.exception("model download task failed")
+            self.notify_download_progress(task_id, {
+                "phase": "error", "error": str(e), "task_id": task_id
+            })
             self.notify_download_done(task_id, success=False, result=None, error=str(e))
         finally:
+            if handler:
+                # 卸载 handler，避免影响其它任务
+                for lg_name in ("model-download", "modelscope"):
+                    lg = logging.getLogger(lg_name)
+                    try:
+                        lg.removeHandler(handler)
+                    except Exception:
+                        pass
+                handler.close()
             reset_task_id(token)

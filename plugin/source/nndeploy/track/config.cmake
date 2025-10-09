@@ -43,7 +43,7 @@ target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 
 # # install
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
   install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
   install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/track DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
 else()

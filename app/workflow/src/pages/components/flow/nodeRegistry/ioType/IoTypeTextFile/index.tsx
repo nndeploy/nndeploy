@@ -42,9 +42,18 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
       return
     }
 
-    getFileContent(value)
+    if (direction === 'input') {
+      getFileContent(value)
+      return
+    } else if (direction === 'output') {
+      if (runResult == 'success') {
+        getFileContent(value)
+      } else {
+        setFileContent('')
+      }
+    }
 
-  }, [value])
+  }, [value, runResult])
 
 
   const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -186,7 +195,14 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
           </div>
           :
           <div className={classNames(styles['io-type-output-container'])} >
-            {value && runResult == 'success' && <div className={styles['preview']} >
+
+
+            {value && fileContent && <div className={styles['preview']} onClick={(event) => {
+              event.stopPropagation();
+            }}>{fileContent}</div>
+            }
+            {
+              value && runResult == 'success' &&
               <div className={classNames(styles['file-item-info'])} >
 
                 <span className={styles.fileName}>{downloadFileName} </span>
@@ -200,8 +216,6 @@ const IoTypeTextFile: React.FC<IoTypeTextFileProps> = (props) => {
                 </Button>
 
               </div>
-
-            </div>
 
             }
           </div>

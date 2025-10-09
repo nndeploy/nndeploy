@@ -11,20 +11,37 @@ base::Status PromptParam::serialize(
     NNDEPLOY_LOGE("PromptParam::serialize failed\n");
     return status;
   }
-  
-  json.AddMember("system_prompt", rapidjson::Value(system_prompt_.c_str(), allocator), allocator);
-  json.AddMember("user_prompt_template", rapidjson::Value(user_prompt_template_.c_str(), allocator), allocator);
-  json.AddMember("assistant_prompt_template", rapidjson::Value(assistant_prompt_template_.c_str(), allocator), allocator);
+
+  json.AddMember("system_prompt",
+                 rapidjson::Value(system_prompt_.c_str(), allocator),
+                 allocator);
+  json.AddMember("user_prompt_template",
+                 rapidjson::Value(user_prompt_template_.c_str(), allocator),
+                 allocator);
+  json.AddMember(
+      "assistant_prompt_template",
+      rapidjson::Value(assistant_prompt_template_.c_str(), allocator),
+      allocator);
   json.AddMember("max_history_length", max_history_length_, allocator);
   json.AddMember("enable_history", enable_history_, allocator);
-  json.AddMember("prompt_format", rapidjson::Value(prompt_format_.c_str(), allocator), allocator);
-  json.AddMember("bos_token", rapidjson::Value(bos_token_.c_str(), allocator), allocator);
-  json.AddMember("eos_token", rapidjson::Value(eos_token_.c_str(), allocator), allocator);
-  json.AddMember("user_token", rapidjson::Value(user_token_.c_str(), allocator), allocator);
-  json.AddMember("assistant_token", rapidjson::Value(assistant_token_.c_str(), allocator), allocator);
-  json.AddMember("system_token", rapidjson::Value(system_token_.c_str(), allocator), allocator);
-  json.AddMember("system_end_token", rapidjson::Value(system_end_token_.c_str(), allocator), allocator);
-  
+  json.AddMember("prompt_format",
+                 rapidjson::Value(prompt_format_.c_str(), allocator),
+                 allocator);
+  json.AddMember("bos_token", rapidjson::Value(bos_token_.c_str(), allocator),
+                 allocator);
+  json.AddMember("eos_token", rapidjson::Value(eos_token_.c_str(), allocator),
+                 allocator);
+  json.AddMember("user_token", rapidjson::Value(user_token_.c_str(), allocator),
+                 allocator);
+  json.AddMember("assistant_token",
+                 rapidjson::Value(assistant_token_.c_str(), allocator),
+                 allocator);
+  json.AddMember("system_token",
+                 rapidjson::Value(system_token_.c_str(), allocator), allocator);
+  json.AddMember("system_end_token",
+                 rapidjson::Value(system_end_token_.c_str(), allocator),
+                 allocator);
+
   return base::kStatusCodeOk;
 }
 
@@ -34,17 +51,20 @@ base::Status PromptParam::deserialize(rapidjson::Value& json) {
     NNDEPLOY_LOGE("PromptParam::deserialize failed\n");
     return status;
   }
-  
+
   if (json.HasMember("system_prompt") && json["system_prompt"].IsString()) {
     system_prompt_ = json["system_prompt"].GetString();
   }
-  if (json.HasMember("user_prompt_template") && json["user_prompt_template"].IsString()) {
+  if (json.HasMember("user_prompt_template") &&
+      json["user_prompt_template"].IsString()) {
     user_prompt_template_ = json["user_prompt_template"].GetString();
   }
-  if (json.HasMember("assistant_prompt_template") && json["assistant_prompt_template"].IsString()) {
+  if (json.HasMember("assistant_prompt_template") &&
+      json["assistant_prompt_template"].IsString()) {
     assistant_prompt_template_ = json["assistant_prompt_template"].GetString();
   }
-  if (json.HasMember("max_history_length") && json["max_history_length"].IsInt()) {
+  if (json.HasMember("max_history_length") &&
+      json["max_history_length"].IsInt()) {
     max_history_length_ = json["max_history_length"].GetInt();
   }
   if (json.HasMember("enable_history") && json["enable_history"].IsBool()) {
@@ -68,10 +88,11 @@ base::Status PromptParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("system_token") && json["system_token"].IsString()) {
     system_token_ = json["system_token"].GetString();
   }
-  if (json.HasMember("system_end_token") && json["system_end_token"].IsString()) {
+  if (json.HasMember("system_end_token") &&
+      json["system_end_token"].IsString()) {
     system_end_token_ = json["system_end_token"].GetString();
   }
-  
+
   return base::kStatusCodeOk;
 }
 
@@ -90,7 +111,8 @@ Prompt::Prompt(const std::string& name, std::vector<dag::Edge*> inputs,
       "\n"
       "Inputs:\n"
       "- inputs[0]: std::string - raw user input text\n"
-      "- inputs[1]: std::vector<std::pair<std::string, std::string>> (optional) - conversation history\n"
+      "- inputs[1]: std::vector<std::pair<std::string, std::string>> "
+      "(optional) - conversation history\n"
       "Outputs:\n"
       "- outputs[0]: std::string - formatted complete prompt\n";
   param_ = std::make_shared<PromptParam>();
@@ -133,8 +155,8 @@ base::Status Prompt::defaultParam() {
   return base::kStatusCodeOk;
 }
 
-base::Status Prompt::serialize(
-    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+base::Status Prompt::serialize(rapidjson::Value& json,
+                               rapidjson::Document::AllocatorType& allocator) {
   base::Status status = dag::Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Prompt::serialize failed\n");
@@ -152,8 +174,9 @@ base::Status Prompt::deserialize(rapidjson::Value& json) {
   return base::kStatusCodeOk;
 }
 
-std::string Prompt::formatChatPrompt(const std::string& user_input,
-                                     const std::vector<std::pair<std::string, std::string>>& history) {
+std::string Prompt::formatChatPrompt(
+    const std::string& user_input,
+    const std::vector<std::pair<std::string, std::string>>& history) {
   // TODO: 实现聊天格式的提示词格式化
   // 1. 添加系统提示词
   // 2. 格式化历史对话

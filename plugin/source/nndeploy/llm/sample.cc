@@ -1,5 +1,5 @@
 //
-//  sample.hpp
+//  sample.cpp
 //
 //  Created by MNN on 2023/09/25.
 //  ZhaodeWang
@@ -37,11 +37,13 @@ struct SubsetLogits {
       delete logits;
     }
   }
-  
+
   // 拷贝构造函数
-  SubsetLogits(const SubsetLogits& other) 
-      : index(other.index), is_external(true), 
-        logits(other.logits), is_subset(other.is_subset) {}
+  SubsetLogits(const SubsetLogits& other)
+      : index(other.index),
+        is_external(true),
+        logits(other.logits),
+        is_subset(other.is_subset) {}
 
   // 赋值运算符重载
   SubsetLogits& operator=(const SubsetLogits& other) {
@@ -217,17 +219,18 @@ int packSoftmax(device::Tensor* logits, std::vector<IndexScore>& index_scores,
 // SampleParam
 base::Status SampleParam::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addDropdownParam(
+      "sampler", {"greedy", "temperature", "topK", "topP", "minP", "tfs",
+                  "typical", "penalty", "ngram"});
   base::Status status = base::Param::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("SampleParam::serialize failed\n");
     return status;
   }
 
-  json.AddMember("max_new_tokens", max_new_tokens, allocator);
-  json.AddMember("max_all_tokens", max_all_tokens, allocator);
-  json.AddMember("type", rapidjson::Value(type.c_str(), allocator), allocator);
-  json.AddMember("select_type",
-                 rapidjson::Value(select_type.c_str(), allocator), allocator);
+  json.AddMember("sampler", rapidjson::Value(sampler.c_str(), allocator),
+                 allocator);
+
   json.AddMember("temperature", temperature, allocator);
   json.AddMember("topK", topK, allocator);
   json.AddMember("topP", topP, allocator);
@@ -238,11 +241,11 @@ base::Status SampleParam::serialize(
   json.AddMember("ngram", ngram, allocator);
   json.AddMember("ngram_factor", ngram_factor, allocator);
   json.AddMember("max_penalty", max_penalty, allocator);
-  json.AddMember("sampler", rapidjson::Value(sampler.c_str(), allocator),
-                 allocator);
+
   rapidjson::Value mixed_samplers_array(rapidjson::kArrayType);
   for (const auto& sampler : mixed_samplers) {
-    mixed_samplers_array.PushBack(rapidjson::Value(sampler.c_str(), allocator), allocator);
+    mixed_samplers_array.PushBack(rapidjson::Value(sampler.c_str(), allocator),
+                                  allocator);
   }
   json.AddMember("mixed_samplers", mixed_samplers_array, allocator);
 
@@ -256,17 +259,8 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
     return status;
   }
 
-  if (json.HasMember("max_new_tokens") && json["max_new_tokens"].IsInt()) {
-    max_new_tokens = json["max_new_tokens"].GetInt();
-  }
-  if (json.HasMember("max_all_tokens") && json["max_all_tokens"].IsInt()) {
-    max_all_tokens = json["max_all_tokens"].GetInt();
-  }
-  if (json.HasMember("type") && json["type"].IsString()) {
-    type = json["type"].GetString();
-  }
-  if (json.HasMember("select_type") && json["select_type"].IsString()) {
-    select_type = json["select_type"].GetString();
+  if (json.HasMember("sampler") && json["sampler"].IsString()) {
+    sampler = json["sampler"].GetString();
   }
   if (json.HasMember("temperature") && json["temperature"].IsFloat()) {
     temperature = json["temperature"].GetFloat();
@@ -298,9 +292,6 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("max_penalty") && json["max_penalty"].IsFloat()) {
     max_penalty = json["max_penalty"].GetFloat();
   }
-  if (json.HasMember("sampler") && json["sampler"].IsString()) {
-    sampler = json["sampler"].GetString();
-  }
   if (json.HasMember("mixed_samplers") && json["mixed_samplers"].IsArray()) {
     mixed_samplers.clear();
     const auto& array = json["mixed_samplers"];
@@ -316,7 +307,7 @@ base::Status SampleParam::deserialize(rapidjson::Value& json) {
 
 // Sample
 Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
-                std::vector<dag::Edge*> outputs)
+                 std::vector<dag::Edge*> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::llm::Sampler";
   desc_ =
@@ -336,30 +327,63 @@ Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
       "- outputs[0]: TokenizerIds containing sampled token ID\n";
   param_ = std::make_shared<SampleParam>();
   this->setInputTypeInfo<device::Tensor>("logits");
-  this->setInputTypeInfo<tokenizer::TokenizerIds>("prefill_tokens");
   this->setOutputTypeInfo<tokenizer::TokenizerIds>("sampled_token");
 }
 
 Sampler::~Sampler() {}
 
+int32_t Sampler::sampleOld(device::Tensor* logits) {
+  std::vector<int>* history_ids =
+      this->getResourceWithState<std::vector<int>>("history_tokens");
+  std::unordered_set<int> ids_set(history_ids->begin(), history_ids->end());
+  auto scores = (float*)logits->getData();
+  auto shape = logits->getShape();
+  auto size = std::accumulate(shape.begin(), shape.end(), 1,
+                              std::multiplies<int64_t>());
+  // repetition penalty
+  const float repetition_penalty = 1.1;
+  for (auto id : ids_set) {
+    float score = scores[id];
+    scores[id] =
+        score < 0 ? score * repetition_penalty : score / repetition_penalty;
+  }
+  // argmax
+  float max_score = 0;
+  int token_id = 0;
+  for (int i = 0; i < size; i++) {
+    float score = scores[i];
+    if (score > max_score) {
+      max_score = score;
+      token_id = i;
+    }
+  }
+
+  return token_id;
+}
+
 base::Status Sampler::run() {
-  // auto logits = this->getInput<device::Tensor>(0);
-  // auto prefill_tokens = this->getInput<tokenizer::TokenizerIds>(1);
+  auto logits = inputs_[0]->get<device::Tensor>(this);
+  int batch_size = logits->getShape()[0];
 
-  // tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
+  tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
+  out_token->ids_.resize(batch_size);
 
-  // auto history_tokens_ids = prefill_tokens->ids[0];
-  // if (prefill_tokens_ != history_tokens_ids) {
-  //   history_tokens_.clear();
-  //   history_tokens_ = history_tokens_ids;
-  //   out_token->ids.push_back(history_tokens);
-  // }
+  static int index = 0;
+  if (index == 0) {
+    std::string debug_file = "new_logits.csv";
+    std::ofstream debug_file_stream(debug_file);
+    logits->print(debug_file_stream);
+    debug_file_stream.close();
+    index++;
+  }
 
   // auto sampled_token_id = sample(logits);
-  // tokenizer::TokenizerIds *sampled_token = new tokenizer::TokenizerIds();
-  // sampled_token->ids[0].push_back(sampled_token_id);
+  auto sampled_token_id = sampleOld(logits);
+  out_token->ids_[0].push_back(sampled_token_id);
+  NNDEPLOY_LOGI("sampled_token_id: %d\n", sampled_token_id);
 
-  // this->setOutput(sampled_token, 0, false);
+  outputs_[0]->set(out_token, false);
+  outputs_[0]->notifyWritten(out_token);
   return base::kStatusCodeOk;
 }
 
@@ -538,7 +562,8 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
   penalty = std::min(penalty,
                      (dynamic_cast<SampleParam*>(param_.get()))->max_penalty);
   // initialization
-  std::vector<int>& prev = history_tokens_;
+  std::vector<int>& prev =
+      *(this->getResourceWithState<std::vector<int>>("history_tokens"));
   std::unordered_map<int, float> penalty_map;
   // 1. local ngram info, reversed order
   std::vector<int> ngram_info(ngram - 1);
@@ -633,9 +658,9 @@ struct SubsetLogits Sampler::subsetSampler(std::string sampler_type,
 }
 
 int Sampler::handleSelect(struct SubsetLogits subset) {
-  if ((dynamic_cast<SampleParam*>(param_.get()))->select_type == "greedy") {
+  if ((dynamic_cast<SampleParam*>(param_.get()))->sampler == "greedy") {
     return argmaxSelect(subset);
-  } else if ((dynamic_cast<SampleParam*>(param_.get()))->select_type ==
+  } else if ((dynamic_cast<SampleParam*>(param_.get()))->sampler ==
              "temperature") {
     return reSoftmaxSelect(
         subset, (dynamic_cast<SampleParam*>(param_.get()))->temperature);
@@ -648,13 +673,13 @@ int Sampler::sample(device::Tensor* logits) {
   struct SubsetLogits subset = createSubsetLogits(logits);
   // process subsetSampler
   SampleParam* sample_param = dynamic_cast<SampleParam*>(param_.get());
-  subset = subsetSampler(sample_param->type, subset);
+  subset = subsetSampler(sample_param->sampler, subset);
   // select token from the subset
   int res = handleSelect(subset);
   return res;
 }
 
-REGISTER_NODE("nndeploy::llm::Samplerr", Sampler);
+REGISTER_NODE("nndeploy::llm::Sampler", Sampler);
 
 }  // namespace llm
 }  // namespace nndeploy

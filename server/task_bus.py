@@ -18,7 +18,7 @@ def emit_llm_delta(delta_text: str) -> None:
     payload = {
         "event": "stream",
         "pid": _pid.get(),
-        "data": {           # 注意：用 data 字段承载业务负载
+        "data": {           # 用 data 字段承载业务负载
             "type": "llm_delta",
             "delta": delta_text
         }

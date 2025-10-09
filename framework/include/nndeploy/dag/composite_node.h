@@ -19,6 +19,7 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
  public:
   CompositeNode(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::dag::CompositeNode";
+    is_composite_node_ = true;
   }
   CompositeNode(const std::string &name, const std::vector<Edge *> &inputs,
                 const std::vector<Edge *> &outputs)
@@ -37,6 +38,7 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
       }
     }
     constructed_ = true;
+    is_composite_node_ = true;
   }
   virtual ~CompositeNode();
 
@@ -166,6 +168,8 @@ Node *CompositeNode::createNode(const std::string &name, Args &...args) {
   node_wrapper->name_ = name;
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+
+  node->setCompositeNode(this);
   return node;
 }
 
@@ -224,7 +228,7 @@ Node *CompositeNode::createNode(const NodeDesc &desc, Args &...args) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
 
-  // node->setGraph(this);
+  node->setCompositeNode(this);
 
   return node;
 }
@@ -285,7 +289,7 @@ Node *CompositeNode::createInfer(const NodeDesc &desc,
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
 
-  // node->setGraph(this);
+  node->setCompositeNode(this);
 
   return node;
 }

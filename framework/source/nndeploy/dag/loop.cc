@@ -23,10 +23,12 @@
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string &name) : Graph(name) {}
+Loop::Loop(const std::string &name) : Graph(name) { is_loop_ = true; }
 Loop::Loop(const std::string &name, std::vector<dag::Edge *> inputs,
            std::vector<dag::Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
+    : Graph(name, inputs, outputs) {
+  is_loop_ = true;
+}
 Loop::~Loop() {}
 
 base::Status Loop::init() {
@@ -36,6 +38,12 @@ base::Status Loop::init() {
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
+  status = this->initStart();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "Loop initStart failed!");
+    return status;
+  }
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -47,7 +55,14 @@ base::Status Loop::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
+  status = this->initEnd();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "Loop initEnd failed!");
+    return status;
+  }
   setInitializedFlag(true);
+
 
   return status;
 }
@@ -84,8 +99,12 @@ base::Status Loop::run() {
    *
    */
   for (int i = 0; i < loops(); i++) {
+    status = this->iterBefore();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "iterBefore failed!");
     status = executor_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+    status = this->iterAfter();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "iterAfter failed!");
   }
 
   setRunningFlag(false);

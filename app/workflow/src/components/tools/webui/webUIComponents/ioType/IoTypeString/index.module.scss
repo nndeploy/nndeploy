@@ -1,0 +1,85 @@
+.io-type-container {
+
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 150;
+
+  .io-type-input-container {
+
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+    padding: 0.5em;
+
+    .textArea {
+      font-size: 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      appearance: none;
+      flex: 1;
+      // min-height: 100px;
+      // max-height: 300px;
+      //background-color: #eee4;
+
+      scrollbar-width: 'thin';
+      scrollbar-color: 'rgb(159 159 158 / 65%) transparent';
+
+      // 针对 WebKit 浏览器（如 Chrome、Safari）的样式
+      &:webkit-scrollbar {
+        width: '4px',
+      }
+
+      &::webkit-scrollbar-track {
+        background-color: transparent;
+      }
+
+      &::webkit-scrollbar-thumb {
+        background-color: 'rgb(159 159 158 / 65%)';
+        border-radius: '20px';
+        border: '2px solid transparent';
+      }
+    }
+
+  }
+
+  .io-type-output-container {
+    .textArea {
+      font-size: 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      appearance: none;
+      flex: 1;
+      // min-height: 100px;
+      // max-height: 300px;
+      //background-color: #eee4;
+
+      scrollbar-width: 'thin';
+      scrollbar-color: 'rgb(159 159 158 / 65%) transparent';
+
+      // 针对 WebKit 浏览器（如 Chrome、Safari）的样式
+      &:webkit-scrollbar {
+        width: '4px',
+      }
+
+      &::webkit-scrollbar-track {
+        background-color: transparent;
+      }
+
+      &::webkit-scrollbar-thumb {
+        background-color: 'rgb(159 159 158 / 65%)';
+        border-radius: '20px';
+        border: '2px solid transparent';
+      }
+    }
+
+
+  }
+
+}
