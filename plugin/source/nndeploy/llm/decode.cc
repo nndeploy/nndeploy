@@ -16,7 +16,8 @@ Decode::Decode(const std::string& name, std::vector<dag::Edge*> inputs,
 
   decode_infer_node_ = dynamic_cast<llm::LlmInfer*>(
       this->createNode<llm::LlmInfer>("decode_infer"));
-  decode_sampler_node_ = this->createNode<Sampler>("decode_sampler_node");
+  decode_sampler_node_ =
+      dynamic_cast<Sampler*>(this->createNode<Sampler>("decode_sampler_node"));
   decode_token_node_ =
       this->createNode<tokenizer::TokenizerDecodeCpp>("token_node");
   stream_out_node_ =
@@ -50,6 +51,7 @@ base::Status Decode::initEnd() {
   if (!tokenizer_txt_.empty()) {
     this->getStopTokens(tokenizer_txt_);
   }
+  decode_sampler_node_->setIsPrefill(false);
   return base::kStatusCodeOk;
 }
 
@@ -60,6 +62,7 @@ base::Status Decode::iterAfter() {
     return base::kStatusCodeErrorInvalidParam;
   }
   decode_infer_node_->setIterInput(decode_sampler_node_output_, 1);
+  is_first_ = false;
   return base::kStatusCodeOk;
 }
 
@@ -68,8 +71,7 @@ std::vector<dag::Edge*> Decode::forward(dag::Edge* input) {
   for (int i = 0; i < this->loops(); i++) {
     output = (*decode_infer_node_)(input);
     output = (*decode_sampler_node_)(output);
-    // decode_infer_node_->setIterInput(output[0], 1);
-    output.push_back(input);
+    // output.push_back(input);
     output = (*decode_token_node_)(output);
     output = (*stream_out_node_)(output);
   }
@@ -113,21 +115,13 @@ void Decode::getStopTokens(std::string& token_file) {
 }
 
 int Decode::loops() {
-  // 
+  // for trace
   if (inputs_[0]->empty()) {
-    NNDEPLOY_LOGE("Decode loops is 1\n");
     return 1;
   }
-  static int loops_count = 0;
-  loops_count++;
-  if (loops_count > 120) {
-    return -1;
-  }
   if (isStop()) {
-    NNDEPLOY_LOGE("Decode loops is -1\n");
     return -1;
   } else {
-    NNDEPLOY_LOGE("Decode loops is %d\n", max_seq_len_);
     return max_seq_len_;
   }
 }
@@ -192,7 +186,8 @@ base::Status Decode::serialize(rapidjson::Value& json,
                  allocator);
   rapidjson::Value stop_texts_array(rapidjson::kArrayType);
   for (const auto& stop_text : stop_texts_) {
-    stop_texts_array.PushBack(rapidjson::Value(stop_text.c_str(), allocator), allocator);
+    stop_texts_array.PushBack(rapidjson::Value(stop_text.c_str(), allocator),
+                              allocator);
   }
   json.AddMember("stop_texts_", stop_texts_array, allocator);
   return status;

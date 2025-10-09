@@ -35,11 +35,9 @@ base::Status TokenizerEncodeCpp::init() {
 
   // # 有，直接获取资源，并赋值给tokenizer_
   if (tokenizer_cpp != nullptr) {
-    NNDEPLOY_LOGI("tokenizer_cpp is found, use the global one\n");
     tokenizer_ = tokenizer_cpp;
   } else {  // #
             // 没有，创建一个，并把该资源全局注册到图的资源中，并赋值给tokenizer_
-    NNDEPLOY_LOGI("tokenizer_cpp is not found, create a new one\n");
     // param_
     TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
 
@@ -195,11 +193,9 @@ base::Status TokenizerDecodeCpp::init() {
 
   // # 有，直接获取资源，并赋值给tokenizer_
   if (tokenizer_cpp != nullptr) {
-    NNDEPLOY_LOGI("tokenizer_cpp is found, use the global one\n");
     tokenizer_ = tokenizer_cpp;
   } else {  // #
             // 没有，创建一个，并把该资源全局注册到图的资源中，并赋值给tokenizer_
-    NNDEPLOY_LOGI("tokenizer_cpp is not found, create a new one\n");
     // param_
     TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
 

@@ -56,6 +56,21 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     is_first_ = true;
     return base::kStatusCodeOk;
   };
+
+  bool isStopTexts() {
+    // TODO，大语言模型的输出字符是什么？
+    std::string text = *stream_output_;
+    std::string last_text = "";
+    size_t last_space = text.find_last_of(' ');
+    if (last_space != std::string::npos) {
+      last_text = text.substr(last_space + 1);
+    } else {
+      last_text = text;
+    }
+    return std::find(stop_texts_.begin(), stop_texts_.end(), last_text) !=
+           stop_texts_.end();
+  }
+
   virtual base::Status run() override {
     tokenizer::TokenizerText* input_text =
         dynamic_cast<tokenizer::TokenizerText*>(inputs_[0]->getParam(this));
@@ -73,8 +88,13 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       }
     }
     *stream_output_ = input_text->texts_[0];
-    output_text_->texts_[0] += (*stream_output_);
-    outputs_[0]->set(output_text_, true);
+    
+    if (isStopTexts()) {
+      outputs_[0]->set(output_text_, true);
+    } else {
+      output_text_->texts_[0] += (*stream_output_);
+    }
+
     outputs_[1]->set(stream_output_, true);
     return base::kStatusCodeOk;
   };
@@ -110,6 +130,9 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
   // 结果
   tokenizer::TokenizerText* output_text_ = nullptr;
   std::string* stream_output_ = nullptr;
+  //
+  std::vector<std::string> stop_texts_ = {
+      "<|endoftext|>", "<|im_end|>", "</s>", "<|end|>", "<|eot_id|>", "[DONE]"};
 };
 
 }  // namespace llm

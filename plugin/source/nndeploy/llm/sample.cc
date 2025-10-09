@@ -332,35 +332,6 @@ Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
 
 Sampler::~Sampler() {}
 
-int32_t Sampler::sampleOld(device::Tensor* logits) {
-  std::vector<int>* history_ids =
-      this->getResourceWithState<std::vector<int>>("history_tokens");
-  std::unordered_set<int> ids_set(history_ids->begin(), history_ids->end());
-  auto scores = (float*)logits->getData();
-  auto shape = logits->getShape();
-  auto size = std::accumulate(shape.begin(), shape.end(), 1,
-                              std::multiplies<int64_t>());
-  // repetition penalty
-  const float repetition_penalty = 1.1;
-  for (auto id : ids_set) {
-    float score = scores[id];
-    scores[id] =
-        score < 0 ? score * repetition_penalty : score / repetition_penalty;
-  }
-  // argmax
-  float max_score = 0;
-  int token_id = 0;
-  for (int i = 0; i < size; i++) {
-    float score = scores[i];
-    if (score > max_score) {
-      max_score = score;
-      token_id = i;
-    }
-  }
-
-  return token_id;
-}
-
 base::Status Sampler::run() {
   auto logits = inputs_[0]->get<device::Tensor>(this);
   int batch_size = logits->getShape()[0];
@@ -368,19 +339,15 @@ base::Status Sampler::run() {
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
   out_token->ids_.resize(batch_size);
 
-  static int index = 0;
-  if (index == 0) {
-    std::string debug_file = "new_logits.csv";
-    std::ofstream debug_file_stream(debug_file);
-    logits->print(debug_file_stream);
-    debug_file_stream.close();
-    index++;
-  }
+  auto sampled_token_id = sample(logits);
 
-  // auto sampled_token_id = sample(logits);
-  auto sampled_token_id = sampleOld(logits);
+  if (!is_prefill_ && is_first_) {
+    std::vector<int>* history_tokens = this->getResourceWithState<std::vector<int>>("history_tokens");
+    int prefill_token_id = history_tokens->back();
+    out_token->ids_[0].push_back(prefill_token_id);
+    is_first_ = false;
+  }
   out_token->ids_[0].push_back(sampled_token_id);
-  NNDEPLOY_LOGI("sampled_token_id: %d\n", sampled_token_id);
 
   outputs_[0]->set(out_token, false);
   outputs_[0]->notifyWritten(out_token);
@@ -677,6 +644,10 @@ int Sampler::sample(device::Tensor* logits) {
   // select token from the subset
   int res = handleSelect(subset);
   return res;
+}
+
+void Sampler::setIsPrefill(bool is_prefill) {
+  is_prefill_ = is_prefill;
 }
 
 REGISTER_NODE("nndeploy::llm::Sampler", Sampler);

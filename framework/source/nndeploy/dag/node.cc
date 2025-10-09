@@ -408,7 +408,6 @@ base::Status Node::setParam(const std::string &key, const std::string &value) {
 
 base::Status Node::addResourceWithoutState(const std::string &key,
                                            const base::Any &value) {
-  // NNDEPLOY_LOGI("addResourceWithoutState: %s\n", key.c_str());
   if (graph_ != nullptr) {
     return graph_->addResourceWithoutState(key, value);
   } else if (composite_node_ != nullptr) {
@@ -420,7 +419,6 @@ base::Status Node::addResourceWithoutState(const std::string &key,
 }
 
 base::Any &Node::getResourceWithoutState(const std::string &key) {
-  // NNDEPLOY_LOGI("getResourceWithoutState: %s\n", key.c_str());
   if (graph_ != nullptr) {
     return graph_->getResourceWithoutState(key);
   } else if (composite_node_ != nullptr) {
@@ -436,8 +434,6 @@ base::Any &Node::getResourceWithoutState(const std::string &key) {
 
 Edge *Node::createResourceWithState(const std::string &key) {
   if (graph_ != nullptr) {
-    // 指定为某类特殊的边，用于在图中传递数据
-    // @zuiren
     Edge *edge = new Edge(key);
     edge->setParallelType(parallel_type_);
     std::vector<Node *> producers = {this};
@@ -470,7 +466,6 @@ Edge *Node::getResourceWithState(const std::string &key) {
     if (edge != nullptr) {
       std::vector<Node *> consumers = {this};
       edge->increaseConsumers(consumers);
-      edge->construct();
     }
     return edge;
   } else if (composite_node_ != nullptr) {
@@ -623,8 +618,6 @@ base::Status Node::setIterInput(Edge *input, int index) {
       inputs_.resize(index + 1);
     }
     inputs_[index] = input;
-    NNDEPLOY_LOGI("node[%s] inputs's size: %d, setIterInput index: %d, input: %p\n",
-           name_.c_str(), inputs_.size(), index, input);
   }
   return base::kStatusCodeOk;
 }

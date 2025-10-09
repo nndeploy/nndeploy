@@ -437,8 +437,6 @@ base::Status PrefillEmbeddingNode::run() {
                      embedding_param->data_format_);
 
   auto past_kv = genPastKeyValue(embedding_param->kv_init_shape_);
-  NNDEPLOY_LOGI("prefill past_kv name: %s\n", past_kv->getName().c_str());
-  past_kv->getDesc().print();
 
   outputs_[0]->set(inputs_embeds, false);
   outputs_[1]->set(attention_mask, false);
@@ -456,18 +454,8 @@ base::Status PrefillSampleNode::run() {
       (tokenizer::TokenizerIds*)inputs_[1]->getParam(this);
   std::vector<int32_t> history_ids = token_ids->ids_[0];
 
-  static int index = 0;
-  if (index == 0) {
-    std::string debug_file = "old_logits.csv";
-    std::ofstream debug_file_stream(debug_file);
-    logits->print(debug_file_stream);
-    debug_file_stream.close();
-    index++;
-  }
-
   int32_t out_token_id = sample(logits, history_ids);
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
-  NNDEPLOY_LOGI("out_token_id: %d\n", out_token_id);
 
   out_token->ids_.push_back({out_token_id});
 
@@ -579,12 +567,6 @@ base::Status QwenPrefill::run() {
           prefill_infer_node_);
   device::Device* device = device::getDefaultHostDevice();
   device::TensorDesc presents_desc = presents->getDesc();
-  NNDEPLOY_LOGI("prefill presents name: %s\n", presents->getName().c_str());
-  presents->getDesc().print();
-  std::string debug_file = "old_prefill_presents.csv";
-  std::ofstream debug_file_stream(debug_file);
-  presents->print(debug_file_stream);
-  debug_file_stream.close();
   device::Tensor* presents_out = outputs_[1]->create(device, presents_desc);
   presents->copyTo(presents_out);
   outputs_[1]->notifyWritten(presents_out);
@@ -755,8 +737,6 @@ base::Status DecodeEmbeddingNode::run() {
   int seq_len = token_ids[0].size();
   int all_seq_len = embedding_param->all_seq_len_;
   past_kv_ = inputs_[1]->getTensor(this);
-  NNDEPLOY_LOGI("decode past_kv name: %s\n", past_kv_->getName().c_str());
-  past_kv_->getDesc().print();
   past_kv_->setName("past_key_values");
 
   auto inputs_embeds = genEmbedding(
@@ -766,14 +746,10 @@ base::Status DecodeEmbeddingNode::run() {
   auto attention_mask =
       genAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
                        embedding_param->data_format_);
-  NNDEPLOY_LOGI("decode attention_mask name: %s\n", attention_mask->getName().c_str());
-  attention_mask->getDesc().print();
 
   auto position_ids =
       genPositionIds(seq_len, all_seq_len, embedding_param->posid_data_type_,
                      embedding_param->data_format_);
-  NNDEPLOY_LOGI("decode position_ids name: %s\n", position_ids->getName().c_str());
-  position_ids->getDesc().print();
 
   if (is_first_) is_first_ = false;
   outputs_[0]->set(inputs_embeds, false);
@@ -1034,8 +1010,6 @@ base::Status QwenDecode::run() {
     decode_embedding_node_->getInput(0)->set(token_id, true);
     device::Tensor* past_kv =
         decode_infer_node_->getOutput(1)->getTensor(decode_infer_node_);
-    NNDEPLOY_LOGI("decode past_kv name: %s\n", past_kv->getName().c_str());
-    past_kv->getDesc().print();
     decode_embedding_node_->getInput(1)->set(past_kv, true);
 
     history_ids_.ids_ = sample_param->history_ids_.ids_;

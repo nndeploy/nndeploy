@@ -158,6 +158,7 @@ class NNDEPLOY_CC_API Node {
   T getResourceWithoutState(const std::string &key) {
     base::Any &any = this->getResourceWithoutState(key);
     if (any.empty()) {
+      NNDEPLOY_LOGE("any is empty in getResourceWithoutState, key: %s.\n", key.c_str());
       return T();
     }
     return base::get<T>(any);
@@ -167,19 +168,20 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
   virtual Edge* getResourceWithState(const std::string &key);
   template <typename T>
-  base::Status setResourceWithState(const std::string &key, T *value) {
+  base::Status setResourceWithState(const std::string &key, T *value, bool is_external = true) {
     Edge* edge = this->getResourceWithState(key);
     if (edge == nullptr) {
-      NNDEPLOY_LOGE("edge is nullptr in setResourceWithState.\n");
+      NNDEPLOY_LOGE("edge is nullptr in setResourceWithState, key: %s.\n", key.c_str());
       return base::kStatusCodeErrorDag;
     }
-    edge->set<T>(value);
+    edge->set<T>(value, is_external);
     return base::kStatusCodeOk;
   }
   template <typename T>
   T *getResourceWithState(const std::string &key) {
     Edge* edge = this->getResourceWithState(key);
     if (edge == nullptr) {
+      NNDEPLOY_LOGE("edge is nullptr in getResourceWithState, key: %s.\n", key.c_str());
       return nullptr;
     }
     return edge->get<T>(this);

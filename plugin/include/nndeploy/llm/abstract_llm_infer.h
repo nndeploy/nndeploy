@@ -321,8 +321,6 @@ class NNDEPLOY_CC_API LlmInferFactory {
                     infer_key.c_str(), model_key.c_str());
     }
     creators_[infer_key][model_key] = creator;
-    NNDEPLOY_LOGI("register LlmInfer success: %s@%s\n", infer_key.c_str(),
-                  model_key.c_str());
   }
 
   std::shared_ptr<LlmInferCreator> getCreator(const std::string &infer_key,
