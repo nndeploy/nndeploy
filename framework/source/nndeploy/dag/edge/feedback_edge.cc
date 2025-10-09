@@ -169,5 +169,12 @@ bool FeedBackEdge::requestTerminate() {
   return true;
 }
 
+bool FeedBackEdge::empty() {
+  if (data_packet_ == nullptr) {
+    return true;
+  }
+  return data_packet_->empty();
+}
+
 }  // namespace dag
 }  // namespace nndeploy

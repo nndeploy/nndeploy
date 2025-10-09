@@ -209,6 +209,14 @@ DataPacket *PipelineFeedbackEdge::getDataPacket(const Node *node) {
 int64_t PipelineFeedbackEdge::getIndex(const Node *node) {
   return ring_->find_cid(node);
 }
+
+bool PipelineFeedbackEdge::empty() {
+  if (data_packet_ == nullptr) {
+    return true;
+  }
+  return data_packet_->empty();
+}
+
 //=====================================================================
 bool PipelineFeedbackEdge::notifyWritten(device::Buffer *buffer) {
   return true;

@@ -623,8 +623,9 @@ base::Status Node::setIterInput(Edge *input, int index) {
       inputs_.resize(index + 1);
     }
     inputs_[index] = input;
-    NNDEPLOY_LOGI("node[%s] inputs's size: %d, setIterInput index: %d, input: %p\n",
-           name_.c_str(), inputs_.size(), index, input);
+    NNDEPLOY_LOGI(
+        "node[%s] inputs's size: %d, setIterInput index: %d, input: %p\n",
+        name_.c_str(), inputs_.size(), index, input);
   }
   return base::kStatusCodeOk;
 }
@@ -917,47 +918,17 @@ base::Status Node::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeOk;
 }
 
-// base::EdgeUpdateFlag Node::updateInput() {
-//   base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
-//   for (auto input : inputs_) {
-//     flag = input->update(this);
-//     if (flag != base::kEdgeUpdateFlagComplete) {
-//       // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
-//       //               base::edgeUpdateFlagToString(flag).c_str());
-//       break;
-//     }
-//   }
-//   return flag;
-// }
-
 base::EdgeUpdateFlag Node::updateInput() {
-  bool has_fb = false;
-  for (auto *e : inputs_) {
-    if (e && e->isFeedback()) {
-      has_fb = true;
+  base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
+  for (auto input : inputs_) {
+    flag = input->update(this);
+    if (flag != base::kEdgeUpdateFlagComplete) {
+      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
+      //               base::edgeUpdateFlagToString(flag).c_str());
       break;
     }
   }
-
-  for (auto *e : inputs_) {
-    if (!e) return base::kEdgeUpdateFlagTerminate;
-
-    auto flag = e->update(this);
-    if (flag == base::kEdgeUpdateFlagComplete) continue;
-
-    // 关键：含反馈节点，允许“非反馈输入 + 以前读过 => 复用”
-    if (has_fb && !e->isFeedback() && e->hasBeenConsumedBy(this)) {
-      continue;  // 作为就绪处理（sticky）
-    }
-
-    // 其它情况：仍按原规则，不就绪
-    if (flag == base::kEdgeUpdateFlagTerminate) {
-      return base::kEdgeUpdateFlagTerminate;
-    }
-
-    // 这里保留你原来的其它分支（如果有）
-  }
-  return base::kEdgeUpdateFlagComplete;
+  return flag;
 }
 
 bool Node::synchronize() { return true; }

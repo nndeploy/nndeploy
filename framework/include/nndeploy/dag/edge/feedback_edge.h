@@ -21,56 +21,58 @@ namespace dag {
 class FeedBackEdge : public AbstractEdge {
  public:
   FeedBackEdge(base::ParallelType paralle_type);
-  virtual ~FeedBackEdge();
+  ~FeedBackEdge() override;
 
-  virtual base::Status construct();
+  base::Status construct() override;
 
-  virtual base::Status set(device::Buffer *buffer, bool is_external);
-  virtual device::Buffer *create(device::Device *device,
-                                 const device::BufferDesc &desc);
-  virtual bool notifyWritten(device::Buffer *buffer);
-  virtual device::Buffer *getBuffer(const Node *node);
-  virtual device::Buffer *getGraphOutputBuffer();
+  base::Status set(device::Buffer *buffer, bool is_external) override;
+  device::Buffer *create(device::Device *device,
+                         const device::BufferDesc &desc) override;
+  bool notifyWritten(device::Buffer *buffer) override;
+  device::Buffer *getBuffer(const Node *node) override;
+  device::Buffer *getGraphOutputBuffer() override;
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
-  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
-  virtual bool notifyWritten(cv::Mat *cv_mat);
-  virtual cv::Mat *getCvMat(const Node *node);
-  virtual cv::Mat *getGraphOutputCvMat();
+  base::Status set(cv::Mat *cv_mat, bool is_external) override;
+  cv::Mat *create(int rows, int cols, int type,
+                  const cv::Vec3b &value) override;
+  bool notifyWritten(cv::Mat *cv_mat) override;
+  cv::Mat *getCvMat(const Node *node) override;
+  cv::Mat *getGraphOutputCvMat() override;
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, bool is_external);
-  virtual device::Tensor *create(device::Device *device,
-                                 const device::TensorDesc &desc,
-                                 const std::string &name);
-  virtual bool notifyWritten(device::Tensor *tensor);
-  virtual device::Tensor *getTensor(const Node *node);
-  virtual device::Tensor *getGraphOutputTensor();
+  base::Status set(device::Tensor *tensor, bool is_external) override;
+  device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
+                         const std::string &name) override;
+  bool notifyWritten(device::Tensor *tensor) override;
+  device::Tensor *getTensor(const Node *node) override;
+  device::Tensor *getGraphOutputTensor() override;
 
-  virtual base::Status takeDataPacket(DataPacket *data_packet);
-  virtual bool notifyWritten(void *anything);
-  virtual DataPacket *getDataPacket(const Node *node);
-  virtual DataPacket *getGraphOutputDataPacket();
+  base::Status takeDataPacket(DataPacket *data_packet) override;
+  bool notifyWritten(void *anything) override;
+  DataPacket *getDataPacket(const Node *node) override;
+  DataPacket *getGraphOutputDataPacket() override;
 
-  virtual base::Status set(base::Param *param, bool is_external);
-  virtual bool notifyWritten(base::Param *param);
-  virtual base::Param *getParam(const Node *node);
-  virtual base::Param *getGraphOutputParam();
+  base::Status set(base::Param *param, bool is_external) override;
+  bool notifyWritten(base::Param *param) override;
+  base::Param *getParam(const Node *node) override;
+  base::Param *getGraphOutputParam() override;
 
-  virtual int64_t getIndex(const Node *node);
-  virtual int64_t getGraphOutputIndex();
+  int64_t getIndex(const Node *node) override;
+  int64_t getGraphOutputIndex() override;
 
-  virtual int getPosition(const Node *node);
-  virtual int getGraphOutputPosition();
+  int getPosition(const Node *node) override;
+  int getGraphOutputPosition() override;
 
-  virtual base::EdgeUpdateFlag update(const Node *node);
+  base::EdgeUpdateFlag update(const Node *node) override;
 
-  virtual bool requestTerminate();
+  bool requestTerminate() override;
 
-  virtual base::Status setQueueMaxSize(int queue_max_size);
+  base::Status setQueueMaxSize(int queue_max_size) override;
 
   bool hasBeenConsumedBy(const Node *n) override;
+
+  bool empty() override;
 
  private:
   DataPacket *data_packet_;

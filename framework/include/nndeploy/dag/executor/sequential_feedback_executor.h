@@ -9,14 +9,14 @@ namespace dag {
 class SequentialFeedbackExecutor : public Executor {
  public:
   SequentialFeedbackExecutor();
-  virtual ~SequentialFeedbackExecutor();
+  ~SequentialFeedbackExecutor() override;
 
-  virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
-                            std::vector<NodeWrapper *> &node_repository);
-  virtual base::Status deinit();
-  virtual base::Status run();
-  virtual bool synchronize();
-  virtual bool interrupt();
+  base::Status init(std::vector<EdgeWrapper *> &edge_repository,
+                    std::vector<NodeWrapper *> &node_repository) override;
+  base::Status deinit() override;
+  base::Status run() override;
+  bool synchronize() override;
+  bool interrupt() override;
 
   void setMaxRounds(int max_rounds) { max_rounds_ = max_rounds; }
 
