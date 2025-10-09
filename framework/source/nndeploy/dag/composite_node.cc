@@ -12,15 +12,21 @@ CompositeNode::~CompositeNode() {
 
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
+      // std::string name = node_wrapper->node_->getName();
+      // NNDEPLOY_LOGE("composite node [%s] delete node[%s]\n", getName().c_str(),
+      //               name.c_str());
       delete node_wrapper->node_;
+      // NNDEPLOY_LOGE("composite node [%s] delete node[%s]\n", getName().c_str(),
+      //               name.c_str());
     }
     delete node_wrapper;
   }
 
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      std::string name = edge_wrapper->edge_->getName();
-      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n", getName().c_str(),
+      // std::string name = edge_wrapper->edge_->getName();
+      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n",
+      // getName().c_str(),
       //               name.c_str());
       delete edge_wrapper->edge_;
       // NNDEPLOY_LOGE("composite node [%s] delete edge[%s] success\n",

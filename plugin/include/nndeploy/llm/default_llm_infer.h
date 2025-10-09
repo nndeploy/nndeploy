@@ -227,7 +227,9 @@ class DefaultLlmInfer : public AbstractLlmInfer {
           dynamic_cast<EmbeddingParam*>(embedding_node_->getParam());
       *embedding_param_dst = *embedding_param_ptr;
       // 参数设置结束
+      embedding_node_->setInitializedFlag(false);
       embedding_node_->init();
+      embedding_node_->setInitializedFlag(true);
     } else {
       // TODO
       // tokenizer::TokenizerIds -> device::Tensor
@@ -257,28 +259,30 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       llm_infer_ =
           dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(desc));
       infer->shareInference(llm_infer_);
+      llm_infer_->setInitializedFlag(false);
       llm_infer_->init();
+      llm_infer_->setInitializedFlag(true);
     }
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status deinit() {
-    if (embedding_node_ != nullptr) {
-      auto status = embedding_node_->deinit();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "embedding_node_ deinit failed!");
-      delete embedding_node_;
-      embedding_node_ = nullptr;
-    }
-    if (llm_infer_ != nullptr) {
-      auto status = llm_infer_->deinit();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "llm_infer_ deinit failed!");
-      delete llm_infer_;
-      llm_infer_ = nullptr;
-    }
-    return base::kStatusCodeOk;
-  }
+  // virtual base::Status deinit() {
+  //   // if (embedding_node_ != nullptr) {
+  //   //   auto status = embedding_node_->deinit();
+  //   //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //   //                          "embedding_node_ deinit failed!");
+  //   //   delete embedding_node_;
+  //   //   embedding_node_ = nullptr;
+  //   // }
+  //   // if (llm_infer_ != nullptr) {
+  //   //   auto status = llm_infer_->deinit();
+  //   //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //   //                          "llm_infer_ deinit failed!");
+  //   //   delete llm_infer_;
+  //   //   llm_infer_ = nullptr;
+  //   // }
+  //   return base::kStatusCodeOk;
+  // }
 
   virtual base::Status run() {
     if (is_prefill_) {

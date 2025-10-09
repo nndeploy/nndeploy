@@ -51,9 +51,6 @@ class AbstractLlmInfer : public dag::CompositeNode {
   }
   virtual ~AbstractLlmInfer() {}
 
-  virtual base::Status init() { return base::kStatusCodeOk; }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
-
   virtual base::Status run() = 0;
 
   virtual base::Status setPrefill(bool is_prefill) {
