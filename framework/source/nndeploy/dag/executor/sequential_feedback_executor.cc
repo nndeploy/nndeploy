@@ -13,17 +13,15 @@ bool SequentialFeedbackExecutor::buildTopoIgnoringFeedback_(
   topo_out.clear();
   if (nodes.empty()) return true;
 
-  // 1) 建索引
   std::unordered_map<NodeWrapper*, int> idx;
   idx.reserve(nodes.size());
   for (int i = 0; i < (int)nodes.size(); ++i) idx[nodes[i]] = i;
 
-  // 2) 构建“忽略 feedback”的邻接与入度
   std::vector<int> indeg(nodes.size(), 0);
   std::vector<std::vector<int>> adj(nodes.size());
   for (auto* ew : edges) {
     if (!ew || !ew->edge_) continue;
-    if (ew->edge_->isFeedback()) continue;  // 忽略 feedback 边
+    if (ew->edge_->isFeedback()) continue;
     if (ew->producers_.empty() || ew->consumers_.empty()) continue;
 
     for (auto* p : ew->producers_) {
@@ -54,7 +52,6 @@ bool SequentialFeedbackExecutor::buildTopoIgnoringFeedback_(
     }
   }
 
-  // 4) 如果因为用户没标干净 feedback 导致仍有环，兜底把剩下的也 append 进来
   if ((int)topo_out.size() != (int)nodes.size()) {
     NNDEPLOY_LOGW(
         "SequentialFeedbackExecutor: non-feedback subgraph still cyclic; "
@@ -73,10 +70,8 @@ base::Status SequentialFeedbackExecutor::init(
     std::vector<NodeWrapper*>& node_repository) {
   base::Status status = base::kStatusCodeOk;
 
-  // 先尝试基于“忽略 feedback”的拓扑
   if (!buildTopoIgnoringFeedback_(edge_repository, node_repository,
                                   topo_sort_node_)) {
-    // 理论上不会走到这里；兜底仍可用 DFS
     status = topoSortDFS(node_repository, topo_sort_node_);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("SequentialFeedbackExecutor: topo sort failed.\n");
@@ -84,7 +79,6 @@ base::Status SequentialFeedbackExecutor::init(
     }
   }
 
-  // 节点 init（按 topo）
   for (auto* nw : topo_sort_node_) {
     Node* node = nw->node_;
     if (!node) continue;
@@ -110,18 +104,16 @@ base::Status SequentialFeedbackExecutor::init(
 base::Status SequentialFeedbackExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
 
-  // 请求边终止（与原实现一致）
-  for (auto* ew : edge_repository_) {
-    if (!ew || !ew->edge_) continue;
-    if (!ew->edge_->requestTerminate()) {
+  for (auto* e : edge_repository_) {
+    if (!e || !e->edge_) continue;
+    if (!e->edge_->requestTerminate()) {
       NNDEPLOY_LOGE("SequentialFeedbackExecutor: requestTerminate() failed!\n");
       return base::kStatusCodeErrorDag;
     }
   }
 
-  // 反向析构节点
-  for (auto* nw : topo_sort_node_) {
-    Node* node = nw->node_;
+  for (auto* n : topo_sort_node_) {
+    Node* node = n->node_;
     if (!node || !node->getInitialized()) continue;
     status = node->deinit();
     if (status != base::kStatusCodeOk) {
@@ -133,11 +125,11 @@ base::Status SequentialFeedbackExecutor::deinit() {
   return status;
 }
 
-base::Status SequentialFeedbackExecutor::sweepOnce_(bool& progressed) {
+base::Status SequentialFeedbackExecutor::run_once(bool& progressed) {
   progressed = false;
 
-  for (auto* nw : topo_sort_node_) {
-    Node* node = nw->node_;
+  for (auto* n : topo_sort_node_) {
+    Node* node = n->node_;
     if (!node) continue;
 
     if (node->checkInterruptStatus() == true) {
@@ -156,11 +148,8 @@ base::Status SequentialFeedbackExecutor::sweepOnce_(bool& progressed) {
       }
       progressed = true;
     } else if (flag == base::kEdgeUpdateFlagTerminate) {
-      // 本轮无需跑；继续下一个
       continue;
     } else {
-      // 不是 Complete 也不是 Terminate，说明输入暂未就绪；继续下一个
-      // 这里不直接报错，给下一轮机会（这正是“逐轮推进”的关键）
       continue;
     }
   }
@@ -170,27 +159,31 @@ base::Status SequentialFeedbackExecutor::sweepOnce_(bool& progressed) {
 
 base::Status SequentialFeedbackExecutor::run() {
   base::Status status = base::kStatusCodeOk;
+  bool progressed = false;
+  status = run_once(progressed);
+  if (status != base::kStatusCodeOk) return status;
 
-  int rounds = 0;
-  for (;;) {
-    // NNDEPLOY_LOGE("start run\n");
-    bool progressed = false;
-    status = sweepOnce_(progressed);
-    if (status != base::kStatusCodeOk) return status;
+  // dataflow, running according to the input edge
+  // int rounds = 0;
+  // for (;;) {
+  //   // NNDEPLOY_LOGE("start run\n");
+  //   bool progressed = false;
+  //   status = run_once(progressed);
+  //   if (status != base::kStatusCodeOk) return status;
 
-    if (!progressed) {
-      // 整轮没有任何节点运行 => 没有新的可推进工作，退出
-      break;
-    }
-    rounds++;
+  //   if (!progressed) {
+  //     // 整轮没有任何节点运行 => 没有新的可推进工作，退出
+  //     break;
+  //   }
+  //   rounds++;
 
-    if (max_rounds_ > 0 && rounds >= max_rounds_) {
-      NNDEPLOY_LOGW(
-          "SequentialFeedbackExecutor: reach max_rounds_=%d, break.\n",
-          max_rounds_);
-      break;
-    }
-  }
+  //   if (max_rounds_ > 0 && rounds >= max_rounds_) {
+  //     NNDEPLOY_LOGW(
+  //         "SequentialFeedbackExecutor: reach max_rounds_=%d, break.\n",
+  //         max_rounds_);
+  //     break;
+  //   }
+  // }
   return status;
 }
 

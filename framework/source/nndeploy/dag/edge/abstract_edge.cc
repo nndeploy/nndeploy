@@ -89,6 +89,8 @@ base::EdgeType getEdgeType(base::ParallelType type) {
       return base::kEdgeTypeFixed;
     case base::kParallelTypePipeline:
       return base::kEdgeTypePipeline;
+    case base::kParallelTypeFeedbackPipeline:
+      return base::kEdgeTypePipelineFeedback;
     default:
       return base::kEdgeTypeFixed;
   }

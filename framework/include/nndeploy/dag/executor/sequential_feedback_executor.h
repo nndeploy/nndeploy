@@ -24,7 +24,7 @@ class SequentialFeedbackExecutor : public Executor {
   bool buildTopoIgnoringFeedback_(const std::vector<EdgeWrapper *> &edges,
                                   const std::vector<NodeWrapper *> &nodes,
                                   std::vector<NodeWrapper *> &topo_out);
-  base::Status sweepOnce_(bool &progressed);
+  base::Status run_once(bool &progressed);
 
  protected:
   std::vector<NodeWrapper *> topo_sort_node_;

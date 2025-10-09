@@ -190,48 +190,78 @@ using namespace loop;
 //   failed"); delete graph; return 0;
 // }
 
-int main() {
-  auto* g = new dag::Graph("newton_graph", {}, {});
-  g->setParallelType(base::kParallelTypeFeedback);  // 你已接入 LoopAware 执行器
+// int main() {
+//   auto* g = new dag::Graph("newton_graph", {}, {});
+//   g->setParallelType(base::kParallelTypeFeedback);  // 你已接入 LoopAware
+//   执行器
 
-  // 边
-  auto* state_fb = g->createEdge("state_fb", /*feedback=*/true);
-  auto* new_state = g->createEdge("new_state");
-  auto* done = g->createEdge("done");
-  auto* val = g->createEdge("val");
+//   // 边
+//   auto* init_edge = g->createEdge("init");
+//   auto* state_fb = g->createEdge("state_fb", /*feedback=*/true);
+//   auto* new_state = g->createEdge("new_state");
+//   auto* done = g->createEdge("done");
+//   auto* val = g->createEdge("val");
 
-  // 节点
-  // (1) 初始化：直接 seed 反馈边，或用你已有的 SourceNode 写一次 state_fb
-  auto* init = (InitStateNode*)g->createNode<InitStateNode>(
-      "init", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{state_fb});
-  init->set_x0(1.0);  // 初值 x0
+//   // 节点
+//   // (1) 初始化：直接 seed 反馈边，或用你已有的 SourceNode 写一次 state_fb
+//   auto* init = (InitStateNode*)g->createNode<InitStateNode>(
+//       "init", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{init_edge});
+//   init->set_x0(1.0);  // 初值 x0
 
-  auto* source = (ConstNode*)g->createNode<ConstNode>(
-      "source", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{val});
+//   auto* source = (ConstNode*)g->createNode<ConstNode>(
+//       "source", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{val});
 
-  // (2) 一步牛顿
-  auto* upd = (NewtonStepNode*)g->createNode<NewtonStepNode>(
-      "update", {state_fb, val}, {new_state});
+//   // (2) 一步牛顿
+//   auto* upd = (NewtonStepNode*)g->createNode<NewtonStepNode>(
+//       "update", {init_edge, state_fb, val}, {new_state});
 
-  // (3) Guard
-  auto* guard = (NewtonGuardNode*)g->createNode<NewtonGuardNode>(
-      "guard", {new_state, state_fb}, {state_fb, done});
+//   // (3) Guard
+//   auto* guard = (NewtonGuardNode*)g->createNode<NewtonGuardNode>(
+//       "guard", {new_state, state_fb}, {state_fb, done});
 
-  auto guard_param = std::make_shared<NewtonGuardParam>();
-  guard_param->eps = 1e-6;
-  guard_param->max_iter = 50;
-  g->setNodeParamSharedPtr("guard", guard_param);
+//   auto guard_param = std::make_shared<NewtonGuardParam>();
+//   guard_param->eps = 1e-6;
+//   guard_param->max_iter = 50;
+//   g->setNodeParamSharedPtr("guard", guard_param);
 
-  // (4) 输出
-  auto* pr = (PrintNode*)g->createNode<PrintNode>(
-      "print", std::vector<dag::Edge*>{done}, std::vector<dag::Edge*>{});
+//   // (4) 输出
+//   auto* pr = (PrintNode*)g->createNode<PrintNode>(
+//       "print", std::vector<dag::Edge*>{done}, std::vector<dag::Edge*>{});
 
-  // 跑
+//   // 跑
+//   g->init();
+//   g->dump();
+//   g->run();
+//   g->synchronize();
+//   g->deinit();
+//   delete g;
+//   return 0;
+// }
+
+int main(int argc, char* argv[]) {
+  auto* g = new dag::Graph("graph", {}, {});
+  g->setParallelType(base::kParallelTypeFeedback);
+
+  auto* input = g->createEdge("input");
+  auto* output = g->createEdge("output");
+
+  auto* source = (SourceNode*)g->createNode<SourceNode>(
+      "init", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{input});
+  auto* print = (PrintNode*)g->createNode<PrintNode>(
+      "print", std::vector<dag::Edge*>{output}, std::vector<dag::Edge*>{});
+
+  auto* feedback_g = new FeedbackGraph("feedback_g", {input}, {output});
+  auto* fb = feedback_g->createEdge("fb", /*feedback=*/true);
+  auto* feedback_n = (AddNode*)feedback_g->createNode<AddNode>(
+      "feedback_n", {input, fb}, {fb, output});
+  g->addNode(feedback_g);
+
   g->init();
   g->dump();
   g->run();
   g->synchronize();
   g->deinit();
   delete g;
+  delete feedback_g;
   return 0;
 }

@@ -350,6 +350,7 @@ enum ParallelType : int {
   kParallelTypeTask = 0x0001 << 2,
   kParallelTypePipeline = 0x0001 << 3,
   kParallelTypeFeedback = 0x0001 << 4,
+  kParallelTypeFeedbackPipeline = 0x0001 << 5
 };
 
 enum EdgeType : int {

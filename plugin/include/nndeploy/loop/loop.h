@@ -7,6 +7,7 @@
 #include "nndeploy/dag/composite_node.h"
 #include "nndeploy/dag/condition.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/feedback.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
@@ -49,6 +50,53 @@ class NewtonGuardParam : public base::Param {
  public:
   double eps = 1e-6;  // 收敛阈值
   int max_iter = 50;  // 最大步数
+};
+
+class NNDEPLOY_CC_API ConstNode : public dag::Node {
+ public:
+  ConstNode(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::ConstNode";
+    desc_ = "const variable";
+    this->setOutputTypeInfo<ValParam>();
+    node_type_ = dag::NodeType::kNodeTypeInput;
+  }
+  virtual ~ConstNode() {}
+
+  virtual base::Status run();
+
+  virtual base::EdgeUpdateFlag updateInput();
+
+ private:
+  int index_ = 0;
+  int size_ = 1;
+};
+
+class NNDEPLOY_CC_API AddNode : public dag::Node {
+ public:
+  AddNode(const std::string &name, std::vector<dag::Edge *> inputs,
+          std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::AddNode";
+    desc_ = "add variable";
+  }
+  virtual ~AddNode() {}
+
+  virtual base::Status run();
+};
+
+class NNDEPLOY_CC_API PrintNode : public dag::Node {
+ public:
+  PrintNode(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::loop::PrintNode";
+    desc_ = "print variable";
+  }
+  virtual ~PrintNode() {}
+
+  virtual base::Status run();
 };
 
 class NNDEPLOY_CC_API InitStateNode : public dag::Node {
@@ -113,53 +161,6 @@ class NNDEPLOY_CC_API SourceNode : public dag::Node {
   int size_ = 1;
 };
 
-class NNDEPLOY_CC_API ConstNode : public dag::Node {
- public:
-  ConstNode(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    key_ = "nndeploy::loop::ConstNode";
-    desc_ = "const variable";
-    this->setOutputTypeInfo<ValParam>();
-    node_type_ = dag::NodeType::kNodeTypeInput;
-  }
-  virtual ~ConstNode() {}
-
-  virtual base::Status run();
-
-  virtual base::EdgeUpdateFlag updateInput();
-
- private:
-  int index_ = 0;
-  int size_ = 1;
-};
-
-class NNDEPLOY_CC_API AddNode : public dag::Node {
- public:
-  AddNode(const std::string &name, std::vector<dag::Edge *> inputs,
-          std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    key_ = "nndeploy::loop::AddNode";
-    desc_ = "add variable";
-  }
-  virtual ~AddNode() {}
-
-  virtual base::Status run();
-};
-
-class NNDEPLOY_CC_API PrintNode : public dag::Node {
- public:
-  PrintNode(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    key_ = "nndeploy::loop::PrintNode";
-    desc_ = "print variable";
-  }
-  virtual ~PrintNode() {}
-
-  virtual base::Status run();
-};
-
 class NNDEPLOY_CC_API AddMulNode : public dag::CompositeNode {
  public:
   AddMulNode(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -210,6 +211,22 @@ class NNDEPLOY_CC_API DemoAccumulateNode : public dag::Node {
   virtual ~DemoAccumulateNode() {}
 
   virtual base::Status run();
+};
+
+class NNDEPLOY_CC_API FeedbackGraph : public dag::Feedback {
+ public:
+  FeedbackGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
+      : dag::Feedback(name, inputs, outputs) {
+    key_ = "Feedback feedback graph";
+  }
+
+  bool condition() override;
+
+  int getLoopCount() { return loop_count_; }
+
+ private:
+  int loop_count_ = -1;
 };
 
 }  // namespace loop

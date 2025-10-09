@@ -1095,6 +1095,10 @@ ParallelType stringToParallelType(const std::string &src) {
     return kParallelTypeTask;
   } else if (src == "kParallelTypePipeline") {
     return kParallelTypePipeline;
+  } else if (src == "kParallelTypeFeedback") {
+    return kParallelTypeFeedback;
+  } else if (src == "kParallelTypeFeedbackPipeline") {
+    return kParallelTypeFeedbackPipeline;
   } else {
     NNDEPLOY_LOGI("Unsupported parallel type: %s.\n", src.c_str());
     return kParallelTypeNone;
@@ -1106,6 +1110,8 @@ EdgeType stringToEdgeType(const std::string &src) {
     return kEdgeTypeFixed;
   } else if (src == "kEdgeTypePipeline") {
     return kEdgeTypePipeline;
+  } else if (src == "kEdgeTypePipelineFeedback") {
+    return kEdgeTypePipelineFeedback;
   } else {
     NNDEPLOY_LOGI("Unsupported edge type: %s.\n", src.c_str());
     return kEdgeTypeFixed;

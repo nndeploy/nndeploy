@@ -2019,8 +2019,7 @@ base::Any &Graph::getResourceWithoutState(const std::string &key) {
   }
 }
 
-base::Status Graph::addResourceWithState(const std::string &key,
-                                           Edge *value) {
+base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) != resource_with_state_.end()) {
       NNDEPLOY_LOGE("global resource without state[%s] already exists!\n",
@@ -2402,6 +2401,9 @@ base::Status Graph::executor() {
   } else if (parallel_type_ == base::kParallelTypePipeline) {
     // NNDEPLOY_LOGE("parallel_type_ is Pipeline!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
+  } else if (parallel_type_ == base::kParallelTypeFeedbackPipeline) {
+    NNDEPLOY_LOGI("Use PipelineFeedbackExecutor for feedback graph.\n");
+    executor_ = std::make_shared<SequentialExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type_ is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;

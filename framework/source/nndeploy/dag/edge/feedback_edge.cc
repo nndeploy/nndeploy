@@ -137,24 +137,32 @@ bool FeedBackEdge::hasBeenConsumedBy(const Node *n) {
 base::EdgeUpdateFlag FeedBackEdge::update(const Node *node) {
   if (terminate_flag_) {
     return base::kEdgeUpdateFlagTerminate;
+  } else {
+    return base::kEdgeUpdateFlagComplete;
   }
-  const int64_t cur = data_packet_->getIndex();  // -1 代表还没写
-  if (cur < 0) {
-    return base::kEdgeUpdateFlagTerminate;  // 还没有任何数据
-  }
-  int64_t last = -1;
-  {
-    auto it = last_read_index_.find(node);
-    if (it != last_read_index_.end()) last = it->second;
-  }
-
-  if (cur == last) {
-    // 对该消费者而言，没有比上次更新更“新”的数据
-    return base::kEdgeUpdateFlagTerminate;
-  }
-  // 有比 last 更新的 token
-  return base::kEdgeUpdateFlagComplete;
 }
+
+// base::EdgeUpdateFlag FeedBackEdge::update(const Node *node) {
+//   if (terminate_flag_) {
+//     return base::kEdgeUpdateFlagTerminate;
+//   }
+//   const int64_t cur = data_packet_->getIndex();  // -1 代表还没写
+//   if (cur < 0) {
+//     return base::kEdgeUpdateFlagTerminate;  // 还没有任何数据
+//   }
+//   int64_t last = -1;
+//   {
+//     auto it = last_read_index_.find(node);
+//     if (it != last_read_index_.end()) last = it->second;
+//   }
+
+//   if (cur == last) {
+//     // 对该消费者而言，没有比上次更新更“新”的数据
+//     return base::kEdgeUpdateFlagTerminate;
+//   }
+//   // 有比 last 更新的 token
+//   return base::kEdgeUpdateFlagComplete;
+// }
 
 bool FeedBackEdge::requestTerminate() {
   terminate_flag_ = true;

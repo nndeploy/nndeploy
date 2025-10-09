@@ -25,6 +25,7 @@ base::Status PipelineFeedbackEdge::setQueueMaxSize(int q) {
 }
 
 base::Status PipelineFeedbackEdge::construct() {
+  std::cout << "PipelineFeedbackEdge construct" << std::endl;
   if (!ring_) ring_.reset(new Ring(queue_max_size_));
   consumer_size_ = static_cast<int>(consumers_.size());
   return base::kStatusCodeOk;
@@ -32,6 +33,7 @@ base::Status PipelineFeedbackEdge::construct() {
 
 base::Status PipelineFeedbackEdge::set(device::Buffer *buffer,
                                        bool is_external) {
+  std::cout << "Set Buffer" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -117,6 +119,7 @@ cv::Mat *PipelineFeedbackEdge::getCvMat(const Node *node) {
 
 base::Status PipelineFeedbackEdge::set(device::Tensor *tensor,
                                        bool is_external) {
+  std::cout << "Set Tensor" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -158,6 +161,7 @@ device::Tensor *PipelineFeedbackEdge::getTensor(const Node *node) {
 }
 
 base::Status PipelineFeedbackEdge::set(base::Param *param, bool is_external) {
+  std::cout << "Set Param" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -181,6 +185,7 @@ base::Param *PipelineFeedbackEdge::getParam(const Node *node) {
 }
 
 base::Status PipelineFeedbackEdge::takeDataPacket(DataPacket *data_packet) {
+  std::cout << "Set DataPacket" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   base::Status status = slot->takeDataPacket(data_packet);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
