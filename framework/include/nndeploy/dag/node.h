@@ -149,16 +149,10 @@ class NNDEPLOY_CC_API Node {
                                                const base::Any &value);
   virtual base::Any &getResourceWithoutState(const std::string &key);
   template <typename T>
-  base::Status setResourceWithoutState(const std::string &key, T value) {
-    base::Any &any = this->getResourceWithoutState(key);
-    any.construct<T>(value);
-    return base::kStatusCodeOk;
-  }
-  template <typename T>
   T getResourceWithoutState(const std::string &key) {
     base::Any &any = this->getResourceWithoutState(key);
     if (any.empty()) {
-      NNDEPLOY_LOGE("any is empty in getResourceWithoutState, key: %s.\n", key.c_str());
+      NNDEPLOY_LOGI("any is empty in getResourceWithoutState, key: %s.\n", key.c_str());
       return T();
     }
     return base::get<T>(any);

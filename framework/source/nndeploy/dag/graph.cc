@@ -1834,10 +1834,10 @@ base::Status Graph::toStaticGraph() {
 base::Status Graph::addResourceWithoutState(const std::string &key,
                                             const base::Any &value) {
   if (graph_ == nullptr) {
-    if (resource_without_state_.find(key) != resource_without_state_.end()) {
-      NNDEPLOY_LOGE("global resource without state[%s] already exists!\n",
-                    key.c_str());
-    }
+    // if (resource_without_state_.find(key) != resource_without_state_.end()) {
+    //   NNDEPLOY_LOGI("global resource without state[%s] already exists!\n",
+    //                 key.c_str());
+    // }
     // value参数是const引用，在这里被复制到resource_without_state_[key]中
     // 由于base::Any具有拷贝构造函数，value的内容会被复制保存
     // 即使原始的value变量在函数调用结束后销毁，复制的内容仍然保存在resource_without_state_中
@@ -1851,7 +1851,7 @@ base::Status Graph::addResourceWithoutState(const std::string &key,
 base::Any &Graph::getResourceWithoutState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_without_state_.find(key) == resource_without_state_.end()) {
-      NNDEPLOY_LOGE("global resource without state[%s] not found!\n",
+      NNDEPLOY_LOGI("global resource without state[%s] not found!\n",
                     key.c_str());
       static base::Any any;
       return any;

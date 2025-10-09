@@ -220,12 +220,7 @@ class DefaultLlmInfer : public AbstractLlmInfer {
           dynamic_cast<Embedding*>(this->createNode<Embedding>(desc));
       // 参数设置开始
       auto embedding_param = default_llm_infer_param->embedding_param_;
-      // embedding_node_->setParamSharedPtr(embedding_param);
-      EmbeddingParam* embedding_param_ptr =
-          dynamic_cast<EmbeddingParam*>(embedding_param.get());
-      EmbeddingParam* embedding_param_dst =
-          dynamic_cast<EmbeddingParam*>(embedding_node_->getParam());
-      *embedding_param_dst = *embedding_param_ptr;
+      embedding_node_->setParamSharedPtr(embedding_param);
       // 参数设置结束
       embedding_node_->setInitializedFlag(false);
       embedding_node_->init();
@@ -254,7 +249,7 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
       // 参数设置结束
       llm_infer_->init();
-      this->setResourceWithState("llm_infer", llm_infer_);
+      this->addResourceWithoutState("llm_infer", llm_infer_);
     } else {
       llm_infer_ =
           dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(desc));
@@ -265,24 +260,6 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
     return base::kStatusCodeOk;
   }
-
-  // virtual base::Status deinit() {
-  //   // if (embedding_node_ != nullptr) {
-  //   //   auto status = embedding_node_->deinit();
-  //   //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //   //                          "embedding_node_ deinit failed!");
-  //   //   delete embedding_node_;
-  //   //   embedding_node_ = nullptr;
-  //   // }
-  //   // if (llm_infer_ != nullptr) {
-  //   //   auto status = llm_infer_->deinit();
-  //   //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //   //                          "llm_infer_ deinit failed!");
-  //   //   delete llm_infer_;
-  //   //   llm_infer_ = nullptr;
-  //   // }
-  //   return base::kStatusCodeOk;
-  // }
 
   virtual base::Status run() {
     if (is_prefill_) {

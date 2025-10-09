@@ -17,11 +17,11 @@ Decode::Decode(const std::string& name, std::vector<dag::Edge*> inputs,
   decode_infer_node_ = dynamic_cast<llm::LlmInfer*>(
       this->createNode<llm::LlmInfer>("decode_infer"));
   decode_sampler_node_ =
-      dynamic_cast<Sampler*>(this->createNode<Sampler>("decode_sampler_node"));
+      dynamic_cast<Sampler*>(this->createNode<Sampler>("decode_sampler"));
   decode_token_node_ =
-      this->createNode<tokenizer::TokenizerDecodeCpp>("token_node");
+      this->createNode<tokenizer::TokenizerDecodeCpp>("tokenizer_decode");
   stream_out_node_ =
-      dynamic_cast<StreamOut*>(this->createNode<StreamOut>("stream_out_node"));
+      dynamic_cast<StreamOut*>(this->createNode<StreamOut>("stream_out"));
 }
 
 Decode::~Decode() {}
@@ -71,7 +71,6 @@ std::vector<dag::Edge*> Decode::forward(dag::Edge* input) {
   for (int i = 0; i < this->loops(); i++) {
     output = (*decode_infer_node_)(input);
     output = (*decode_sampler_node_)(output);
-    // output.push_back(input);
     output = (*decode_token_node_)(output);
     output = (*stream_out_node_)(output);
   }

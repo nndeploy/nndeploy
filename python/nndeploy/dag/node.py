@@ -733,10 +733,14 @@ def import_global_import_lib():
     
 # List of node keys to exclude from node listing
 remove_node_keys = [
-    "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition", "nndeploy::dag::Comment",
+    "nndeploy::dag::Graph", "nndeploy::dag::FixedLoop",
+    "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition", "nndeploy::dag::Comment",
     "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
     "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
-    "nndeploy::preprocess::BatchPreprocess"
+    "nndeploy::preprocess::BatchPreprocess",
+    "nndeploy::qwen::PrefillEmbeddingNode", "nndeploy::qwen::DecodeEmbeddingNode", "nndeploy::qwen::PrefillSampleNode",
+    "nndeploy::qwen::DecodeSampleNode", "nndeploy::qwen::PromptNode", "nndeploy::qwen::PrintNode",
+    "nndeploy::qwen::QwenPrefill", "nndeploy::qwen::QwenDecode",
 ]
 
 

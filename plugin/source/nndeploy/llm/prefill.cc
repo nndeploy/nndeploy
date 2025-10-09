@@ -15,11 +15,11 @@ Prefill::Prefill(const std::string& name, std::vector<dag::Edge*> inputs,
   this->setOutputTypeInfo<tokenizer::TokenizerIds>("output_tokens");
 
   prefill_token_node_ =
-      this->createNode<tokenizer::TokenizerEncodeCpp>("token_node");
+      this->createNode<tokenizer::TokenizerEncodeCpp>("tokenizer_encode");
   prefill_infer_node_ = dynamic_cast<llm::LlmInfer*>(this->createNode<llm::LlmInfer>("prefill_infer"));
   prefill_infer_node_->setPrefill(true);
   prefill_sampler_node_ =
-      this->createNode<Sampler>("prefill_sampler_node");
+      this->createNode<Sampler>("prefill_sampler");
 }
 Prefill::Prefill(const std::string& name) : dag::Graph(name) {
   key_ = "nndeploy::llm::Prefill";
