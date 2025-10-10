@@ -72,10 +72,10 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
         this->getResourceWithoutState<std::shared_ptr<MNN::Transformer::Llm>>(
             share_key);
     if (infer == nullptr) {
-      MNN::BackendConfig backendConfig;
-      executor_ = MNN::Express::Executor::newExecutor(MNN_FORWARD_CPU,
-                                                      backendConfig, 1);
-      MNN::Express::ExecutorScope s(executor_);
+      // MNN::BackendConfig backendConfig;
+      // executor_ = MNN::Express::Executor::newExecutor(MNN_FORWARD_CPU,
+      //                                                 backendConfig, 1);
+      // MNN::Express::ExecutorScope s(executor_);
 
       mnn_llm_ = std::shared_ptr<MNN::Transformer::Llm>(
           MNN::Transformer::Llm::createLLM(config_path_[0]));
@@ -102,7 +102,7 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
   }
   virtual base::Status deinit() override { return base::kStatusCodeOk; }
   virtual base::Status run() override {
-    MNN::Express::ExecutorScope s(executor_);
+    // MNN::Express::ExecutorScope s(executor_);
     if (is_prefill_) {
       return prefill();
     } else {
