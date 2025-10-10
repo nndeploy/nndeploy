@@ -241,7 +241,8 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       output_names.push_back(output->getName());
     }
     dag::NodeDesc desc("llm_infer", input_names, output_names);
-    auto infer = this->getResourceWithoutState<infer::Infer*>("llm_infer");
+    std::string share_key = this->getShareKey();
+    auto infer = this->getResourceWithoutState<infer::Infer*>(share_key);
     if (infer == nullptr) {
       llm_infer_ = dynamic_cast<infer::Infer*>(this->createInfer<infer::Infer>(
           desc, default_llm_infer_param->inference_type_));
@@ -249,7 +250,7 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
       // 参数设置结束
       llm_infer_->init();
-      this->addResourceWithoutState("llm_infer", llm_infer_);
+      this->addResourceWithoutState(share_key, llm_infer_);
     } else {
       llm_infer_ =
           dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(desc));
@@ -344,7 +345,7 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     std::vector<int32_t>* history_tokens = nullptr;
     if (history_tokens_edge != nullptr) {
       history_tokens = history_tokens_edge->get<std::vector<int32_t>>(this);
-      history_tokens->push_back(ids->ids_[0][0]);
+      history_tokens->push_back(ids->ids_[0].back());
     }
 
     // auto seq_len = ids->ids_[0].size();

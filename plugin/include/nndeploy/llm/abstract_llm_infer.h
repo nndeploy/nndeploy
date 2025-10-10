@@ -253,6 +253,16 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
+  std::string getShareKey() {
+    std::string key = "";
+    for (const auto &path : config_path_) {
+      key += path;
+    }
+    key += model_key_;
+    key += infer_key_;
+    return key;
+  }
+
  protected:
   // prefill or decode
   bool is_prefill_ = true;
