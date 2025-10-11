@@ -32,6 +32,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.nndeploy.ai.ImageInImageOut
 import com.nndeploy.ai.ProcessResult
+import com.nndeploy.ai.PromptInPromptOut
+import com.nndeploy.ai.PromptInPromptOut.PromptProcessResult
 import com.nndeploy.base.*
 import kotlinx.coroutines.launch
 import android.widget.Toast
@@ -42,6 +44,12 @@ import java.io.File
 import com.nndeploy.ai.AIAlgorithm
 import com.nndeploy.ai.InOutType
 import com.nndeploy.ai.AlgorithmFactory
+
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 
 
 /**
@@ -77,7 +85,7 @@ fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel())
                 .padding(16.dp)
         ) {
             Text(
-                text = "AI算法中心",
+                text = "nndeploy算法中心",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A)
@@ -594,3 +602,350 @@ private fun determineInputType(uri: Uri, context: Context): com.nndeploy.ai.Inpu
         com.nndeploy.ai.InputMediaType.IMAGE // 异常时默认为图片
     }
 }
+
+/**
+ * LLM聊天处理页面
+ */
+@Composable
+fun LlmChatProcessScreen(
+    nav: NavHostController,
+    algorithmId: String,
+    sharedViewModel: AIViewModel = viewModel()
+) {
+    val vm: AIViewModel = sharedViewModel
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    // 找到对应的算法
+    val algorithm = AlgorithmFactory.getAlgorithmsById(vm.availableAlgorithms, algorithmId)
+    
+    // 聊天消息状态
+    var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
+    var inputText by remember { mutableStateOf("") }
+    var isTyping by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+    ) {
+        // 顶部栏
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { nav.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "返回"
+                )
+            }
+            Text(
+                text = algorithm?.name ?: "AI聊天",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E3A8A),
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = { 
+                    messages = listOf()
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "清空聊天"
+                )
+            }
+        }
+        
+        // 聊天消息区域
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            if (messages.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Chat,
+                                contentDescription = null,
+                                tint = Color(0xFF9CA3AF),
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "开始与AI对话",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF374151)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "输入您的问题，AI将为您提供帮助",
+                                fontSize = 14.sp,
+                                color = Color(0xFF6B7280),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(messages) { message ->
+                    ChatMessageItem(message = message)
+                }
+            }
+            
+            // 正在输入指示器
+            if (isTyping) {
+                item {
+                    TypingIndicator()
+                }
+            }
+        }
+        
+        // 输入区域
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                OutlinedTextField(
+                    value = inputText,
+                    onValueChange = { inputText = it },
+                    placeholder = { Text("输入您的问题...") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF10B981),
+                        unfocusedBorderColor = Color(0xFFE5E7EB)
+                    ),
+                    maxLines = 4
+                )
+                
+                IconButton(
+                    onClick = {
+                        if (inputText.isNotBlank() && !isTyping) {
+                            val userMessage = ChatMessage(
+                                content = inputText,
+                                isUser = true,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            messages = messages + userMessage
+                            
+                            scope.launch {
+                                isTyping = true
+                                try {
+                                    // 判断algorithm是否存在
+                                    if (algorithm == null) {
+                                        Toast.makeText(context, "算法 $algorithmId 不存在", Toast.LENGTH_LONG).show()
+                                        return@launch
+                                    }
+                                    
+                                    val result = PromptInPromptOut.processPromptInPromptOut(context, inputText, algorithm)
+                                    
+                                    when (result) {
+                                        is PromptProcessResult.Success -> {
+                                            val aiMessage = ChatMessage(
+                                                content = result.response,
+                                                isUser = false,
+                                                timestamp = System.currentTimeMillis()
+                                            )
+                                            messages = messages + aiMessage
+                                        }
+                                        is PromptProcessResult.Error -> {
+                                            val errorMessage = ChatMessage(
+                                                content = "抱歉，处理出现错误：${result.message}",
+                                                isUser = false,
+                                                timestamp = System.currentTimeMillis(),
+                                                isError = true
+                                            )
+                                            messages = messages + errorMessage
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    val errorMessage = ChatMessage(
+                                        content = "抱歉，发生了未知错误",
+                                        isUser = false,
+                                        timestamp = System.currentTimeMillis(),
+                                        isError = true
+                                    )
+                                    messages = messages + errorMessage
+                                } finally {
+                                    isTyping = false
+                                }
+                            }
+                            
+                            inputText = ""
+                        }
+                    },
+                    enabled = inputText.isNotBlank() && !isTyping,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            if (inputText.isNotBlank() && !isTyping) Color(0xFF10B981) else Color(0xFFE5E7EB),
+                            CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "发送",
+                        tint = if (inputText.isNotBlank() && !isTyping) Color.White else Color(0xFF9CA3AF)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 聊天消息数据类
+ */
+data class ChatMessage(
+    val content: String,
+    val isUser: Boolean,
+    val timestamp: Long,
+    val isError: Boolean = false
+)
+
+/**
+ * 聊天消息项组件
+ */
+@Composable
+fun ChatMessageItem(message: ChatMessage) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
+    ) {
+        if (message.isUser) {
+            Spacer(modifier = Modifier.width(48.dp))
+        }
+        
+        Card(
+            modifier = Modifier.widthIn(max = 280.dp),
+            shape = RoundedCornerShape(
+                topStart = 16.dp,
+                topEnd = 16.dp,
+                bottomStart = if (message.isUser) 16.dp else 4.dp,
+                bottomEnd = if (message.isUser) 4.dp else 16.dp
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = when {
+                    message.isError -> Color(0xFFFEE2E2)
+                    message.isUser -> Color(0xFF10B981)
+                    else -> Color.White
+                }
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(
+                    text = message.content,
+                    fontSize = 14.sp,
+                    color = when {
+                        message.isError -> Color(0xFFDC2626)
+                        message.isUser -> Color.White
+                        else -> Color(0xFF374151)
+                    },
+                    lineHeight = 20.sp
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp)),
+                    fontSize = 10.sp,
+                    color = when {
+                        message.isError -> Color(0xFFDC2626).copy(alpha = 0.7f)
+                        message.isUser -> Color.White.copy(alpha = 0.7f)
+                        else -> Color(0xFF9CA3AF)
+                    }
+                )
+            }
+        }
+        
+        if (!message.isUser) {
+            Spacer(modifier = Modifier.width(48.dp))
+        }
+    }
+}
+
+/**
+ * 正在输入指示器
+ */
+@Composable
+fun TypingIndicator() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier.widthIn(max = 100.dp),
+            shape = RoundedCornerShape(
+                topStart = 16.dp,
+                topEnd = 16.dp,
+                bottomStart = 4.dp,
+                bottomEnd = 16.dp
+            ),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(3) { index ->
+                    val animatedAlpha by animateFloatAsState(
+                        targetValue = if ((System.currentTimeMillis() / 500) % 3 == index.toLong()) 1f else 0.3f,
+                        animationSpec = tween(500),
+                        label = "typing_dot_$index"
+                    )
+                    
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(
+                                Color(0xFF9CA3AF).copy(alpha = animatedAlpha),
+                                CircleShape
+                            )
+                    )
+                    
+                    if (index < 2) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(48.dp))
+    }
+}
+

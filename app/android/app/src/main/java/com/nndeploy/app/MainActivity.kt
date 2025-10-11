@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nndeploy.app.ui.theme.AppTheme
 import android.util.Log
 import android.net.Uri
+import com.nndeploy.ai.AlgorithmFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,11 +59,40 @@ fun App() {
             composable("ai") { 
                 AIScreen(nav, sharedAIViewModel) 
             }
+            // // AI算法处理页面路由 - 接收算法ID参数
+            // // 路径格式: "ai_process/{algorithmId}" 其中algorithmId是动态参数
+            // composable("ai_process/{algorithmId}") { backStackEntry ->
+            //     // 从导航参数中提取算法ID，如果获取失败则使用空字符串作为默认值
+            //     val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
+            //     // 调用CV处理页面，传入导航控制器、算法ID和共享的AI ViewModel
+            //     CVProcessScreen(nav, algorithmId, sharedAIViewModel)
+            // }
+            // 在 MainActivity.kt 的 NavHost 中修改路由
             composable("ai_process/{algorithmId}") { backStackEntry ->
                 val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
-                CVProcessScreen(nav, algorithmId, sharedAIViewModel)
+                val algorithm = AlgorithmFactory.getAlgorithmsById(sharedAIViewModel.availableAlgorithms, algorithmId)
+                
+                // 根据算法的processFunction选择不同的处理页面
+                when (algorithm?.processFunction) {
+                    "processPromptInPromptOut" -> {
+                        // 智能对话类算法使用LlmChatProcessScreen
+                        LlmChatProcessScreen(nav, algorithmId, sharedAIViewModel)
+                    }
+                    "processImageInImageOut" -> {
+                        // 图像处理类算法使用CVProcessScreen
+                        CVProcessScreen(nav, algorithmId, sharedAIViewModel)
+                    }
+                    else -> {
+                        // 默认使用CVProcessScreen
+                        CVProcessScreen(nav, algorithmId, sharedAIViewModel)
+                    }
+                }
             }
+            
+            // AI算法结果展示页面路由
+            // 用于显示算法处理完成后的结果
             composable("ai_result") { 
+                // 调用CV结果页面，传入导航控制器和共享的AI ViewModel
                 CVResultScreen(nav, sharedAIViewModel) 
             }
             

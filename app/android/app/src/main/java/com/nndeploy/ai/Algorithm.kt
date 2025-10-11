@@ -143,8 +143,8 @@ object AlgorithmFactory {
                 workflowAsset = "resources/workflow/ChatLLM.json",
                 tags = listOf("对话", "聊天", "问答"),
                 parameters = mapOf(
-                    "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
-                    "output_node" to mapOf("OpenCvImageEncode_26" to "path_"),
+                    "input_node" to mapOf("nndeploy::llm::Prompt" to "user_content_"),
+                    "output_node" to mapOf("LlmOut_3" to "path_"),
                 ),
                 processFunction = "processPromptInPromptOut"
             ),
