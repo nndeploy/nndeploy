@@ -22,19 +22,26 @@ int main(int argc, char* argv[]) {
   auto* g = new dag::Graph("ring", {}, {});
   g->setParallelType(base::kParallelTypeFeedbackPipeline);
   auto* input = g->createEdge("input");
+  auto* add1 = g->createEdge("add1");
+  auto* add2 = g->createEdge("add2");
   auto* output = g->createEdge("output");
 
   auto* source = (ConstNode*)g->createNode<ConstNode>(
       "source", std::vector<dag::Edge*>{}, std::vector<dag::Edge*>{input});
-  auto* add_node = (AddNode*)g->createNode<AddNode>(
-      "Add", std::vector<dag::Edge*>{input}, std::vector<dag::Edge*>{output});
+  auto* add_node_1 = (AddNode*)g->createNode<AddNode>(
+      "Add1", std::vector<dag::Edge*>{input}, std::vector<dag::Edge*>{add1});
+  auto* add_node_2 = (AddNode*)g->createNode<AddNode>(
+      "Add2", std::vector<dag::Edge*>{input}, std::vector<dag::Edge*>{add2});
+  auto* merge = (MergeNode*)g->createNode<MergeNode>(
+      "Merge", std::vector<dag::Edge*>{add1, add2},
+      std::vector<dag::Edge*>{output});
   auto* dest = (PrintNode*)g->createNode<PrintNode>(
       "dest", std::vector<dag::Edge*>{output}, std::vector<dag::Edge*>{});
 
   g->init();
   g->dump();
   g->run();
-  //   g->synchronize();
+  g->synchronize();
   g->deinit();
   delete g;
   return 0;

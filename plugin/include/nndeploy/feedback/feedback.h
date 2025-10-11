@@ -69,5 +69,18 @@ class NNDEPLOY_CC_API PrintNode : public dag::Node {
   virtual base::Status run();
 };
 
+class NNDEPLOY_CC_API MergeNode : public dag::Node {
+ public:
+  MergeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
+    key_ = "nndeploy::feedback::MergeNode";
+    desc_ = "add two input";
+  }
+  virtual ~MergeNode() {}
+
+  virtual base::Status run();
+};
+
 }  // namespace feedback
 }  // namespace nndeploy

@@ -73,7 +73,7 @@ bool Edge::notifyWritten(device::Buffer *buffer) {
   return abstact_edge_->notifyWritten(buffer);
 }
 device::Buffer *Edge::getBuffer(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -84,7 +84,7 @@ device::Buffer *Edge::getBuffer(const Node *node) {
   return abstact_edge_->getBuffer(node);
 }
 device::Buffer *Edge::getGraphOutputBuffer() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -112,7 +112,7 @@ bool Edge::notifyWritten(cv::Mat *cv_mat) {
   return abstact_edge_->notifyWritten(cv_mat);
 }
 cv::Mat *Edge::getCvMat(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -123,7 +123,7 @@ cv::Mat *Edge::getCvMat(const Node *node) {
   return abstact_edge_->getCvMat(node);
 }
 cv::Mat *Edge::getGraphOutputCvMat() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -159,7 +159,7 @@ bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);
 }
 device::Tensor *Edge::getTensor(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -170,7 +170,7 @@ device::Tensor *Edge::getTensor(const Node *node) {
   return abstact_edge_->getTensor(node);
 }
 device::Tensor *Edge::getGraphOutputTensor() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -204,7 +204,7 @@ base::Param *Edge::getParam(const Node *node) {
   return abstact_edge_->getParam(node);
 }
 base::Param *Edge::getGraphOutputParam() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }

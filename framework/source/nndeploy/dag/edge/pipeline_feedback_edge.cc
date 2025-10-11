@@ -48,6 +48,7 @@ base::Status PipelineFeedbackEdge::set(device::Buffer *buffer,
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  cv_.notify_all();
   return status;
 }
 
@@ -90,6 +91,7 @@ base::Status PipelineFeedbackEdge::set(cv::Mat *cv_mat, bool is_external) {
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  cv_.notify_all();
   return status;
 }
 
@@ -133,6 +135,7 @@ base::Status PipelineFeedbackEdge::set(device::Tensor *tensor,
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  cv_.notify_all();
   return status;
 }
 
@@ -196,6 +199,7 @@ base::Status PipelineFeedbackEdge::takeDataPacket(DataPacket *data_packet) {
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  cv_.notify_all();
   return status;
 }
 

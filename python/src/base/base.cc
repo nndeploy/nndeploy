@@ -2,12 +2,12 @@
 #include "base/base.h"
 
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/dlopen.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/type.h"
 #include "nndeploy_api_registry.h"
-#include "nndeploy/base/dlopen.h"
 
 namespace nndeploy {
 namespace base {
@@ -949,13 +949,11 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "Format JSON string to be more readable");
 
   // export as base.Handle
-  py::class_<Handle>(m, "Handle")
-      .def(py::init<>());
+  py::class_<Handle>(m, "Handle").def(py::init<>());
 
   // export as base.load_library_from_path
   m.def("load_library_from_path", &loadLibraryFromPath, py::arg("path"),
-        py::arg("update"),
-        "Load a library from a path");
+        py::arg("update"), "Load a library from a path");
 
   // export as base.free_library
   m.def("free_library", &freeLibrary, py::arg("path"),
@@ -963,8 +961,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   // export as base.get_library_handle
   m.def("get_library_handle", &getLibraryHandle, py::arg("path"),
-        py::arg("update"),
-        "Get a library handle from a path");
+        py::arg("update"), "Get a library handle from a path");
 }
 
 }  // namespace base

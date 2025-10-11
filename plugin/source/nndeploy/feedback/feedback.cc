@@ -31,7 +31,19 @@ base::Status AddNode::run() {
   setRunningFlag(true);
   ValParam *input = (ValParam *)(inputs_[0]->getParam(this));
   ValParam *output = new ValParam();
-  output->val = input->val;
+  output->val = input->val + 1;
+  this->getOutput(0)->set(static_cast<base::Param *>(output), false);
+  this->getOutput(0)->notifyWritten(output);
+  setRunningFlag(false);
+  return base::kStatusCodeOk;
+}
+
+base::Status MergeNode::run() {
+  setRunningFlag(true);
+  ValParam *input1 = (ValParam *)(inputs_[0]->getParam(this));
+  ValParam *input2 = (ValParam *)(inputs_[1]->getParam(this));
+  ValParam *output = new ValParam();
+  output->val = input1->val + input2->val;
   this->getOutput(0)->set(static_cast<base::Param *>(output), false);
   this->getOutput(0)->notifyWritten(output);
   setRunningFlag(false);
