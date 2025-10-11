@@ -65,6 +65,7 @@ device::Buffer *PipelineFeedbackEdge::create(device::Device *device,
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return nullptr;
   }
+  cv_.notify_all();
 
   return ret_value;
 }
@@ -108,6 +109,7 @@ cv::Mat *PipelineFeedbackEdge::create(int rows, int cols, int type,
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return nullptr;
   }
+  cv_.notify_all();
 
   return ret_value;
 }
@@ -153,6 +155,7 @@ device::Tensor *PipelineFeedbackEdge::create(device::Device *device,
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return nullptr;
   }
+  cv_.notify_all();
 
   return ret_value;
 }
