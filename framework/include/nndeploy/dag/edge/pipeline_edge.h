@@ -16,6 +16,8 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
+#include <vector>
+
 namespace nndeploy {
 namespace dag {
 
@@ -85,6 +87,15 @@ class PipelineEdge : public AbstractEdge {
  private:
   PipelineDataPacket *getPipelineDataPacket(const Node *node);
 
+  void ensureCapacityUnlocked(size_t capacity);
+  void pushBackUnlocked(PipelineDataPacket *dp);
+  PipelineDataPacket *atUnlocked(size_t index) const;
+  PipelineDataPacket *frontUnlocked() const;
+  PipelineDataPacket *backUnlocked() const;
+  PipelineDataPacket *popFrontUnlocked();
+  size_t queueSizeUnlocked() const;
+  size_t queueLimit() const;
+
  private:
   std::once_flag once_;
   std::mutex mutex_;
@@ -94,9 +105,12 @@ class PipelineEdge : public AbstractEdge {
   // 队列最大值
   // std::mutex queue_mutex_;
   std::condition_variable queue_cv_;
-  int queue_max_size_;
+  int queue_max_size_ = 16;
   // 数据包
-  std::list<PipelineDataPacket *> data_packets_;
+  std::vector<PipelineDataPacket *> data_packets_;
+  size_t head_ = 0;
+  size_t size_ = 0;
+  size_t capacity_ = 0;
   // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
   std::map<Node *, int> to_consume_index_;
   // 每个消费者 消费 的当前数据包

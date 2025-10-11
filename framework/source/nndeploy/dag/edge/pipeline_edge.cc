@@ -1,5 +1,7 @@
 #include "nndeploy/dag/edge/pipeline_edge.h"
 
+#include <algorithm>
+
 #include "nndeploy/dag/edge/data_packet.h"
 
 namespace nndeploy {
@@ -9,26 +11,46 @@ TypeEdgeRegister<TypeEdgeCreator<PipelineEdge>> g_pipeline_edge_register(
     base::kEdgeTypePipeline);
 
 PipelineEdge::PipelineEdge(base::ParallelType paralle_type)
-    : AbstractEdge(paralle_type) {}
+    : AbstractEdge(paralle_type) {
+  if (queue_max_size_ <= 0) {
+    queue_max_size_ = 1;
+  }
+  capacity_ = static_cast<size_t>(queue_max_size_);
+  data_packets_.assign(capacity_, nullptr);
+  head_ = 0;
+  size_ = 0;
+}
 
 bool PipelineEdge::empty() {
-  return data_packets_.empty() || data_packets_.back()->empty();
+  if (queueSizeUnlocked() == 0) {
+    return true;
+  }
+  PipelineDataPacket *latest = backUnlocked();
+  return latest == nullptr || latest->empty();
 }
 
 PipelineEdge::~PipelineEdge() {
   consumers_size_ = 0;
 
-  for (auto iter : data_packets_) {
-    delete iter;
+  while (size_ > 0) {
+    PipelineDataPacket *dp = popFrontUnlocked();
+    delete dp;
   }
   data_packets_.clear();
+  capacity_ = 0;
 
   consuming_dp_.clear();
   to_consume_index_.clear();
 }
 
 base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (queue_max_size <= 0) {
+    queue_max_size = 1;
+  }
   queue_max_size_ = queue_max_size;
+  size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked());
+  ensureCapacityUnlocked(required_capacity);
   return base::kStatusCodeOk;
 }
 
@@ -50,8 +72,9 @@ base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -59,7 +82,7 @@ base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   this->increaseIndex();
   dp->setIndex(index_);
 
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // set
@@ -75,15 +98,16 @@ device::Buffer *PipelineEdge::create(device::Device *device,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   this->increaseIndex();
   dp->setIndex(index_);
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // create
@@ -96,9 +120,10 @@ device::Buffer *PipelineEdge::create(device::Device *device,
 bool PipelineEdge::notifyWritten(device::Buffer *buffer) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
-  for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
-       ++iter) {
-    if ((*iter)->notifyWritten(buffer)) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
+    if (dp != nullptr && dp->notifyWritten(buffer)) {
       is_notify = true;
       break;
     }
@@ -144,8 +169,9 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -153,7 +179,7 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   this->increaseIndex();
   dp->setIndex(index_);
 
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // set
@@ -169,15 +195,16 @@ cv::Mat *PipelineEdge::create(int rows, int cols, int type,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   this->increaseIndex();
   dp->setIndex(index_);
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // create
@@ -190,9 +217,10 @@ cv::Mat *PipelineEdge::create(int rows, int cols, int type,
 bool PipelineEdge::notifyWritten(cv::Mat *cv_mat) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
-  for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
-       ++iter) {
-    if ((*iter)->notifyWritten(cv_mat)) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
+    if (dp != nullptr && dp->notifyWritten(cv_mat)) {
       is_notify = true;
       break;
     }
@@ -238,8 +266,9 @@ base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -247,7 +276,7 @@ base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   this->increaseIndex();
   dp->setIndex(index_);
 
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // set
@@ -264,15 +293,16 @@ device::Tensor *PipelineEdge::create(device::Device *device,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   this->increaseIndex();
   dp->setIndex(index_);
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // create
@@ -285,9 +315,10 @@ device::Tensor *PipelineEdge::create(device::Device *device,
 bool PipelineEdge::notifyWritten(device::Tensor *tensor) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
-  for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
-       ++iter) {
-    if ((*iter)->notifyWritten(tensor)) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
+    if (dp != nullptr && dp->notifyWritten(tensor)) {
       is_notify = true;
       break;
     }
@@ -332,8 +363,9 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -343,7 +375,7 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
   //                        "PipelineDataPacket take error.\n");
 
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // take
@@ -356,9 +388,10 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
 bool PipelineEdge::notifyWritten(void *anything) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
-  for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
-       ++iter) {
-    if ((*iter)->notifyWritten(anything)) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
+    if (dp != nullptr && dp->notifyWritten(anything)) {
       is_notify = true;
       break;
     }
@@ -398,8 +431,9 @@ base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return data_packets_.size() < queue_max_size_; });
+    queue_cv_.wait(lock, [this]() {
+      return queueSizeUnlocked() < queueLimit();
+    });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -407,7 +441,7 @@ base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   this->increaseIndex();
   dp->setIndex(index_);
 
-  data_packets_.push_back(dp);
+  pushBackUnlocked(dp);
   cv_.notify_all();
 
   // set
@@ -420,9 +454,10 @@ base::Status PipelineEdge::set(base::Param *param, bool is_external) {
 bool PipelineEdge::notifyWritten(base::Param *param) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
-  for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
-       ++iter) {
-    if ((*iter)->notifyWritten(param)) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
+    if (dp != nullptr && dp->notifyWritten(param)) {
       is_notify = true;
       break;
     }
@@ -488,12 +523,12 @@ int PipelineEdge::getPosition(const Node *node) {
     return -1;
   }
   int position = 0;
-  for (auto iter : data_packets_) {
-    if (dp == iter) {
+  size_t queue_size = queueSizeUnlocked();
+  for (size_t i = 0; i < queue_size; ++i) {
+    if (dp == atUnlocked(i)) {
       break;
-    } else {
-      position++;
     }
+    position++;
   }
   return position;
 }
@@ -521,7 +556,10 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   }
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
-    return to_consume_index_[tmp_node] < data_packets_.size() ||
+    auto iter = to_consume_index_.find(tmp_node);
+    int index_value = iter != to_consume_index_.end() ? iter->second : 0;
+    size_t index = index_value < 0 ? 0 : static_cast<size_t>(index_value);
+    return index < queueSizeUnlocked() ||
            terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据  ||
                              // 数据被消耗结束
   });
@@ -532,32 +570,42 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   // find
   PipelineDataPacket *dp = nullptr;
   int index = to_consume_index_[tmp_node];
+  if (index < 0) {
+    index = 0;
+  }
   int count = 0;
-  auto iter = data_packets_.begin();
   for (int i = 0; i < index; i++) {
-    if ((*iter)->getConsumersCount() == consumers_size_) {
+    PipelineDataPacket *candidate = atUnlocked(static_cast<size_t>(i));
+    if (candidate != nullptr &&
+        candidate->getConsumersCount() == consumers_size_) {
       count++;
     }
-    iter++;
   }
-  dp = (*iter);
+  dp = atUnlocked(static_cast<size_t>(index));
+  if (dp == nullptr) {
+    NNDEPLOY_LOGE("PipelineDataPacket is null!\n");
+    return base::kEdgeUpdateFlagError;
+  }
   dp->increaseConsumersCount();
   consuming_dp_[tmp_node] = dp;
 
   // update
-  int real_count = 0;
-  iter = data_packets_.begin();
+  size_t real_count = 0;
   for (int i = 0; i < count; i++) {
+    PipelineDataPacket *candidate = frontUnlocked();
+    if (candidate == nullptr) {
+      break;
+    }
     bool delete_flag = true;
     for (auto consuming_dp : consuming_dp_) {
-      if (consuming_dp.second == *iter) {
+      if (consuming_dp.second == candidate) {
         delete_flag = false;
         break;
       }
     }
     if (delete_flag) {
-      delete (*iter);
-      iter++;
+      PipelineDataPacket *to_delete = popFrontUnlocked();
+      delete to_delete;
       real_count++;
     } else {
       break;
@@ -566,16 +614,13 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
 
   // 销毁不会被使用到的数据
   if (real_count > 0) {
-    // if (tmp_node != nullptr && tmp_node->getName() == "encode_node_") {
-    //   NNDEPLOY_LOGE("encode_node_ real_count[%d]: data_packets_.size[%d].\n",
-    //                 real_count, data_packets_.size());
-    // }
-    data_packets_.erase(data_packets_.begin(), iter);
     for (auto &iter : to_consume_index_) {
-      iter.second -= real_count;
+      iter.second -= static_cast<int>(real_count);
     }
-    if (data_packets_.size() + real_count >= queue_max_size_ &&
-        data_packets_.size() < queue_max_size_) {
+    size_t new_size = queueSizeUnlocked();
+    size_t prev_size = new_size + real_count;
+    size_t limit = queueLimit();
+    if (prev_size >= limit && new_size < limit) {
       queue_cv_.notify_all();
     }
     // queue_cv_.notify_all();
@@ -598,11 +643,87 @@ PipelineDataPacket *PipelineEdge::getPipelineDataPacket(const Node *node) {
     return iter->second;
   } else if (std::find(producers_.begin(), producers_.end(), tmp_node) !=
              producers_.end()) {
-    return data_packets_.back();
+    return backUnlocked();
   } else {
     NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
     return nullptr;
   }
+}
+
+void PipelineEdge::ensureCapacityUnlocked(size_t capacity) {
+  if (capacity == 0) {
+    capacity = 1;
+  }
+  if (capacity_ >= capacity && data_packets_.size() == capacity_) {
+    return;
+  }
+  size_t old_capacity = capacity_;
+  std::vector<PipelineDataPacket *> new_packets(capacity, nullptr);
+  if (old_capacity > 0 && !data_packets_.empty()) {
+    for (size_t i = 0; i < size_; ++i) {
+      size_t old_index = (head_ + i) % old_capacity;
+      if (old_index < data_packets_.size()) {
+        new_packets[i] = data_packets_[old_index];
+      }
+    }
+  }
+  data_packets_.swap(new_packets);
+  head_ = 0;
+  capacity_ = capacity;
+}
+
+void PipelineEdge::pushBackUnlocked(PipelineDataPacket *dp) {
+  size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked() + 1);
+  ensureCapacityUnlocked(required_capacity);
+  if (capacity_ == 0) {
+    return;
+  }
+  size_t tail_index = (head_ + size_) % capacity_;
+  data_packets_[tail_index] = dp;
+  size_++;
+}
+
+PipelineDataPacket *PipelineEdge::atUnlocked(size_t index) const {
+  if (index >= size_ || capacity_ == 0) {
+    return nullptr;
+  }
+  size_t real_index = (head_ + index) % capacity_;
+  if (real_index >= data_packets_.size()) {
+    return nullptr;
+  }
+  return data_packets_[real_index];
+}
+
+PipelineDataPacket *PipelineEdge::frontUnlocked() const {
+  if (size_ == 0 || capacity_ == 0) {
+    return nullptr;
+  }
+  return data_packets_[head_];
+}
+
+PipelineDataPacket *PipelineEdge::backUnlocked() const {
+  if (size_ == 0 || capacity_ == 0) {
+    return nullptr;
+  }
+  size_t index = (head_ + size_ - 1) % capacity_;
+  return data_packets_[index];
+}
+
+PipelineDataPacket *PipelineEdge::popFrontUnlocked() {
+  if (size_ == 0 || capacity_ == 0) {
+    return nullptr;
+  }
+  PipelineDataPacket *dp = data_packets_[head_];
+  data_packets_[head_] = nullptr;
+  head_ = (head_ + 1) % capacity_;
+  size_--;
+  return dp;
+}
+
+size_t PipelineEdge::queueSizeUnlocked() const { return size_; }
+
+size_t PipelineEdge::queueLimit() const {
+  return static_cast<size_t>(queue_max_size_ <= 0 ? 1 : queue_max_size_);
 }
 
 }  // namespace dag
