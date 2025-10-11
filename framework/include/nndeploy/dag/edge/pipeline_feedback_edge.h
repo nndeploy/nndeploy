@@ -106,6 +106,11 @@ class PipelineFeedbackEdge : public AbstractEdge {
   std::size_t queue_max_size_{1024};
   // consumer number
   int consumer_size_;
+
+  std::mutex mutex_;
+  std::condition_variable cv_;
+
+  std::map<Node *, int> to_consume_index_;
 };
 
 }  // namespace dag

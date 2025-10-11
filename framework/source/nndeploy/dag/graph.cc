@@ -12,6 +12,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/executor/parallel_pipeline_executor.h"
+#include "nndeploy/dag/executor/parallel_pipeline_rb_executor.h"
 #include "nndeploy/dag/executor/parallel_task_executor.h"
 #include "nndeploy/dag/executor/sequential_executor.h"
 #include "nndeploy/dag/executor/sequential_feedback_executor.h"
@@ -2398,8 +2399,8 @@ base::Status Graph::executor() {
     // NNDEPLOY_LOGE("parallel_type_ is Pipeline!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else if (parallel_type_ == base::kParallelTypeFeedbackPipeline) {
-    NNDEPLOY_LOGI("Use PipelineFeedbackExecutor for feedback graph.\n");
-    executor_ = std::make_shared<SequentialExecutor>();
+    NNDEPLOY_LOGI("Use ParallelPipelineRbExecutor for feedback graph.\n");
+    executor_ = std::make_shared<ParallelPipelineRbExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type_ is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;

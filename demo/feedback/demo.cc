@@ -11,15 +11,15 @@
 #include "nndeploy/dag/loop.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/feedback/feedback.h"
 #include "nndeploy/framework.h"
-#include "nndeploy/loop/loop.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
 using namespace nndeploy;
-using namespace loop;
+using namespace feedback;
 
 int main(int argc, char* argv[]) {
-  auto* g = new dag::Graph("test_graph", {}, {});
+  auto* g = new dag::Graph("ring", {}, {});
   g->setParallelType(base::kParallelTypeFeedbackPipeline);
   auto* input = g->createEdge("input");
   auto* output = g->createEdge("output");
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   g->init();
   g->dump();
   g->run();
-  g->synchronize();
+  //   g->synchronize();
   g->deinit();
   delete g;
   return 0;

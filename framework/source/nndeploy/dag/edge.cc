@@ -193,7 +193,7 @@ bool Edge::notifyWritten(base::Param *param) {
   return abstact_edge_->notifyWritten(param);
 }
 base::Param *Edge::getParam(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
@@ -287,7 +287,7 @@ bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
 
 base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
   type_info_ = type_info;
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+  if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
     type_info_cv_.notify_all();
   }
   return base::kStatusCodeOk;

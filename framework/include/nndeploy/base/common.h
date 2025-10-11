@@ -347,16 +347,16 @@ enum CodecFlag : int {
 enum ParallelType : int {
   kParallelTypeNone = 0x0001,
   kParallelTypeSequential = 0x0001 << 1,
-  kParallelTypeTask = 0x0001 << 2,
-  kParallelTypePipeline = 0x0001 << 3,
-  kParallelTypeFeedback = 0x0001 << 4,
+  kParallelTypeFeedback = 0x0001 << 2,
+  kParallelTypeTask = 0x0001 << 3,
+  kParallelTypePipeline = 0x0001 << 4,
   kParallelTypeFeedbackPipeline = 0x0001 << 5
 };
 
 enum EdgeType : int {
   kEdgeTypeFixed = 0x0001,
-  kEdgeTypePipeline = 0x0001 << 1,
-  kEdgeTypeFeedback = 0x0001 << 2,
+  kEdgeTypeFeedback = 0x0001 << 1,
+  kEdgeTypePipeline = 0x0001 << 2,
   kEdgeTypePipelineFeedback = 0x0001 << 3
 };
 

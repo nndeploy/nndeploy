@@ -28,12 +28,16 @@ base::Status PipelineFeedbackEdge::construct() {
   std::cout << "PipelineFeedbackEdge construct" << std::endl;
   if (!ring_) ring_.reset(new Ring(queue_max_size_));
   consumer_size_ = static_cast<int>(consumers_.size());
+  for (auto iter : consumers_) {
+    if (to_consume_index_.find(iter) == to_consume_index_.end()) {
+      to_consume_index_.insert({iter, 0});
+    }
+  }
   return base::kStatusCodeOk;
 }
 
 base::Status PipelineFeedbackEdge::set(device::Buffer *buffer,
                                        bool is_external) {
-  std::cout << "Set Buffer" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -119,7 +123,6 @@ cv::Mat *PipelineFeedbackEdge::getCvMat(const Node *node) {
 
 base::Status PipelineFeedbackEdge::set(device::Tensor *tensor,
                                        bool is_external) {
-  std::cout << "Set Tensor" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -161,7 +164,6 @@ device::Tensor *PipelineFeedbackEdge::getTensor(const Node *node) {
 }
 
 base::Status PipelineFeedbackEdge::set(base::Param *param, bool is_external) {
-  std::cout << "Set Param" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   this->increaseIndex();
   slot->setIndex(index_);
@@ -172,6 +174,7 @@ base::Status PipelineFeedbackEdge::set(base::Param *param, bool is_external) {
     NNDEPLOY_LOGE("Queue closed during push slot.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+  cv_.notify_all();
   return status;
 }
 
@@ -185,7 +188,6 @@ base::Param *PipelineFeedbackEdge::getParam(const Node *node) {
 }
 
 base::Status PipelineFeedbackEdge::takeDataPacket(DataPacket *data_packet) {
-  std::cout << "Set DataPacket" << std::endl;
   Slot slot = std::make_shared<DataPacket>();
   base::Status status = slot->takeDataPacket(data_packet);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -247,9 +249,30 @@ int PipelineFeedbackEdge::getGraphOutputPosition() {
   return getPosition(nullptr);
 }
 
-bool PipelineFeedbackEdge::requestTerminate() { return true; }
+bool PipelineFeedbackEdge::requestTerminate() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  terminate_flag_ = true;
+  cv_.notify_all();
+  return true;
+}
 
 base::EdgeUpdateFlag PipelineFeedbackEdge::update(const Node *node) {
+  Node *tmp_node = const_cast<Node *>(node);
+  if (!checkNode(tmp_node)) {
+    NNDEPLOY_LOGE("This node is error.\n");
+    return base::kEdgeUpdateFlagError;
+  }
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this, tmp_node] {
+    return to_consume_index_[tmp_node] < ring_->head() ||
+           terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据  ||
+                             // 数据被消耗结束
+  });
+  if (terminate_flag_) {
+    return base::kEdgeUpdateFlagTerminate;
+  }
+
+  to_consume_index_[tmp_node]++;
   return base::kEdgeUpdateFlagComplete;
 }
 //=====================================================================

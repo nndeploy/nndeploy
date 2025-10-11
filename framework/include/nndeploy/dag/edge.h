@@ -191,7 +191,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     } else {
       type_info_->setType<T>();
     }
-    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    if (getParallelType() >= base::ParallelType::kParallelTypePipeline) {
       type_info_cv_.notify_all();
     }
     return base::kStatusCodeOk;
