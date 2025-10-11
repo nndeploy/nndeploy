@@ -119,8 +119,6 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
 
   virtual base::Status run();
 
-  int32_t sampleOld(device::Tensor* logits);
-
   int sample(device::Tensor* logits);
 
   struct SubsetLogits penalty(struct SubsetLogits superset);
@@ -133,6 +131,12 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
   struct SubsetLogits subsetSampler(std::string sampler_type,
                                     struct SubsetLogits subset);
   int handleSelect(struct SubsetLogits subset);
+
+  void setIsPrefill(bool is_prefill);
+
+ protected:
+  bool is_prefill_ = true;
+  bool is_first_ = true;
 };
 
 }  // namespace llm

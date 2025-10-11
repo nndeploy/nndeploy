@@ -51,9 +51,6 @@ class AbstractLlmInfer : public dag::CompositeNode {
   }
   virtual ~AbstractLlmInfer() {}
 
-  virtual base::Status init() { return base::kStatusCodeOk; }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
-
   virtual base::Status run() = 0;
 
   virtual base::Status setPrefill(bool is_prefill) {
@@ -256,6 +253,16 @@ class AbstractLlmInfer : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
+  std::string getShareKey() {
+    std::string key = "";
+    for (const auto &path : config_path_) {
+      key += path;
+    }
+    key += model_key_;
+    key += infer_key_;
+    return key;
+  }
+
  protected:
   // prefill or decode
   bool is_prefill_ = true;
@@ -321,8 +328,6 @@ class NNDEPLOY_CC_API LlmInferFactory {
                     infer_key.c_str(), model_key.c_str());
     }
     creators_[infer_key][model_key] = creator;
-    NNDEPLOY_LOGI("register LlmInfer success: %s@%s\n", infer_key.c_str(),
-                  model_key.c_str());
   }
 
   std::shared_ptr<LlmInferCreator> getCreator(const std::string &infer_key,

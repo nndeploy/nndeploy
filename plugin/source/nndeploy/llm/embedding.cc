@@ -72,19 +72,14 @@ base::Status EmbeddingParam::deserialize(rapidjson::Value& json) {
     return status;
   }
 
-  NNDEPLOY_LOGI("EmbeddingParam::deserialize json: %s\n", json.GetString());
   // 反序列化隐藏层维度
   if (json.HasMember("hidden_size") && json["hidden_size"].IsInt()) {
-    NNDEPLOY_LOGI("EmbeddingParam::deserialize hidden_size: %d\n",
-                  json["hidden_size"].GetInt());
     hidden_size_ = json["hidden_size"].GetInt();
   }
 
   // 反序列化嵌入权重文件路径
   if (json.HasMember("embedding_weight_path") &&
       json["embedding_weight_path"].IsString()) {
-    NNDEPLOY_LOGI("EmbeddingParam::deserialize embedding_weight_path: %s\n",
-                  json["embedding_weight_path"].GetString());
     embedding_weight_path_ = json["embedding_weight_path"].GetString();
   }
 
@@ -178,9 +173,16 @@ base::Status Embedding::deinit() { return base::kStatusCodeOk; }
 
 base::Status Embedding::run() {
   EmbeddingParam* param = dynamic_cast<EmbeddingParam*>(param_.get());
-  auto tokenizer_ids = inputs_[0]->get<tokenizer::TokenizerIds>(this);
-  auto input_ids = tokenizer_ids->ids_[0];
 
+  std::vector<int32_t> input_ids;
+  if (inputs_.size() == 1 || inputs_[1]->empty()) {
+    auto tokenizer_ids = inputs_[0]->get<tokenizer::TokenizerIds>(this);
+    input_ids = tokenizer_ids->ids_[0];
+  } else {
+    auto tokenizer_ids = inputs_[1]->get<tokenizer::TokenizerIds>(this);
+    input_ids = {tokenizer_ids->ids_[0].back()};
+  }
+ 
   int seq_len = static_cast<int>(input_ids.size());
   int hidden_size = param->hidden_size_;
   device::Device* device = device::getDefaultHostDevice();

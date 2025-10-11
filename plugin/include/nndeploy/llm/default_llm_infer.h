@@ -94,8 +94,6 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
   }
   using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override {
-    NNDEPLOY_LOGI("DefaultLlmInferParam::deserialize json: %s\n",
-                  json.GetString());
     base::Status status = base::Param::deserialize(json);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("DefaultLlmInferParam::deserialize failed\n");
@@ -110,8 +108,6 @@ struct NNDEPLOY_CC_API DefaultLlmInferParam : public base::Param {
       if (embedding_param_ == nullptr) {
         embedding_param_ = std::make_shared<EmbeddingParam>();
       }
-      NNDEPLOY_LOGI("DefaultLlmInferParam::deserialize embedding_param_: %s\n",
-                    json["embedding_param_"].GetString());
       embedding_param_->deserialize(json["embedding_param_"]);
     }
     //
@@ -224,14 +220,11 @@ class DefaultLlmInfer : public AbstractLlmInfer {
           dynamic_cast<Embedding*>(this->createNode<Embedding>(desc));
       // 参数设置开始
       auto embedding_param = default_llm_infer_param->embedding_param_;
-      // embedding_node_->setParamSharedPtr(embedding_param);
-      EmbeddingParam* embedding_param_ptr =
-          dynamic_cast<EmbeddingParam*>(embedding_param.get());
-      EmbeddingParam* embedding_param_dst =
-          dynamic_cast<EmbeddingParam*>(embedding_node_->getParam());
-      *embedding_param_dst = *embedding_param_ptr;
+      embedding_node_->setParamSharedPtr(embedding_param);
       // 参数设置结束
+      embedding_node_->setInitializedFlag(false);
       embedding_node_->init();
+      embedding_node_->setInitializedFlag(true);
     } else {
       // TODO
       // tokenizer::TokenizerIds -> device::Tensor
@@ -248,7 +241,8 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       output_names.push_back(output->getName());
     }
     dag::NodeDesc desc("llm_infer", input_names, output_names);
-    auto infer = this->getResourceWithoutState<infer::Infer*>("llm_infer");
+    std::string share_key = this->getShareKey();
+    auto infer = this->getResourceWithoutState<infer::Infer*>(share_key);
     if (infer == nullptr) {
       llm_infer_ = dynamic_cast<infer::Infer*>(this->createInfer<infer::Infer>(
           desc, default_llm_infer_param->inference_type_));
@@ -256,30 +250,14 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       llm_infer_->setParamSharedPtr(default_llm_infer_param->inference_param_);
       // 参数设置结束
       llm_infer_->init();
-      this->setResourceWithState("llm_infer", llm_infer_);
+      this->addResourceWithoutState(share_key, llm_infer_);
     } else {
       llm_infer_ =
           dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(desc));
       infer->shareInference(llm_infer_);
+      llm_infer_->setInitializedFlag(false);
       llm_infer_->init();
-    }
-    return base::kStatusCodeOk;
-  }
-
-  virtual base::Status deinit() {
-    if (embedding_node_ != nullptr) {
-      auto status = embedding_node_->deinit();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "embedding_node_ deinit failed!");
-      delete embedding_node_;
-      embedding_node_ = nullptr;
-    }
-    if (llm_infer_ != nullptr) {
-      auto status = llm_infer_->deinit();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "llm_infer_ deinit failed!");
-      delete llm_infer_;
-      llm_infer_ = nullptr;
+      llm_infer_->setInitializedFlag(true);
     }
     return base::kStatusCodeOk;
   }
@@ -303,7 +281,6 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     dag::Edge* history_tokens_edge =
         this->createResourceWithState("history_tokens");
     history_tokens_edge->set<std::vector<int32_t>>(history_tokens, false);
-    NNDEPLOY_LOGI("history_tokens_edge[%p] set success\n", history_tokens_edge);
 
     auto seq_len = ids->ids_[0].size();
     auto all_seq_len = all_seq_len_;
@@ -327,55 +304,40 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     }
     if (past_key_values_edge_ != nullptr) {
       auto kv_init_shape = default_llm_infer_param->kv_init_shape_;
-      // kv_init_shape[2] = seq_len;
-      // 在开始插入一个维度，大小为24
-      // kv_init_shape.insert(kv_init_shape.begin(),
-      // default_llm_infer_param->layer_nums_);
       kv_init_shape.insert(kv_init_shape.begin(), 24);
-      for (auto s : kv_init_shape) {
-        printf("%d,", s);
-      }
-      NNDEPLOY_LOGI("\n");
       auto past_kv = genPastKeyValue(kv_init_shape);
-      NNDEPLOY_LOGI("prefill past_kv name: %s\n", past_kv->getName().c_str());
-      past_kv->getDesc().print();
       past_key_values_edge_->set(past_kv, false);
     }
 
     // 执行embedding节点和infer节点
     if (embedding_node_ != nullptr) {
-      embedding_node_->run();
+      auto status = embedding_node_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "prefill embedding_node_ run failed!");
     }
     if (llm_infer_ != nullptr) {
-      llm_infer_->run();
+      auto status = llm_infer_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "prefill llm_infer_ run failed!");
     }
 
     // 全局tensor资源
     if (presents_edge_ != nullptr && past_key_values_edge_ != nullptr) {
       device::Tensor* presents =
           (device::Tensor*)presents_edge_->getTensor(llm_infer_);
-      NNDEPLOY_LOGI("prefill presents name: %s\n", presents->getName().c_str());
-      presents->getDesc().print();
-      std::string debug_file = "new_prefill_presents.csv";
-      std::ofstream debug_file_stream(debug_file);
-      presents->print(debug_file_stream);
-      debug_file_stream.close();
       presents->setName(past_key_values_edge_->getName());
       dag::Edge* past_key_values_edge =
           this->createResourceWithState(past_key_values_edge_->getName());
-      past_key_values_edge->set(presents, false);
+      past_key_values_edge->set(presents, true);
     }
 
     return base::kStatusCodeOk;
   }
   virtual base::Status decode() {  // 执行embedding节点和infer节点
     tokenizer::TokenizerIds* ids = nullptr;
-    NNDEPLOY_LOGI("node[%s] decode inputs_.size() == %d\n", name_.c_str(), inputs_.size());
     if (inputs_.size() == 1 || inputs_[1]->empty()) {
-      NNDEPLOY_LOGI("node[%s] decode inputs_.size() == 1 || inputs_[1]->empty()\n", name_.c_str());
       ids = (tokenizer::TokenizerIds*)inputs_[0]->getParam(this);
     } else {
-      NNDEPLOY_LOGI("node[%s] decode inputs_.size() != 1 && not empty inputs_[1]\n", name_.c_str());
       ids = (tokenizer::TokenizerIds*)inputs_[1]->getParam(this);
     }
     dag::Edge* history_tokens_edge =
@@ -383,14 +345,11 @@ class DefaultLlmInfer : public AbstractLlmInfer {
     std::vector<int32_t>* history_tokens = nullptr;
     if (history_tokens_edge != nullptr) {
       history_tokens = history_tokens_edge->get<std::vector<int32_t>>(this);
-      history_tokens->push_back(ids->ids_[0][0]);
+      history_tokens->push_back(ids->ids_[0].back());
     }
 
-    // std::vector<int32_t>* history_tokens =
-    //     this->getResourceWithState<std::vector<int32_t>>("history_tokens");
-    // history_tokens->push_back(ids->ids_[0][0]);
-
-    auto seq_len = ids->ids_[0].size();
+    // auto seq_len = ids->ids_[0].size();
+    auto seq_len = 1;
     all_seq_len_ = history_tokens->size();
     auto all_seq_len = all_seq_len_;
     auto attention_mask_data_type = base::dataTypeOf<float>();
@@ -404,43 +363,36 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       auto attention_mask =
           genAttentionMask(seq_len, all_seq_len, attention_mask_data_type,
                            attention_mask_data_format);
-      NNDEPLOY_LOGI("decode attention_mask name: %s\n",
-                    attention_mask->getName().c_str());
-      attention_mask->getDesc().print();
       attention_mask_edge_->set(attention_mask, false);
     }
     if (position_ids_edge_ != nullptr) {
       auto position_ids =
           genPositionIds(seq_len, all_seq_len, position_ids_data_type,
                          position_ids_data_format);
-      NNDEPLOY_LOGI("decode position_ids name: %s\n",
-                    position_ids->getName().c_str());
-      position_ids->getDesc().print();
       position_ids_edge_->set(position_ids, false);
     }
 
     if (past_key_values_edge_ != nullptr) {
       auto past_kv = this->getResourceWithState<device::Tensor>(
           past_key_values_edge_->getName());
-      NNDEPLOY_LOGI("decode past_key_values_edge_ name: %s\n",
-                    past_kv->getName().c_str());
-      past_kv->getDesc().print();
       past_key_values_edge_->set(past_kv, true);
     }
 
     if (embedding_node_ != nullptr) {
-      embedding_node_->run();
+      auto status = embedding_node_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "decode embedding_node_ run failed!");
     }
     if (llm_infer_ != nullptr) {
-      llm_infer_->run();
+      auto status = llm_infer_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "decode llm_infer_ run failed!");
     }
 
     // 全局tensor资源
     if (presents_edge_ != nullptr && past_key_values_edge_ != nullptr) {
       device::Tensor* presents =
           (device::Tensor*)presents_edge_->getTensor(llm_infer_);
-      NNDEPLOY_LOGI("decode presents name: %s\n", presents->getName().c_str());
-      presents->getDesc().print();
       presents->setName(past_key_values_edge_->getName());
       this->setResourceWithState(past_key_values_edge_->getName(), presents);
     }
@@ -465,7 +417,7 @@ class DefaultLlmInfer : public AbstractLlmInfer {
       return status;
     }
     if (embedding_node_ != nullptr) {
-      embedding_node_->setIterInput(input, 0);
+      embedding_node_->setIterInput(input, 1);
     }
     return base::kStatusCodeOk;
   }

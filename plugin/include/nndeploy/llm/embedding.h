@@ -61,6 +61,9 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
   EmbeddingParam() = default;
   virtual ~EmbeddingParam() = default;
 
+  PARAM_COPY(EmbeddingParam)
+  PARAM_COPY_TO(EmbeddingParam)
+
   // 隐藏层维度
   int hidden_size_ = 4096;
   // 嵌入权重文件路径
@@ -114,7 +117,7 @@ class NNDEPLOY_CC_API Embedding : public dag::Node {
   virtual base::Status run();
 
  private:
-  std::shared_ptr<MNN::Transformer::DiskEmbedding> disk_embedding_;
+  std::shared_ptr<MNN::Transformer::DiskEmbedding> disk_embedding_ = nullptr;
 };
 
 }  // namespace llm

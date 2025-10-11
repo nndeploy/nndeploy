@@ -45,7 +45,7 @@ class Decode : public dag::Loop {
 
  private:
   LlmInfer* decode_infer_node_;
-  dag::Node* decode_sampler_node_;
+  Sampler* decode_sampler_node_;
   dag::Node* decode_token_node_;
   StreamOut* stream_out_node_;
 
