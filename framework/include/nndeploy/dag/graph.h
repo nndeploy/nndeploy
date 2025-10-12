@@ -347,6 +347,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual void removeUnusedNodeNames(const std::string &node_name);
   virtual void removeUnusedNodeNames(const std::set<std::string> &node_names);
   virtual std::set<std::string> getUnusedNodeNames();
+  virtual void disableInputAndOutputNode();
 
   // node_name:key:value
   virtual void setNodeValue(const std::string &node_value_str);

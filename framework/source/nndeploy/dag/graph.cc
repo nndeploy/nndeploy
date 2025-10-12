@@ -1879,8 +1879,7 @@ base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
 Edge *Graph::getResourceWithState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) == resource_with_state_.end()) {
-      NNDEPLOY_LOGI("global resource with state[%s] not found!\n",
-      key.c_str());
+      NNDEPLOY_LOGI("global resource with state[%s] not found!\n", key.c_str());
       return nullptr;
     }
     return resource_with_state_[key];
@@ -2782,6 +2781,14 @@ void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
   }
 }
 std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
+void Graph::disableInputAndOutputNode() {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput ||
+        node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+      unused_node_names_.insert(node_wrapper->node_->getName());
+    }
+  }
+}
 
 void Graph::setNodeValue(const std::string &node_value_str) {
   // 查找第一个冒号的位置
