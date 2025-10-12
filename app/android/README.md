@@ -1,5 +1,5 @@
 
-## app
+## app运行
 
 ### 配置NDK
 ```bash
@@ -41,10 +41,12 @@ python3 ../tool/script/android_install_resouces.py -r  /home/always/github/publi
 ```
 
 
-> 更换目录
-> 注意版本信息
+### 启动Android Studio
 
-## adb 
+- 通过Android Studio，打开path/nndeploy/app/android
+
+
+## adb运行
 
 ### push
 ```bash
@@ -63,4 +65,11 @@ export LD_LIBRARY_PATH="/data/local/tmp/nndeploy_2.6.2_Android_aarch64_Release_C
 ### pull
 ```bash
 adb pull /data/local/tmp/prefill_logits.txt .
+```
+
+## 注
+
+> 更换为你自己的目录
+
+> 注意版本信息
 
