@@ -17,13 +17,23 @@ def download_with_retry(url, filename, max_retries=3, timeout=300):
     """带重试机制的下载函数"""
     session = requests.Session()
     
-    # 配置重试策略
-    retry_strategy = Retry(
-        total=max_retries,
-        status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET", "OPTIONS"],
-        backoff_factor=1
-    )
+    # 配置重试策略 - 兼容不同版本的urllib3
+    try:
+        # 尝试使用新的参数名 (urllib3 >= 1.26.0)
+        retry_strategy = Retry(
+            total=max_retries,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1
+        )
+    except TypeError:
+        # 回退到旧的参数名 (urllib3 < 1.26.0)
+        retry_strategy = Retry(
+            total=max_retries,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"],
+            backoff_factor=1
+        )
     
     adapter = HTTPAdapter(max_retries=retry_strategy)
     session.mount("http://", adapter)
