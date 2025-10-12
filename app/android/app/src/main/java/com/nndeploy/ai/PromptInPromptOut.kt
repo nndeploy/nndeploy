@@ -83,7 +83,7 @@ object PromptInPromptOut {
             val output_node_param = alg.parameters["output_node"] as Map<String, String>
             
             // 设置输入提示词
-            Log.d("PromptInPromptOut", "prompt: $prompt")
+            // Log.d("PromptInPromptOut", "prompt: $prompt")
             runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), prompt)
             
             // 设置输出路径
@@ -94,7 +94,7 @@ object PromptInPromptOut {
             val ok = runner.run(workflowOut.absolutePath, alg.id, "task_${System.currentTimeMillis()}")
             runner.close()
             
-            Log.d("PromptInPromptOut", "resultPath: ${resultPath.absolutePath}")
+            // Log.d("PromptInPromptOut", "resultPath: ${resultPath.absolutePath}")
             if (resultPath.exists()) {
                 Log.d("PromptInPromptOut", "resultPath exists")
                 val response = resultPath.readText().trim()

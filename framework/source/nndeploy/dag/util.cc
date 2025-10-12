@@ -435,7 +435,7 @@ void replaceJsonValue(rapidjson::Value &json, const std::string &key,
   if (!json.IsObject()) return;
 
   if (json.HasMember(key.c_str())) {
-    NNDEPLOY_LOGI("replaceJsonValue: %s, %s\n", key.c_str(), new_value.c_str());
+    // NNDEPLOY_LOGI("replaceJsonValue: %s, %s\n", key.c_str(), new_value.c_str());
     if (json[key.c_str()].IsString()) {
       json[key.c_str()].SetString(new_value.c_str(), new_value.length(),
                                   allocator);
@@ -486,7 +486,7 @@ void replaceJsonValue(rapidjson::Value &json, const std::string &key,
   }
 
   if (json.HasMember("param_") && json["param_"].IsObject()) {
-    NNDEPLOY_LOGI("replaceGraphJsonObj: %s, %s\n", key.c_str(), new_value.c_str());
+    // NNDEPLOY_LOGI("replaceGraphJsonObj: %s, %s\n", key.c_str(), new_value.c_str());
     replaceJsonValue(json["param_"], key, new_value, allocator);
     return;
   }
@@ -504,18 +504,18 @@ std::string replaceGraphJsonStr(
   replaceGraphJsonObj(node_value_map, json, document.GetAllocator());
 
   // 非美化
-  // rapidjson::StringBuffer buffer;
-  // rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  // json.Accept(writer);
-  // std::string json_result = buffer.GetString();
-  
-  // 美化json_result
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   json.Accept(writer);
   std::string json_result = buffer.GetString();
   
-  NNDEPLOY_LOGI("replaceGraphJsonStr: %s\n", json_result.c_str());
+  // 美化json_result
+  // rapidjson::StringBuffer buffer;
+  // rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  // json.Accept(writer);
+  // std::string json_result = buffer.GetString();
+  
+  // NNDEPLOY_LOGI("replaceGraphJsonStr: %s\n", json_result.c_str());
   return json_result;
 }
 
@@ -531,7 +531,7 @@ void replaceGraphJsonObj(
         for (const auto &param_pair : node_iter->second) {
           const std::string &key = param_pair.first;
           const std::string &new_value = param_pair.second;
-          NNDEPLOY_LOGI("replaceGraphJsonObj: %s, %s, %s\n", name.c_str(), key.c_str(), new_value.c_str());
+          // NNDEPLOY_LOGI("replaceGraphJsonObj: %s, %s, %s\n", name.c_str(), key.c_str(), new_value.c_str());
           replaceJsonValue(json, key, new_value, allocator);
         }
       }

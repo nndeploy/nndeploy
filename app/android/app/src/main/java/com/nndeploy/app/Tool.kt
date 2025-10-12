@@ -752,13 +752,21 @@ fun LlmChatProcessScreen(
                 IconButton(
                     onClick = {
                         if (inputText.isNotBlank() && !isTyping) {
+                            // 1. 保存当前输入文本到局部变量
+                            val currentInput = inputText
+                            
+                            // 2. 立即显示用户消息到聊天界面
                             val userMessage = ChatMessage(
-                                content = inputText,
+                                content = currentInput,
                                 isUser = true,
                                 timestamp = System.currentTimeMillis()
                             )
                             messages = messages + userMessage
                             
+                            // 3. 立即清空输入框，提升用户体验
+                            inputText = ""
+                            
+                            // 4. 启动协程处理AI响应
                             scope.launch {
                                 isTyping = true
                                 try {
@@ -768,8 +776,9 @@ fun LlmChatProcessScreen(
                                         return@launch
                                     }
                                     
-                                    Log.d("LlmChatProcessScreen", "inputText: $inputText")
-                                    val result = PromptInPromptOut.processPromptInPromptOut(context, inputText, algorithm)
+                                    Log.d("LlmChatProcessScreen", "currentInput: $currentInput")
+                                    // 5. 使用保存的输入文本进行处理
+                                    val result = PromptInPromptOut.processPromptInPromptOut(context, currentInput, algorithm)
                                     
                                     when (result) {
                                         is PromptProcessResult.Success -> {
@@ -791,8 +800,9 @@ fun LlmChatProcessScreen(
                                         }
                                     }
                                 } catch (e: Exception) {
+                                    Log.e("LlmChatProcessScreen", "AI processing failed", e)
                                     val errorMessage = ChatMessage(
-                                        content = "抱歉，发生了未知错误",
+                                        content = "抱歉，发生了未知错误：${e.message}",
                                         isUser = false,
                                         timestamp = System.currentTimeMillis(),
                                         isError = true
@@ -802,8 +812,6 @@ fun LlmChatProcessScreen(
                                     isTyping = false
                                 }
                             }
-                            
-                            inputText = ""
                         }
                     },
                     enabled = inputText.isNotBlank() && !isTyping,
