@@ -72,9 +72,8 @@ base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -98,9 +97,8 @@ device::Buffer *PipelineEdge::create(device::Device *device,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -169,9 +167,8 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -195,9 +192,8 @@ cv::Mat *PipelineEdge::create(int rows, int cols, int type,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -266,9 +262,8 @@ base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -293,9 +288,8 @@ device::Tensor *PipelineEdge::create(device::Device *device,
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -363,9 +357,8 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -431,9 +424,8 @@ base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
       consumers_.end()) {
-    queue_cv_.wait(lock, [this]() {
-      return queueSizeUnlocked() < queueLimit();
-    });
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -560,8 +552,8 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
     int index_value = iter != to_consume_index_.end() ? iter->second : 0;
     size_t index = index_value < 0 ? 0 : static_cast<size_t>(index_value);
     return index < queueSizeUnlocked() ||
-           terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据  ||
-                             // 数据被消耗结束
+           terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据
+                             // || 数据被消耗结束
   });
   if (terminate_flag_) {
     return base::kEdgeUpdateFlagTerminate;
