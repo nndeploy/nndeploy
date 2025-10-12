@@ -100,7 +100,7 @@ object AlgorithmFactory {
             // 计算机视觉算法
             AIAlgorithm(
                 id = "image_segmentation",
-                name = "图像分割",
+                name = "nndeploy Segment",
                 description = "智能识别并分割图像中的不同对象和区域",
                 icon = Icons.Default.Crop,
                 inputType = listOf(InOutType.IMAGE),
@@ -116,7 +116,7 @@ object AlgorithmFactory {
             ),
             AIAlgorithm(
                 id = "image_classification",
-                name = "图像分类",
+                name = "nndeploy Classification",
                 description = "智能识别图像中的物体类别和标签",
                 icon = Icons.Default.Category,
                 inputType = listOf(InOutType.IMAGE),
@@ -134,7 +134,7 @@ object AlgorithmFactory {
             // 自然语言处理算法
             AIAlgorithm(
                 id = "text_chat",
-                name = "LLM聊天",
+                name = "nndeploy Chat",
                 description = "基于大语言模型的智能对话系统，支持多轮对话和上下文理解",
                 icon = Icons.Default.QuestionAnswer,
                 inputType = listOf(InOutType.PROMPT),
@@ -150,22 +150,22 @@ object AlgorithmFactory {
             ),
             
             // 生成式AI算法
-            AIAlgorithm(
-                id = "text_to_image",
-                name = "文本生成图像",
-                description = "根据文本描述生成对应的图像内容，支持多种艺术风格",
-                icon = Icons.Default.AutoAwesome,
-                inputType = listOf(InOutType.PROMPT),
-                outputType = listOf(InOutType.IMAGE),
-                category = AlgorithmCategory.GENERATIVE_AI.displayName,
-                workflowAsset = "resources/workflow/TextToImage.json",
-                tags = listOf("生成", "创作", "艺术"),
-                parameters = mapOf(
-                    "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
-                    "output_node" to mapOf("OpenCvImageEncode_26" to "path_"),
-                ),
-                processFunction = "processPromptInImageOut"
-            )
+            // AIAlgorithm(
+            //     id = "text_to_image",
+            //     name = "文本生成图像",
+            //     description = "根据文本描述生成对应的图像内容，支持多种艺术风格",
+            //     icon = Icons.Default.AutoAwesome,
+            //     inputType = listOf(InOutType.PROMPT),
+            //     outputType = listOf(InOutType.IMAGE),
+            //     category = AlgorithmCategory.GENERATIVE_AI.displayName,
+            //     workflowAsset = "resources/workflow/TextToImage.json",
+            //     tags = listOf("生成", "创作", "艺术"),
+            //     parameters = mapOf(
+            //         "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
+            //         "output_node" to mapOf("OpenCvImageEncode_26" to "path_"),
+            //     ),
+            //     processFunction = "processPromptInImageOut"
+            // )
         )
     }
     

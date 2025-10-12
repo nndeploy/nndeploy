@@ -768,6 +768,7 @@ fun LlmChatProcessScreen(
                                         return@launch
                                     }
                                     
+                                    Log.d("LlmChatProcessScreen", "inputText: $inputText")
                                     val result = PromptInPromptOut.processPromptInPromptOut(context, inputText, algorithm)
                                     
                                     when (result) {

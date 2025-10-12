@@ -67,6 +67,7 @@ base::Status Prompt::run() {
   std::string template_prompt = applyTemplate(prompt_params->prompt_template_,
                                               prompt_params->user_content_);
   tokenizer::TokenizerText* prompt = new tokenizer::TokenizerText();
+  NNDEPLOY_LOGE("[Prompt] template_prompt: %s\n", template_prompt.c_str());
   prompt->texts_.emplace_back(template_prompt);
   outputs_[0]->set(prompt, false);
   outputs_[0]->notifyWritten(prompt);

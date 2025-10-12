@@ -59,8 +59,8 @@ object PromptInPromptOut {
             val history = conversationHistory.getOrPut(conversationId) { mutableListOf() }
             
             // 3) 构建包含历史的完整提示词
-            val fullPrompt = buildFullPrompt(prompt, history)
-            Log.d("PromptInPromptOut", "Full prompt with history: $fullPrompt")
+            // val fullPrompt = buildFullPrompt(prompt, history)
+            // Log.d("PromptInPromptOut", "Full prompt with history: $fullPrompt")
             
             // 4) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
@@ -83,7 +83,8 @@ object PromptInPromptOut {
             val output_node_param = alg.parameters["output_node"] as Map<String, String>
             
             // 设置输入提示词
-            runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), fullPrompt)
+            Log.d("PromptInPromptOut", "prompt: $prompt")
+            runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), prompt)
             
             // 设置输出路径
             val resultPath = File(extResDir, "text/result.${alg.id}.${System.currentTimeMillis()}.txt")
