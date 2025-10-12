@@ -194,14 +194,14 @@ source_url = f"https://github.com/alibaba/MNN/archive/refs/tags/{MNN_VER}.tar.gz
 source_filename = f"MNN-{MNN_VER}.tar.gz"
 
 print(f"Downloading source from: {source_url}")
-# response = requests.get(source_url, stream=True)
-# if response.status_code != 200:
-#     raise Exception(f"Source download failed, status code: {response.status_code}")
+response = requests.get(source_url, stream=True)
+if response.status_code != 200:
+    raise Exception(f"Source download failed, status code: {response.status_code}")
 
-# with open(source_filename, 'wb') as f:
-#     for chunk in response.iter_content(chunk_size=8192):
-#         f.write(chunk)
-download_with_retry(source_url, source_filename)
+with open(source_filename, 'wb') as f:
+    for chunk in response.iter_content(chunk_size=8192):
+        f.write(chunk)
+# download_with_retry(source_url, source_filename)
 
 # 解压源代码
 print("Extracting source code...")
