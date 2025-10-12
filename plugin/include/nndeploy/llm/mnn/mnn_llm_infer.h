@@ -72,10 +72,10 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
         this->getResourceWithoutState<std::shared_ptr<MNN::Transformer::Llm>>(
             share_key);
     if (infer == nullptr) {
-      // MNN::BackendConfig backendConfig;
-      // executor_ = MNN::Express::Executor::newExecutor(MNN_FORWARD_CPU,
-      //                                                 backendConfig, 1);
-      // MNN::Express::ExecutorScope s(executor_);
+      MNN::BackendConfig backendConfig;
+      executor_ = MNN::Express::Executor::newExecutor(MNN_FORWARD_CPU,
+                                                      backendConfig, 1);
+      MNN::Express::ExecutorScope s(executor_);
 
       mnn_llm_ = std::shared_ptr<MNN::Transformer::Llm>(
           MNN::Transformer::Llm::createLLM(config_path_[0]));
@@ -102,7 +102,7 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
   }
   virtual base::Status deinit() override { return base::kStatusCodeOk; }
   virtual base::Status run() override {
-    // MNN::Express::ExecutorScope s(executor_);
+    MNN::Express::ExecutorScope s(executor_);
     if (is_prefill_) {
       return prefill();
     } else {
@@ -121,12 +121,29 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
     history_tokens_edge->set<std::vector<int32_t>>(history_tokens, false);
 
     std::vector<int> input_ids = ids->ids_[0];
+    // NNDEPLOY_PRINTF("input_ids:");
+    // for (auto id : input_ids) {
+    //   NNDEPLOY_PRINTF("%d,", id);
+    // }
+    // NNDEPLOY_PRINTF("\n");
 
     output_logits_ = mnn_llm_->forward(input_ids, true);
+    // if (true) {
+    //   ((MNN::Tensor*)(output_logits_->getTensor()))
+    //       ->wait(MNN::Tensor::MAP_TENSOR_READ, true);
+    // }
 
     device::Tensor* output_logits =
         inference::convertToTensor(output_logits_, outputs_[0]->getName(),
-                                   device::getDefaultHostDevice(), false);
+                                   device::getDefaultHostDevice(), true);
+    // std::ostringstream stream;
+    // output_logits->getDesc().print(stream);
+    // NNDEPLOY_PRINTF("%s", stream.str().c_str());
+    // std::string prefill_logits_path = "prefill_logits.csv";
+    // std::ofstream prefill_logits_file(prefill_logits_path);
+    // output_logits->print(prefill_logits_file);
+    // prefill_logits_file.close();
+
     outputs_[0]->set(output_logits, false);
 
     return base::kStatusCodeOk;
@@ -146,16 +163,50 @@ class NNDEPLOY_CC_API MnnLlmInfer : public AbstractLlmInfer {
       history_tokens->push_back(ids->ids_[0].back());
     }
 
+    // NNDEPLOY_PRINTF("id:");
+    // for (auto id : ids->ids_[0]) {
+    //   NNDEPLOY_PRINTF("%d,", id);
+    // }
+    // NNDEPLOY_PRINTF("\n");
+
     std::vector<int> input_ids = {ids->ids_[0].back()};
 
     output_logits_ = mnn_llm_->forward(input_ids, false);
+    // if (true) {
+    //   // NNDEPLOY_AUTO_TIME;
+    //   ((MNN::Tensor*)(output_logits_->getTensor()))
+    //       ->wait(MNN::Tensor::MAP_TENSOR_READ, true);
+    // }
 
     device::Tensor* output_logits =
         inference::convertToTensor(output_logits_, outputs_[0]->getName(),
-                                   device::getDefaultHostDevice(), false);
+                                   device::getDefaultHostDevice(), true);
+    // std::ostringstream stream;
+    // output_logits->getDesc().print(stream);
+    // NNDEPLOY_PRINTF("%s", stream.str().c_str());
+
     outputs_[0]->set(output_logits, false);
 
     return base::kStatusCodeOk;
+  }
+
+  void debug(MNN::Express::VARP logits) {
+    NNDEPLOY_AUTO_TIME;
+    for (int j = 0; j < logits->getInfo()->dim[1]; j++) {
+      int length = logits->getInfo()->dim[2];
+      float total = 0.0;
+      float max_ = std::numeric_limits<float>::lowest();
+      float min_ = std::numeric_limits<float>::max();
+      for (int i = 0; i < length; i++) {
+        int index = j * length + i;
+        float temp = logits->readMap<float>()[index];
+        total += temp;
+        max_ = fmax(max_, temp);
+        min_ = fmin(min_, temp);
+      }
+      auto ptr = logits->readMap<float>() + j * logits->getInfo()->dim[2];
+      MNN_PRINT("output statistic value:%6f, %6f, %6f\n", total, max_, min_);
+    }
   }
 
  private:

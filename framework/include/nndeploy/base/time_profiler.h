@@ -85,6 +85,56 @@ extern NNDEPLOY_CC_API void timeProfilerPrintIndex(const std::string &title,
 extern NNDEPLOY_CC_API void timeProfilerPrintRemoveWarmup(
     const std::string &title, uint64_t warmup_times);
 
+class NNDEPLOY_CC_API Timer {
+  //
+  //  AutoTime.hpp
+  //  MNN
+  //
+  //  Created by MNN on 2018/07/27.
+  //  Copyright © 2018, Alibaba Group Holding Limited
+  //
+ public:
+  Timer();
+  ~Timer();
+  Timer(const Timer &) = delete;
+  Timer(const Timer &&) = delete;
+  Timer &operator=(const Timer &) = delete;
+  Timer &operator=(const Timer &&) = delete;
+
+  // reset timer
+  void reset();
+  // get duration (us) from init or latest reset.
+  uint64_t durationInUs();
+
+  // Get Current Time
+  uint64_t current() const { return mLastResetTime; }
+
+ protected:
+  uint64_t mLastResetTime;
+};
+
+class NNDEPLOY_CC_API AutoTime : Timer {
+  //
+  //  AutoTime.hpp
+  //  MNN
+  //
+  //  Created by MNN on 2018/07/27.
+  //  Copyright © 2018, Alibaba Group Holding Limited
+  //
+ public:
+  AutoTime(int line, const char *func);
+  ~AutoTime();
+  AutoTime(const AutoTime &) = delete;
+  AutoTime(const AutoTime &&) = delete;
+  AutoTime &operator=(const AutoTime &) = delete;
+  AutoTime &operator=(const AutoTime &&) = delete;
+
+ private:
+  int mLine;
+  char *mName;
+  uint64_t mCurrentTime;
+};
+
 }  // namespace base
 }  // namespace nndeploy
 
@@ -102,6 +152,7 @@ extern NNDEPLOY_CC_API void timeProfilerPrintRemoveWarmup(
   nndeploy::base::timeProfilerPrintIndex(title, index)
 #define NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP(title, warmup_times) \
   nndeploy::base::timeProfilerPrintRemoveWarmup(title, warmup_times)
+#define NNDEPLOY_AUTO_TIME nndeploy::base::AutoTime ___t(__LINE__, __func__)
 #else
 #define NNDEPLOY_TIME_PROFILER_RESET()
 #define NNDEPLOY_TIME_POINT_START(key)
@@ -111,6 +162,7 @@ extern NNDEPLOY_CC_API void timeProfilerPrintRemoveWarmup(
 #define NNDEPLOY_TIME_PROFILER_PRINT(title)
 #define NNDEPLOY_TIME_PROFILER_PRINT_INDEX(title, index)
 #define NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP(title, warmup_times)
+#define NNDEPLOY_AUTO_TIME
 #endif
 
 #endif  // _NNDEPLOY_BASE_TIME_PROFILER_H_

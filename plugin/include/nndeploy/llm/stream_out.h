@@ -77,9 +77,7 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     if (is_first_) {
       stream_output_ = new std::string();
       if (enable_stream_) {
-        printf("A: ");
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("A: ");
       }
       output_text_ = new tokenizer::TokenizerText();
       output_text_->texts_.resize(input_text->texts_.size());
@@ -91,16 +89,12 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     if (isStopTexts()) {
       outputs_[0]->set(output_text_, true);
       if (enable_stream_) {
-        printf("\n");
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("\n");
       }
     } else {
       output_text_->texts_[0] += (*stream_output_);
       if (enable_stream_) {
-        printf("%s", input_text->texts_[0].c_str());
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("%s", input_text->texts_[0].c_str());
       }
     }
 

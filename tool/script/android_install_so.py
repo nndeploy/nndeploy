@@ -27,9 +27,9 @@ def copy_dynamic_libraries(source_dir, target_dir):
             item_path = os.path.join(third_party_dir, item)
             if os.path.isdir(item_path):
                 # 查找该文件夹下的arm64-v8a目录
-                arm64_dir = os.path.join(item_path, "arm64-v8a")
+                arm64_dir = os.path.join(item_path, "lib/arm64-v8a")
                 if os.path.exists(arm64_dir):
-                    print(f"  处理 {item}/arm64-v8a 目录")
+                    print(f"  处理 {item}/lib/arm64-v8a 目录")
                     # 拷贝arm64-v8a目录下的所有.so文件
                     so_files = glob.glob(os.path.join(arm64_dir, "*.so"))
                     for so_file in so_files:

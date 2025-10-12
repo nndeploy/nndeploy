@@ -254,24 +254,38 @@ device::Tensor *convertToTensor(const MNN::Express::VARP &var, std::string name,
   // }
   // return dst;
 
-  auto info = var.get()->getInfo();
+  auto info = var->getInfo();
 
   halide_type_t src_data_type = info->type;
   base::DataType data_type = MnnConvert::convertToDataType(src_data_type);
+  // NNDEPLOY_PRINTF("data_type: %s\n", base::dataTypeToString(data_type).c_str());
   MNN::Express::Dimensionformat src_data_format = info->order;
   base::DataFormat format = MnnConvert::convertToDataFormat(src_data_format);
+  // NNDEPLOY_PRINTF("format: %s\n", base::dataFormatToString(format).c_str());
   base::IntVector shape = info->dim; 
+  // for (auto i = 0; i < shape.size(); i++) {
+  //   NNDEPLOY_PRINTF("shape[%d]: %d\n", i, shape[i]);
+  // }
   base::SizeVector stride = base::SizeVector();
   device::TensorDesc desc(data_type, format, shape, stride);
   device::Tensor *dst = nullptr;
   if (device == nullptr) {
     dst = new device::Tensor(desc, name);
   } else {
-    void *data_ptr = (void *)(var.get()->writeMap<float>());
+    void *data_ptr = (void *)(var->readMap<float>());
     base::IntVector memory_config = base::IntVector();
+    // auto device_type = device->getDeviceType();
+    // NNDEPLOY_PRINTF("device: %s\n", base::deviceTypeToString(device_type).c_str());
     dst = new device::Tensor(device, desc, data_ptr, name, memory_config);
   }
-  return dst;
+
+  if (is_copy) {
+    device::Tensor *ret_tensor = dst->clone();
+    delete dst;
+    return ret_tensor;
+  } else {
+    return dst;
+  }
 }
 
 }  // namespace inference

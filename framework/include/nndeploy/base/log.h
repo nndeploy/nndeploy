@@ -32,6 +32,9 @@
                       __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__); \
   fprintf(stderr, ("E/%s: %s [File %s][Line %d] " fmt), tag,                   \
           __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
+#define NNDEPLOY_PRINTFT(fmt, ...)                                        \
+  __android_log_print(ANDROID_LOG_ERROR, "NNDEPLOY", fmt, ##__VA_ARGS__); \
+  fprintf(stdout, fmt, ##__VA_ARGS__)
 #else
 #define NNDEPLOY_LOGDT(fmt, tag, ...)                                      \
   fprintf(stdout, ("D/%s: %s [File %s][Line %d] " fmt), tag, __FUNCTION__, \
@@ -45,6 +48,7 @@
 #define NNDEPLOY_LOGWT(fmt, tag, ...)                                      \
   fprintf(stderr, ("W/%s: %s [File %s][Line %d] " fmt), tag, __FUNCTION__, \
           __FILE__, __LINE__, ##__VA_ARGS__)
+#define NNDEPLOY_PRINTFT(fmt, ...) fprintf(stderr, (fmt), ##__VA_ARGS__)
 #endif  //__ANDROID__
 
 #define NNDEPLOY_LOGD(fmt, ...) \
@@ -55,6 +59,7 @@
   NNDEPLOY_LOGET(fmt, NNDEPLOY_DEFAULT_STR, ##__VA_ARGS__)
 #define NNDEPLOY_LOGW(fmt, ...) \
   NNDEPLOY_LOGWT(fmt, NNDEPLOY_DEFAULT_STR, ##__VA_ARGS__)
+#define NNDEPLOY_PRINTF(fmt, ...) NNDEPLOY_PRINTFT(fmt, ##__VA_ARGS__)
 
 #define NNDEPLOY_LOGE_IF(cond, fmt, ...)                      \
   if (cond) {                                                 \

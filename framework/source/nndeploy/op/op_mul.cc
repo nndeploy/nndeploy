@@ -139,6 +139,8 @@ base::Status mul(device::Tensor* input1, device::Tensor* input2,
 }
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeMul, OpMul)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeArm, ir::kOpTypeMul, OpMul)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86, ir::kOpTypeMul, OpMul)
 
 }  // namespace op
 }  // namespace nndeploy

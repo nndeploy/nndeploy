@@ -134,16 +134,16 @@ object AlgorithmFactory {
             // 自然语言处理算法
             AIAlgorithm(
                 id = "text_chat",
-                name = "智能对话",
+                name = "LLM聊天",
                 description = "基于大语言模型的智能对话系统，支持多轮对话和上下文理解",
                 icon = Icons.Default.QuestionAnswer,
                 inputType = listOf(InOutType.PROMPT),
                 outputType = listOf(InOutType.TEXT),
                 category = AlgorithmCategory.NATURAL_LANGUAGE.displayName,
-                workflowAsset = "resources/workflow/ChatLLM.json",
+                workflowAsset = "resources/workflow/QwenMNN.json",
                 tags = listOf("对话", "聊天", "问答"),
                 parameters = mapOf(
-                    "input_node" to mapOf("nndeploy::llm::Prompt" to "user_content_"),
+                    "input_node" to mapOf("Prompt_4" to "user_content_"),
                     "output_node" to mapOf("LlmOut_3" to "path_"),
                 ),
                 processFunction = "processPromptInPromptOut"
