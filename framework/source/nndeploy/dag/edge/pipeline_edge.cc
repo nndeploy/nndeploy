@@ -596,8 +596,7 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
       }
     }
     if (delete_flag) {
-      PipelineDataPacket *to_delete = popFrontUnlocked();
-      delete to_delete;
+      popFrontUnlocked();
       real_count++;
     } else {
       break;
