@@ -15,10 +15,7 @@ PipelineEdge::PipelineEdge(base::ParallelType paralle_type)
   if (queue_max_size_ <= 0) {
     queue_max_size_ = 1;
   }
-  capacity_ = static_cast<size_t>(queue_max_size_);
-  data_packets_.assign(capacity_, nullptr);
-  head_ = 0;
-  size_ = 0;
+  data_queue_.reserve(static_cast<size_t>(queue_max_size_));
 }
 
 bool PipelineEdge::empty() {
@@ -32,12 +29,11 @@ bool PipelineEdge::empty() {
 PipelineEdge::~PipelineEdge() {
   consumers_size_ = 0;
 
-  while (size_ > 0) {
+  while (queueSizeUnlocked() > 0) {
     PipelineDataPacket *dp = popFrontUnlocked();
     delete dp;
   }
-  data_packets_.clear();
-  capacity_ = 0;
+  data_queue_.clear();
 
   consuming_dp_.clear();
   to_consume_index_.clear();
@@ -50,7 +46,7 @@ base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
   }
   queue_max_size_ = queue_max_size;
   size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked());
-  ensureCapacityUnlocked(required_capacity);
+  data_queue_.reserve(required_capacity);
   return base::kStatusCodeOk;
 }
 
@@ -641,77 +637,30 @@ PipelineDataPacket *PipelineEdge::getPipelineDataPacket(const Node *node) {
   }
 }
 
-void PipelineEdge::ensureCapacityUnlocked(size_t capacity) {
-  if (capacity == 0) {
-    capacity = 1;
-  }
-  if (capacity_ >= capacity && data_packets_.size() == capacity_) {
-    return;
-  }
-  size_t old_capacity = capacity_;
-  std::vector<PipelineDataPacket *> new_packets(capacity, nullptr);
-  if (old_capacity > 0 && !data_packets_.empty()) {
-    for (size_t i = 0; i < size_; ++i) {
-      size_t old_index = (head_ + i) % old_capacity;
-      if (old_index < data_packets_.size()) {
-        new_packets[i] = data_packets_[old_index];
-      }
-    }
-  }
-  data_packets_.swap(new_packets);
-  head_ = 0;
-  capacity_ = capacity;
-}
-
 void PipelineEdge::pushBackUnlocked(PipelineDataPacket *dp) {
-  size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked() + 1);
-  ensureCapacityUnlocked(required_capacity);
-  if (capacity_ == 0) {
-    return;
-  }
-  size_t tail_index = (head_ + size_) % capacity_;
-  data_packets_[tail_index] = dp;
-  size_++;
+  size_t required_capacity =
+      std::max(queueLimit(), queueSizeUnlocked() + 1);
+  data_queue_.reserve(required_capacity);
+  data_queue_.pushBack(dp);
 }
 
 PipelineDataPacket *PipelineEdge::atUnlocked(size_t index) const {
-  if (index >= size_ || capacity_ == 0) {
-    return nullptr;
-  }
-  size_t real_index = (head_ + index) % capacity_;
-  if (real_index >= data_packets_.size()) {
-    return nullptr;
-  }
-  return data_packets_[real_index];
+  return data_queue_.at(index);
 }
 
 PipelineDataPacket *PipelineEdge::frontUnlocked() const {
-  if (size_ == 0 || capacity_ == 0) {
-    return nullptr;
-  }
-  return data_packets_[head_];
+  return data_queue_.front();
 }
 
 PipelineDataPacket *PipelineEdge::backUnlocked() const {
-  if (size_ == 0 || capacity_ == 0) {
-    return nullptr;
-  }
-  size_t index = (head_ + size_ - 1) % capacity_;
-  return data_packets_[index];
+  return data_queue_.back();
 }
 
 PipelineDataPacket *PipelineEdge::popFrontUnlocked() {
-  if (size_ == 0 || capacity_ == 0) {
-    return nullptr;
-  }
-  PipelineDataPacket *dp = data_packets_[head_];
-  data_packets_[head_] = nullptr;
-  head_ = (head_ + 1) % capacity_;
-  size_--;
-  return dp;
+  return data_queue_.popFront();
 }
 
-size_t PipelineEdge::queueSizeUnlocked() const { return size_; }
+size_t PipelineEdge::queueSizeUnlocked() const { return data_queue_.size(); }
 
 size_t PipelineEdge::queueLimit() const {
   return static_cast<size_t>(queue_max_size_ <= 0 ? 1 : queue_max_size_);
