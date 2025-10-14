@@ -66,12 +66,11 @@ base::Status PipelineEdge::construct() {
 base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -92,12 +91,11 @@ device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -163,12 +161,11 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
 base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -189,12 +186,11 @@ cv::Mat *PipelineEdge::create(int rows, int cols, int type,
                               const cv::Vec3b &value) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -260,12 +256,11 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
 base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -287,12 +282,11 @@ device::Tensor *PipelineEdge::create(device::Device *device,
                                      const std::string &name) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -357,12 +351,13 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
 base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
+  // queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit();
+  // });
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -425,12 +420,11 @@ DataPacket *PipelineEdge::getGraphOutputDataPacket() {
 base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  // if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-  //     consumers_.end()) {
-  //   queue_cv_.wait(lock,
-  //                  [this]() { return queueSizeUnlocked() < queueLimit(); });
-  // }
-  queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return queueSizeUnlocked() < queueLimit(); });
+  }
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");

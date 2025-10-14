@@ -583,49 +583,49 @@ int main(int argc, char *argv[]) {
 
   int count = 1;
   for (int i = 0; i < count; i++) {
-    ret = photosRepairGraph(base::kParallelTypeSequential,
-                            base::kParallelTypeSequential,
-                            base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("photosRepairGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = serialGraph(base::kParallelTypeSequential,
-                      base::kParallelTypeSequential,
-                      base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = serialGraph(base::kParallelTypeSequential,
-                      base::kParallelTypeSequential,
-                      base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeSequential,
-                        base::kParallelTypeSequential,
-                        base::kParallelTypeSequential);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    // parallel task grah
-    NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask start.\n");
-    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                      base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
-    NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
-    ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                        base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
+    // ret = photosRepairGraph(base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("photosRepairGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = parallelGraph(base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // // parallel task grah
+    // NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask start.\n");
+    // ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                   base::kParallelTypeTask);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
+    // NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
+    // ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                     base::kParallelTypeTask);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
     // parallel pipepline graph
     ret = serialGraph(base::kParallelTypePipeline, base::kParallelTypePipeline,
                       base::kParallelTypePipeline, 100);
