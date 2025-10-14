@@ -356,8 +356,6 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
     queue_cv_.wait(lock,
                    [this]() { return queueSizeUnlocked() < queueLimit(); });
   }
-  // queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit();
-  // });
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
