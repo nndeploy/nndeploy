@@ -2,12 +2,12 @@
 #include "base/base.h"
 
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/dlopen.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/type.h"
 #include "nndeploy_api_registry.h"
-#include "nndeploy/base/dlopen.h"
 
 namespace nndeploy {
 namespace base {
@@ -439,8 +439,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
              QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure)
       .value("AllBackpressure",
              QueueOverflowPolicy::kQueueOverflowPolicyAllBackpressure)
-      .value("DropOldest",
-             QueueOverflowPolicy::kQueueOverflowPolicyDropOldest)
+      .value("DropOldest", QueueOverflowPolicy::kQueueOverflowPolicyDropOldest)
       .export_values();
 
   // export as base.EdgeUpdateFlag
@@ -772,6 +771,14 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   m.def("parallel_type_to_string", &parallelTypeToString,
         "parallel_type_to_string", py::arg("src"));
 
+  // export as base.string_to_overflow_policy
+  m.def("string_to_overflow_policy", &stringToOverflowPolicy,
+        "string_to_overflow_policy", py::arg("src"));
+
+  // export as base.overflow_policy_to_string
+  m.def("overflow_policy_to_string", &overflowPolicyToString,
+        "overflow_policy_to_string", py::arg("src"));
+
   // export as base.string_to_edge_type
   m.def("string_to_edge_type", &stringToEdgeType, "string_to_edge_type",
         py::arg("src"));
@@ -958,13 +965,11 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "Format JSON string to be more readable");
 
   // export as base.Handle
-  py::class_<Handle>(m, "Handle")
-      .def(py::init<>());
+  py::class_<Handle>(m, "Handle").def(py::init<>());
 
   // export as base.load_library_from_path
   m.def("load_library_from_path", &loadLibraryFromPath, py::arg("path"),
-        py::arg("update"),
-        "Load a library from a path");
+        py::arg("update"), "Load a library from a path");
 
   // export as base.free_library
   m.def("free_library", &freeLibrary, py::arg("path"),
@@ -972,8 +977,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   // export as base.get_library_handle
   m.def("get_library_handle", &getLibraryHandle, py::arg("path"),
-        py::arg("update"),
-        "Get a library handle from a path");
+        py::arg("update"), "Get a library handle from a path");
 }
 
 }  // namespace base

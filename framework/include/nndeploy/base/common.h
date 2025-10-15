@@ -198,10 +198,10 @@ enum MemoryType : int {
   kMemoryTypeMapped,
 };
 
-enum class QueueOverflowPolicy : int {
-  kQueueOverflowPolicyNodeBackpressure = 0,
-  kQueueOverflowPolicyAllBackpressure = 1,
-  kQueueOverflowPolicyDropOldest = 2,
+enum QueueOverflowPolicy : int {
+  kQueueOverflowPolicyNodeBackpressure = 0x0001,
+  kQueueOverflowPolicyAllBackpressure = 0x0001 << 1,
+  kQueueOverflowPolicyDropOldest = 0x0001 << 2,
 };
 
 enum MemoryPoolType : int {
@@ -444,6 +444,11 @@ extern NNDEPLOY_CC_API std::string codecFlagToString(CodecFlag src);
 extern NNDEPLOY_CC_API std::string parallelTypeToString(ParallelType src);
 extern NNDEPLOY_CC_API ParallelType
 stringToParallelType(const std::string &src);
+
+extern NNDEPLOY_CC_API std::string overflowPolicyToString(
+    QueueOverflowPolicy src);
+extern NNDEPLOY_CC_API QueueOverflowPolicy
+stringToOverflowPolicy(const std::string &src);
 
 extern NNDEPLOY_CC_API EdgeType stringToEdgeType(const std::string &src);
 extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeType src);
