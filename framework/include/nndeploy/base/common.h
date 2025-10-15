@@ -198,6 +198,12 @@ enum MemoryType : int {
   kMemoryTypeMapped,
 };
 
+enum class QueueOverflowPolicy : int {
+  kQueueOverflowPolicyNodeBackpressure = 0,
+  kQueueOverflowPolicyAllBackpressure = 1,
+  kQueueOverflowPolicyDropOldest = 2,
+};
+
 enum MemoryPoolType : int {
   kMemoryPoolTypeEmbed = 0x0000,
   kMemoryPoolTypeUnity,

@@ -434,6 +434,15 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("Pipeline", EdgeType::kEdgeTypePipeline)
       .export_values();
 
+  py::enum_<QueueOverflowPolicy>(m, "QueueOverflowPolicy")
+      .value("NodeBackpressure",
+             QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure)
+      .value("AllBackpressure",
+             QueueOverflowPolicy::kQueueOverflowPolicyAllBackpressure)
+      .value("DropOldest",
+             QueueOverflowPolicy::kQueueOverflowPolicyDropOldest)
+      .export_values();
+
   // export as base.EdgeUpdateFlag
   py::enum_<EdgeUpdateFlag>(m, "EdgeUpdateFlag")
       .value("Complete", EdgeUpdateFlag::kEdgeUpdateFlagComplete)

@@ -50,6 +50,14 @@ base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
   return base::kStatusCodeOk;
 }
 
+base::Status PipelineEdge::setQueueOverflowPolicy(
+    base::QueueOverflowPolicy policy, int drop_count) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  overflow_policy_ = policy;
+  drop_count_ = drop_count <= 0 ? 1 : drop_count;
+  return base::kStatusCodeOk;
+}
+
 base::Status PipelineEdge::construct() {
   consumers_size_ = static_cast<int>(consumers_.size());
   for (auto iter : consumers_) {
@@ -66,11 +74,7 @@ base::Status PipelineEdge::construct() {
 base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -91,11 +95,7 @@ device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -161,11 +161,7 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
 base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -186,11 +182,7 @@ cv::Mat *PipelineEdge::create(int rows, int cols, int type,
                               const cv::Vec3b &value) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -256,11 +248,7 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
 base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -282,11 +270,7 @@ device::Tensor *PipelineEdge::create(device::Device *device,
                                      const std::string &name) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
@@ -351,11 +335,7 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
 base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -418,11 +398,7 @@ DataPacket *PipelineEdge::getGraphOutputDataPacket() {
 base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   // 上锁
   std::unique_lock<std::mutex> lock(mutex_);
-  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
-      consumers_.end()) {
-    queue_cv_.wait(lock,
-                   [this]() { return queueSizeUnlocked() < queueLimit(); });
-  }
+  waitForSpaceLocked(lock);
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
@@ -661,6 +637,86 @@ size_t PipelineEdge::queueSizeUnlocked() const { return data_queue_.size(); }
 
 size_t PipelineEdge::queueLimit() const {
   return static_cast<size_t>(queue_max_size_ <= 0 ? 1 : queue_max_size_);
+}
+
+void PipelineEdge::waitForSpaceLocked(std::unique_lock<std::mutex> &lock) {
+  size_t limit = queueLimit();
+  if (limit == 0) {
+    return;
+  }
+
+  switch (overflow_policy_) {
+    case base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure:
+      if (!hasGraphOutputConsumer()) {
+        queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+      }
+      break;
+    case base::QueueOverflowPolicy::kQueueOverflowPolicyAllBackpressure:
+      queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+      break;
+    case base::QueueOverflowPolicy::kQueueOverflowPolicyDropOldest: {
+      size_t normalized_drop =
+          drop_count_ <= 0 ? static_cast<size_t>(1) : static_cast<size_t>(drop_count_);
+      while (queueSizeUnlocked() >= limit) {
+        size_t dropped = dropOldestUnlocked(normalized_drop);
+        if (dropped == 0) {
+          queue_cv_.wait(lock,
+                         [this]() { return queueSizeUnlocked() < queueLimit(); });
+          break;
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+size_t PipelineEdge::dropOldestUnlocked(size_t count) {
+  if (count == 0) {
+    count = 1;
+  }
+  size_t dropped = 0;
+  while (dropped < count && queueSizeUnlocked() > 0) {
+    PipelineDataPacket *candidate = frontUnlocked();
+    if (candidate == nullptr) {
+      break;
+    }
+    bool in_use = false;
+    for (auto &consuming_dp : consuming_dp_) {
+      if (consuming_dp.second == candidate) {
+        in_use = true;
+        break;
+      }
+    }
+    if (in_use) {
+      break;
+    }
+    PipelineDataPacket *removed = popFrontUnlocked();
+    if (removed != nullptr) {
+      delete removed;
+    }
+    ++dropped;
+  }
+
+  if (dropped > 0) {
+    for (auto &iter : to_consume_index_) {
+      iter.second -= static_cast<int>(dropped);
+      if (iter.second < 0) {
+        iter.second = 0;
+      }
+    }
+    if (queueSizeUnlocked() < queueLimit()) {
+      queue_cv_.notify_all();
+    }
+  }
+
+  return dropped;
+}
+
+bool PipelineEdge::hasGraphOutputConsumer() const {
+  return std::find(consumers_.begin(), consumers_.end(), nullptr) !=
+         consumers_.end();
 }
 
 }  // namespace dag
