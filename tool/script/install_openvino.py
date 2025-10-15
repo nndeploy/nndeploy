@@ -8,397 +8,223 @@ import zipfile
 import tarfile
 import requests
 import platform
-from pathlib import Path
 import re
+from pathlib import Path
 import time
-import json
+import argparse
+from tqdm import tqdm
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
-# Set standard output encoding to UTF-8 to solve Chinese output issues on Windows
-if platform.system() == "Windows":
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-# OpenVINO version
-OPENVINO_VER = "2023.1"
+WORKSPACE_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..')
+OV_INSTALL_DIR = os.path.join(WORKSPACE_FOLDER, 'third_party', 'openvino')
+OV_PACAGES_URL = "https://storage.openvinotoolkit.org/repositories/openvino/packages"
 
-# Get current execution directory
-WORKSPACE = Path(os.getcwd())
-OPENVINO_BUILD_DIR = WORKSPACE / "download"
-OPENVINO_DIR = "openvino" + OPENVINO_VER
-OPENVINO_INSTALL_DIR = WORKSPACE / "third_party" / OPENVINO_DIR
-print(OPENVINO_INSTALL_DIR)
+def get_elements_from_url(url, by, value):
+    elements_list = []
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')  # 无界面模式
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver.get(url)
+    time.sleep(5)  # 等待页面加载完成，响应慢可以适当增加等待时间
+    elements = driver.find_elements('id', 'list')
+    for element in elements:
+        lines = element.text.splitlines()
+        for line in lines:
+            elements_list.append(line)
+    driver.quit()
+    return elements_list
 
-# Create third party library directory
-OPENVINO_BUILD_DIR.mkdir(parents=True, exist_ok=True)
+def list_available_versions(url=OV_PACAGES_URL):
+    elements = get_elements_from_url(url, 'id', 'list')
 
-# Change to third party library directory
-os.chdir(OPENVINO_BUILD_DIR)
+    available_versions = []
+    for element in elements:
+        match = re.match(r'^([\d\.]+?)/', element)
+        if match:
+            available_versions.append(match.group(1))
+            
+    return available_versions
 
-def get_available_packages_from_filetree(base_url, max_retries=3):
-    """Get available package list from OpenVINO filetree.json"""
-    for retry in range(max_retries):
-        try:
-            print(f"Attempting to get package list from filetree.json (attempt {retry + 1})...")
+def list_available_files(url):
+    elements = get_elements_from_url(url, 'id', 'list')
+
+    available_files = []
+    for element in elements:
+        if element.startswith('w_') or element.startswith('l_') or element.startswith('m_') or element.startswith('openvino'):
+            file_name = element.split()[0]
+            available_files.append(file_name)
             
-            # Try to get filetree.json
-            filetree_url = "https://storage.openvinotoolkit.org/filetree.json"
-            response = requests.get(filetree_url, timeout=60, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
-            response.raise_for_status()
-            
-            filetree = response.json()
-            
-            # Extract path from base_url
-            # base_url like: https://storage.openvinotoolkit.org/repositories/openvino/packages/2023.1/linux/
-            path_parts = base_url.replace("https://storage.openvinotoolkit.org/", "").rstrip("/").split("/")
-            
-            # Navigate through the filetree
-            current_node = filetree
-            for part in path_parts:
-                if part in current_node and isinstance(current_node[part], dict):
-                    current_node = current_node[part]
-                else:
-                    print(f"Path not found in filetree: {'/'.join(path_parts)}")
-                    return []
-            
-            # Extract file names
-            packages = []
-            if isinstance(current_node, dict):
-                for key, value in current_node.items():
-                    if isinstance(value, str) and (key.endswith('.tgz') or key.endswith('.zip')):
-                        if 'openvino' in key.lower():
-                            packages.append(key)
-            
-            return packages
-                    
-        except requests.exceptions.Timeout:
-            print(f"Request timeout, waiting {2 ** retry} seconds before retry...")
-            if retry < max_retries - 1:
-                time.sleep(2 ** retry)
-        except requests.exceptions.RequestException as e:
-            print(f"Network request failed: {e}")
-            if retry < max_retries - 1:
-                print(f"Waiting {2 ** retry} seconds before retry...")
-                time.sleep(2 ** retry)
-        except Exception as e:
-            print(f"Error occurred while getting package list: {e}")
-            if retry < max_retries - 1:
-                time.sleep(2 ** retry)
+    return available_files
+
+def is_archive_file(file_name):
+    return file_name.endswith('.zip') or file_name.endswith('.tar.gz') or file_name.endswith('.tgz')
+
+def is_target_file(file_name, system, arch):
+    if system == 'linux':
+        system_name = f'ubuntu{args.ubuntu}'
+        return (system_name in file_name) and (arch in file_name)
+    return (system in file_name) and (arch in file_name)
     
-    return []
-
-def get_available_packages_from_html(base_url, max_retries=3):
-    """Get available package list from HTML parsing (fallback method)"""
-    for retry in range(max_retries):
-        try:
-            print(f"Attempting to get package list from HTML (attempt {retry + 1})...")
-            response = requests.get(base_url, timeout=60, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            })
-            response.raise_for_status()
-            
-            # Use regex to match download links
-            # Match links like href="l_openvino_toolkit_..."
-            pattern = r'href="([^"]*l_openvino_toolkit_[^"]*\.(?:tgz|zip))"'
-            matches = re.findall(pattern, response.text)
-            
-            if matches:
-                return [match for match in matches if not match.startswith('http')]
-            else:
-                print("OpenVINO package links not found in HTML content, trying other patterns...")
-                # Try other possible matching patterns
-                pattern2 = r'href="([^"]*openvino[^"]*\.(?:tgz|zip))"'
-                matches2 = re.findall(pattern2, response.text)
-                if matches2:
-                    return [match for match in matches2 if not match.startswith('http')]
-                    
-        except requests.exceptions.Timeout:
-            print(f"Request timeout, waiting {2 ** retry} seconds before retry...")
-            if retry < max_retries - 1:
-                time.sleep(2 ** retry)
-        except requests.exceptions.RequestException as e:
-            print(f"Network request failed: {e}")
-            if retry < max_retries - 1:
-                print(f"Waiting {2 ** retry} seconds before retry...")
-                time.sleep(2 ** retry)
-        except Exception as e:
-            print(f"Error occurred while getting package list: {e}")
-            if retry < max_retries - 1:
-                time.sleep(2 ** retry)
-    
-    return []
-
-def get_available_packages(base_url, max_retries=3):
-    """Get available package list using multiple methods"""
-    # First try filetree.json method
-    packages = get_available_packages_from_filetree(base_url, max_retries)
-    
-    # If filetree method fails, try HTML parsing
-    if not packages:
-        print("Filetree method failed, trying HTML parsing...")
-        packages = get_available_packages_from_html(base_url, max_retries)
-    
-    return packages
-
-def find_best_package(packages, system, machine):
-    """Find the most suitable package for the current platform from available packages"""
-    if system == "Linux" and machine == "x86_64":
-        # Prefer ubuntu20 or ubuntu22 versions
-        for package in packages:
-            if "ubuntu20" in package and "x86_64" in package:
-                return package
-        for package in packages:
-            if "ubuntu22" in package and "x86_64" in package:
-                return package
-        # If ubuntu versions not found, look for generic linux versions
-        for package in packages:
-            if "linux" in package and "x86_64" in package:
-                return package
-    elif system == "Linux" and machine in ["aarch64", "arm64"]:
-        for package in packages:
-            if "arm" in package:
-                return package
-    elif system == "Windows" and machine in ["AMD64", "x86_64"]:
-        for package in packages:
-            if "windows" in package:
-                return package
-    elif system == "Darwin":  # macOS
-        if machine == "x86_64":
-            for package in packages:
-                if "macos" in package and "arm64" not in package:
-                    return package
-        elif machine in ["arm64", "aarch64"]:
-            for package in packages:
-                if "macos" in package and "arm64" in package:
-                    return package
-    
-    return None
-
-def get_fallback_packages():
-    """Return known package names when unable to get package list from official repository"""
-    system = platform.system()
-    machine = platform.machine()
-    
-    fallback_packages = {
-        "Linux": {
-            "x86_64": [
-                "l_openvino_toolkit_ubuntu20_2023.1.0.12185.47b736f63ed_x86_64.tgz",
-                "l_openvino_toolkit_ubuntu22_2023.1.0.12185.47b736f63ed_x86_64.tgz",
-                "l_openvino_toolkit_centos7_2023.1.0.12185.47b736f63ed_x86_64.tgz"
-            ]
-        },
-        "Windows": {
-            "AMD64": [
-                "w_openvino_toolkit_windows_2023.1.0.12185.47b736f63ed_x86_64.zip"
-            ]
-        },
-        "Darwin": {
-            "x86_64": [
-                "m_openvino_toolkit_macos_10_15_2023.1.0.12185.47b736f63ed_x86_64.tgz"
-            ],
-            "arm64": [
-                "m_openvino_toolkit_macos_11_0_2023.1.0.12185.47b736f63ed_arm64.tgz"
-            ]
-        }
+def find_suitable_openvino_url(version, target, arch):
+    system_map = {
+        'Windows': 'windows',
+        'Linux': 'linux',
+        'Darwin': 'macos'
     }
-    
-    return fallback_packages.get(system, {}).get(machine, [])
 
-# Determine download URL and filename based on platform
-def get_download_info():
-    """Return corresponding download information based on current platform"""
-    system = platform.system()
-    machine = platform.machine()
+    system = system_map.get(target)
+    ov_url = f"{OV_PACAGES_URL}/{version}/{system}"
+    available_files = list_available_files(ov_url)
+    # print(f"Available files for version {version} on {system}: {available_files}")
+    # 选择合适的文件
+    target_file = None
+    for file in available_files:
+        if is_archive_file(file) and is_target_file(file, system, arch):
+            target_file = file
+            break
     
-    # Determine base URL based on platform
-    if system == "Windows":
-        base_url = f"https://storage.openvinotoolkit.org/repositories/openvino/packages/{OPENVINO_VER}/windows/"
-    elif system == "Linux":
-        base_url = f"https://storage.openvinotoolkit.org/repositories/openvino/packages/{OPENVINO_VER}/linux/"
-    elif system == "Darwin":  # macOS
-        base_url = f"https://storage.openvinotoolkit.org/repositories/openvino/packages/{OPENVINO_VER}/macos/"
-    else:
-        raise ValueError(f"Unsupported operating system: {system}")
-    
-    print(f"Querying available packages: {base_url}")
-    
-    # Get available package list
-    packages = get_available_packages(base_url)
-    
-    # If unable to get package list, use fallback package names
-    if not packages:
-        print("Unable to get package list from official repository, trying known package names...")
-        packages = get_fallback_packages()
-        if not packages:
-            raise Exception(f"Unable to get package list from {base_url} and no fallback packages available")
-    
-    print(f"Found {len(packages)} available packages:")
-    for pkg in packages:
-        print(f"  {pkg}")
-    
-    # Find the most suitable package
-    filename = find_best_package(packages, system, machine)
-    if not filename:
-        # If no best matching package found, use the first available package
-        if packages:
-            filename = packages[0]
-            print(f"Warning: No perfect match found, using first available package: {filename}")
+    if target_file is None:
+        print(f"No suitable OpenVINO package found for version {version} on {system} {arch}, available files: {available_files}")
+        sys.exit(1)
+    print(f"Found suitable file {target_file} for {system} {arch}")
+
+    download_url = f"{ov_url}/{target_file}"
+
+    return download_url
+
+def download_file(url, filename=None):
+    if filename is None:
+        filename = url.split('/')[-1]
+
+    response = requests.get(url, stream=True)
+    if response.status_code != 200:
+        print(f"Failed to download file from {url}, status code: {response.status_code}")
+        sys.exit(1)
+
+    total_size = int(response.headers.get('content-length', 0))
+    if os.path.exists(filename):
+        if os.path.getsize(filename) == total_size:
+            print(f"File {filename} already exists and is complete, skipping download.")
+            return filename
         else:
-            raise ValueError(f"No suitable OpenVINO package found for {system} {machine}")
+            print(f"File {filename} already exists but is incomplete, re-downloading.")
+
+    chunk_size = 8192
+    with open(filename, 'wb') as file, tqdm(
+        desc=filename,
+        total=total_size,
+        unit='iB',
+        unit_scale=True,
+        unit_divisor=1024,
+    ) as bar:
+        for data in response.iter_content(chunk_size=chunk_size):
+            size = file.write(data)
+            bar.update(size)
+
+    print(f"Downloaded file to {filename}")
+    return filename
+
+def extract_archive(archive_path, extract_to='.'):
+    extract_dir = None
+    if archive_path.endswith('.zip'):
+        with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+            extract_dir = archive_file.rsplit('.', 1)[0]
+    elif archive_path.endswith('.tar.gz') or archive_path.endswith('.tgz'):
+        with tarfile.open(archive_path, 'r:gz') as tar_ref:
+            tar_ref.extractall(extract_to)
+            extract_dir = archive_file.rsplit('.', 2)[0] if archive_path.endswith('.tar.gz') else archive_file.rsplit('.', 1)[0]
+    else:
+        print(f"Unsupported archive format: {archive_path}")
+        sys.exit(1)
+
+    return extract_dir
     
-    url = base_url + filename
-    print(f"Selected package: {filename}")
+def copy_files_with_suffix(src_dir, dest_dir, suffixes):
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    for root, dirs, files in os.walk(src_dir, followlinks=True):
+        for file in files:
+            if any(file.endswith(suffix) for suffix in suffixes):
+                shutil.copy2(os.path.join(root, file), dest_dir)
+
+# 解析命令行参数
+parser = argparse.ArgumentParser(description='Install OpenVINO precompiled library')
+
+parser.add_argument('--list-versions', action='store_true', help='List available OpenVINO versions and exit')
+parser.add_argument('--version', type=str, default='2025.3', help='OpenVINO version to install (default: 2025.3)')
+parser.add_argument('--target', type=str, default=None, choices=["Windows", "Linux", "Darwin"], help='Target platform (default: current platform)')
+parser.add_argument('--arch', type=str, default='x86_64', choices=['x86_64', 'arm64'], help='Target architecture (default: x86_64)')
+parser.add_argument('--ubuntu', type=str, default='20', help='Ubuntu version, only used if target is Linux (default: 20)')
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    version = args.version
+    target = args.target if args.target else platform.system()
+    OV_INSTALL_DIR = OV_INSTALL_DIR + f"_{args.version}"
+
+    if args.list_versions:
+        print("Fetching available OpenVINO versions...")
+        print(f"Available versions: {', '.join(list_available_versions())}")
+        sys.exit(0)
+
+    print(f"Installing OpenVINO version {version} for {target} ({args.arch}) into {OV_INSTALL_DIR}")
+    os.makedirs(OV_INSTALL_DIR, exist_ok=True)
+    os.chdir(OV_INSTALL_DIR)
+
+    # step 1: 查找合适的下载链接
+    ov_url = find_suitable_openvino_url(version, target, args.arch)
+
+    # step 2: 下载文件
+    print(f"Downloading OpenVINO ...")
+    archive_file = download_file(ov_url)
+
+    # archive_file = "w_openvino_toolkit_windows_2022.3.0.9052.9752fafe8eb_x86_64.zip"
+    # step 3: 解压文件夹
+    print(f"Extracting {archive_file} ...")
+    extract_dir = extract_archive(archive_file)
+    print(f"Extracted to {extract_dir}")
+
+    # step 4: 拷贝include文件夹
+    include_dir = os.path.join(OV_INSTALL_DIR, 'include')
+    if os.path.exists(include_dir):
+        shutil.rmtree(include_dir)
+
+    os.makedirs(include_dir, exist_ok=True)
+    shutil.copytree(os.path.join(OV_INSTALL_DIR, extract_dir, 'runtime', 'include'), include_dir, symlinks=True, dirs_exist_ok=True)
+
+    print(f"Copied include files to {include_dir}")
+
+    # step 5: 拷贝lib文件夹
+    thirdparty_src_dir = os.path.join(OV_INSTALL_DIR, extract_dir, 'runtime', '3rdparty')
+    if target == 'Windows':
+        if os.path.exists(os.path.join(OV_INSTALL_DIR, 'bin')):
+            shutil.rmtree(os.path.join(OV_INSTALL_DIR, 'bin'))
+        bin_dir = os.path.join(OV_INSTALL_DIR, 'bin')
+        os.makedirs(bin_dir, exist_ok=True)
+        
+        copy_files_with_suffix(os.path.join(OV_INSTALL_DIR, extract_dir, 'runtime', 'bin'), bin_dir, ['.dll'])
+        copy_files_with_suffix(thirdparty_src_dir, bin_dir, ['.dll'])
+
+        print(f"Copied bin files to {bin_dir}")
+
+    lib_dir = os.path.join(OV_INSTALL_DIR, 'lib')
+    if os.path.exists(lib_dir):
+        shutil.rmtree(lib_dir)
+    os.makedirs(lib_dir, exist_ok=True)
+    copy_files_with_suffix(os.path.join(OV_INSTALL_DIR, extract_dir, 'runtime', 'lib'), lib_dir, ['.so', '.dylib', '.lib', '.a'])
+    copy_files_with_suffix(thirdparty_src_dir, lib_dir, ['.so', '.dylib', '.lib', '.a'])
+    print(f"Copied lib files to {lib_dir}")
+
+    # step 6: 清理临时文件
+    os.remove(archive_file)
+    shutil.rmtree(extract_dir)
+    print(f"Removed temporary files")
+
+    print(f"OpenVINO {version} installation completed successfully.")
     
-    return url, filename
-
-# Get download information
-url, filename = get_download_info()
-
-# Check if file already exists
-if os.path.exists(filename):
-    print(f"File {filename} already exists, skipping download")
-else:
-    # Download OpenVINO precompiled version
-    print(f"Downloading OpenVINO {OPENVINO_VER}...")
-    print(f"Download URL: {url}")
     
-    try:
-        response = requests.get(url, stream=True, timeout=60, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
-        response.raise_for_status()
-        
-        total_size = int(response.headers.get('content-length', 0))
-        downloaded = 0
-        
-        with open(filename, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    if total_size > 0:
-                        percent = (downloaded / total_size) * 100
-                        print(f"\rDownload progress: {percent:.1f}% ({downloaded}/{total_size} bytes)", end='', flush=True)
-        
-        print(f"\nDownload completed: {filename}")
-        
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Download failed: {e}")
-
-# Extract file
-print("Extracting file...")
-if filename.endswith('.zip'):
-    with zipfile.ZipFile(filename, 'r') as zip_ref:
-        zip_ref.extractall(".")
-elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-    with tarfile.open(filename, 'r:gz') as tar_ref:
-        tar_ref.extractall(".")
-else:
-    raise ValueError(f"Unsupported file format: {filename}")
-
-# Find extracted directory
-extracted_dirs = [d for d in os.listdir('.') if os.path.isdir(d) and 'openvino' in d and d != 'openvino']
-if not extracted_dirs:
-    raise Exception("Extracted OpenVINO directory not found")
-
-extracted_dir = extracted_dirs[0]
-print(f"Found extracted directory: {extracted_dir}")
-
-# Rename directory
-if os.path.exists("openvino"):
-    shutil.rmtree("openvino")
-
-try:
-    os.rename(extracted_dir, "openvino")
-except PermissionError:
-    shutil.move(extracted_dir, "openvino")
-
-# Install to target directory
-print(f"Installing to target directory: {OPENVINO_INSTALL_DIR}")
-if OPENVINO_INSTALL_DIR.exists():
-    shutil.rmtree(OPENVINO_INSTALL_DIR)
-
-# Copy entire directory
-shutil.copytree("openvino", OPENVINO_INSTALL_DIR, symlinks=True)
-
-# Verify installation
-print("Verifying installation:")
-print(f"Header directory: {OPENVINO_INSTALL_DIR}/runtime/include - {'exists' if (OPENVINO_INSTALL_DIR / 'runtime' / 'include').exists() else 'not found'}")
-print(f"Library directory: {OPENVINO_INSTALL_DIR}/runtime/lib/intel64 - {'exists' if (OPENVINO_INSTALL_DIR / 'runtime' / 'lib' / 'intel64').exists() else 'not found'}")
-print(f"Binary directory: {OPENVINO_INSTALL_DIR}/runtime/bin/intel64 - {'exists' if (OPENVINO_INSTALL_DIR / 'runtime' / 'bin' / 'intel64').exists() else 'not found'}")
-
-include_dir = OPENVINO_INSTALL_DIR / "runtime" / "include"
-lib_dir = OPENVINO_INSTALL_DIR / "runtime" / "lib" / "intel64"
-bin_dir = OPENVINO_INSTALL_DIR / "runtime" / "bin" / "intel64"
-
-if platform.system() == "Windows":
-    lib_dir = OPENVINO_INSTALL_DIR / "runtime" / "lib" / "intel64" / "Release"
-    bin_dir = OPENVINO_INSTALL_DIR / "runtime" / "bin" / "intel64" / "Release"
-    
-target_include_dir = OPENVINO_INSTALL_DIR / "include"
-target_lib_dir = OPENVINO_INSTALL_DIR / "lib"
-target_bin_dir = OPENVINO_INSTALL_DIR / "bin"
-
-# Create simplified directory structure for easier CMake discovery
-print("Creating simplified directory structure...")
-target_include_dir.parent.mkdir(parents=True, exist_ok=True)
-target_lib_dir.mkdir(parents=True, exist_ok=True)
-target_bin_dir.mkdir(parents=True, exist_ok=True)
-
-# Copy header files
-if include_dir.exists():
-    print(f"Copying header files from {include_dir} to {target_include_dir}")
-    if target_include_dir.exists():
-        shutil.rmtree(target_include_dir)
-    shutil.copytree(include_dir, target_include_dir, symlinks=True)
-
-# Copy library files
-if lib_dir.exists():
-    print(f"Copying library files from {lib_dir} to {target_lib_dir}")
-    for lib_file in lib_dir.iterdir():
-        if lib_file.is_file():
-            shutil.copy2(lib_file, target_lib_dir, follow_symlinks=False)
-
-# Copy binary files
-if bin_dir.exists():
-    print(f"Copying binary files from {bin_dir} to {target_bin_dir}")
-    for bin_file in bin_dir.iterdir():
-        if bin_file.is_file():
-            shutil.copy2(bin_file, target_bin_dir, follow_symlinks=False)
-
-
-if target_include_dir.exists():
-    print("Target header directory:")
-    for header in target_include_dir.glob("**/*.h"):
-        print(f"  {header.relative_to(target_include_dir)}")
-
-if target_lib_dir.exists():
-    print("Target library directory:")
-    for lib_file in target_lib_dir.iterdir():
-        if lib_file.is_file():
-            print(f"  {lib_file.name}")
-
-if target_bin_dir.exists():
-    print("Target binary directory:")
-    for bin_file in target_bin_dir.iterdir():
-        if bin_file.is_file():
-            print(f"  {bin_file.name}")
-
-print(f"OpenVINO {OPENVINO_VER} installation completed!")
-
-# # 添加 Intel® 软件包存储库
-# wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-# sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-# echo "deb https://apt.repos.intel.com/openvino/2023 ubuntu20 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2023.list
-
-# # 更新软件包列表并安装
-# sudo apt update
-# sudo apt install openvino-2023.1.0
-
-# # 将这行
-# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "tool/script/third_party/openvino2023.1") 
-
-# # 改为
-# set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO ON)  # 使用系统安装的 OpenVINO
