@@ -176,6 +176,8 @@ class GraphRunner:
             
             # print(time_profiler_map)
             nndeploy.base.time_profiler_print(name)
+            if count > 10:   
+                nndeploy.base.time_profiler_print_remove_warmup(name, 10)
 
             # 另一个线程启动的函数
             # run_status_map = self.get_run_status()

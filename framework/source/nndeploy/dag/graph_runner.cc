@@ -137,7 +137,10 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(const std::string& graph_jso
         base::timeProfilerGetAverageTime("deserialize_" + name);
 
     // 打印性能分析结果
-    base::timeProfilerPrint(name);
+    NNDEPLOY_TIME_PROFILER_PRINT(name);
+    if (count > 10) {
+      NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP(name, 10);
+    }
   }
 
   // 获取运行状态
