@@ -27,11 +27,11 @@ nndeploy：基于工作流的多端AI推理部署框架
 
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信群</b></a> 
-<!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
-| <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
-<!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a> 
+| <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
+<!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
+<!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
 </p>
 
 <p align="center">
@@ -66,7 +66,6 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
 
   | 推理框架                                                                         | 适用场景                 | 状态 |
   | :------------------------------------------------------------------------------- | :----------------------- | :--- |
-  | [PyTorch](https://pytorch.org/)                                                  | 研发调试、快速原型       | ✅   |
   | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | 跨平台推理               | ✅   |
   | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | NVIDIA GPU 高性能推理    | ✅   |
   | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | Intel CPU/GPU 优化       | ✅   |
@@ -78,6 +77,7 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微 NPU 推理框架      | ✅   |
   | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | 高通骁龙 NPU 推理框架    | ✅   |
   | [TVM](https://github.com/apache/tvm)                                             | 深度学习编译栈           | ✅   |
+  | [PyTorch](https://pytorch.org/)                                                  | 快速原型/云端落地        | ✅   |
   | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 缺省推理框架             | ✅   |
 
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
@@ -88,17 +88,19 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
 
 已部署模型列表，并制作**100+节点**，我们将持续部署更多高价值的 AI 算法。如果您有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
-| 应用场景       | 可用模型                                                                         | 支持平台                        | 备注                                                |
-| -------------- | -------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------- |
-| **大语言模型** | **QWen-0.5B**                                                                    | Linux/Windows/macOS/Android/iOS |                                                     |
-| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | Linux/Windows/macOS             | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
-| **换脸**       | **deep-live-cam**                                                                | Linux/Windows/macOS             |                                                     |
-| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               | Linux/Windows/macOS/Android/iOS |                                                     |
-| **目标追踪**   | FairMot                                                                          | Linux/Windows/macOS/Android/iOS |                                                     |
-| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        | Linux/Windows/macOS/Android/iOS |                                                     |
-| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       | Linux/Windows/macOS/Android/iOS |                                                     |
-| **API LLM**    | OPENAI, DeepSeek, Moonshot                                                       | Linux/Windows/macOS             |                                                     |
-| **API AIGC**   | OPENAI                                                                           | Linux/Windows/macOS             |                                                     |
+| 应用场景       | 可用模型                                                                         | 备注                                                |
+| -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **大语言模型** | **QWen-0.5B**                                                                    |                                                     |
+| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
+| **换脸**       | **deep-live-cam**                                                                |                                                     |
+| **OCR**        | **Paddle OCR**                                                                   |                                                     |
+| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |                                                     |
+| **目标追踪**   | FairMot                                                                          |                                                     |
+| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                     |
+| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
+| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                              |
+
+> 更多详情查看[已部署模型列表](docs/zh_cn/quick_start/model_list.md)
 
 ## 性能比较
 
@@ -106,7 +108,7 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
 
 ### 流水线并行加速
 
-以YOLOv11s端到端工作流为例，端到端的耗时比较
+以 YOLOv11s 端到端工作流为例，端到端的耗时比较
 
 ![yolov11s_performance](docs/image/workflow/yolo_performance.png)
 
@@ -167,7 +169,10 @@ nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
 在可视化界面中完成工作流的搭建后，可将其保存为 JSON 文件（例如 workflow.json），然后可以使用以下命令执行该工作流：
 
 ```bash
-nndeploy-run-json --json-file workflow.json --plugin plugin.py
+# Python CLI
+nndeploy-run-json --json_file path/to/workflow.json
+# C++ CLI
+nndeploy_demo_run_json --json_file path/to/workflow.json
 ```
 
 - API 加载运行 JSON 配置文件
@@ -200,8 +205,8 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 - [工作流生态](https://github.com/nndeploy/nndeploy/issues/191)
 - [端侧大模型推理](https://github.com/nndeploy/nndeploy/issues/161)
-- [AI Box](https://github.com/nndeploy/nndeploy/issues/190)
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
+- [AI Box](https://github.com/nndeploy/nndeploy/issues/190)
 
 ## 联系我们
 
