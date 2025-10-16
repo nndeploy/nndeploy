@@ -1,4 +1,9 @@
-#include "nndeploy/framework.h"
+/**
+ * nndeploy inference module demonstration program:
+ * This example demonstrates the inference module functionality of the nndeploy
+ * framework, focusing on Expr expressions and net inference
+ */
+
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -27,12 +32,6 @@ class TestDesc : public ir::ModelDesc {
 };
 
 int main() {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   auto test_desc = new TestDesc();
   test_desc->init();
 
@@ -76,10 +75,5 @@ int main() {
   NNDEPLOY_LOGE("delete test_desc\n");
   delete test_desc;
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

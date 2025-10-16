@@ -6,7 +6,6 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 

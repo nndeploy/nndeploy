@@ -6,7 +6,6 @@
 #include "nndeploy/codec/opencv/opencv_codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/super_resolution/super_resolution.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 

@@ -4,7 +4,6 @@
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 #include "nndeploy/track/fairmot/fairmot.h"
 #include "nndeploy/track/result.h"
@@ -17,12 +16,6 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   std::string name = demo::getName();
@@ -64,8 +57,8 @@ int main(int argc, char *argv[]) {
   // draw box
   dag::Edge *vismot_img = graph->createEdge("vismot_img");
   dag::Node *vismot_node;
-  vismot_node = graph->createNode<track::VisMOT>(
-      "vismot_node", {input, output}, {vismot_img});
+  vismot_node = graph->createNode<track::VisMOT>("vismot_node", {input, output},
+                                                 {vismot_img});
 
   // Video encoder
   codec::Encode *encode_node = codec::createEncode(
@@ -143,12 +136,6 @@ int main(int argc, char *argv[]) {
   delete decode_node;
   delete track_graph;
   delete graph;
-
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
 
   return 0;
 }

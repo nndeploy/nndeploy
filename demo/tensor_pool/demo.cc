@@ -1,5 +1,4 @@
 #include "flag.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -12,15 +11,20 @@ using namespace nndeploy;
 DEFINE_string(tensor_pool_type, "", "tensor pool type");
 
 net::TensorPoolType getTensorPoolType() {
-  if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyByBreadth") {
+  if (FLAGS_tensor_pool_type ==
+      "kTensorPool1DSharedObjectTypeGreedyByBreadth") {
     return net::kTensorPool1DSharedObjectTypeGreedyByBreadth;
-  } else if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyBySize") {
+  } else if (FLAGS_tensor_pool_type ==
+             "kTensorPool1DSharedObjectTypeGreedyBySize") {
     return net::kTensorPool1DSharedObjectTypeGreedyBySize;
-  } else if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyBySizeImprove") {
+  } else if (FLAGS_tensor_pool_type ==
+             "kTensorPool1DSharedObjectTypeGreedyBySizeImprove") {
     return net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
-  } else if (FLAGS_tensor_pool_type == "kTensorPool1DOffsetCalculateTypeGreedyBySize") {
+  } else if (FLAGS_tensor_pool_type ==
+             "kTensorPool1DOffsetCalculateTypeGreedyBySize") {
     return net::kTensorPool1DOffsetCalculateTypeGreedyBySize;
-  } else if (FLAGS_tensor_pool_type == "kTensorPool1DOffsetCalculateTypeGreedyByBreadth") {
+  } else if (FLAGS_tensor_pool_type ==
+             "kTensorPool1DOffsetCalculateTypeGreedyByBreadth") {
     return net::kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
   } else if (FLAGS_tensor_pool_type == "kTensorPool1DNone") {
     return net::kTensorPool1DNone;
@@ -34,14 +38,15 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
-  
+
   base::ModelType model_type = demo::getModelType();
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
 
   base::Status status = base::kStatusCodeOk;
 
-  auto interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
+  auto interpret =
+      std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
   if (interpret == nullptr) {
     NNDEPLOY_LOGE("ir::createInterpret failed.\n");
     return -1;
