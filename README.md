@@ -27,7 +27,7 @@ nndeploy：基于工作流的多端AI推理部署框架
 
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信交流群</b></a> 
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信群</b></a> 
 <!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
@@ -78,7 +78,7 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微 NPU 推理框架      | ✅   |
   | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | 高通骁龙 NPU 推理框架    | ✅   |
   | [TVM](https://github.com/apache/tvm)                                             | 深度学习编译栈           | ✅   |
-  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 定制化推理需求           | ✅   |
+  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 缺省推理框架             | ✅   |
 
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
@@ -88,25 +88,25 @@ nndeploy 是一款基于工作流的多端 AI 推理部署框架，致力于为�
 
 已部署模型列表，并制作**100+节点**，我们将持续部署更多高价值的 AI 算法。如果您有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
 
-| 应用场景       | 可用模型                                                                                                                                                                                                     | 支持平台                        | 备注                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- | --------------------------------------------------- |
-| **大语言模型** | **QWen-0.5B**                                                                                                                                                                                                | Linux/Windows/macOS/Android/iOS |                                                     |
-| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4 等等模型 | Linux/Windows/macOS             | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
-| **换脸**       | **deep-live-cam**                                                                                                                                                                                            | Linux/Windows/macOS             |                                                     |
-| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                                                                                                                                                           | Linux/Windows/macOS/Android/iOS |                                                     |
-| **目标追踪**   | FairMot                                                                                                                                                                                                      | Linux/Windows/macOS/Android/iOS |                                                     |
-| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                                                                                                                                                    | Linux/Windows/macOS/Android/iOS |                                                     |
-| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet                                                                                                                                   | Linux/Windows/macOS/Android/iOS |                                                     |
-| **API LLM**    | OPENAI, DeepSeek, Moonshot                                                                                                                                                                                   | Linux/Windows/macOS             |                                                     |
-| **API AIGC**   | OPENAI                                                                                                                                                                                                       | Linux/Windows/macOS             |                                                     |
+| 应用场景       | 可用模型                                                                         | 支持平台                        | 备注                                                |
+| -------------- | -------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------- |
+| **大语言模型** | **QWen-0.5B**                                                                    | Linux/Windows/macOS/Android/iOS |                                                     |
+| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | Linux/Windows/macOS             | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
+| **换脸**       | **deep-live-cam**                                                                | Linux/Windows/macOS             |                                                     |
+| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               | Linux/Windows/macOS/Android/iOS |                                                     |
+| **目标追踪**   | FairMot                                                                          | Linux/Windows/macOS/Android/iOS |                                                     |
+| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        | Linux/Windows/macOS/Android/iOS |                                                     |
+| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       | Linux/Windows/macOS/Android/iOS |                                                     |
+| **API LLM**    | OPENAI, DeepSeek, Moonshot                                                       | Linux/Windows/macOS             |                                                     |
+| **API AIGC**   | OPENAI                                                                           | Linux/Windows/macOS             |                                                     |
 
-## 性能加速
+## 性能比较
 
 测试环境：Ubuntu 22.04，CPU：12th Gen Intel(R) Core(TM) i7-12700，GPU：RTX3060
 
-**流水线并行加速**
+### 流水线并行加速
 
-YOLOv11s 端到端总耗时，串行与流水线并行对比
+以YOLOv11s端到端工作流为例，端到端的耗时比较
 
 ![yolov11s_performance](docs/image/workflow/yolo_performance.png)
 
@@ -116,11 +116,9 @@ YOLOv11s 端到端总耗时，串行与流水线并行对比
 | 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
 | 性能提升          | 13.7%       | 13.1%     | 57%       |
 
-> 注：在流水线并行中，单次耗时主要取决与耗时最长的节点
+### 任务并行加速
 
-**任务并行加速**
-
-组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行与任务并行对比
+组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
 
 ![rmbg_yolo_resnet.png](docs/image/workflow/rmbg_yolo_resnet.png)
 
