@@ -20,7 +20,7 @@ class NNDEPLOY_CC_API ThreadPool {
   base::Status init() {
     for (int i = 0; i < max_thread_size_; i++) {
       auto ptr = new LocalThread();  // 创建核心线程数
-      ptr->setThreadPoolInfo(i, &threads_);
+      ptr->setThreadPoolInfo(i, &threads_, max_thread_size_);
       // ptr->init();
       threads_.emplace_back(ptr);
     }
@@ -53,6 +53,21 @@ class NNDEPLOY_CC_API ThreadPool {
     }
     threads_[cur_index_]->pushTask(std::move(task));
     return result;
+  }
+
+  template <typename F>
+  auto commit_to(int slot, F &&f) -> std::future<std::invoke_result_t<F>> {
+    using R = std::invoke_result_t<F>;
+
+    std::packaged_task<R()> pt(std::forward<F>(f));
+    auto fut = pt.get_future();
+    auto void_task = [task = std::move(pt)]() mutable { task(); };
+
+    int idx = slot % max_thread_size_;
+    if (idx < 0) idx += max_thread_size_;
+
+    threads_[idx]->pushTask(std::move(void_task));
+    return fut;
   }
 
  private:

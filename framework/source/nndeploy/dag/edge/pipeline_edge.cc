@@ -72,42 +72,49 @@ base::Status PipelineEdge::construct() {
 }
 
 base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-
-  pushBackUnlocked(dp);
-  cv_.notify_all();
 
   // set
   base::Status status = dp->set(buffer, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
 
+  // 上锁
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+
+    this->increaseIndex();
+    dp->setIndex(index_);
+
+    pushBackUnlocked(dp);
+  }
+
+  cv_.notify_all();
+
   return status;
 }
 device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-  pushBackUnlocked(dp);
-  cv_.notify_all();
+
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+    pushBackUnlocked(dp);
+  }
 
   // create
   device::Buffer *ret_value = dp->create(device, desc);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
+
+  cv_.notify_all();
 
   return ret_value;
 }
@@ -159,42 +166,47 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-
-  pushBackUnlocked(dp);
-  cv_.notify_all();
 
   // set
   base::Status status = dp->set(cv_mat, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
 
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+
+    pushBackUnlocked(dp);
+  }
+
+  cv_.notify_all();
+
   return status;
 }
 cv::Mat *PipelineEdge::create(int rows, int cols, int type,
                               const cv::Vec3b &value) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-  pushBackUnlocked(dp);
-  cv_.notify_all();
+
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+    pushBackUnlocked(dp);
+  }
 
   // create
   cv::Mat *ret_value = dp->create(rows, cols, type, value);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
+  cv_.notify_all();
 
   return ret_value;
 }
@@ -246,43 +258,47 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
 #endif
 
 base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-
-  pushBackUnlocked(dp);
-  cv_.notify_all();
 
   // set
   base::Status status = dp->set(tensor, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
 
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+    pushBackUnlocked(dp);
+  }
+
+  cv_.notify_all();
+
   return base::kStatusCodeOk;
 }
 device::Tensor *PipelineEdge::create(device::Device *device,
                                      const device::TensorDesc &desc,
                                      const std::string &name) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-  pushBackUnlocked(dp);
-  cv_.notify_all();
+
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+    pushBackUnlocked(dp);
+  }
 
   // create
   device::Tensor *ret_value = dp->create(device, desc, name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
+  cv_.notify_all();
 
   return ret_value;
 }
@@ -333,24 +349,26 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
 }
 
 base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-  // take
-  // base::Status status = dp->takeDataPacket(data_packet);
-  // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //                        "PipelineDataPacket take error.\n");
-
-  pushBackUnlocked(dp);
-  cv_.notify_all();
 
   // take
   base::Status status = dp->takeDataPacket(data_packet);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket take error.\n");
+  // take
+  // base::Status status = dp->takeDataPacket(data_packet);
+  // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //                        "PipelineDataPacket take error.\n");
+
+  // 上锁
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    pushBackUnlocked(dp);
+  }
+
+  cv_.notify_all();
 
   return status;
 }
@@ -396,22 +414,23 @@ DataPacket *PipelineEdge::getGraphOutputDataPacket() {
 }
 
 base::Status PipelineEdge::set(base::Param *param, bool is_external) {
-  // 上锁
-  std::unique_lock<std::mutex> lock(mutex_);
-  waitForSpaceLocked(lock);
-
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-  this->increaseIndex();
-  dp->setIndex(index_);
-
-  pushBackUnlocked(dp);
-  cv_.notify_all();
 
   // set
   base::Status status = dp->set(param, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
+
+  {
+    // 上锁
+    std::unique_lock<std::mutex> lock(mutex_);
+    waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
+    pushBackUnlocked(dp);
+  }
+  cv_.notify_all();
 
   return status;
 }
@@ -648,20 +667,23 @@ void PipelineEdge::waitForSpaceLocked(std::unique_lock<std::mutex> &lock) {
   switch (overflow_policy_) {
     case base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure:
       if (!hasGraphOutputConsumer()) {
-        queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+        queue_cv_.wait(lock,
+                       [this]() { return queueSizeUnlocked() < queueLimit(); });
       }
       break;
     case base::QueueOverflowPolicy::kQueueOverflowPolicyAllBackpressure:
-      queue_cv_.wait(lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
+      queue_cv_.wait(lock,
+                     [this]() { return queueSizeUnlocked() < queueLimit(); });
       break;
     case base::QueueOverflowPolicy::kQueueOverflowPolicyDropOldest: {
-      size_t normalized_drop =
-          drop_count_ <= 0 ? static_cast<size_t>(1) : static_cast<size_t>(drop_count_);
+      size_t normalized_drop = drop_count_ <= 0
+                                   ? static_cast<size_t>(1)
+                                   : static_cast<size_t>(drop_count_);
       while (queueSizeUnlocked() >= limit) {
         size_t dropped = dropOldestUnlocked(normalized_drop);
         if (dropped == 0) {
-          queue_cv_.wait(lock,
-                         [this]() { return queueSizeUnlocked() < queueLimit(); });
+          queue_cv_.wait(
+              lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
           break;
         }
       }
