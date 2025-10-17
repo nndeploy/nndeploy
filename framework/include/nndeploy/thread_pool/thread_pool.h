@@ -33,9 +33,17 @@ class NNDEPLOY_CC_API ThreadPool {
 
   base::Status destroy() {
     for (auto &pt : threads_) {
-      pt->destroy();
-      delete pt;
+      if (pt) {
+        pt->destroy();
+      }
     }
+    for (auto &pt : threads_) {
+      if (pt) {
+        delete pt;
+        pt = nullptr;
+      }
+    }
+    threads_.clear();
 
     return base::Status();
   }

@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
 #define _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
 
+#include <mutex>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -16,7 +18,6 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include <mutex>
 
 namespace nndeploy {
 namespace dag {

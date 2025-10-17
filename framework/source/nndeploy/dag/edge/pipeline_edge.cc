@@ -587,7 +587,10 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
       }
     }
     if (delete_flag) {
-      popFrontUnlocked();
+      PipelineDataPacket *removed = popFrontUnlocked();
+      if (removed != nullptr) {
+        delete removed;
+      }
       real_count++;
     } else {
       break;
