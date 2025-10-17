@@ -53,9 +53,6 @@ nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
 
 nndeploy is a easy-to-use and high-performance AI deployment framework. Built on the design of visual workflows and multi-end inference, it enables developers to easily create SDKs tailored for specific platforms and hardware directly from training algorithm repositories, significantly reducing development time. Additionally, the framework comes pre-deployed with a wide range of AI models, including Large Language Models (LLMs), AIGC generation, face swapping, object detection, and image segmentation, allowing for out-of-the-box use.
 
-In practical applications, we recommend using the visual workflow for design and debugging. After verifying the algorithm's effectiveness and performance, you can leverage the provided Python/C++ APIs to load and run the workflow in production environments. Whether accessed through the visual frontend interface or API calls, the workflow ultimately operates on the underlying high-performance C++ computing engine. This design ensures that the workflow exhibits completely consistent execution behavior and performance in both development/debugging and production deployment environments, achieving the goal of "develop once, run anywhere".
-### **Simple and Easy to Use**
-
 - **Visual Workflow**: Deploy AI algorithms through drag-and-drop operations. Adjust all node parameters of AI algorithms via the front-end visualization interface and quickly preview the effect after parameter tuning.
 - **Custom Nodes**: Support custom nodes in Python/C++. No front-end code is required, and they can be seamlessly integrated into the visualization interface.
 - **Algorithm Combination**: Flexibly combine different algorithms to quickly build innovative AI applications.
@@ -102,6 +99,14 @@ A list of deployed models has been created, with **100+ nodes** available. We wi
 | **API Services**     | OPENAI, DeepSeek, Moonshot                                                       | Support LLM and AIGC services                     |
 
 > For more details, see the [List of Deployed Models](docs/en/quick_start/model_list.md)
+
+In practical use, we recommend adopting the following workflow:
+
+1. **Development Phase**: Design and debug through visual workflows, **develop custom nodes when necessary**
+2. **Validation Phase**: Validate algorithm effectiveness and performance in the visual interface
+3. **Deployment Phase**: Export validated workflows as JSON configuration files with one click, and load them directly in production environments through Python/C++ APIs
+
+Whether through the visual frontend interface or API calls, everything ultimately executes in the underlying high-performance C++ computation engine. This unified underlying architecture ensures that workflows have completely consistent execution behavior and performance in both development/debugging and production deployment environments, achieving the goal of "develop once, run everywhere".
 
 ## Performance Comparison
 
