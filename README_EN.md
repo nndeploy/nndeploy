@@ -134,52 +134,43 @@ End-to-end total time consumption of combined tasks (segmentation RMBGv1.4 + det
 
 ## Quick Start
 
-### Installation
++ **Installation**
 
-```bash
-pip install --upgrade nndeploy
-```
+  ```bash
+  pip install --upgrade nndeploy
+  ```
 
-### Launch the Visual Workflow
++ **Launch the Visual Workflow**
 
-```bash
-# Method 1: Use only built-in nodes
-nndeploy-app --port 8000
+  ```bash
+  nndeploy-app --port 8000
+  ```
 
-# Method 2: Use user-defined nodes
-nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
-```
+  After successful launch, open http://localhost:8000 to access the workflow interface
 
-- Command Parameter Description
-  - `--port`: Specify the Web service port number (default is 8000)
-  - `--plugin`: Load user-defined plugin files (optional parameter; if not specified, only built-in nodes are used)
-    - Python Plugins: Refer to the [Python Plugin Template](template/python/template.py)
-    - C++ Plugins: Refer to the [C++ Plugin Template](template/cpp/template.h)
-    - Multiple plugins can be loaded simultaneously: `--plugin plugin1.py plugin2.so`
-
-After successful launch, open http://localhost:8000 to access the workflow interface.
-
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
-    <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
-  </picture>
-</p>
+  <p align="left">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
+      <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
+    </picture>
+  </p>  
 
 ### Export and Execute the Workflow
 
-After building the workflow in the visualization interface, save it as a JSON file (e.g., workflow.json), then execute the workflow using the following command:
+  After building the workflow in the visualization interface, save it as a JSON file (e.g., workflow.json), then execute the workflow using the following command:
 
-```bash
-# Python CLI
-nndeploy-run-json --json_file path/to/workflow.json
-# C++ CLI
-nndeploy_demo_run_json --json_file path/to/workflow.json
-```
+  ```bash
+  # Python CLI
+  nndeploy-run-json --json_file path/to/workflow.json
+  # C++ CLI
+  nndeploy_demo_run_json --json_file path/to/workflow.json
+  ```
 
-- API to Load and Run JSON Configuration Files
-  - [Python API Example Code](python/nndeploy/dag/run_json.py)
-  - [C++ API Example Code](framework/include/nndeploy/dag/graph_runner.h)
+  - API to Load and Run JSON Configuration Files
+    - [Python API Example Code](python/nndeploy/dag/run_json.py)
+    - [Python 检测算法示例代码](demo/detect/demo.cc)
+    - [C++ API Example Code](framework/include/nndeploy/dag/graph_runner.h)
+    - [C++ 检测算法示例代码](demo/detect/demo.py)
 
 > Python 3.10 or higher is required. By default, two inference backends (PyTorch and ONNXRuntime) are included. To use more inference backends (such as TensorRT, OpenVINO, ncnn, MNN, etc.), please use the developer mode.
 

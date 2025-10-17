@@ -132,52 +132,43 @@ nndeploy是一款简单易用和高性能的AI部署框架。基于 nndeploy，�
 
 ## 快速开始
 
-### 安装
++ **安装**
 
-```bash
-pip install --upgrade nndeploy
-```
+  ```bash
+  pip install --upgrade nndeploy
+  ```
 
-### 启动可视化工作流
++ **启动可视化界面**
 
-```bash
-# 方法一：仅使用内置节点
-nndeploy-app --port 8000
+  ```bash
+  nndeploy-app --port 8000
+  ```
 
-# 方法二：使用用户自定义节点
-nndeploy-app --port 8000 --plugin plugin1.py plugin2.py
-```
+  启动成功后，打开 http://localhost:8000 即可访问工作流界面
 
-- 命令参数说明
-  - `--port`：指定 Web 服务端口号（默认为 8000）
-  - `--plugin`：加载用户自定义插件文件（可选参数，如果没有该参数，仅使用内置节点）
-    - Python 插件：参考[Python 插件模板写法](template/python/template.py)
-    - C++插件：参考[C++插件模板写法](template/cpp/template.h)
-    - 可以同时加载多个插件：`--plugin plugin1.py plugin2.so`
+  <p align="left">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
+      <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
+    </picture>
+  </p>  
 
-启动成功后，打开 http://localhost:8000 即可访问工作流界面。
++ **导出工作流并执行**
 
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
-    <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
-  </picture>
-</p>
+  在可视化界面中完成工作流的搭建后，可将其保存为 JSON 文件（例如 workflow.json），然后可以使用以下命令执行该工作流：
 
-### 导出工作流并执行
+  ```bash
+  # Python CLI
+  nndeploy-run-json --json_file path/to/workflow.json
+  # C++ CLI
+  nndeploy_demo_run_json --json_file path/to/workflow.json
+  ```
 
-在可视化界面中完成工作流的搭建后，可将其保存为 JSON 文件（例如 workflow.json），然后可以使用以下命令执行该工作流：
-
-```bash
-# Python CLI
-nndeploy-run-json --json_file path/to/workflow.json
-# C++ CLI
-nndeploy_demo_run_json --json_file path/to/workflow.json
-```
-
-- API 加载运行 JSON 配置文件
-  - [Python API 示例代码](python/nndeploy/dag/run_json.py)
-  - [C++ API 示例代码](framework/include/nndeploy/dag/graph_runner.h)
+  - API 加载运行 工作流导出的 JSON 文件
+    - [Python API 示例代码](python/nndeploy/dag/run_json.py)
+    - [Python 检测算法示例代码](demo/detect/demo.py)
+    - [C++ API 示例代码](framework/include/nndeploy/dag/graph_runner.h)
+    - [C++ 检测算法示例代码](demo/detect/demo.cc)
 
 > 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端，如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
 
