@@ -1,3 +1,9 @@
+
+/**
+ * nndeploy Classification Demo:
+ * Implementation of classification algorithm using dynamic graph construction
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
@@ -176,7 +182,7 @@ int main(int argc, char *argv[]) {
       }
       NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
-    // graph_demo.synchronize();
+    graph_demo.synchronize();
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 

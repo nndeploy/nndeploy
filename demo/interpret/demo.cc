@@ -1,3 +1,10 @@
+
+/**
+ * nndeploy Interpret Demo:
+ * Demonstrates the basic functionality and usage of nndeploy Interpret (Default
+ * inference framework)
+ */
+
 #include "flag.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
@@ -23,7 +30,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 模型类型，例如:
-  // kModelTypeOnnx/kModelTypeMnn/...
+  // kModelTypeOnnx/kModelTypeDefault/...
   base::ModelType model_type = demo::getModelType();
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();

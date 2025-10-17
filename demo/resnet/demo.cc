@@ -1,3 +1,8 @@
+/**
+ * nndeploy ResNet Demo:
+ * ResNet algorithm(default inference framework)
+ */
+
 // #include <experimental/filesystem>
 
 #include "nndeploy/ir/default_interpret.h"

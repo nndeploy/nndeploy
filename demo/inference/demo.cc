@@ -1,7 +1,8 @@
 /**
  * nndeploy inference module demonstration program:
  * This example demonstrates the inference module functionality of the nndeploy
- * framework, focusing on Expr expressions and net inference
+ * framework, focusing on Expr expressions and net inference(Default inference
+ * framework)
  */
 
 #include "nndeploy/ir/default_interpret.h"

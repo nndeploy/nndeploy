@@ -1,7 +1,7 @@
 [English](README_EN.md) | 简体中文
 
 <h3 align="center">
-nndeploy：一款简单易用和高性能的AI部署框架
+nndeploy：一款简单易用且高性能的AI部署框架
 </h3>
 
 <p align="center">
@@ -45,13 +45,13 @@ nndeploy：一款简单易用和高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/05/29]🔥nndeploy 开源团队和昇腾官方合作的推理框架免费课程上线拉，适合想入门和提升 AI 推理部署能力的同学。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+- [2025/01/29]🔥与昇腾官方合作，推出推理框架免费课程！课程基于nndeploy内部推理框架深度讲解，助力开发者快速掌握AI推理核心技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## 介绍
 
-nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计，开发者可以轻松地从训练算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括大语言模型（LLM）、AIGC 生成、换脸、目标检测、图像分割等众多AI模型，让您开箱即用。
+nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括大语言模型（LLM）、AIGC 生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
 
 ### **简单易用**
 
@@ -110,34 +110,6 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 无论是通过可视化前端界面还是 API 调用，最终都会在底层的高性能 C++ 计算引擎中执行。这种统一的底层架构确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的目标。
 
-## 性能比较
-
-测试环境：Ubuntu 22.04，CPU：12th Gen Intel(R) Core(TM) i7-12700，GPU：RTX3060
-
-### 流水线并行加速
-
-以 YOLOv11s 端到端工作流为例，端到端的耗时比较
-
-![yolov11s_performance](docs/image/workflow/yolo_performance.png)
-
-| 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
-| ----------------- | ----------- | --------- | --------- |
-| 串行              | 54.803 ms   | 34.139 ms | 13.213 ms |
-| 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
-| 性能提升          | 13.7%       | 13.1%     | 57%       |
-
-### 任务并行加速
-
-组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
-
-![rmbg_yolo_resnet.png](docs/image/workflow/rmbg_yolo_resnet.png)
-
-| 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
-| ----------------- | ----------- | ---------- | --------- |
-| 串行              | 654.315 ms  | 489.934 ms | 59.140 ms |
-| 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
-| 性能提升          | 7.98%       | 11.2%      | 12.2%     |
-
 ## 快速开始
 
 + **安装**
@@ -161,9 +133,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
     </picture>
   </p>  
 
-+ **导出工作流并执行**
++ **导出工作流并命令行执行**
 
-  在可视化界面中完成工作流的搭建后，可将其保存为 JSON 文件（例如 workflow.json），然后可以使用以下命令执行该工作流：
+  完成工作流搭建后，保存为 JSON 文件并通过命令行执行：
 
   ```bash
   # Python CLI
@@ -172,27 +144,58 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   nndeploy_demo_run_json --json_file path/to/workflow.json
   ```
 
-  - API 加载运行 工作流导出的 JSON 文件
-    - [Python API 示例代码](python/nndeploy/dag/run_json.py)
-    - [Python 检测算法示例代码](demo/detect/demo.py)
-    - [C++ API 示例代码](framework/include/nndeploy/dag/graph_runner.h)
-    - [C++ 检测算法示例代码](demo/detect/demo.cc)
+- **导出工作流并API加载运行**  
 
-> 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端，如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
+  在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行，参考示例代码开发自定义算法 SDK
 
-> 使用`nndeploy-clean`可清理过期的后端资源。
+  - [Python CLI(nndeploy-run-json)代码](python/nndeploy/dag/graph_runner.py)
+  - [C++ CLI(nndeploy_demo_run_json)代码](framework/include/nndeploy/dag/graph_runner.h)
+  - [Python 目标检测示例代码](demo/detect/demo.py)
+  - [C++ 目标检测示例代码](demo/detect/demo.cc)
+  - [Python LLM示例代码](demo/llm/demo.py)
+  - [C++ LLM示例代码](demo/llm/demo.cc)
+  
+
+> 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
 
 ### 文档
 
 - [如何构建](docs/zh_cn/quick_start/build.md)
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
-- [Python 快速开始](docs/zh_cn/quick_start/python.md)
-- [可视化工作流快速开始](docs/zh_cn/quick_start/workflow.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [C++插件开发手册](docs/zh_cn/quick_start/plugin.md)
+- [可视化工作流](docs/zh_cn/quick_start/workflow.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-- [Python 插件开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+
+## 性能比较
+
+测试环境：Ubuntu 22.04，CPU：12th Gen Intel(R) Core(TM) i7-12700，GPU：RTX3060
+
+### 流水线并行加速
+
+以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
+
+![yolov11s_performance](docs/image/workflow/yolo_performance.png)
+
+| 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
+| ----------------- | ----------- | --------- | --------- |
+| 串行              | 54.803 ms   | 34.139 ms | 13.213 ms |
+| 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
+| 性能提升          | 13.7%       | 13.1%     | 57%       |
+
+### 任务并行加速
+
+组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
+
+![rmbg_yolo_resnet.png](docs/image/workflow/rmbg_yolo_resnet.png)
+
+| 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
+| ----------------- | ----------- | ---------- | --------- |
+| 串行              | 654.315 ms  | 489.934 ms | 59.140 ms |
+| 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
+| 性能提升          | 7.98%       | 11.2%      | 12.2%     |
+
 
 ## 保持领先
 

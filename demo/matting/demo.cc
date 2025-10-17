@@ -1,3 +1,8 @@
+/**
+ * nndeploy Matting Demo:
+ * Implementation of matting algorithm using static graph construction
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"

@@ -14,7 +14,7 @@ nndeploy 提供了直观的 Web 界面用于模型部署：
 
 ```bash
 # pip
-pip install nndeploy
+pip install --upgrade nndeploy
 
 # 启动 Workflow 的 Web 服务
 cd /path/nndeploy
@@ -22,6 +22,9 @@ python app.py --port 8000
 
 # 或 使用简化命令 启动 Workflow 的 Web 服务
 nndeploy-app --port 8000
+
+# 当更新了nndeploy时，建议清理过期的前后端资源
+nndeploy-clean
 ```
 
 > 注：Windows下命令行启动：nndeploy-app.exe --port 8000
@@ -69,6 +72,7 @@ python app.py --front-end-version nndeploy/nndeploy-ui@v1.1.0
 Q4: 前端资源下载完成了，还是无法打开前端界面？
 
 A4: 检查服务端IP以及端口是否正确，如果`localhost`以及`127.0.0.1`都无法访问，替换成局域网IP（如`192.168.x.x`）重试。
+
 
 ## 案例展示
 

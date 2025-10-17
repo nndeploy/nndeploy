@@ -1,3 +1,9 @@
+
+/**
+ * nndeploy Track Demo:
+ * Implementation of track algorithm using static graph construction
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
