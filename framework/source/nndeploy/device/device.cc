@@ -97,7 +97,7 @@ base::Status Device::destroyEvent(Event *event) {
 base::Status Device::createEvents(Event **events, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     Event *event = this->createEvent();
-    if (event == nullptr) { 
+    if (event == nullptr) {
       NNDEPLOY_LOGE("create event failed\n");
       return base::kStatusCodeErrorDeviceCuda;
     }
@@ -355,6 +355,23 @@ base::Status destoryArchitecture() {
   }
   auto &architecture_map = getArchitectureMap();
   architecture_map.clear();
+  return base::kStatusCodeOk;
+}
+
+base::Status destoryArchitecture(base::DeviceTypeCode device_type_code) {
+  Architecture *architecture = getArchitecture(device_type_code);
+  if (architecture == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type_code);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  base::Status status = architecture->disableDevice();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("disableDevice failed\n");
+    return status;
+  }
+  auto &architecture_map = getArchitectureMap();
+  architecture_map.erase(device_type_code);
   return base::kStatusCodeOk;
 }
 

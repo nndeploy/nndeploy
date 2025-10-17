@@ -1,12 +1,12 @@
+#include <time.h>
+
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <time.h>
 
 #include "flag.h"
 #include "nndeploy/dag/graph_runner.h"
-#include "nndeploy/framework.h"
 
 using namespace nndeploy;
 
@@ -14,12 +14,6 @@ DEFINE_string(json_file, "", "json_file");
 DEFINE_string(task_id, "", "task_id");
 
 int main(int argc, char* argv[]) {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
     demo::showUsage();
@@ -37,12 +31,6 @@ int main(int argc, char* argv[]) {
   }
 
   delete graph_runner;
-
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkDeinit failed. ERROR: %d\n", ret);
-    return ret;
-  }
 
   return 0;
 }
