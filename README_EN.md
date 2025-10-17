@@ -1,7 +1,5 @@
 [简体中文](README.md) | English
 
-# nndeploy: A Simple, Easy-to-Use, and High-Performance AI Deployment Framework
-
 <h3 align="center">
 nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
 </h3>
@@ -53,8 +51,9 @@ nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
 
 ## Introduction
 
-nndeploy is An easy-to-use and high-performance AI deployment framework. Based on nndeploy, developers can easily develop SDKs for specific platforms and hardware from training algorithm repositories, significantly reducing development time. Additionally, the framework has deployed numerous mainstream AI models, including Large Language Models (LLMs), AIGC generation, face swapping, object detection, and image segmentation, allowing for out-of-the-box use.
+nndeploy is a easy-to-use and high-performance AI deployment framework. Built on the design of visual workflows and multi-end inference, it enables developers to easily create SDKs tailored for specific platforms and hardware directly from training algorithm repositories, significantly reducing development time. Additionally, the framework comes pre-deployed with a wide range of AI models, including Large Language Models (LLMs), AIGC generation, face swapping, object detection, and image segmentation, allowing for out-of-the-box use.
 
+In practical applications, we recommend using the visual workflow for design and debugging. After verifying the algorithm's effectiveness and performance, you can leverage the provided Python/C++ APIs to load and run the workflow in production environments. Whether accessed through the visual frontend interface or API calls, the workflow ultimately operates on the underlying high-performance C++ computing engine. This design ensures that the workflow exhibits completely consistent execution behavior and performance in both development/debugging and production deployment environments, achieving the goal of "develop once, run anywhere".
 ### **Simple and Easy to Use**
 
 - **Visual Workflow**: Deploy AI algorithms through drag-and-drop operations. Adjust all node parameters of AI algorithms via the front-end visualization interface and quickly preview the effect after parameter tuning.
