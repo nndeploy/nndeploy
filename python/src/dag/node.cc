@@ -595,6 +595,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
+      .def("set_edge_queue_overflow_policy",
+           &Graph::setEdgeQueueOverflowPolicy, py::arg("policy"),
+           py::arg("drop_count") = 1)
+      .def("get_edge_queue_overflow_policy",
+           &Graph::getEdgeQueueOverflowPolicy)
+      .def("get_edge_queue_drop_count", &Graph::getEdgeQueueDropCount)
       .def("set_input", &Graph::setInput, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output", &Graph::setOutput, py::arg("output"),

@@ -22,8 +22,8 @@
 namespace nndeploy {
 namespace detect {
 
-base::Status YoloPostParam::serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+base::Status YoloPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
   json.AddMember("version_", version_, allocator);
   json.AddMember("score_threshold_", score_threshold_, allocator);
   json.AddMember("nms_threshold_", nms_threshold_, allocator);
@@ -38,7 +38,8 @@ base::Status YoloPostParam::deserialize(rapidjson::Value &json) {
     version_ = json["version_"].GetInt();
   }
 
-  if (json.HasMember("score_threshold_") && json["score_threshold_"].IsFloat()) {
+  if (json.HasMember("score_threshold_") &&
+      json["score_threshold_"].IsFloat()) {
     score_threshold_ = json["score_threshold_"].GetFloat();
   }
 
@@ -60,7 +61,6 @@ base::Status YoloPostParam::deserialize(rapidjson::Value &json) {
 
   return base::kStatusCodeOk;
 }
-
 
 base::Status YoloPostProcess::run() {
   // NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",

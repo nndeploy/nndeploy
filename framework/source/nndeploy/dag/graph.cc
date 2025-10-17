@@ -161,9 +161,31 @@ std::vector<std::string> Graph::getOtherUrl() const { return other_url_; }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ != nullptr) {
+      edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
+    }
+  }
   return base::kStatusCodeOk;
 }
 int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
+
+base::Status Graph::setEdgeQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                               int drop_count) {
+  queue_overflow_policy_ = policy;
+  queue_drop_count_ = drop_count <= 0 ? 1 : drop_count;
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ != nullptr) {
+      edge_wrapper->edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                                  queue_drop_count_);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::QueueOverflowPolicy Graph::getEdgeQueueOverflowPolicy() {
+  return queue_overflow_policy_;
+}
+int Graph::getEdgeQueueDropCount() { return queue_drop_count_; }
 
 // base::Status Graph::setParallelType(const base::ParallelType &paralle_type) {
 //   if (parallel_type_ == base::kParallelTypeNone) {
@@ -2089,6 +2111,10 @@ base::Status Graph::construct() {
     status = edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setQueueMaxSize failed!");
+    status = edge_wrapper->edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                                         queue_drop_count_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setQueueOverflowPolicy failed!");
   }
 
   // if (!is_inner_) {
@@ -2391,6 +2417,12 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
+    std::string overflow_policy =
+        base::overflowPolicyToString(queue_overflow_policy_);
+    json.AddMember("queue_overflow_policy_",
+                   rapidjson::Value(overflow_policy.c_str(), allocator),
+                   allocator);
+    json.AddMember("queue_drop_count_", queue_drop_count_, allocator);
     json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
     json.AddMember("loop_count_", loop_count_, allocator);
 
@@ -2590,6 +2622,20 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 
   if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
+  }
+
+  if (json.HasMember("queue_overflow_policy_") &&
+      json["queue_overflow_policy_"].IsString()) {
+    queue_overflow_policy_ = base::stringToOverflowPolicy(
+        json["queue_overflow_policy_"].GetString());
+  }
+
+  if (json.HasMember("queue_drop_count_") &&
+      json["queue_drop_count_"].IsInt()) {
+    queue_drop_count_ = json["queue_drop_count_"].GetInt();
+    if (queue_drop_count_ <= 0) {
+      queue_drop_count_ = 1;
+    }
   }
 
   if (json.HasMember("unused_node_names_") &&

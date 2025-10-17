@@ -43,9 +43,27 @@ std::string Edge::getName() { return name_; }
 
 base::Status Edge::setQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
+  if (abstact_edge_ != nullptr) {
+    abstact_edge_->setQueueMaxSize(queue_max_size_);
+  }
   return base::kStatusCodeOk;
 }
 int Edge::getQueueMaxSize() { return queue_max_size_; }
+
+base::Status Edge::setQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                          int drop_count) {
+  queue_overflow_policy_ = policy;
+  queue_drop_count_ = drop_count <= 0 ? 1 : drop_count;
+  if (abstact_edge_ != nullptr) {
+    abstact_edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                          queue_drop_count_);
+  }
+  return base::kStatusCodeOk;
+}
+base::QueueOverflowPolicy Edge::getQueueOverflowPolicy() {
+  return queue_overflow_policy_;
+}
+int Edge::getQueueDropCount() { return queue_drop_count_; }
 
 bool Edge::empty() {
   if (abstact_edge_ == nullptr) {
@@ -250,6 +268,8 @@ base::Status Edge::setParallelType(const base::ParallelType &paralle_type) {
     }
   }
   abstact_edge_->setQueueMaxSize(queue_max_size_);
+  abstact_edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                        queue_drop_count_);
   return base::kStatusCodeOk;
 }
 base::ParallelType Edge::getParallelType() {
