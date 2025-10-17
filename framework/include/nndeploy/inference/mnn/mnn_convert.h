@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_MNN_MNN_CONVERT_H_
 #define _NNDEPLOY_INFERENCE_MNN_MNN_CONVERT_H_
 
+#include "MNN/expr/Expr.hpp"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -25,6 +26,7 @@ class MnnConvert {
 
   static base::DataFormat convertToDataFormat(
       const MNN::Tensor::DimensionType &src);
+  static base::DataFormat convertToDataFormat(const MNN::Express::Dimensionformat &src);
   static MNN::Tensor::DimensionType convertFromDataFormat(
       const base::DataFormat &src);
 
@@ -43,6 +45,12 @@ class MnnConvert {
                                          device::Device *device);
   static MNN::Tensor *convertFromTensor(device::Tensor *src);
 };
+
+extern NNDEPLOY_CC_API device::Tensor *convertToTensor(
+    const MNN::Express::VARP &var, std::string name, device::Device *device,
+    bool is_copy = false);
+// extern NNDEPLOY_CC_API MNN::Express::VARP convertFromTensor(
+//     device::Tensor *src, bool is_copy = false);
 
 }  // namespace inference
 }  // namespace nndeploy

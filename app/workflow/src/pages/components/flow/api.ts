@@ -17,6 +17,12 @@ export async function apiGetWorkFlow(flowName: string) {
   return response;
 }
 
+export async function apiGetTemeplateWorkFlow(flowName: string) {
+  var response = await request.get<IBusinessNode>(`/api/template/${flowName}`, {});
+
+  return response;
+}
+
 // export async function getNodeRegistry() {
 
 //   const response = await apiGetNodeList()

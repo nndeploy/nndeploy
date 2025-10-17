@@ -2,24 +2,29 @@ import {
   Dropdown,
   Popconfirm,
   SideSheet,
-  Tooltip,
   Tree,
   Typography,
 } from "@douyinfe/semi-ui";
 import { useGetTree } from "./effect";
-import { IconMore, IconPlus } from "@douyinfe/semi-icons";
-import { ReactNode, useState } from "react";
+import { IconMore } from "@douyinfe/semi-icons";
+import { ReactNode, useContext, useState } from "react";
 
 import "./index.scss";
 import ResourceEditDrawer from "./ResourceEditDrawer";
-import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
+import { IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 import BranchEditDrawer from "./BranchEditDrawer";
 import { apiResourceDelete } from "./api";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import store from "../store/store";
 
 const { Text, Paragraph } = Typography;
 const Resource: React.FC = () => {
-  const { flatData, setFlatData, treeData } = useGetTree();
+
+  
+  const { state } = useContext(store)
+  const { freshResourceTreeCnt } = state
+  
+  const { flatData, setFlatData, treeData  ,getResourceTree, } = useGetTree();
 
   const [resoureEditVisible, setResourceEditVisible] = useState(false);
   const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
@@ -76,17 +81,18 @@ const Resource: React.FC = () => {
 
       return descendants;
     }
-    const url = `/api/files/delete/${node.parentId}/${node.id}`
+    const url = `/api/files/delete?file_path=${node.file_info?.saved_path}`
     const response = await apiResourceDelete( url);
 
     if (response.flag == "success") {
-      var toDeleteIds = findDescendantsIncludingSelf(flatData, node.id).map(
-        (item) => item.id
-      );
-      var newFlatData = flatData.filter(
-        (item) => !toDeleteIds.includes(item.id)
-      );
-      setFlatData(newFlatData);
+      // var toDeleteIds = findDescendantsIncludingSelf(flatData, node.id).map(
+      //   (item) => item.id
+      // );
+      // var newFlatData = flatData.filter(
+      //   (item) => !toDeleteIds.includes(item.id)
+      // );
+      // setFlatData(newFlatData);
+      getResourceTree()
     }
   }
 
@@ -114,7 +120,8 @@ const Resource: React.FC = () => {
   }
 
   function onResourceEditDrawerSure(resource: IResourceTreeNodeEntity) {
-    addNode(resource);
+    //addNode(resource);
+     getResourceTree()
     setResourceEditVisible(false);
   }
 
@@ -126,10 +133,13 @@ const Resource: React.FC = () => {
     return (
       <Dropdown
         closeOnEsc={true}
-        trigger={"click"}
+        trigger={"hover"}
         position="right"
+       
         render={
-          <Dropdown.Menu>
+          <Dropdown.Menu
+           style={{alignItems: 'center'}}
+          >
             {/* {resource.type == "branch" && (
               <Dropdown.Item onClick={() => onBranchEdit(resource)}>
                 edit
@@ -150,17 +160,22 @@ const Resource: React.FC = () => {
               </Dropdown.Item>
             )} */}
             {resource.type == "branch" && (
+
+              <>
               <Dropdown.Item
                 onClick={() =>{
-                    onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf"  })
+                    onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf" , parent_info: resource })
                 }
                   
                 }
               >
                 add resource
               </Dropdown.Item>
+              </>
             )}
-             {resource.type == "leaf" && (
+             {
+             //resource.type == "leaf" && 
+             resource.parentId != "" && (
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"
@@ -191,7 +206,7 @@ const Resource: React.FC = () => {
 
   const renderLabel = (label: ReactNode, item: ResourceTreeNodeData) => (
     <div
-      style={{ display: "flex", height: "24px" }}
+      style={{ display: "flex", height: "24px", alignItems: 'center' }}
       draggable
       ///@ts-ignore
       //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}

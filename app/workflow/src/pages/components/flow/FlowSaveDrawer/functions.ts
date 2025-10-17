@@ -206,8 +206,8 @@ export function getAllEdges(designData: FlowDocumentJSON) {
   return results;
 }
 
-export function getEdgeMaps(allNodes:FlowNodeJSON[],  allEdges : WorkflowEdgeJSON[]){
- function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON): string {
+export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON[]) {
+  function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON): string {
     if (node.id === nodeId) {
       let node_name = node.data.name_ as string;
       for (let edge of node.data.outputs_ ?? []) {
@@ -248,29 +248,34 @@ export function getEdgeMaps(allNodes:FlowNodeJSON[],  allEdges : WorkflowEdgeJSO
 
   let edge_map: { [key: string]: string } = {};
   allEdges.map((edge) => {
-    edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
-    edge_map[edge.targetNodeID + "@" + edge.targetPortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
+
+    var name = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string); 
+    if(!name){
+      let j = 0;
+    }
+    edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = name
+    edge_map[edge.targetNodeID + "@" + edge.targetPortID] = name;
   });
 
   return edge_map
 }
 
-export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode) {
+export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode, allNodes: FlowNodeJSON[]) {
 
   let allEdges = getAllEdges(designData);
 
 
-  function getNodesPostion(){
+  function getNodesPostion() {
 
-    let layout: {[nodeName:string]: {x:number, y: number}} = {}
+    let layout: { [nodeName: string]: { x: number, y: number } } = {}
     designData.nodes.map((node) => {
       if (node.meta && node.meta.position) {
-    
+
         layout[node.data.name_] = node.meta.position
       }
 
 
-      if(node.blocks && node.blocks.length > 0){
+      if (node.blocks && node.blocks.length > 0) {
         node.blocks.map((block) => {
           if (block.meta && block.meta.position) {
             layout[block.data.name_] = block.meta.position
@@ -283,6 +288,25 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   }
 
   const layout = getNodesPostion()
+
+  function getGroupInfos() {
+    let groups = designData.nodes.filter(node => node.type == 'group')
+    let groupInfos = groups.map(group => {
+      let groupName = group.data.name_
+      let childrenNodes = group.blocks?.map(blockNode => {
+        return blockNode.data.name_
+      }) ?? []
+
+      return { name: groupName, children: childrenNodes }
+
+    })
+
+    return groupInfos
+
+
+  }
+
+  const groups = getGroupInfos()
 
   let businessData: IBusinessNode = {
     // key_: "nndeploy::dag::Graph",
@@ -297,9 +321,12 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     // is_graph_node_share_stream_: true,
     // queue_max_size_: 16,
     // node_repository_: [],
-    ...graphTopNode, 
+    ...graphTopNode,
     node_repository_: [],
-    nndeploy_ui_layout: layout
+    nndeploy_ui_layout: {
+      layout,
+      groups
+    }
   };
 
   function getNodeNameByIterate(id: string, node: WorkflowNodeJSON): string {
@@ -334,11 +361,11 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     return "";
   }
 
-  const edge_map =  getEdgeMaps(designData.nodes, allEdges)
+  const edge_map = getEdgeMaps(allNodes, allEdges)
 
- 
 
- function transferDesignNodeToBusinessNode(
+
+  function transferDesignNodeToBusinessNode(
     node: WorkflowNodeJSON
   ): IBusinessNode {
 
@@ -390,6 +417,10 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
       const originName = input.name_
       const name_ = edge_map[node.id + "@" + input.id]
+
+      if(!name_){
+        //debugger
+      }
 
       changeNodeDescendConnecitonName(node, originName, name_)
       return {
@@ -457,20 +488,20 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
   let node_repository_: IBusinessNode[] = []
 
-   designData.nodes.map((node) => {
-    if(node.type == 'group'){
+  designData.nodes.map((node) => {
+    if (node.type == 'group') {
 
-      for(let i = 0; i < node.blocks!.length; i++){
-         let blockNode = node.blocks![i]
-          let nodeItem = transferDesignNodeToBusinessNode(blockNode)
-          node_repository_.push(nodeItem)
+      for (let i = 0; i < node.blocks!.length; i++) {
+        let blockNode = node.blocks![i]
+        let nodeItem = transferDesignNodeToBusinessNode(blockNode)
+        node_repository_.push(nodeItem)
       }
 
-    }else{
-      let nodeItem =  transferDesignNodeToBusinessNode(node);
-       node_repository_.push(nodeItem)
+    } else {
+      let nodeItem = transferDesignNodeToBusinessNode(node);
+      node_repository_.push(nodeItem)
     }
-    
+
   });
 
   businessData.node_repository_ = node_repository_;
@@ -483,23 +514,16 @@ export function transferBusinessContentToDesignContent(
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
 
-  const layout = businessContent.nndeploy_ui_layout ?? {}
+  const layout = businessContent.nndeploy_ui_layout?.layout ?? {}
+
+  const groups = businessContent.nndeploy_ui_layout?.groups ?? []
+
   function businessNodeIterate(
     businessNode: IBusinessNode,
     process: (businessNode: IBusinessNode) => void
   ) {
     process(businessNode);
-    // if (
-    //   businessNode.node_repository_ &&
-    //   businessNode.node_repository_.length > 0
-    // ) {
-    //   let nodeRepositories = businessNode.node_repository_
-    //     ? businessNode.node_repository_
-    //     : [];
-    //   nodeRepositories.forEach((childBusinssNode) => {
-    //     businessNodeIterate(childBusinssNode, process);
-    //   });
-    // }
+  
   }
 
   function getAllOutputNameMap() {
@@ -722,5 +746,44 @@ export function transferBusinessContentToDesignContent(
 
     designData.edges = edges;
   }
+
+
+  let flowGroups = groups.map(group => {
+    let groupName = group.name
+
+    let flowGroup = {
+      id: "group_" + Math.random().toString(36).substr(2, 9),
+      type: "group",
+      meta: {
+        "position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      data: {
+        "name_": groupName
+      },
+      blocks: []
+
+    }
+
+    for(let i = 0 ; i < group.children.length; i++){
+      let childNodeName =  group.children[i]
+
+      let childNodeIndex = designData.nodes.findIndex(node => node.data.name_ == childNodeName)
+      if(childNodeIndex != -1){
+
+        flowGroup.blocks =  [...flowGroup.blocks, ...designData.nodes.splice(childNodeIndex, 1)]
+      }
+    }
+
+    return flowGroup
+  })
+
+  designData.nodes = [...designData.nodes, ...flowGroups]
+
+
+
+
   return designData;
 }

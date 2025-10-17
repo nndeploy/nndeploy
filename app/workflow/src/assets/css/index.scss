@@ -1,3 +1,13 @@
+html {
+  background-color: #f2f4f7;
+}
+
+body {
+  margin: 0px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
 .semi-sidesheet-header {
   padding: 6px 12px;
 }
@@ -11,6 +21,8 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   .drawer-footer {
@@ -30,4 +42,3 @@
     gap: 6px;
   }
 }
-

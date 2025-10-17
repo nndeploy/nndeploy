@@ -4,7 +4,6 @@
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/segment/result.h"
 // #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/segment/rmbg/rmbg.h"
@@ -48,17 +47,11 @@
 
 using namespace nndeploy;
 
-
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   // 检测模型的有向无环图graph名称

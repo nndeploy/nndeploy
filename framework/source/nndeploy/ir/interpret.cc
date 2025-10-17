@@ -1,7 +1,9 @@
 #include "nndeploy/ir/interpret.h"
 
 #include "nndeploy/base/status.h"
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 
 namespace nndeploy {
 namespace ir {
@@ -34,7 +36,7 @@ base::Status Interpret::dump(std::ostream &oss) {
   oss.write(structure_str.c_str(), structure_str.size());
   return base::kStatusCodeOk;
 }
-
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Interpret::saveModel(
     std::string &structure_str,
     std::shared_ptr<safetensors::safetensors_t> st_ptr) {
@@ -50,7 +52,7 @@ base::Status Interpret::saveModel(
   }
   return status;
 }
-
+#endif
 base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
                                         const std::string &weight_file_path) {
   // 打开结构文件输出流，覆盖已存在文件
@@ -74,7 +76,8 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
     structure_stream.close();
   }
 
-  // 检查weight_file_path，确保使用'.safetensors'作为权重文件的后缀
+// 检查weight_file_path，确保使用'.safetensors'作为权重文件的后缀
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   if (!weight_file_path.empty()) {
     std::string path = weight_file_path;
     const std::string extension = ".safetensors";
@@ -101,7 +104,7 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
       return base::kStatusCodeErrorIO;
     }
   }
-
+#endif
   return base::kStatusCodeOk;
 }
 

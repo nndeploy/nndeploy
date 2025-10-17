@@ -182,7 +182,7 @@ export function useEditorProps(
        * Playground init
        */
       onInit() {
-        console.log("--- Playground init ---");
+        //console.log("--- Playground init ---");
       },
       /**
        * Playground render
@@ -190,13 +190,13 @@ export function useEditorProps(
       onAllLayersRendered(ctx) {
         //  Fitview
         ctx.document.fitView(false);
-        console.log("--- Playground rendered ---");
+        //console.log("--- Playground rendered ---");
       },
       /**
        * Playground dispose
        */
       onDispose() {
-        console.log("---- Playground Dispose ----");
+        //console.log("---- Playground Dispose ----");
       },
       plugins: () => [
         /**

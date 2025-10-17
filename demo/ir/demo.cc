@@ -2,7 +2,6 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -14,8 +13,8 @@ using namespace nndeploy;
 
 class ExprDemo : public ir::ModelDesc {
  public:
-  ExprDemo() {};
-  ~ExprDemo() {};
+  ExprDemo(){};
+  ~ExprDemo(){};
   void init() {
     auto input = op::makeInput(this, "input", base::dataTypeOf<float>(),
                                {1, 3, 640, 640});
@@ -36,12 +35,6 @@ class ExprDemo : public ir::ModelDesc {
 };
 
 int main(int argc, char const *argv[]) {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   ExprDemo expr_demo;
   expr_demo.init();
   expr_demo.serializeStructureToJson("expr_demo.ir.json");
@@ -59,10 +52,5 @@ int main(int argc, char const *argv[]) {
 
   net->dump(std::cout);
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

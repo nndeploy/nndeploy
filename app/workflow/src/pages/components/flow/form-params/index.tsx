@@ -18,12 +18,185 @@ export function FormParams() {
   const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
   const form = useForm()
+   const registryKey = form.values['key_']
 
   //console.log('form.values', form.values);
 
 
   if (readonly) {
     return <></>;
+  }
+
+  function isRequiredField(fieldName: string) {
+
+    // var temp = form.getValueIn('param_')
+    const required_params = form.getValueIn("param_.required_params_");
+    if (required_params && Array.isArray(required_params) && required_params.includes(fieldName)) {
+      return true
+    }
+    return false
+
+  }
+  function renderField(fieldName: string, parentPaths: string[]) {
+
+
+    var fieldPath = parentPaths.concat(fieldName).join('.')
+
+    if (fieldPath == 'param_.input_shape_.1') {
+      let k = 0
+      //fieldPath = 'param_.input_shape_[0]'
+    }
+
+    const fieldType = getFieldType([...parentPaths, fieldName], registryKey, nodeList, paramTypes)
+
+
+
+
+
+
+    var defaulValue = form.getValueIn([...parentPaths, fieldName].join('.'))
+    if (fieldType.isArray) {
+      return (
+        <div className="number-array-field">
+          <div className="field-label">{fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}</div>
+          <div className="filed-array-items">
+            <FieldArray name={fieldPath}>
+              {({ field, fieldState }) => {
+
+                if (fieldPath == 'param_.input_shape_.0') {
+                  let j = 0
+                  let tmp = fieldState
+                  let k = 0
+                }
+
+
+                try {
+                  field.map((child, index) => {
+
+                    var temp = child
+                    var i = 0
+                  })
+                } catch (e) {
+
+                  return (field.value as any).map((child, index) => {
+
+                    return renderField(index, [...parentPaths, fieldName])
+                  })
+                }
+
+
+                return <>
+                  {field.map((child, index) => {
+                    var childPath = child.name.split('.')
+                    if (child.name.includes('param_.input_shape_.0')) {
+                      let j = 0
+                    }
+                    return renderField(childPath[childPath.length - 1], [...parentPaths, fieldName])
+              
+                  })}
+                  {!readonly && (
+                    <div>
+                      <Button
+                        theme="borderless"
+                        icon={<IconPlus />}
+                        onClick={() => {
+                          let lastIsArray = lodash.isArray(field.value[field.value.length - 1])
+                          if (lastIsArray) {
+
+                            let temp = [...field.value[field.value.length - 1]]
+                            field.append([...temp])
+                          } else {
+                            let temp = { ...field.value[field.value.length - 1] }
+                            field.append({ ...temp })
+                          }
+
+                          setTimeout(() => {
+                            console.log('form.values', form.values)
+                          })
+
+                        }
+                        }
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </>
+              }}
+            </FieldArray>
+          </div>
+        </div>
+      );
+    } else if (fieldType.componentType == 'object') { // 如果是对象类型 
+      let results: any[] = []
+      for (var childFieldName in defaulValue) {
+        let result = renderField(childFieldName, [...parentPaths, fieldName])
+        results.push(result)
+      }
+
+      return <div className="object-field">
+        <div className="field-label">
+          {fieldName} {isRequiredField(fieldName) ? <span style={{ color: 'rgb(249, 57, 32)' }}>*</span> : <></>}
+        </div>
+        <div className="child-fields">
+          {results}
+        </div>
+
+      </div>
+    } else {
+
+      return <Field key={fieldPath} name={fieldPath} defaultValue={defaulValue}>
+        {({ field, fieldState }) => {
+
+          return <FormItem
+            name={fieldName}
+            type={"string" as string}
+            labelWidth={138}
+            required={isRequiredField(fieldName)}
+          >
+            <>
+              {
+
+                fieldType.componentType == 'boolean' ?
+                  <Switch checked={!!field.value}
+                    //label='开关(Switch)' 
+                    onChange={(value: boolean) => {
+                      field.onChange(value)
+                    }} />
+                  : fieldType.componentType == 'select' ?
+                    <Select
+                      style={{ width: '100%' }}
+
+                      value={field.value}
+
+                      onChange={(value) => {
+                        field.onChange(value)
+                      }}
+                      optionList={paramTypes[fieldType.selectKey!].map(item => {
+                        return {
+                          label: item,
+                          value: item
+                        }
+                      })}>
+
+                    </Select> :
+                    <FxExpression
+                      value={field.value}
+                      fieldType={fieldType}
+                      onChange={field.onChange}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      icon={<></>}
+                    />
+              }
+            </>
+            <Feedback errors={fieldState?.errors} />
+          </FormItem>
+        }
+        }
+      </Field>
+    }
+
   }
 
   return (
@@ -35,168 +208,12 @@ export function FormParams() {
         }
         const content = Object.keys(properties).map((key) => {
           const property = properties[key];
-
-          if (key == 'version_') {
-            var i = 0;
+          if (key == 'required_params_') {
+            return <></>
           }
 
-          const fieldType = getFieldType(['param_', key], form, nodeList, paramTypes)
+          return renderField(key, ['param_'])
 
-          if (fieldType.isArray) {
-            return (
-              <div className="number-array-field">
-                <div className="field-label">{key}</div>
-                <div className="filed-array-items">
-                  <FieldArray name={`param_.${key}`}>
-                    {({ field }) => (
-                      <>
-                        {field.map((child, index) => (
-                          <Field key={child.name} name={child.name}>
-                            {({
-                              field: childField,
-                              fieldState: childState,
-                            }) => (
-                              <div className="expression-field" style={{ width: '100%' }}
-                              >
-                                <>
-                                  {
-
-                                    fieldType.componentType == 'boolean' ?
-                                      <Switch checked={!!childField.value}
-                                        //label='开关(Switch)' 
-                                        onChange={(value: boolean) => {
-                                          childField.onChange(value)
-                                        }} />
-                                      : fieldType.componentType == 'select' ?
-                                        <Select
-
-                                          value={childField.value as number}
-                                          style={{ width: '100%' }}
-                                          optionList={paramTypes[fieldType.selectKey!].map(item => {
-                                            return {
-                                              label: item,
-                                              value: item
-                                            }
-                                          })}
-
-                                          onChange={(value) => {
-                                            childField.onChange(value)
-                                          }}
-
-                                        >
-
-                                        </Select> :
-
-                                        <FxExpression
-                                          value={childField.value as number}
-                                          fieldType={fieldType}
-                                          onChange={(v) => childField.onChange(v)}
-                                          icon={
-                                            <Button
-                                              theme="borderless"
-                                              icon={<IconCrossCircleStroked />}
-                                              onClick={() => field.delete(index)}
-                                            />
-                                          }
-                                          hasError={
-                                            Object.keys(childState?.errors || {})
-                                              .length > 0
-                                          }
-                                          readonly={readonly}
-                                        />
-
-
-                                  }
-                                  <Feedback
-                                    errors={childState?.errors}
-                                    invalid={childState?.invalid}
-                                  />
-                                </>
-                              </div>
-                            )}
-                          </Field>
-                        ))}
-                        {!readonly && (
-                          <div>
-                            <Button
-                              theme="borderless"
-                              icon={<IconPlus />}
-                              onClick={() => field.append(0)}
-                            >
-                              Add
-                            </Button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </FieldArray>
-                </div>
-              </div>
-            );
-          }
-          return (
-            <Field key={key} name={`param_.${key}`} defaultValue={property}>
-              {({ field, fieldState }) => {
-
-                if (key == 'version_') {
-                  let i = 0;
-                  let j = 0
-                }
-
-                if (key == 'flag_') {
-                  let i = 0;
-                  let j = 0
-                }
-
-                //kCodecFlagImage
-
-                return <FormItem
-                  name={key}
-                  type={"string" as string}
-                //required={required.includes(key)}
-                >
-                  <>
-                    {
-
-                      fieldType.componentType == 'boolean' ?
-                        <Switch checked={!!field.value}
-                          //label='开关(Switch)' 
-                          onChange={(value: boolean) => {
-                            field.onChange(value)
-                          }} />
-                        : fieldType.componentType == 'select' ?
-                          <Select
-                            style={{ width: '100%' }}
-
-                            value={field.value}
-
-                            onChange={(value) => {
-                              field.onChange(value)
-                            }}
-                            optionList={paramTypes[fieldType.selectKey!].map(item => {
-                              return {
-                                label: item,
-                                value: item
-                              }
-                            })}>
-
-                          </Select> :
-                          <FxExpression
-                            value={field.value}
-                            fieldType={fieldType}
-                            onChange={field.onChange}
-                            readonly={readonly}
-                            hasError={Object.keys(fieldState?.errors || {}).length > 0}
-                            icon={<></>}
-                          />
-                    }
-                  </>
-                  <Feedback errors={fieldState?.errors} />
-                </FormItem>
-              }
-              }
-            </Field>
-          );
         });
         return <>{content}</>;
       }}

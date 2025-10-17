@@ -4,14 +4,15 @@ project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
 
-set(NNDEPLOY_MAJOR_VERSION 0)
-set(NNDEPLOY_MINOR_VERSION 2)
-set(NNDEPLOY_PATCH_VERSION 11)
+set(NNDEPLOY_MAJOR_VERSION 2)
+set(NNDEPLOY_MINOR_VERSION 6)
+set(NNDEPLOY_PATCH_VERSION 2)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
 add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
+# 1. Include utility and summary CMake files
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -86,6 +87,14 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
 nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
+# # JAVA bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_JAVA "Build Java bindings" OFF)
+# # Swift bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_SWIFT "Build Swift bindings" OFF)
+# # Go bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_GO "Build Go bindings" OFF)
+# # C# bindings
+nndeploy_option(ENABLE_NNDEPLOY_FFI_CSHARP "Build C# bindings" OFF)
 
 # 3. **Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)**: Such as CUDA, OpenCL, various NPU hardware acceleration support
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "Enable NVIDIA CUDA GPU support" OFF)
@@ -290,16 +299,16 @@ set(NNDEPLOY_LIB_PREFIX "lib")
 set(NNDEPLOY_LIB_SUFFIX ".so")
 
 if(CMAKE_SYSTEM_NAME MATCHES "^Android")
-  set(SYSTEM.Android 1)
+  set(SYSTEM_Android 1)
 elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
-  set(SYSTEM.Linux 1)
+  set(SYSTEM_Linux 1)
 elseif(CMAKE_SYSTEM_NAME MATCHES "^Darwin")
-  set(SYSTEM.Darwin 1)
+  set(SYSTEM_Darwin 1)
   set(NNDEPLOY_LIB_SUFFIX ".dylib")
 elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
-  set(SYSTEM.iOS 1)
+  set(SYSTEM_iOS 1)
 elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
-  set(SYSTEM.Windows 1)
+  set(SYSTEM_Windows 1)
   set(NNDEPLOY_LIB_PREFIX "")
   set(NNDEPLOY_LIB_SUFFIX ".lib")
 endif()
@@ -319,7 +328,7 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
-if (SYSTEM.Windows)
+if (SYSTEM_Windows)
   set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
   set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
   set(NNDEPLOY_INSTALL_WIN_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
@@ -463,7 +472,7 @@ if(MSVC)
 endif()
 
 # ignore loop-vectorize warning
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
@@ -472,7 +481,7 @@ else()
 endif()
 
 # ignore deprecated warning
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
@@ -481,11 +490,11 @@ else()
 endif()
 
 # BUILD_SHARED
-if(SYSTEM.Windows AND ENABLE_NNDEPLOY_BUILD_SHARED)
+if(SYSTEM_Windows AND ENABLE_NNDEPLOY_BUILD_SHARED)
   add_definitions(-DENABLE_NNDEPLOY_BUILDING_DLL)
 endif()
 
-if(!SYSTEM.Windows)
+if(!SYSTEM_Windows)
   # you must have return sentence for un-void function
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
 endif()
@@ -592,7 +601,7 @@ if(ENABLE_NNDEPLOY_DEVICE_METAL OR ENABLE_NNDEPLOY_DEVICE_APPLE_NPU)
   set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -x objective-c++ -fobjc-arc -Wno-shorten-64-to-32 -Wno-null-character")
 endif()
 
-if(SYSTEM.Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm" AND ANDROID_API_LEVAL)
+if(SYSTEM_Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm" AND ANDROID_API_LEVAL)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_C99_MATH_TR1")
   add_definitions(-D__ANDROID_API__=${ANDROID_API_LEVAL})
 endif()
@@ -619,10 +628,13 @@ else()
   set(NNDEPLOY_CMAKE_LITTLE_ENDIAN 1)
 endif()
 
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF)
-if(ENABLE_NNDEPLOY_IR)
-  set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
+nndeploy_option(ENABLE_NNDEPLOY_SAFETENSORS_CPP "Enable safetensors-cpp" ON)
+if(ENABLE_NNDEPLOY_SAFETENSORS_CPP)
   add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
+endif()
+if(ENABLE_NNDEPLOY_IR)
+  # set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
+  # add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
   if(ENABLE_NNDEPLOY_IR_ONNX)
     # add_definitions(-DNOMINMAX)
     # add_definitions(-DWIN32_LEAN_AND_MEAN)
@@ -655,7 +667,7 @@ set(NNDEPLOY_DEMO_SYSTEM_LIBRARY)
 set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY)
 
 # nndeploy system library
-if(SYSTEM.iOS)
+if(SYSTEM_iOS)
   find_library(ACCELERATE_FRAMEWORK Accelerate)
   set(NNDEPLOY_SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY} ${ACCELERATE_FRAMEWORK})
 endif()
@@ -761,6 +773,8 @@ if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/*.h"
     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/kernel/*.cc"
   )
 
   # if(ENABLE_NNDEPLOY_DEVICE_CPU)
@@ -792,6 +806,9 @@ if(ENABLE_NNDEPLOY_OP)
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cu"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/cuda/*.h"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/kernel/cuda/*.cuh"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/kernel/cuda/*.cu"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
   endif()
@@ -991,7 +1008,7 @@ target_link_libraries(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRAR
 message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
 
 # # install
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
   install(TARGETS ${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
   install(DIRECTORY ${FRAMEWORK_ROOT_PATH}/include/nndeploy DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH})
 else()
@@ -1059,6 +1076,26 @@ endif()
 # python
 if(ENABLE_NNDEPLOY_PYTHON)
   include(${ROOT_PATH}/python/config.cmake)
+endif()
+
+# java
+if(ENABLE_NNDEPLOY_FFI_JAVA)
+  include(${ROOT_PATH}/ffi/java/config.cmake)
+endif()
+
+# swift
+if(ENABLE_NNDEPLOY_FFI_SWIFT)
+  include(${ROOT_PATH}/ffi/swift/config.cmake)
+endif()
+
+# go
+if(ENABLE_NNDEPLOY_FFI_GO)
+  include(${ROOT_PATH}/ffi/go/config.cmake)
+endif()
+
+# csharp
+if(ENABLE_NNDEPLOY_FFI_CSHARP)
+  include(${ROOT_PATH}/ffi/csharp/config.cmake)
 endif()
 
 # cpack

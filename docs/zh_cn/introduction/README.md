@@ -125,7 +125,7 @@ nndeploy是一款基于工作流的多端AI部署工具，具有以下功能：
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
 
 ## 联系我们
-- 欢迎加入交流群！微信：titian5566（请简单备注个人信息^_^）
+- 欢迎加入交流群！微信：Always031856（请简单备注个人信息^_^）
   
   ![wechat](../../image/wechat.jpg)
 

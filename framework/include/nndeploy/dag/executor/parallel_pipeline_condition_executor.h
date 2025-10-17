@@ -20,6 +20,7 @@ class ParallelPipelineConditionExecutor : public ConditionExecutor {
 
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
  protected:
   thread_pool::ThreadPool *thread_pool_ = nullptr;

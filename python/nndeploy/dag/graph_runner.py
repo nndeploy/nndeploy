@@ -12,9 +12,10 @@ import argparse
 import nndeploy.base
 import nndeploy.device
 from .graph import Graph
-from .node import Node, add_global_import_lib, import_global_import_lib, import_global_import_lib
+from .node import Node, add_global_import_lib, import_global_import_lib
 from .edge import Edge
 from .base import EdgeTypeInfo
+from .base import io_type_to_name
 
 class NnDeployGraphRuntimeError(RuntimeError):
     def __init__(self, status, msg):
@@ -25,7 +26,7 @@ class NnDeployGraphRuntimeError(RuntimeError):
 class GraphRunner:
     def __init__(self):
         self.graph = None
-        self.is_dump = False
+        self.is_cancel = False
 
     def _check_status(self, status):
         if status != nndeploy.base.StatusCode.Ok:
@@ -34,9 +35,19 @@ class GraphRunner:
 
     def _build_graph(self, graph_json_str: str, name: str):
         self.graph = Graph(name)
+        if self.args is not None:
+            for item in self.args.node_param:
+                self.graph.set_node_value(item)
         status = self.graph.deserialize(graph_json_str)
         return self.graph, status
     
+    def cancel_running(self):
+        if self.graph is not None:
+            flag = self.graph.interrupt()
+            self.is_cancel = True
+            if not flag:
+                raise RuntimeError(f"interrupt failed")
+
     def get_run_status(self):
         if self.graph is None:
             return "{}"
@@ -56,10 +67,25 @@ class GraphRunner:
         if self.graph is not None:
             self.graph = None
         import gc; gc.collect()
+        
+    def get_loop_count(self):
+        if self.graph is not None:
+            return self.graph.get_loop_count()
+        return 0
+    
+    def get_parallel_type(self):
+        if self.graph is not None:
+            return self.graph.get_parallel_type()
+        return nndeploy.base.ParallelType.Pipeline
 
-    def run(self, graph_json_str: str, name: str, task_id: str) -> Tuple[Dict[str, Any], List[Any]]:
-        try:
+    def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
+        self.is_cancel = False
+        did_deinit = False
+        self.args = args
+        try:           
             nndeploy.base.time_profiler_reset()
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
 
             nndeploy.base.time_point_start("deserialize_" + name)
             self.graph, status = self._build_graph(graph_json_str, name)
@@ -67,9 +93,13 @@ class GraphRunner:
             nndeploy.base.time_point_end("deserialize_" + name)
 
             self.graph.set_time_profile_flag(True)
-            self.graph.set_debug_flag(False)
+            if args is not None and args.debug:
+                self.graph.set_debug_flag(True)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
             # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
 
             nndeploy.base.time_point_start("init_" + name)
             status = self.graph.init()
@@ -77,10 +107,13 @@ class GraphRunner:
             nndeploy.base.time_point_end("init_" + name)
 
             parallel_type = self.graph.get_parallel_type()
-            results = []
+            results = {}
 
-            if self.is_dump:
+            if args is not None and args.dump:
                 self.graph.dump()
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
 
             nndeploy.base.time_point_start("sum_" + name)
             count = self.graph.get_loop_count()
@@ -95,21 +128,50 @@ class GraphRunner:
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            copy_result = copy.deepcopy(result)
-                            results.append(copy_result)
+                            # 判断对象是否可以拷贝，如果可以拷贝，采用拷贝的方式
+                            try:
+                                copy_result = copy.deepcopy(result)
+                            except (TypeError, AttributeError, RecursionError) as e:
+                                # 如果无法深拷贝，则直接使用原对象
+                                copy_result = result
+                            comsumers = output.get_consumers()
+                            for consumer in comsumers:
+                                consumer_name = consumer.get_name()
+                                io_type = io_type_to_name[consumer.get_io_type()]
+                                if consumer_name not in results:
+                                    results[consumer_name] = {}
+                                if io_type not in results[consumer_name]:
+                                    results[consumer_name][io_type] = []
+                                results[consumer_name][io_type].append(copy_result)
             if parallel_type == nndeploy.base.ParallelType.Pipeline:
                 for i in range(count):
                     outputs = self.graph.get_all_output()
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
-                            copy_result = copy.deepcopy(result)
-                            results.append(copy_result)
+                            # 判断对象是否可以拷贝，如果可以拷贝，采用拷贝的方式
+                            try:
+                                copy_result = copy.deepcopy(result)
+                            except (TypeError, AttributeError, RecursionError) as e:
+                                # 如果无法深拷贝，则直接使用原对象
+                                copy_result = result
+                            comsumers = output.get_consumers()
+                            for consumer in comsumers:
+                                consumer_name = consumer.get_name()
+                                io_type = io_type_to_name[consumer.get_io_type()]
+                                if consumer_name not in results:
+                                    results[consumer_name] = {}
+                                if io_type not in results[consumer_name]:
+                                    results[consumer_name][io_type] = []
+                                results[consumer_name][io_type].append(copy_result)
             flag = self.graph.synchronize()
             if not flag:
                 raise RuntimeError(f"synchronize failed")
             nndeploy.base.time_point_end("sum_" + name)
-            
+
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nodes_name = self.graph.get_nodes_name_recursive()
             
             # print(time_profiler_map)
@@ -119,9 +181,13 @@ class GraphRunner:
             # run_status_map = self.get_run_status()
             # print(run_status_map)
 
+            if self.is_cancel:
+                raise RuntimeError(f"graph interrupted!")
+
             nndeploy.base.time_point_start("deinit_" + name)
             status = self.graph.deinit()
             self._check_status(status)
+            did_deinit = True
 
             is_release_cuda_cache = True
             if is_release_cuda_cache:
@@ -146,27 +212,24 @@ class GraphRunner:
             time_profiler_map["init_time"] = nndeploy.base.time_profiler_get_cost_time("init_" + name)
             time_profiler_map["run_time"] = nndeploy.base.time_profiler_get_cost_time("sum_" + name)
 
+            # print(results)
             return time_profiler_map, results, status, status.get_desc()
+        
         except NnDeployGraphRuntimeError as e:
             return {}, {}, e.status, e.msg
-        
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--json_file", type=str, required=True)
-    parser.add_argument("--name", type=str, default="", required=False)
-    return parser.parse_args()
 
-def main():
-    args = parse_args()
-    graph_json_str = ""
-    with open(args.json_file, "r") as f:
-        graph_json_str = f.read()
-    gr = GraphRunner()
-    time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, "test_graph_runner")
-    print(time_profiler_map)
-    print(results)
-
-if __name__ == "__main__":
-    main()
-
-
+        finally:
+            try:
+                if self.graph is not None:
+                    if not did_deinit:
+                        try:
+                            self.graph.deinit()
+                        except Exception:
+                            pass
+                    try:
+                        import torch
+                        torch.cuda.empty_cache()
+                    except Exception:
+                        pass
+            finally:
+                pass

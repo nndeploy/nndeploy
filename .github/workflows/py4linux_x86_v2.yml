@@ -1,16 +1,16 @@
 # GitHub Actions workflow configuration file - Python Linux platform compilation
 # This file configures the CI/CD pipeline for automatically compiling Python extension packages and uploading to PyPI in Linux environment
 
-name: Py4Linux  # Workflow name, displayed in GitHub Actions interface
+name: Py4Linux_x86_v2  # Workflow name, displayed in GitHub Actions interface
 
 # Trigger conditions configuration
 on:
   workflow_dispatch:  # Manual trigger
-  pull_request:       # Pull Request trigger
-  push:
-    branches:
-      - main          # Trigger when pushing to main branch
-      - testpypi      # Trigger test upload when pushing to testpypi branch
+  # pull_request:       # Pull Request trigger
+  # push:
+  #   branches:
+  #     - main          # Trigger when pushing to main branch
+  #     - testpypi      # Trigger test upload when pushing to testpypi branch
   release:
     types:
       - published     # Trigger when publishing Release
@@ -21,11 +21,8 @@ jobs:
     strategy:
       fail-fast: false  # Don't terminate other jobs due to single job failure
       matrix:
-        platform: [ubuntu-20.04]  # Running platform
-        python-version: ["3.10",
-                         "3.11",
-                         "3.12",
-                         "3.13",]
+        platform: [ubuntu-22.04]  # Running platform
+        python-version: ["3.13",]
 
     runs-on: ${{ matrix.platform }}  # Specify runtime environment
 
@@ -53,11 +50,11 @@ jobs:
           pip install pybind11 setuptools wheel twine requests pathlib cython auditwheel
 
       # Step 5: Install Rust toolchain
-      - name: Install Rust toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
-          rustup update
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.88.0
+          targets: x86_64-unknown-linux-gnu
 
       # Step 6: Install OpenCV and ONNXRUNTIME
       - name: Install OpenCV and ONNXRUNTIME
@@ -142,6 +139,16 @@ jobs:
           cd python
           twine check dist/*
           twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl
+
+      - name: Upload to PyPI manual
+        if: github.ref == 'refs/heads/pypi'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          cd python
+          twine check dist/*
+          twine upload dist/*.whl
 
       # Step 13: Upload to official PyPI (when publishing Release)
       - name: Upload to PyPI

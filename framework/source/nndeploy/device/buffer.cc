@@ -241,7 +241,7 @@ base::Status Buffer::serialize(std::string &bin_str) {
   return base::kStatusCodeOk;
 }
 
-#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Buffer::serializeToSafetensors(
     safetensors::safetensors_t &st, const safetensors::tensor_t &tensor) {
   uint64_t buffer_size = this->getRealSize();

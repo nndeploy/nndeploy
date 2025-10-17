@@ -6,7 +6,6 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
@@ -92,6 +91,42 @@ class SAMDemo : public dag::Graph {
     return status;
   }
 
+  base::Status makeDynamicsGraph(base::CodecFlag codec_flag,
+                                 base::InferenceType inference_type,
+                                 base::DeviceType device_type,
+                                 base::ModelType model_type, bool is_path,
+                                 std::vector<std::string> &model_value) {
+    base::Status status = base::kStatusCodeOk;
+
+    std::vector<dag::Edge *> inputs, outputs;
+    decode_node_ =
+        (codec::OpenCvImageDecode *)this->createNode<codec::OpenCvImageDecode>(
+            "decode_image", codec_flag);
+    CHECK_IF_NULL_RETURN(decode_node_,
+                         "Failed to create OpenCvImageDecode node");
+
+    encode_node_ =
+        (codec::OpenCvImageEncode *)this->createNode<codec::OpenCvImageEncode>(
+            "encode_image", codec_flag);
+    CHECK_IF_NULL_RETURN(encode_node_,
+                         "Failed to create OpenCvImageEncode node");
+
+    select_point_node_ =
+        (segment::SelectPointNode *)this->createNode<segment::SelectPointNode>(
+            "select_point_node");
+
+    sam_graph_ =
+        (segment::SAMGraph *)this->createNode<segment::SAMGraph>("sam_graph");
+    CHECK_IF_NULL_RETURN(sam_graph_, "Failed to create SAMGraph node");
+
+    status = sam_graph_->setInferParam(inference_type, device_type, model_type,
+                                       is_path, model_value);
+    CHECK_IF_ERROR_RETURN(status,
+                          "Failed to set inference parameters for SAMGraph");
+
+    return status;
+  }
+
   base::Status setPoints(const std::vector<float> &points,
                          const std::vector<float> &point_label) {
     CHECK_IF_NULL_RETURN(sam_graph_, "SAMGraph node is not initialized");
@@ -120,6 +155,21 @@ class SAMDemo : public dag::Graph {
     CHECK_IF_ERROR_RETURN(status, "Failed to set output path in Encode node");
 
     return status;
+  }
+
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> image =
+        (*decode_node_)(inputs);  // Decode the input image
+    std::vector<dag::Edge *> points =
+        (*select_point_node_)(image);  // Select points
+
+    std::vector<dag::Edge *> outputs =
+        (*sam_graph_)({image[0], points[0]});  // Forward through SAMGraph
+
+    std::vector<dag::Edge *> postprocess_output =
+        (*encode_node_)(outputs);  // Encode the output
+
+    return postprocess_output;  // Return the output edges
   }
 
  private:
@@ -171,8 +221,8 @@ int main(int argc, char *argv[]) {
 
   SAMDemo sam_demo(graph_name);
   base::Status status =
-      sam_demo.makeGraph(codec_flag, inference_type, device_type, model_type,
-                         is_path, model_value);
+      sam_demo.makeDynamicsGraph(codec_flag, inference_type, device_type,
+                                 model_type, is_path, model_value);
   CHECK_IF_ERROR_RETURN(status, "Failed to make SAMDemo graph");
 
   sam_demo.setTimeProfileFlag(true);
@@ -189,15 +239,21 @@ int main(int argc, char *argv[]) {
   status = sam_demo.setOutputPath(output_path);
   CHECK_IF_ERROR_RETURN(status, "Failed to set output path in SAMDemo");
 
-  status = sam_demo.init();
-  CHECK_IF_ERROR_RETURN(status, "Failed to initialize SAMDemo graph");
+  // status = sam_demo.init();
+  // CHECK_IF_ERROR_RETURN(status, "Failed to initialize SAMDemo graph");
 
-  // status = sam_demo.dump();
-  // CHECK_IF_ERROR_RETURN(status, "Failed to dump SAMDemo graph");
+  std::vector<dag::Edge *> inputs;
+  // std::vector<dag::Edge *> outputs;
+
+  std::vector<dag::Edge *> outputs = sam_demo.trace(inputs);
+
+  status = sam_demo.dump();
+  CHECK_IF_ERROR_RETURN(status, "Failed to dump SAMDemo graph");
 
   // sam_demo.trace();
 
-  status = sam_demo.run();
+  // status = sam_demo.run();
+  outputs = sam_demo(inputs);
   CHECK_IF_ERROR_RETURN(status, "Failed to run SAMDemo graph");
 
   sam_demo.synchronize();

@@ -18,6 +18,14 @@ DEFINE_bool(is_path, true, "is_path");
 
 DEFINE_string(model_value, "", "model_value");
 
+DEFINE_string(classifier_model_value, "", "classifier_model_value");
+
+DEFINE_string(detector_model_value, "", "detector_model_value");
+
+DEFINE_string(recognizer_model_value, "", "recognizer_model_value");
+
+DEFINE_string(character_txt_value, "", "character_txt_value");
+
 DEFINE_string(encrypt_type, "", "encrypt_type");
 
 DEFINE_string(license, "", "license");
@@ -52,6 +60,14 @@ DEFINE_string(model_inputs, "", "model_inputs");
 
 DEFINE_string(model_outputs, "", "model_outputs");
 
+DEFINE_string(classifier_model_inputs, "", "classifier_model_inputs");
+DEFINE_string(recognizer_model_inputs, "", "recognizer_model_inputs");
+DEFINE_string(detector_model_inputs, "", "detector_model_inputs");
+
+DEFINE_string(classifier_model_outputs, "", "classifier_model_outputs");
+DEFINE_string(recognizer_model_outputs, "", "recognizer_model_outputs");
+DEFINE_string(detector_model_outputs, "", "detector_model_outputs");
+
 void showUsage() {
   std::cout << "Usage: " << std::endl;
   std::cout << "  --name: graph name, eg: yolo_v5_v6_v8" << std::endl;
@@ -62,6 +78,15 @@ void showUsage() {
   std::cout << "  --model_type: model_type, eg: kModelTypeOnnx" << std::endl;
   std::cout << "  --is_path: is_path" << std::endl;
   std::cout << "  --model_value: model_value, eg: "
+               "path/nndeploy_resource/detect/yolo/yolov5s.onnx"
+            << std::endl;
+  std::cout << "  --recognizer_model_value: recognizer_model_value, eg: "
+               "path/nndeploy_resource/detect/yolo/yolov5s.onnx"
+            << std::endl;
+  std::cout << "  --classifier_model_value: classifier_model_value, eg: "
+               "path/nndeploy_resource/detect/yolo/yolov5s.onnx"
+            << std::endl;
+  std::cout << "  --detector_model_value: detector_model_value, eg: "
                "path/nndeploy_resource/detect/yolo/yolov5s.onnx"
             << std::endl;
   std::cout << "  --encrypt_type: encrypt_type, eg: kEncryptTypeNone"
@@ -220,6 +245,143 @@ std::vector<std::string> getModelInputs() {
 std::vector<std::string> getModelOutputs() {
   std::vector<std::string> model_outputs;
   std::string model_outputs_str = FLAGS_model_outputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_outputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_outputs.emplace_back(model_outputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_outputs_str.find(",", pos1);
+  }
+  model_outputs.emplace_back(model_outputs_str.substr(pos1));
+  return model_outputs;
+}
+
+std::vector<std::string> getClassifierModelValue() {
+  std::vector<std::string> model_value;
+  std::string model_value_str = FLAGS_classifier_model_value;
+  std::string::size_type pos1, pos2;
+  pos2 = model_value_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_value.emplace_back(model_value_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_value_str.find(",", pos1);
+  }
+  model_value.emplace_back(model_value_str.substr(pos1));
+  return model_value;
+}
+
+std::vector<std::string> getRecognizerModelValue() {
+  std::vector<std::string> model_value;
+  std::string model_value_str = FLAGS_recognizer_model_value;
+  std::string::size_type pos1, pos2;
+  pos2 = model_value_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_value.emplace_back(model_value_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_value_str.find(",", pos1);
+  }
+  model_value.emplace_back(model_value_str.substr(pos1));
+  return model_value;
+}
+
+std::string getCharacterTxtValue() { return FLAGS_character_txt_value; }
+
+std::vector<std::string> getDetectorModelValue() {
+  std::vector<std::string> model_value;
+  std::string model_value_str = FLAGS_detector_model_value;
+  std::string::size_type pos1, pos2;
+  pos2 = model_value_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_value.emplace_back(model_value_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_value_str.find(",", pos1);
+  }
+  model_value.emplace_back(model_value_str.substr(pos1));
+  return model_value;
+}
+
+std::vector<std::string> getClassifierModelInputs() {
+  std::vector<std::string> model_inputs;
+  std::string model_inputs_str = FLAGS_classifier_model_inputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_inputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_inputs.emplace_back(model_inputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_inputs_str.find(",", pos1);
+  }
+  model_inputs.emplace_back(model_inputs_str.substr(pos1));
+  return model_inputs;
+}
+
+std::vector<std::string> getClassifierModelOutputs() {
+  std::vector<std::string> model_outputs;
+  std::string model_outputs_str = FLAGS_classifier_model_outputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_outputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_outputs.emplace_back(model_outputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_outputs_str.find(",", pos1);
+  }
+  model_outputs.emplace_back(model_outputs_str.substr(pos1));
+  return model_outputs;
+}
+
+std::vector<std::string> getRecognizerModelInputs() {
+  std::vector<std::string> model_inputs;
+  std::string model_inputs_str = FLAGS_recognizer_model_inputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_inputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_inputs.emplace_back(model_inputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_inputs_str.find(",", pos1);
+  }
+  model_inputs.emplace_back(model_inputs_str.substr(pos1));
+  return model_inputs;
+}
+
+std::vector<std::string> getRecognizerModelOutputs() {
+  std::vector<std::string> model_outputs;
+  std::string model_outputs_str = FLAGS_recognizer_model_outputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_outputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_outputs.emplace_back(model_outputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_outputs_str.find(",", pos1);
+  }
+  model_outputs.emplace_back(model_outputs_str.substr(pos1));
+  return model_outputs;
+}
+
+std::vector<std::string> getDetectorModelInputs() {
+  std::vector<std::string> model_inputs;
+  std::string model_inputs_str = FLAGS_detector_model_inputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_inputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_inputs.emplace_back(model_inputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_inputs_str.find(",", pos1);
+  }
+  model_inputs.emplace_back(model_inputs_str.substr(pos1));
+  return model_inputs;
+}
+
+std::vector<std::string> getDetectorModelOutputs() {
+  std::vector<std::string> model_outputs;
+  std::string model_outputs_str = FLAGS_detector_model_outputs;
   std::string::size_type pos1, pos2;
   pos2 = model_outputs_str.find(",");
   pos1 = 0;

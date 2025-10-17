@@ -21,10 +21,11 @@ class NNDEPLOY_CC_API InitLatents : public dag::Node {
               std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::InitLatents";
-    desc_ = "init latents [latent image]";
+    desc_ = "Initialize random latent tensor for DDIM sampling.";
     param_ = std::make_shared<DDIMSchedulerParam>();
     this->setOutputTypeInfo<device::Tensor>();
     node_type_ = dag::NodeType::kNodeTypeInput;
+    this->setIoType(dag::IOType::kIOTypeAny);
   }
 
   virtual ~InitLatents() {}
@@ -112,7 +113,9 @@ class NNDEPLOY_CC_API DDIMSchedule : public dag::Node {
                std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::DDIMSchedule";
-    desc_ = "ddim schedule [unet_output/latents/timestep -> latents]";
+    desc_ =
+        "DDIM scheduler step: [unet_output, latents, timestep] -> updated "
+        "latents with optional classifier-free guidance.";
     param_ = std::make_shared<DDIMSchedulerParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
@@ -235,7 +238,9 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
       : CompositeNode(name, inputs, outputs),
         scheduler_type_(stable_diffusion::kSchedulerTypeDDIM) {
     key_ = "nndeploy::stable_diffusion::Denoise";
-    desc_ = "denoise latents composite node[cfg->unet->ddim]";
+    desc_ =
+        "Denoise latents loop: apply UNet and DDIM scheduler with optional "
+        "classifier-free guidance.";
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -352,6 +357,11 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     int i = 0;
     infer_->updateInput();
     for (const auto &val : timesteps) {
+      if (checkInterruptStatus() == true) {
+        setRunningFlag(false);
+        NNDEPLOY_LOGI("node has been interrupted.\n");
+        return base::kStatusCodeNodeInterrupt;
+      }
       if (do_classifier_free_guidance_) {
         std::shared_ptr<ir::ConcatParam> param =
             std::make_shared<ir::ConcatParam>();
@@ -429,7 +439,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
                std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::stable_diffusion::DenoiseGraph";
-    desc_ = "denoise graph [init_latents->denoise]";
+    desc_ = "Denoising graph: initialize latents and run denoising process.";
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
     init_latents_ = dynamic_cast<InitLatents *>(

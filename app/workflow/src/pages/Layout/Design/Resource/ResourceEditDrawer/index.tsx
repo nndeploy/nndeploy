@@ -28,6 +28,22 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
   const formRef = useRef<FormApi<any>>();
 
+  const fileLabelRef = useRef<any>()
+
+  function isImageFile(filename: string) {
+
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
+    const lowerFilename = filename.toLowerCase();
+    return imageExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
+
+  function isVideoFile(filename: string) {
+
+    const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+    const lowerFilename = filename.toLowerCase();
+    return videoExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
+
   //  useEffect(() => {
   //       if(props.entity.id){
   //         apiGetResource(props.entity.id).then((res) => {
@@ -49,7 +65,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
       // const formData = formRef!.current!.getValues();
       // console.log("Form Data:", formData);
 
-      const url = `/api/files/${entity.parentId}`
+      const url = `/api/files/upload?file_path=${entity.parent_info.file_info?.saved_path}`
 
       // const data = {
       //   ...entity, 
@@ -63,13 +79,16 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
       const response = await apiResourceSave(url, formData);
       if (response.flag == "success") {
         props.onSure(
-          {
-            id: response.result.filename,
-            name: response.result.filename,
-            parentId: node.parentId,
-            type: 'leaf',
-            entity: response.result
-          });
+          // {
+          //   id: response.result.filename,
+          //   name: response.result.filename,
+          //   parentId: node.parentId,
+          //   type: 'leaf',
+          //   entity: response.result
+          // }
+          response.result
+
+        );
       }
 
       //Toast.success("add sucess!");
@@ -113,10 +132,12 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
     var i = 0;
     var files = fileRef.current.files
     setFile(files[0])
+    fileLabelRef.current.innerHTML = files[0].name
+
   }
 
   const data = [
-    { key: 'fileName', value: node?.entity?.filename },
+    { key: 'fileName', value: node?.file_info?.filename },
     {
       key: 'saved_path', value:
         <Tooltip content="click me to copy">
@@ -129,15 +150,15 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
             onClick={(event) => {
               event.preventDefault()
-              handleCopy(node?.entity?.saved_path!)
+              handleCopy(node?.file_info?.saved_path!)
             }}
 
-          >{node?.entity?.saved_path}</Text>
+          >{node?.file_info?.saved_path}</Text>
         </Tooltip>
 
     },
-    { key: 'file size', value: node?.entity?.size },
-    { key: 'uploaded_at', value: node?.entity?.uploaded_at },
+    { key: 'file size', value: node?.file_info?.size },
+    { key: 'uploaded_at', value: node?.file_info?.uploaded_at },
 
   ];
 
@@ -193,7 +214,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
   ): void {
 
     //window.open(`/api/preview/${entity.parentId}/${entity.name}`)
-    const url = `/api/download?file_path=${entity.parentId}/${entity.name}`
+    const url = `/api/download?file_path=${entity.file_info.saved_path}`
     request.download(url, {}, {}, entity.name)
   }
 
@@ -205,16 +226,16 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
         {
           entity.id ? <>
-            {entity.parentId?.includes("images") && entity.name ? (
+            {isImageFile(entity.file_info?.saved_path!) ? (
               <div className="image-preview">
-                <img src={`/api/preview?file_path=${entity.parentId}/${entity.name}&time=${new Date().getTime()}`} />
+                <img src={`/api/preview?file_path=${entity.file_info?.saved_path}&time=${new Date().getTime()}`} />
 
               </div>
-            ) : entity.parentId?.includes("videos") && entity.name ? (
+            ) : isVideoFile(entity.file_info?.saved_path!) ? ( //entity.file_info?.saved_path?.includes("resources/videos")
               <div className="video-preview">
                 <VideoPlayer
                   height={430}
-                  src={`/api/preview?file_path=${entity.parentId}/${entity.name}&time=${new Date().getTime()}`}
+                  src={`/api/preview?file_path=${entity.file_info?.saved_path}&time=${new Date().getTime()}`}
                 //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                 />
               </div>
@@ -228,20 +249,6 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
                 <></>
               )}
 
-            {/* <div className="fileInfo">
-              <div className="item">
-                  fileName: {node.entity?.filename}
-              </div>
-              <div className="item">
-                  saved_path: {node.entity?.saved_path}
-              </div>
-              <div className="item">
-                  size: {node.entity?.size}
-              </div>
-              <div className="item">
-                  uploaded_at: {node.entity?.uploaded_at}
-              </div>
-            </div> */}
 
             {
               showFileInfo && <>
@@ -257,19 +264,30 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
               getFormApi={(formApi) => (formRef.current = formApi)}
               onValueChange={(v) => console.log(v)}
             >
-              {/* <Input
-          field="name"
-          label="name"
-          rules={[{ required: true, message: "please input" }]}
-        /> */}
+
               <div style={{ display: "flex", alignItems: "center" }}>
+                Choose file: 
+                <label ref={fileLabelRef} htmlFor="file-upload" style={{ cursor: 'pointer', marginLeft: 10 }} className="file-upload-label">
+
+                 select
+                </label>
+                
                 <Input
+                  id="file-upload"
                   type="file"
                   ref={fileRef}
+
                   ///@ts-ignore
                   onChange={(e) => onFileChange(e)}
-                  style={{ marginRight: 10 }}
+                  style={{ marginRight: 10, display: "none" }}
+
                 />
+                {/* <input type="file" ref={fileRef}
+                  onChange={(e) => onFileChange(e)}
+                  style={{ marginRight: 10 }}
+                /> */}
+
+
                 {/* <Button onClick={handleFileUpload}>Upload File</Button> */}
               </div>
             </Form>

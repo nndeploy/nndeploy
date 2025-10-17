@@ -25,6 +25,10 @@ DataPacket::DataPacket() {}
 
 DataPacket::~DataPacket() { destory(); }
 
+bool DataPacket::empty() {
+  return anything_ == nullptr;
+}
+
 base::Status DataPacket::set(device::Buffer *buffer, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (buffer != anything_) {

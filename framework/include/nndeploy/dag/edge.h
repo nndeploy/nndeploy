@@ -66,6 +66,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Status setParallelType(const base::ParallelType &paralle_type);
   base::ParallelType getParallelType();
 
+  bool empty();
+
   base::Status construct();
 
   base::Status set(device::Buffer *buffer, bool is_external = true);
@@ -131,7 +133,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
       std::unique_lock<std::mutex> lock(type_info_mutex_);
       type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
     }
-    if (!type_info_->isType<T>()) {
+    if (type_info_ != nullptr && !type_info_->isType<T>()) {
       // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
@@ -143,16 +145,15 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
       std::unique_lock<std::mutex> lock(type_info_mutex_);
       type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
     }
-    if (!type_info_->isType<T>()) {
+    if (type_info_ != nullptr && !type_info_->isType<T>()) {
       // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
     return abstact_edge_->getGraphOutput<T>();
   }
 
-
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     this->setTypeInfo<T>();
     return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
   }
@@ -177,6 +178,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status increaseProducers(std::vector<Node *> &producers);
   base::Status increaseConsumers(std::vector<Node *> &consumers);
+  std::vector<Node *> getProducers();
+  std::vector<Node *> getConsumers();
 
   bool requestTerminate();
 
@@ -185,12 +188,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     if (type_info_ == nullptr) {
       type_info_ = std::make_shared<EdgeTypeInfo>();
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
-      // type_info_->getTypeName().c_str());
     } else {
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
-      // type_info_->getTypeName().c_str());
     }
     if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
       type_info_cv_.notify_all();

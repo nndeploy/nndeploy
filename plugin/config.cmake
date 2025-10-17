@@ -13,7 +13,10 @@ set(PLUGIN_ROOT_PATH ${ROOT_PATH}/plugin)
 # plugin includes
 
 # # template
-include(${PLUGIN_ROOT_PATH}/source/nndeploy/template/config.cmake)
+include(${ROOT_PATH}/template/cpp/config.cmake)
+
+# # basic
+include(${PLUGIN_ROOT_PATH}/source/nndeploy/basic/config.cmake)
 
 # # preprocess
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
@@ -74,6 +77,11 @@ endif()
 # # matting
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/matting/config.cmake)
+endif()
+
+## ocr
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_OCR)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/ocr/config.cmake)
 endif()
 
 # appedn list

@@ -56,9 +56,17 @@ const NodeTree: React.FC = () => {
 
   }
 
-  const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => (
+  const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => {
 
-    <Tooltip content={item.nodeEntity.desc} position="right">
+
+    if(item.nodeEntity.type == 'leaf'){
+
+      var i = 0;
+    }
+
+    const desc = item.nodeEntity.type == 'branch' ? item.nodeEntity.desc : item.nodeEntity.nodeEntity?.desc_ || '';
+
+    return <Tooltip content={ desc} position="right">
       <div
         style={{ display: "flex", height: "24px" }}
         draggable
@@ -66,7 +74,7 @@ const NodeTree: React.FC = () => {
         onDragStart={(dragEvent) => onDragStart(item.nodeEntity, dragEvent)}
       >
         <Typography.Text
-          ellipsis={{ showTooltip: true }}
+          ellipsis={{ showTooltip: false }}
           style={{ width: "calc(100% - 48px)" }}
           className="label"
         >
@@ -77,7 +85,7 @@ const NodeTree: React.FC = () => {
         {/* {renderBtn(item?.key!)} */}
       </div>
     </Tooltip>
-  );
+  };
 
   function onUploadNode(): void {
     const input = document.createElement("input");

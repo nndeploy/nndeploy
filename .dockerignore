@@ -4,9 +4,7 @@
 /build-*
 /docs/build
 /cmake-build-*
-/third_party
-/examples/**/oneflow
-/benchmark/**/oneflow
+#/third_party
 /.vscode
 /.idea
 /.clangd

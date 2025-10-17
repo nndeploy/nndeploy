@@ -22,6 +22,7 @@ class ParallelTaskExecutor : public Executor {
 
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
   /**
    * @brief 提交一个节点执行
@@ -34,6 +35,8 @@ class ParallelTaskExecutor : public Executor {
    * @param  node_wrapper
    */
   void afterNodeRun(NodeWrapper* node_wrapper);
+
+  void afterNodeEarlyExit(NodeWrapper* node_wrapper);
 
   /**
    * @brief  一个节点有多个前驱节点时，防止多次加入执行
@@ -55,7 +58,8 @@ class ParallelTaskExecutor : public Executor {
   std::vector<NodeWrapper*> topo_sort_node_;
   std::vector<NodeWrapper*> start_nodes_;     // 没有依赖的起始节点
   std::atomic<int> completed_task_count_{0};  // 已执行结束的元素个数
-  int all_task_count_ = 0;  // 需要执行的所有节点个数
+  int all_task_count_ = 0;                    // 需要执行的所有节点个数
+  int early_exit_task_count_ = 0;             // 提前中止的节点个数
   std::mutex main_lock_;
   std::mutex commit_lock_;
   std::condition_variable cv_;

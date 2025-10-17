@@ -3,5 +3,9 @@ try:
     from nndeploy.face.insightface import InsightFaceSwapper
     from nndeploy.face.insightface import FaceSwapper
 except:
-    # print("Failed to import insightface")
+    pass
+
+try:
+    from nndeploy.face.insightface import VideoInsightFaceSwapperWithMap
+except:
     pass

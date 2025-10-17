@@ -87,7 +87,7 @@ class SelectPointNode : public dag::Node {
     }
     cv::Mat *input_image = inputs_[0]->getCvMat(this);
 
-    showPicture(*input_image);
+    // showPicture(*input_image);
 
     segment::SAMPointsParam *sam_points_param = new segment::SAMPointsParam();
     sam_points_param->ori_height = input_image->rows;
@@ -152,7 +152,8 @@ class SelectPointNode : public dag::Node {
       int px = static_cast<int>(cv_wrapper->node->points_[i * 2]);
       int py = static_cast<int>(cv_wrapper->node->points_[i * 2 + 1]);
       int label = static_cast<int>(cv_wrapper->node->point_labels_[i]);
-      cv::Scalar color = (label == 1) ? cv::Scalar(0, 0, 255) : cv::Scalar(255, 0, 0);
+      cv::Scalar color =
+          (label == 1) ? cv::Scalar(0, 0, 255) : cv::Scalar(255, 0, 0);
       cv::circle(current_image, cv::Point(px, py), 5, color, -1);
     }
     // cv::imshow("Select Points (Press any key to finish)", current_image);
@@ -189,7 +190,8 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<SAMPointsParam>();
     this->setOutputTypeInfo<cv::Mat>();
-    initStaticGraphNodes();
+    // initStaticGraphNodes();
+    initDynamicsGraphNodes();
     defaultParam();
   }
 
@@ -201,7 +203,8 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<SAMPointsParam>();
     this->setOutputTypeInfo<cv::Mat>();
-    initStaticGraphNodes();
+    // initStaticGraphNodes();
+    initDynamicsGraphNodes();
     defaultParam();
   }
 
@@ -214,8 +217,35 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
 
   base::Status defaultParam() override;
 
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> encoder_input =
+        (*preprocess_image_node_)({inputs[0]});
+    std::vector<dag::Edge *> image_embedding =
+        (*encoder_infer_node_)(encoder_input);
+
+    std::vector<dag::Edge *> point_result =
+        (*preprocess_point_node_)({inputs[1]});
+    std::vector<dag::Edge *> mask_result = (*preprocess_mask_node_)();
+
+    //std::vector<dag::Edge *> decoder_input = {
+    //    mask_result[1],  image_embedding[0], mask_result[0],
+    //    point_result[2], point_result[0],    point_result[1]};
+    std::vector<dag::Edge *> decoder_input = {
+        image_embedding[0], point_result[0], point_result[1],
+        mask_result[0],     mask_result[1],  point_result[2]};
+    std::vector<dag::Edge *> decoder_output =
+        (*decoder_infer_node_)(decoder_input);
+
+    std::vector<dag::Edge *> postprocess_output =
+        (*postprocess_node_)(decoder_output);
+    // std::vector<dag::Edge *> postprocess_output;
+    return postprocess_output;
+  };
+
  private:
   base::Status initStaticGraphNodes();
+
+  base::Status initDynamicsGraphNodes();
 
  private:
   dag::Node *preprocess_image_node_ = nullptr;

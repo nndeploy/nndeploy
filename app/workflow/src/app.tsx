@@ -1,3 +1,7 @@
+
+import { ConfigProvider } from '@douyinfe/semi-ui';
+import enUS from '@douyinfe/semi-ui/lib/es/locale/source/en_US';
+
 import { createRoot } from "react-dom/client";
 
 import { BrowserRouter } from "react-router-dom";
@@ -14,24 +18,28 @@ import Home from "./pages/Home";
 const app = createRoot(document.getElementById("root")!);
 
 app.render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<Design />} />
+  <ConfigProvider locale={enUS}>
 
-      
-
-      <Route path="/backend" element={<BackendLayout />} >
-        
-      </Route>
-
-      <Route path="/backendItem" >
-         <Route path="node" element={<NodePage />} />
-      </Route>
-      <Route path="about" element={<About />} />
-      <Route path="home" element={<Home />} />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/design" element={<Design />} />
 
 
-      <Route path="*" element={<NoMatch />} />
-    </Routes>
-  </BrowserRouter>
+
+        <Route path="/backend" element={<BackendLayout />} >
+
+        </Route>
+
+        <Route path="/backendItem" >
+          <Route path="node" element={<NodePage />} />
+        </Route>
+        <Route path="about" element={<About />} />
+
+
+
+        <Route path="*" element={<NoMatch />} />
+      </Routes>
+    </BrowserRouter>
+  </ConfigProvider>
 );

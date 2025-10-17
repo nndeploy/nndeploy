@@ -207,7 +207,8 @@ def get_internal_so_path():
     # Check if directory exists
     if not os.path.exists(search_path):
         raise FileNotFoundError(f"Directory {search_path} does not exist")
-        
+       
+    # v1 
     # Find all dynamic library files
     all_matches = []
     for ext in extensions:
@@ -217,6 +218,40 @@ def get_internal_so_path():
     
     if not all_matches:
         raise FileNotFoundError(f"No dynamic library files found in {search_path} directory")
+    
+    # v2
+    # # Find all dynamic library files
+    # all_matches = []
+    # symlink_info = {}  # Record symlink information
+    
+    # for ext in extensions:
+    #     pattern = os.path.join(search_path, f"*{ext}*")
+    #     matches = glob.glob(pattern)
+    #     print(f"matches: {matches}")
+        
+    #     # Analyze each matched file
+    #     for match in matches:
+    #         if os.path.islink(match):
+    #             # If it's a symlink, record the link relationship but don't add to package list
+    #             target = os.readlink(match)
+    #             symlink_info[os.path.basename(match)] = os.path.basename(target)
+    #             print(f"Detected symlink: {os.path.basename(match)} -> {target}")
+    #         else:
+    #             # Only add real files to package list
+    #             all_matches.append(match)
+    #             print(f"Added real file: {os.path.basename(match)}")
+    
+    # if not all_matches:
+    #     raise FileNotFoundError(f"No real dynamic library files found in {search_path} directory")
+    
+    # # Save symlink information to file
+    # symlink_info_file = os.path.join(search_path, "_symlink_info.json")
+    # if symlink_info:
+    #     import json
+    #     with open(symlink_info_file, 'w') as f:
+    #         json.dump(symlink_info, f, indent=2)
+    #     all_matches.append(symlink_info_file)
+    #     print(f"Saved symlink info to: {symlink_info_file}")
         
     # Print all found dynamic library files
     print(f"Found the following dynamic library files in {search_path} directory:")
@@ -314,12 +349,12 @@ install_requires = [
     # 'setuptools<=68.0.0',  # Setup tools
     'gitpython>=3.1.30',  # Git operations
     'aiofiles>=24.1.0',  # Asynchronous file operations
-    'PyYAML>=5.3.1',  # YAML parsing
     'pytest',  # Testing framework
     'jsonschema',  # JSON Schema validation
     'multiprocess',  # Multiprocessing support
     'numpy',  # Numerical computation
     # 'opencv-python>=4.8.0',  # Image processing
+    'modelscope',
 ]
 
 # Detect if CUDA is available and its version
@@ -387,6 +422,9 @@ if cuda_version:
         'torch>=2.0.0',  # PyTorch (GPU version)
         'torchvision>=0.15.0',  # torchvision (GPU version)
         # 'onnxruntime-gpu>=1.18.0',  # ONNX Runtime GPU version
+        'diffusers',
+        'accelerate',
+        'transformers',
     ])
 else:
     print("CUDA not detected, using CPU version dependencies")
@@ -394,6 +432,9 @@ else:
         'torch>=2.0.0',  # PyTorch (CPU version)
         'torchvision>=0.15.0',  # torchvision (CPU version)
         # 'onnxruntime>=1.18.0',  # ONNX Runtime CPU version
+        'diffusers',
+        'accelerate',
+        'transformers',
     ])
 
 # Add server-related dependencies
@@ -468,10 +509,10 @@ cmd_classes["install"] = InstallCommand
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="0.2.11",  # Fix version number format
+    version="2.6.2",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
-    description="Workflow-based Multi-platform AI Deployment Tool",  # Add short description
+    description="Your Local AI Workflow",  # Add short description
     long_description=read_long_description(),  # Add long description
     long_description_content_type="text/markdown",  # Specify content type as Markdown
     url="https://github.com/nndeploy/nndeploy",  # Add project URL
@@ -499,6 +540,7 @@ setup(
         'console_scripts': [
             'nndeploy-run-json=nndeploy.dag.run_json:main',
             'nndeploy-app=nndeploy.server.app:main',
+            'nndeploy-clean=nndeploy.server.clean:main',
         ],
     },
     # extras_require={
@@ -508,7 +550,7 @@ setup(
     # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode
     has_ext_modules=lambda: True,  # Added: Declare that it contains extension modules
-    keywords="deep-learning, neural-network, model-deployment, inference, ai",
+    keywords="deep-learning, visual-workflow, ai-agent, easy-to-use, high-performance",
     project_urls={
         "Bug Reports": "https://github.com/nndeploy/nndeploy/issues",
         "Source": "https://github.com/nndeploy/nndeploy",

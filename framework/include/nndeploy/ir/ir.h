@@ -15,7 +15,10 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/op_param.h"
+
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 
 namespace nndeploy {
 namespace ir {
@@ -123,6 +126,7 @@ class NNDEPLOY_CC_API ModelDesc {
   base::Status deserializeStructureFromJson(
       const std::string &path, const std::vector<ValueDesc> &input);
 
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   // 序列化模型权重为safetensors
   base::Status serializeWeightsToSafetensorsImpl(safetensors::safetensors_t &st,
                                                  bool serialize_buffer = false);
@@ -133,6 +137,7 @@ class NNDEPLOY_CC_API ModelDesc {
   // 从safetensors中导入成模型文件
   base::Status deserializeWeightsFromSafetensors(
       std::shared_ptr<safetensors::safetensors_t> &st_ptr);
+#endif
 
  public:
   // 描述模型的名称

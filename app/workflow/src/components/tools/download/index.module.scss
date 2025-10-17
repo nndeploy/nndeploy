@@ -1,0 +1,41 @@
+// .tools-log-content {
+//   width: 600px;
+//   height: 500px;
+//   overflow: auto;
+//   border-radius: 5px;
+//   padding: 10px;
+
+//   background-color: white;
+
+//   .semi-list-header {
+//     background: #eee;
+//   }
+//   .semi-list-footer {
+//     background: #eee;
+
+//     .number {
+//       font-weight: bold;
+//     }
+//   }
+//   .list-item:hover {
+//     background-color: var(--semi-color-fill-0);
+//   }
+// }
+.download-model {
+  .model-item {
+
+    margin: 4px 0px;
+    padding: 8px;
+
+    &:hover {
+      background-color: #eee;
+    }
+
+    .model-name {
+      word-break: break-all;
+      margin-bottom: 1.0em;
+
+    }
+
+  }
+}

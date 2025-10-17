@@ -99,13 +99,13 @@ class Node(_C.dag.Node):
         """Get the developer information of the node."""
         return super().get_developer()
     
-    def set_github(self, github: str):
-        """Set the GitHub repository information for the node."""
-        return super().set_github(github)
+    def set_source(self, source: str):
+        """Set the Source repository information for the node."""
+        return super().set_source(source)
     
-    def get_github(self) -> str:
-        """Get the GitHub repository information of the node."""
-        return super().get_github()
+    def get_source(self) -> str:
+        """Get the Source repository information of the node."""
+        return super().get_source()
     
     def set_desc(self, desc: str):
         """Set the description of the node."""
@@ -146,6 +146,90 @@ class Node(_C.dag.Node):
     def get_external_param(self, key: str):
         """Get external parameter by key."""
         return super().get_external_param(key)
+    
+    def set_version(self, version: str):
+        """设置节点版本。"""
+        return super().set_version(version)
+    
+    def get_version(self) -> str:
+        """获取节点版本。"""
+        return super().get_version()
+    
+    def set_required_params(self, required_params: list):
+        """设置必需参数列表。"""
+        return super().set_required_params(required_params)
+    
+    def add_required_param(self, required_param: str):
+        """添加必需参数。"""
+        return super().add_required_param(required_param)
+    
+    def remove_required_param(self, required_param: str):
+        """移除必需参数。"""
+        return super().remove_required_param(required_param)
+    
+    def clear_required_params(self):
+        """清空必需参数列表。"""
+        return super().clear_required_params()
+    
+    def get_required_params(self) -> list:
+        """获取必需参数列表。"""
+        return super().get_required_params()
+    
+    def set_ui_params(self, ui_params: list):
+        """设置UI参数列表。"""
+        return super().set_ui_params(ui_params)
+    
+    def add_ui_param(self, ui_param: str):
+        """添加UI参数。"""
+        return super().add_ui_param(ui_param)
+    
+    def remove_ui_param(self, ui_param: str):
+        """移除UI参数。"""
+        return super().remove_ui_param(ui_param)
+    
+    def clear_ui_params(self):
+        """清空UI参数列表。"""
+        return super().clear_ui_params()
+    
+    def get_ui_params(self) -> list:
+        """获取UI参数列表。"""
+        return super().get_ui_params()
+    
+    def set_io_params(self, io_params: list):
+        """设置IO参数列表。"""
+        return super().set_io_params(io_params)
+    
+    def add_io_param(self, io_param: str):
+        """添加IO参数。"""
+        return super().add_io_param(io_param)
+    
+    def remove_io_param(self, io_param: str):
+        """移除IO参数。"""
+        return super().remove_io_param(io_param)
+    
+    def clear_io_params(self):
+        """清空IO参数列表。"""
+        return super().clear_io_params()
+    
+    def get_io_params(self) -> list:
+        """获取IO参数列表。"""
+        return super().get_io_params()
+    
+    def set_dropdown_params(self, dropdown_params: dict):
+        """设置下拉参数列表。"""
+        return super().set_dropdown_params(dropdown_params)
+    
+    def add_dropdown_param(self, dropdown_param: str, dropdown_values: list):
+        """添加下拉参数。"""
+        return super().add_dropdown_param(dropdown_param, dropdown_values)
+    
+    def remove_dropdown_param(self, dropdown_param: str):
+        """移除下拉参数。"""
+        return super().remove_dropdown_param(dropdown_param)
+    
+    def clear_dropdown_params(self):
+        """清空下拉参数列表。"""
+        return super().clear_dropdown_params()
         
     def set_input(self, input, index: int = -1):
         """Set input at the specified index."""
@@ -182,6 +266,14 @@ class Node(_C.dag.Node):
     def get_output(self, index: int = 0):
         """Get output at the specified index."""
         return (super().get_output(index))
+    
+    def get_input_data(self, index: int = 0):
+        """Get input data at the specified index."""
+        return super().get_input_data(index)
+    
+    def set_output_data(self, output, index: int = 0, is_external: bool = True):
+        """Set output data at the specified index."""
+        return super().set_output_data(output, index, is_external)
         
     def get_all_input(self):
         """Get all inputs of the node."""
@@ -255,11 +347,11 @@ class Node(_C.dag.Node):
         """Get the execution stream of the node."""
         return super().get_stream()
     
-    def set_input_type_info(self, input_type_info: EdgeTypeInfo):
+    def set_input_type_info(self, input_type_info: EdgeTypeInfo, desc: str = ""):
         """Set the input type information for the node."""
-        return super().set_input_type_info(input_type_info)
+        return super().set_input_type_info(input_type_info, desc)
     
-    def set_input_type(self, input_type: type):
+    def set_input_type(self, input_type: type, desc: str = ""):
         """Set the input type for the node.
         
         Args:
@@ -270,21 +362,21 @@ class Node(_C.dag.Node):
         """
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(input_type)
-        return self.set_input_type_info(edge_type_info)
+        return self.set_input_type_info(edge_type_info, desc)
         
     def get_input_type_info(self) -> EdgeTypeInfo:
         """Get the input type information of the node."""
         return super().get_input_type_info()
     
-    def set_output_type_info(self, output_type_info: EdgeTypeInfo):
+    def set_output_type_info(self, output_type_info: EdgeTypeInfo, desc: str = ""):
         """Set the output type information for the node."""
-        return super().set_output_type_info(output_type_info)
+        return super().set_output_type_info(output_type_info, desc)
     
-    def set_output_type(self, output_type: type):
+    def set_output_type(self, output_type: type, desc: str = ""):
         """Set the output type for the node."""
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
-        return self.set_output_type_info(edge_type_info)
+        return self.set_output_type_info(edge_type_info, desc)
         
     def get_output_type_info(self) -> EdgeTypeInfo:
         """Get the output type information of the node."""
@@ -436,12 +528,8 @@ def get_node_json(node_key: str):
     
     # print(node)   
     is_graph = node.get_graph_flag()
-    is_graph_type = isinstance(node, _C.dag.Graph)
     
-    if is_graph and not is_graph_type:
-        print(f"node key[{node.get_key()}] is graph, but not export python graph type")
-        return ""
-    if is_graph and is_graph_type:
+    if is_graph:
         # print(node)        
         node.set_inner_flag(True)
         status = node.to_static_graph()
@@ -645,10 +733,14 @@ def import_global_import_lib():
     
 # List of node keys to exclude from node listing
 remove_node_keys = [
-    "nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition",
+    "nndeploy::dag::Graph", "nndeploy::dag::FixedLoop",
+    "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition", "nndeploy::dag::Comment",
     "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
     "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
-    "nndeploy::preprocess::BatchPreprocess"
+    "nndeploy::preprocess::BatchPreprocess",
+    "nndeploy::qwen::PrefillEmbeddingNode", "nndeploy::qwen::DecodeEmbeddingNode", "nndeploy::qwen::PrefillSampleNode",
+    "nndeploy::qwen::DecodeSampleNode", "nndeploy::qwen::PromptNode", "nndeploy::qwen::PrintNode",
+    "nndeploy::qwen::QwenPrefill", "nndeploy::qwen::QwenDecode",
 ]
 
 
@@ -675,8 +767,8 @@ def sub_remove_node_keys(node_keys: list[str]):
 
 # def get_all_node_json():
 #     # Import all required modules
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
 #     import_global_import_lib()
     
 #     global remove_node_keys
@@ -717,8 +809,8 @@ def get_all_node_json():
         JSON string containing all nodes in tree format
     """
     # Import all required modules
-    # add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-    # add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+    # add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+    # add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
     import_global_import_lib()
     
     global remove_node_keys
@@ -784,8 +876,8 @@ def get_all_node_json():
                 current_path = f"{current_path}{separator}{part}" if current_path else part
                 all_directories.add(current_path)
     
-    # Sort by path length to ensure parent directories are created first
-    sorted_directories = sorted(all_directories, key=lambda x: len(x.split("::" if "::" in x else ".")))
+    # sort by alphabet order
+    sorted_directories = sorted(all_directories)
     
     # Create directory nodes
     for directory_path in sorted_directories:
@@ -844,8 +936,8 @@ def get_all_node_json():
 
 # def get_all_node_json():
 #     # Import all required modules
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/libnndeploy_plugin_template.so")
-#     add_global_import_lib("/home/always/github/public/nndeploy/build/tensor/tensor_node.py")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/libnndeploy_plugin_template.so")
+#     add_global_import_lib("/home/always/source/public/nndeploy/build/tensor/tensor_node.py")
 #     import_global_import_lib()
     
 #     global remove_node_keys

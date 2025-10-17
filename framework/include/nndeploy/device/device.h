@@ -733,6 +733,13 @@ extern NNDEPLOY_CC_API base::Status disableDevice();
  */
 extern NNDEPLOY_CC_API base::Status destoryArchitecture();
 
+/**
+ * @brief 销毁指定类型的架构
+ * @param device_type_code 设备类型代码
+ * @return base::Status 销毁结果状态
+ */
+extern NNDEPLOY_CC_API base::Status destoryArchitecture(base::DeviceTypeCode device_type_code);
+
 }  // namespace device
 }  // namespace nndeploy
 

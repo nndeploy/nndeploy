@@ -1,0 +1,67 @@
+
+#ifndef _NNDEPLOY_KERNEL_UTIL_H_
+#define _NNDEPLOY_KERNEL_UTIL_H_
+
+#include "nndeploy/kernel/preprocessor_marco.h"
+
+// ref:oneflow
+
+#if defined(__CUDACC__)
+#define DEVICE_FUNC __device__ __host__ __forceinline__
+#else
+#define DEVICE_FUNC inline
+#endif
+
+#define NNDEPLOY_PP_CAT(a, b) NNDEPLOY_PP_INTERNAL_CAT(a, b)
+
+#define NNDEPLOY_PP_STRINGIZE(...) NNDEPLOY_PP_INTERNAL_STRINGIZE(__VA_ARGS__)
+
+#define NNDEPLOY_PP_PAIR_FIRST(pair) NNDEPLOY_PP_INTERNAL_PAIR_FIRST(pair)
+
+#define NNDEPLOY_PP_PAIR_SECOND(pair) NNDEPLOY_PP_INTERNAL_PAIR_SECOND(pair)
+
+#define NNDEPLOY_PP_PAIR_THIRD(pair) NNDEPLOY_PP_INTERNAL_PAIR_THIRD(pair)
+
+#define NNDEPLOY_PP_TUPLE_SIZE(t) NNDEPLOY_PP_INTERNAL_TUPLE_SIZE(t)
+
+#define NNDEPLOY_PP_TUPLE_ELEM(n, t) NNDEPLOY_PP_INTERNAL_TUPLE_ELEM(n, t)
+
+#define NNDEPLOY_PP_MAKE_TUPLE_SEQ(...) \
+  NNDEPLOY_PP_INTERNAL_MAKE_TUPLE_SEQ(__VA_ARGS__)
+
+#define NNDEPLOY_PP_FOR_EACH_TUPLE(macro, seq) \
+  NNDEPLOY_PP_INTERNAL_FOR_EACH_TUPLE(macro, seq)
+
+#define NNDEPLOY_PP_OUTTER_FOR_EACH_TUPLE(macro, seq) \
+  NNDEPLOY_PP_INTERNAL_OUTTER_FOR_EACH_TUPLE(macro, seq)
+
+#define NNDEPLOY_PP_SEQ_PRODUCT_FOR_EACH_TUPLE(macro, ...) \
+  NNDEPLOY_PP_INTERNAL_SEQ_PRODUCT_FOR_EACH_TUPLE(macro, __VA_ARGS__)
+
+#define NNDEPLOY_PP_VARIADIC_SIZE(...) \
+  NNDEPLOY_PP_INTERNAL_VARIADIC_SIZE(__VA_ARGS__)
+
+#define NNDEPLOY_PP_SEQ_SIZE(seq) NNDEPLOY_PP_INTERNAL_SEQ_SIZE(seq)
+
+#define NNDEPLOY_PP_ATOMIC_TO_TUPLE(x) (x)
+
+#define NNDEPLOY_PP_FOR_EACH_ATOMIC(macro, seq) \
+  NNDEPLOY_PP_FOR_EACH_TUPLE(                   \
+      macro, NNDEPLOY_PP_SEQ_MAP(NNDEPLOY_PP_ATOMIC_TO_TUPLE, seq))
+
+#define NNDEPLOY_PP_SEQ_PRODUCT(seq0, ...) \
+  NNDEPLOY_PP_INTERNAL_SEQ_PRODUCT(seq0, __VA_ARGS__)
+
+#define NNDEPLOY_PP_SEQ_MAP(macro, seq)                                 \
+  NNDEPLOY_PP_SEQ_PRODUCT_FOR_EACH_TUPLE(NNDEPLOY_PP_I_SEQ_MAP_DO_EACH, \
+                                         (macro), seq)
+#define NNDEPLOY_PP_I_SEQ_MAP_DO_EACH(macro, elem) (macro(elem))
+
+#define NNDEPLOY_PP_JOIN(glue, ...) NNDEPLOY_PP_INTERNAL_JOIN(glue, __VA_ARGS__)
+
+#define NNDEPLOY_PP_TUPLE_PUSH_FRONT(t, x) \
+  NNDEPLOY_PP_INTERNAL_TUPLE_PUSH_FRONT(t, x)
+
+#define NNDEPLOY_PP_FORCE(...) \
+  NNDEPLOY_PP_TUPLE2VARADIC(NNDEPLOY_PP_CAT((__VA_ARGS__), ))
+#endif /*  */

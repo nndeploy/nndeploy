@@ -1,6 +1,4 @@
 from typing import Any, List
-import cv2
-import threading
 import gfpgan
 import os
 import numpy as np
@@ -21,6 +19,7 @@ class GFPGAN(nndeploy.dag.Node):
         self.model_path_ = "GFPGANv1.4.pth"
         self.upscale_ = 1
         self.device_, _ = nndeploy.device.get_available_device()
+        
         # print(self.device_)
         
     def init(self):
@@ -35,6 +34,7 @@ class GFPGAN(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def serialize(self):
+        self.add_required_param("model_path_")
         json_str = super().serialize()
         json_obj = json.loads(json_str)
         json_obj["model_path_"] = self.model_path_

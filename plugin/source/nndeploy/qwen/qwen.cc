@@ -13,12 +13,12 @@
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
-#include "nndeploy/base/file.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
@@ -88,7 +88,9 @@ QwenConfig parseConfig(const std::string& file_path) {
 
   config.kv_init_shape_.insert(config.kv_init_shape_.begin(),
                                config.layer_nums_);
-  for (auto& s : config.kv_init_shape_) NNDEPLOY_LOGI("%d,", s);
+  for (auto& s : config.kv_init_shape_) {
+    NNDEPLOY_LOGI("%d,", s);
+  }
   NNDEPLOY_LOGI("]\n");
 
   return config;
@@ -99,6 +101,8 @@ QwenConfig parseConfig(const std::string& file_path) {
  */
 base::Status PromptParam::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addRequiredParam("user_content_");
+  base::Status status = base::Param::serialize(json, allocator);
   rapidjson::Value prompt_template_val;
   prompt_template_val.SetString(
       prompt_template_.c_str(),
@@ -118,6 +122,11 @@ base::Status PromptParam::serialize(
  * @brief PromptParam Deserialize Function
  */
 base::Status PromptParam::deserialize(rapidjson::Value& json) {
+  base::Status status = base::Param::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("ResizeParam::deserialize failed\n");
+    return status;
+  }
   if (json.HasMember("prompt_template_") &&
       json["prompt_template_"].IsString()) {
     prompt_template_ = json["prompt_template_"].GetString();
@@ -203,6 +212,33 @@ base::Status DecodeEmbeddingParam::deserialize(rapidjson::Value& json) {
   return base::kStatusCodeOk;
 }
 
+base::Status PrintNode::serialize(
+    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addRequiredParam("path_");
+  base::Status status = dag::Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  rapidjson::Value path_val;
+  path_val.SetString(path_.c_str(),
+                     static_cast<rapidjson::SizeType>(path_.length()),
+                     allocator);
+  json.AddMember("path_", path_val, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status PrintNode::deserialize(rapidjson::Value& json) {
+  base::Status status = dag::Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  if (json.HasMember("path_") && json["path_"].IsString()) {
+    path_ = json["path_"].GetString();
+  }
+
+  return base::kStatusCodeOk;
+}
+
 std::string PromptNode::applyTemplate(std::string prompt_template,
                                       const std::string& content,
                                       const std::string& role) {
@@ -266,9 +302,11 @@ base::Status PrintNode::run() {
   }
 
   // std::string file_path = tmp_dir + "/output.txt";
-  std::string file_path = tmp_dir + "/output_" + name_ + ".txt";
+  if (path_.empty()) {
+    path_ = tmp_dir + "/output_" + name_ + ".txt";
+  }
 
-  std::ofstream ofs(file_path.c_str());
+  std::ofstream ofs(path_.c_str());
   if (!ofs) {
     NNDEPLOY_LOGE("[PrintNode] Failed to open file\n");
     return base::kStatusCodeErrorIO;
@@ -276,7 +314,7 @@ base::Status PrintNode::run() {
   ofs << result->texts_[0];
   ofs.close();
 
-  NNDEPLOY_LOGI("[PrintNode] Text written to: %s\n", file_path.c_str());
+  NNDEPLOY_LOGI("[PrintNode] Text written to: %s\n", path_.c_str());
   return base::kStatusCodeOk;
 }
 

@@ -4,7 +4,6 @@
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/qwen/qwen.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 #include "nndeploy/tokenizer/tokenizer.h"
@@ -17,12 +16,6 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   // name of LLM DAG
@@ -116,10 +109,5 @@ int main(int argc, char *argv[]) {
   delete llm_graph;
   delete graph;
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

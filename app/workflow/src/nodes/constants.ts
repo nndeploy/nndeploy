@@ -4,7 +4,7 @@ export enum WorkflowNodeType {
   LLM = 'llm',
   Condition = 'condition',
   Loop = 'loop',
-  Comment = 'comment',
+  Comment = 'nndeploy::dag::Comment',
   Container = 'container',
    My = 'my',
 }

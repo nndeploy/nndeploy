@@ -12,7 +12,7 @@ build:
     python: "3.11"
     # You can also specify other tool versions:
     # nodejs: "19"
-    rust: "1.78"
+    rust: "1.86"
     # golang: "1.19"
   apt_packages:
     - doxygen
@@ -34,13 +34,13 @@ build:
       - cmake --version
     pre_build:
       # - cd tool/script && python install_opencv.py && python install_onnxruntime.py
-      - cd tool/script && python install_opencv.py
+      # - cd tool/script && python install_opencv.py
       # 创建build目录
       # - mkdir -p build && cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake 
       - mkdir -p build 
       # 进入构建目录进行配置和编译
-      - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
-      - cd python && pip install --use-pep517 -e .
+      # - cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) && make install
+      # - cd python && pip install --use-pep517 -e .
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

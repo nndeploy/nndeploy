@@ -12,15 +12,21 @@ CompositeNode::~CompositeNode() {
 
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
+      // std::string name = node_wrapper->node_->getName();
+      // NNDEPLOY_LOGE("composite node [%s] delete node[%s]\n", getName().c_str(),
+      //               name.c_str());
       delete node_wrapper->node_;
+      // NNDEPLOY_LOGE("composite node [%s] delete node[%s]\n", getName().c_str(),
+      //               name.c_str());
     }
     delete node_wrapper;
   }
 
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      std::string name = edge_wrapper->edge_->getName();
-      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n", getName().c_str(),
+      // std::string name = edge_wrapper->edge_->getName();
+      // NNDEPLOY_LOGE("composite node [%s] delete edge[%s]\n",
+      // getName().c_str(),
       //               name.c_str());
       delete edge_wrapper->edge_;
       // NNDEPLOY_LOGE("composite node [%s] delete edge[%s] success\n",
@@ -271,33 +277,6 @@ base::Status CompositeNode::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
-// Node *CompositeNode::createNode(const std::string &key, const std::string
-// &name) {
-//   if (used_node_names_.find(name) != used_node_names_.end()) {
-//     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
-//     return nullptr;
-//   }
-//   std::string unique_name = name;
-//   if (unique_name.empty()) {
-//     unique_name = "node_" + base::getUniqueString();
-//   }
-//   Node *node = nndeploy::dag::createNode(key, unique_name);
-//   if (node == nullptr) {
-//     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
-//     return nullptr;
-//   }
-//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(),
-//   node); NodeWrapper *node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = false;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = unique_name;
-//   node_repository_.emplace_back(node_wrapper);
-//   used_node_names_.insert(unique_name);
-
-//   // node->setGraph(this);
-//   return node;
-// }
-
 Node *CompositeNode::createNode(const NodeDesc &desc) {
   const std::string &name = desc.getName();
   const std::string &node_key = desc.getKey();
@@ -351,7 +330,7 @@ Node *CompositeNode::createNode(const NodeDesc &desc) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
 
-  // node->setGraph(this);
+  node->setCompositeNode(this);
 
   return node;
 }
@@ -451,6 +430,7 @@ base::Status CompositeNode::setNodeDesc(Node *node, const NodeDesc &desc) {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node setOutput failed!");
   // NNDEPLOY_LOGE("NODE: %s has %d inputs and %d outputs.\n",
   //               node->getName().c_str(), inputs.size(), outputs.size());
+  // node->setCompositeNode(this);
   return base::kStatusCodeOk;
 }
 
@@ -490,7 +470,7 @@ base::Status CompositeNode::addNode(Node *node, bool is_external) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(node->getName());
 
-  // node->setGraph(this->getGraph());
+  node->setCompositeNode(this);
 
   return status;
 }
@@ -694,32 +674,6 @@ base::Status CompositeNode::deinit() {
   return status;
 }
 
-// Node *CompositeNode::createNode4Py(const std::string &key, const std::string
-// &name) {
-//   if (used_node_names_.find(name) != used_node_names_.end()) {
-//     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
-//     return nullptr;
-//   }
-//   std::string unique_name = name;
-//   if (unique_name.empty()) {
-//     unique_name = "node_" + base::getUniqueString();
-//   }
-//   Node *node = nndeploy::dag::createNode(key, unique_name);
-//   if (node == nullptr) {
-//     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
-//     return nullptr;
-//   }
-//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(),
-//   node); NodeWrapper *node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = true;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = unique_name;
-//   node_repository_.emplace_back(node_wrapper);
-//   used_node_names_.insert(unique_name);
-
-//   // node->setGraph(this->getGraph());
-//   return node;
-// }
 Node *CompositeNode::createNode4Py(const NodeDesc &desc) {
   const std::string &name = desc.getName();
   const std::string &node_key = desc.getKey();
@@ -772,7 +726,7 @@ Node *CompositeNode::createNode4Py(const NodeDesc &desc) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
 
-  // node->setGraph(this->getGraph());
+  node->setCompositeNode(this);
 
   return node;
 }

@@ -9,6 +9,7 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/base/ring_queue.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
@@ -34,6 +35,8 @@ class PipelineEdge : public AbstractEdge {
   virtual ~PipelineEdge();
 
   virtual base::Status setQueueMaxSize(int queue_max_size);
+
+  virtual bool empty();
 
   virtual base::Status construct();
 
@@ -83,6 +86,14 @@ class PipelineEdge : public AbstractEdge {
  private:
   PipelineDataPacket *getPipelineDataPacket(const Node *node);
 
+  void pushBackUnlocked(PipelineDataPacket *dp);
+  PipelineDataPacket *atUnlocked(size_t index) const;
+  PipelineDataPacket *frontUnlocked() const;
+  PipelineDataPacket *backUnlocked() const;
+  PipelineDataPacket *popFrontUnlocked();
+  size_t queueSizeUnlocked() const;
+  size_t queueLimit() const;
+
  private:
   std::once_flag once_;
   std::mutex mutex_;
@@ -92,9 +103,9 @@ class PipelineEdge : public AbstractEdge {
   // 队列最大值
   // std::mutex queue_mutex_;
   std::condition_variable queue_cv_;
-  int queue_max_size_;
+  int queue_max_size_ = 16;
   // 数据包
-  std::list<PipelineDataPacket *> data_packets_;
+  base::RingQueue<PipelineDataPacket *> data_queue_;
   // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
   std::map<Node *, int> to_consume_index_;
   // 每个消费者 消费 的当前数据包

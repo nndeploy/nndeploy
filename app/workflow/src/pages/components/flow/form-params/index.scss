@@ -4,8 +4,12 @@
   align-items: flex-start;
 
   .field-label {
-    width: 118px
+    width: 138px;
+    display: flex;
+    justify-content: space-between;
   }
+
+
 
   .filed-array-items {
     flex: 1;
@@ -16,4 +20,17 @@
     }
   }
 
+}
+
+.object-field {
+  &>.field-label {
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  &>.child-fields {
+    .field-label {
+      padding-left: 2em;
+    }
+  }
 }

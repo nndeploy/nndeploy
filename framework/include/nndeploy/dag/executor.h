@@ -42,6 +42,7 @@ class NNDEPLOY_CC_API Executor : public base::NonCopyable {
 
   virtual base::Status run() = 0;
   virtual bool synchronize() = 0;
+  virtual bool interrupt() = 0;
 
  protected:
   // must be set by user

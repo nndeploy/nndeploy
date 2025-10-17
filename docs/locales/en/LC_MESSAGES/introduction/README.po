@@ -394,7 +394,7 @@ msgstr ""
 "you are welcome to join us."
 
 #: ../../introduction/README.md:257 9f9cfacc72144141bae38f275cfd09d8
-msgid "微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
+msgid "微信：Always031856 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
 msgstr ""
-"WeChat: titian5566 (You can add my WeChat to join the nndeploy discussion "
+"WeChat: Always031856 (You can add my WeChat to join the nndeploy discussion "
 "group, note: nndeploy + name)"

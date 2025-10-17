@@ -25,6 +25,7 @@ export interface ITreeWorkFlowResponseData{
 export interface IBusinessNode{
   key_: string; 
   name_: string; 
+  desc_:string;
   device_type_: string; 
   inputs_:any[], 
   outputs_:any[], 
@@ -62,4 +63,6 @@ export interface IFieldType{
    primateType: string; 
    selectOptions?: string[]; 
    selectKey?: string; 
+   originValue: any
 }
+

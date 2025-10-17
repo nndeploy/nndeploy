@@ -63,27 +63,29 @@ class NNDEPLOY_CC_API Interpret {
   // 打印模型结构
   base::Status dump(std::ostream &oss = std::cout);
 
-  /**
-   * @brief 存储模型结构以及模型权重
-   *
-   * 该函数负责将模型的结构和权重存储到指定的输出流中。
-   * 这个过程通常包括序列化模型结构、序列化模型权重等步骤。
-   *
-   * @param structure_stream
-   * 输出流，用于存储模型结构的序列化数据。
-   * @param weight_file_path
-   * 输出流，用于存储模型权重的序列化数据。
-   *
-   * @return base::Status 返回存储过程的状态。
-   *         - 如果存储成功，返回 base::kStatusCodeOk
-   *         - 如果存储失败，返回对应的错误状态码
-   *
-   * @note 这是一个虚函数，可以在派生类中重载以实现特定的存储逻辑。
-   *
-   * @see base::Status 了解可能的返回状态
-   */
+/**
+ * @brief 存储模型结构以及模型权重
+ *
+ * 该函数负责将模型的结构和权重存储到指定的输出流中。
+ * 这个过程通常包括序列化模型结构、序列化模型权重等步骤。
+ *
+ * @param structure_stream
+ * 输出流，用于存储模型结构的序列化数据。
+ * @param weight_file_path
+ * 输出流，用于存储模型权重的序列化数据。
+ *
+ * @return base::Status 返回存储过程的状态。
+ *         - 如果存储成功，返回 base::kStatusCodeOk
+ *         - 如果存储失败，返回对应的错误状态码
+ *
+ * @note 这是一个虚函数，可以在派生类中重载以实现特定的存储逻辑。
+ *
+ * @see base::Status 了解可能的返回状态
+ */
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status saveModel(std::string &structure_str,
                          std::shared_ptr<safetensors::safetensors_t> st_ptr);
+#endif
   /**
    * @brief 存储模型结构以及模型权重到指定路径
    *
@@ -168,8 +170,8 @@ class TypeInterpretCreator : public InterpretCreator {
  *
  * @return std::map<base::ModelType, std::shared_ptr<InterpretCreator>>&
  */
-extern NNDEPLOY_CC_API std::map<base::ModelType,
-                                 std::shared_ptr<InterpretCreator>> &
+extern NNDEPLOY_CC_API
+    std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
     getGlobalInterpretCreatorMap();
 
 /**

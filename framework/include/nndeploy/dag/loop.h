@@ -23,19 +23,46 @@ namespace dag {
 
 class NNDEPLOY_CC_API Loop : public Graph {
  public:
-  Loop(const std::string &name);
-  Loop(const std::string &name, std::vector<dag::Edge *> inputs,
-       std::vector<dag::Edge *> outputs);
+  Loop(const std::string& name);
+  Loop(const std::string& name, std::vector<dag::Edge*> inputs,
+       std::vector<dag::Edge*> outputs);
   virtual ~Loop();
 
+  virtual base::Status initStart() { return base::kStatusCodeOk; }
+  virtual base::Status initEnd() { return base::kStatusCodeOk; }
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual int loops() = 0;
+  virtual base::Status iterBefore() { return base::kStatusCodeOk; }
+  virtual base::Status iterAfter() { return base::kStatusCodeOk; }
   virtual base::Status run();
 
  protected:
   virtual base::Status executor();
+};
+
+// 固定次数的loop
+class NNDEPLOY_CC_API FixedLoop : public Loop {
+ public:
+  FixedLoop(const std::string& name);
+  FixedLoop(const std::string& name, std::vector<dag::Edge*> inputs,
+            std::vector<dag::Edge*> outputs);
+  virtual ~FixedLoop();
+
+  virtual int loops() override;
+
+  virtual void setLoops(int loops);
+
+  using dag::Node::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value& json,
+      rapidjson::Document::AllocatorType& allocator) override;
+  using dag::Node::deserialize;
+  virtual base::Status deserialize(rapidjson::Value& json) override;
+
+ protected:
+  int loops_ = 0;
 };
 
 }  // namespace dag

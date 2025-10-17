@@ -9,6 +9,34 @@ import tarfile
 import requests
 import platform
 from pathlib import Path
+import time
+
+def download_with_retry(url, filename, max_retries=3, timeout=300):
+    """带重试机制的下载函数"""
+    import time
+    
+    for attempt in range(max_retries + 1):
+        try:
+            print(f"Downloading attempt {attempt + 1}/{max_retries + 1}...")
+            response = requests.get(url, stream=True, timeout=timeout)
+            if response.status_code != 200:
+                raise Exception(f"Download failed, status code: {response.status_code}")
+            
+            with open(filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            
+            print(f"Download successful on attempt {attempt + 1}")
+            return True
+            
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries:
+                wait_time = 2 ** attempt  # 指数退避
+                print(f"Waiting {wait_time} seconds before retry...")
+                time.sleep(wait_time)
+            else:
+                raise e
 
 # 设置标准输出编码为UTF-8，解决Windows下中文输出问题
 if platform.system() == "Windows":
@@ -17,7 +45,8 @@ if platform.system() == "Windows":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # MNN version
-MNN_VER = "2.4.0"
+# MNN_VER = "2.4.0"
+MNN_VER = "3.2.4"
 
 # 获取当前执行目录
 WORKSPACE = Path(os.getcwd())
@@ -33,10 +62,10 @@ MNN_BUILD_DIR.mkdir(parents=True, exist_ok=True)
 os.chdir(MNN_BUILD_DIR)
 
 # 根据平台确定下载URL和文件名
-def get_download_info():
+def get_download_info(system, machine):
     """根据当前平台返回对应的下载信息"""
-    system = platform.system()
-    machine = platform.machine()
+    # system = platform.system()
+    # machine = platform.machine()
     
     if system == "Windows":
         if machine == "AMD64" or machine == "x86_64":
@@ -74,7 +103,27 @@ def get_download_info():
     return url, filename
 
 # 获取下载信息
-url, filename = get_download_info()
+# 允许外部指定系统和架构信息，如果未指定则使用当前平台信息
+import argparse
+
+# 解析命令行参数
+parser = argparse.ArgumentParser(description='Install MNN precompiled library')
+parser.add_argument('--system', type=str, help='Target system (Windows, Linux, Darwin, Android, iOS)')
+parser.add_argument('--machine', type=str, help='Target machine architecture (x86_64, arm64, etc.)')
+args = parser.parse_args()
+
+# 如果命令行指定了系统和架构，使用指定的值；否则使用当前平台信息
+if args.system:
+    system = args.system
+else:
+    system = platform.system()
+
+if args.machine:
+    machine = args.machine
+else:
+    machine = platform.machine()
+
+url, filename = get_download_info(system, machine)
 
 # 下载MNN预编译版本
 print(f"Downloading MNN {MNN_VER}...")
@@ -121,13 +170,14 @@ source_url = f"https://github.com/alibaba/MNN/archive/refs/tags/{MNN_VER}.tar.gz
 source_filename = f"MNN-{MNN_VER}.tar.gz"
 
 print(f"Downloading source from: {source_url}")
-response = requests.get(source_url, stream=True)
-if response.status_code != 200:
-    raise Exception(f"Source download failed, status code: {response.status_code}")
+# response = requests.get(source_url, stream=True)
+# if response.status_code != 200:
+#     raise Exception(f"Source download failed, status code: {response.status_code}")
 
-with open(source_filename, 'wb') as f:
-    for chunk in response.iter_content(chunk_size=8192):
-        f.write(chunk)
+# with open(source_filename, 'wb') as f:
+#     for chunk in response.iter_content(chunk_size=8192):
+#         f.write(chunk)
+download_with_retry(source_url, source_filename)
 
 # 解压源代码
 print("Extracting source code...")
@@ -150,7 +200,7 @@ mnn_include_dir.mkdir(parents=True, exist_ok=True)
 source_include_dir = Path(source_dir) / "include"
 if source_include_dir.exists():
     print("Copying header files from source...")
-    shutil.copytree(source_include_dir, mnn_include_dir, dirs_exist_ok=True)
+    shutil.copytree(source_include_dir, mnn_include_dir, symlinks=True, dirs_exist_ok=True)
 else:
     print("Warning: include directory not found in source code")
 
@@ -159,13 +209,23 @@ print(f"Installing to target directory: {MNN_INSTALL_DIR}")
 if MNN_INSTALL_DIR.exists():
     shutil.rmtree(MNN_INSTALL_DIR)
 
-# 拷贝整个目录
-shutil.copytree("mnn", MNN_INSTALL_DIR)
+# 拷贝下载的MNN目录到build目录
+MNN_DOWNLOAD_DIR = MNN_BUILD_DIR / "mnn"
+all_libs = MNN_DOWNLOAD_DIR.rglob("*")
+print(f"all_libs: {all_libs}")
 
-# 验证安装
+# 拷贝头文件
 include_dir = MNN_INSTALL_DIR / "include"
-lib_dir = MNN_INSTALL_DIR / "lib"
+if not include_dir.exists():
+    include_dir.mkdir(parents=True, exist_ok=True)
+shutil.copytree(MNN_DOWNLOAD_DIR / "include", include_dir, symlinks=True, dirs_exist_ok=True)
+
+lib_dir = MNN_INSTALL_DIR / "lib"  
 bin_dir = MNN_INSTALL_DIR / "bin"
+
+# 从all_libs中移除include_dir、lib_dir和bin_dir
+all_libs = [lib for lib in all_libs if lib not in [include_dir, lib_dir, bin_dir]]
+print(f"all_libs: {all_libs}")
 
 # 创建lib和bin目录
 lib_dir.mkdir(parents=True, exist_ok=True)
@@ -173,20 +233,38 @@ bin_dir.mkdir(parents=True, exist_ok=True)
 
 # 拷贝动态库文件到相应目录
 print("Copying dynamic libraries...")
-for item in MNN_INSTALL_DIR.rglob("*"):
+for item in all_libs:
+    print(f"item: {item}")
     if item.is_file():
-        if platform.system() == "Windows":
+        if system == "Windows":
             # Windows平台：.dll文件拷贝到bin目录，.lib文件拷贝到lib目录
             if item.suffix == '.dll':
-                shutil.copy2(item, bin_dir)
+                shutil.copy2(item, bin_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to bin directory")
             elif item.suffix == '.lib':
-                shutil.copy2(item, lib_dir)
+                shutil.copy2(item, lib_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to lib directory")
+        elif system == "Android":
+            if item.suffix in ['.so', '.dylib'] or '.so.' in item.name:
+               # 检查文件路径中是否包含架构信息，拷贝到对应的架构目录
+               if "armeabi-v7a" in str(item):
+                   target_lib_dir = MNN_INSTALL_DIR / "lib" / "armeabi-v7a"
+                   target_lib_dir.mkdir(parents=True, exist_ok=True)
+                   shutil.copy2(item, target_lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to armeabi-v7a lib directory")
+               elif "arm64-v8a" in str(item):
+                   target_lib_dir = MNN_INSTALL_DIR / "lib" / "arm64-v8a"
+                   target_lib_dir.mkdir(parents=True, exist_ok=True)
+                   shutil.copy2(item, target_lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to arm64-v8a lib directory")
+               else:
+                   # 如果没有架构信息，拷贝到默认的lib目录
+                   shutil.copy2(item, lib_dir, follow_symlinks=False)
+                   print(f"Copied {item.name} to lib directory")
         else:
             # Linux/macOS平台：.so/.dylib文件拷贝到lib目录
             if item.suffix in ['.so', '.dylib'] or '.so.' in item.name:
-                shutil.copy2(item, lib_dir)
+                shutil.copy2(item, lib_dir, follow_symlinks=False)
                 print(f"Copied {item.name} to lib directory")
 
 print("Verifying installation:")
@@ -196,19 +274,20 @@ print(f"Binary directory: {bin_dir} - {'exists' if bin_dir.exists() else 'not fo
 
 if include_dir.exists():
     print("Header files:")
-    for header in include_dir.glob("**/*.h"):
-        print(f"  {header.relative_to(include_dir)}")
+    for header in include_dir.rglob("*"):
+        if header.is_file():
+            print(f"  {header.relative_to(include_dir)}")
 
 if lib_dir.exists():
     print("Library files:")
-    for lib_file in lib_dir.iterdir():
+    for lib_file in lib_dir.rglob("*"):
         if lib_file.is_file():
-            print(f"  {lib_file.name}")
+            print(f"  {lib_file.relative_to(lib_dir)}")
 
 if bin_dir.exists():
     print("Binary files:")
-    for bin_file in bin_dir.iterdir():
+    for bin_file in bin_dir.rglob("*"):
         if bin_file.is_file():
-            print(f"  {bin_file.name}")
+            print(f"  {bin_file.relative_to(bin_dir)}")
 
 print(f"MNN {MNN_VER} installation completed!")

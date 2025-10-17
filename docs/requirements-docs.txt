@@ -16,4 +16,5 @@ breathe == 4.35.0
 exhale
 
 setuptools>=40.0.0,<70.0.0
-# nndeploy
+
+nndeploy

@@ -33,8 +33,8 @@ class NNDEPLOY_CC_API EdgeWrapper {
   std::vector<NodeWrapper *> consumers_;
 };
 
-extern NNDEPLOY_CC_API Edge *getEdge(std::vector<EdgeWrapper *> &edge_repository,
-                              const std::string &edge_name);
+extern NNDEPLOY_CC_API Edge *getEdge(
+    std::vector<EdgeWrapper *> &edge_repository, const std::string &edge_name);
 extern NNDEPLOY_CC_API EdgeWrapper *findEdgeWrapper(
     std::vector<EdgeWrapper *> &edge_repository, const std::string &edge_name);
 extern NNDEPLOY_CC_API EdgeWrapper *findEdgeWrapper(
@@ -44,8 +44,8 @@ extern NNDEPLOY_CC_API std::vector<EdgeWrapper *> findStartEdges(
 extern NNDEPLOY_CC_API std::vector<EdgeWrapper *> findEndEdges(
     std::vector<EdgeWrapper *> &edge_repository);
 
-extern NNDEPLOY_CC_API Node *getNode(std::vector<NodeWrapper *> &node_repository,
-                              const std::string &node_name);
+extern NNDEPLOY_CC_API Node *getNode(
+    std::vector<NodeWrapper *> &node_repository, const std::string &node_name);
 extern NNDEPLOY_CC_API NodeWrapper *findNodeWrapper(
     std::vector<NodeWrapper *> &node_repository, const std::string &node_name);
 extern NNDEPLOY_CC_API NodeWrapper *findNodeWrapper(
@@ -58,11 +58,11 @@ extern NNDEPLOY_CC_API std::vector<NodeWrapper *> findEndNodes(
 extern NNDEPLOY_CC_API base::Status setColor(
     std::vector<NodeWrapper *> &node_repository, base::NodeColorType color);
 
-extern NNDEPLOY_CC_API base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
-                     std::vector<NodeWrapper *> &node_repository,
-                     std::vector<Edge *> &graph_inputs,
-                     std::vector<Edge *> &graph_outputs,
-                     const std::string &name, std::ostream &oss);
+extern NNDEPLOY_CC_API base::Status dumpDag(
+    std::vector<EdgeWrapper *> &edge_repository,
+    std::vector<NodeWrapper *> &node_repository,
+    std::vector<Edge *> &graph_inputs, std::vector<Edge *> &graph_outputs,
+    const std::string &name, std::ostream &oss);
 
 extern NNDEPLOY_CC_API std::vector<NodeWrapper *> checkUnuseNode(
     std::vector<NodeWrapper *> &node_repository);
@@ -70,18 +70,21 @@ extern NNDEPLOY_CC_API std::vector<EdgeWrapper *> checkUnuseEdge(
     std::vector<NodeWrapper *> &node_repository,
     std::vector<EdgeWrapper *> &edge_repository);
 
-extern NNDEPLOY_CC_API base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
-                         std::vector<NodeWrapper *> &topo_sort_node);
+extern NNDEPLOY_CC_API base::Status topoSortBFS(
+    std::vector<NodeWrapper *> &node_repository,
+    std::vector<NodeWrapper *> &topo_sort_node);
 
-extern NNDEPLOY_CC_API base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
-                         std::vector<NodeWrapper *> &topo_sort_node);
+extern NNDEPLOY_CC_API base::Status topoSortDFS(
+    std::vector<NodeWrapper *> &node_repository,
+    std::vector<NodeWrapper *> &topo_sort_node);
 
-extern NNDEPLOY_CC_API base::Status topoSort(std::vector<NodeWrapper *> &node_repository,
-                      base::TopoSortType topo_sort_type,
-                      std::vector<NodeWrapper *> &topo_sort_node);
+extern NNDEPLOY_CC_API base::Status topoSort(
+    std::vector<NodeWrapper *> &node_repository,
+    base::TopoSortType topo_sort_type,
+    std::vector<NodeWrapper *> &topo_sort_node);
 
 extern NNDEPLOY_CC_API bool checkEdge(const std::vector<Edge *> &src_edges,
-               const std::vector<Edge *> &dst_edges);
+                                      const std::vector<Edge *> &dst_edges);
 
 /**
  * @brief 对vector插入不在vector中的元素，即类似集合的作用
@@ -97,15 +100,23 @@ void insertUnique(std::vector<T> &vec, const T &val) {
 }
 
 extern NNDEPLOY_CC_API void findConsumerNode(EdgeWrapper *edge_wrapper,
-                      std::vector<Node *> &consumers);
+                                             std::vector<Node *> &consumers);
 
 extern NNDEPLOY_CC_API void findProducerNode(EdgeWrapper *edge_wrapper,
-                      std::vector<Node *> &producers);
+                                             std::vector<Node *> &producers);
 
 // base::Status getValueFromParamVec(const std::vector<base::Param *>
 // &param_vec,
 // const std::string &key, base::Value
 // &value);
+
+extern NNDEPLOY_CC_API std::string replaceGraphJsonStr(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map,
+    const std::string &json_str);
+extern NNDEPLOY_CC_API void replaceGraphJsonObj(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map,
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator);
 
 }  // namespace dag
 }  // namespace nndeploy

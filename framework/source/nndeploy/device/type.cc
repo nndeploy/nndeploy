@@ -253,7 +253,16 @@ TensorDesc::TensorDesc() {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape)
-    : data_type_(data_type), data_format_(format), shape_(shape) {};
+    : data_type_(data_type), data_format_(format), shape_(shape) {
+  int ndims = static_cast<int>(shape.size());
+  stride_.resize(ndims);
+  if (ndims > 0) {
+    stride_[ndims - 1] = data_type.size();
+    for (int i = ndims - 2; i >= 0; --i) {
+      stride_[i] = stride_[i + 1] * shape[i + 1];
+    }
+  }
+};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape,

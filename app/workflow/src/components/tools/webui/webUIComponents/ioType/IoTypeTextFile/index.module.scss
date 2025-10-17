@@ -1,0 +1,128 @@
+.io-type-container {
+
+  .io-type-input-container {
+
+
+    .file-content {
+      padding: 0.5em;
+      //border: 1px solid #eeeeee;
+      background-color: #eee4;
+      // border-radius: 5px;
+      min-height: 100px;
+      background-color: #eee4;
+
+      word-break: break-all;
+    }
+
+  }
+
+  .io-type-output-container {
+    .file-download-info {
+
+      display: flex;
+      padding: 0 0em 0 .5em;
+
+      gap: 8px;
+
+      align-items: center;
+      justify-content: space-between;
+
+      background-color: rgba(46, 50, 56, .05);
+      cursor: pointer;
+
+      .fileName {
+        flex: 1;
+      }
+
+      .iconDelete {
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--semi-color-danger)
+        }
+      }
+
+      .iconDelete {
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--semi-color-danger)
+        }
+      }
+
+      .download {
+        flex-shrink: 0;
+      }
+
+    }
+
+    .file-content {
+      padding: 0.5em;
+      //border: 1px solid #eeeeee;
+      // background-color: #eee4;
+      //border-radius: 5px;
+      min-height: 100px;
+
+      word-break: break-all;
+
+      display: flex;
+      flex-direction: column;
+
+      .spin {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1
+      }
+    }
+  }
+
+  // .preview {
+  //   margin-top: .5em;
+  //   min-height: 100px;
+  //   //max-height: 300px;
+
+  //   .file-download-info {
+  //     border-radius: var(--semi-border-radius-medium);
+
+  //     padding: 8px 12px;
+
+  //     display: flex;
+
+  //     gap: 8px;
+
+  //     align-items: center;
+  //     justify-content: space-between;
+
+  //     background-color: rgba(46, 50, 56, .05);
+  //     cursor: pointer;
+
+  //     .fileName {
+  //       flex: 1;
+  //     }
+
+  //     .iconDelete {
+  //       flex-shrink: 0;
+
+  //       &:hover {
+  //         color: var(--semi-color-danger)
+  //       }
+  //     }
+
+  //     .iconDelete {
+  //       flex-shrink: 0;
+
+  //       &:hover {
+  //         color: var(--semi-color-danger)
+  //       }
+  //     }
+
+  //     .download {
+  //       flex-shrink: 0;
+  //     }
+
+  //   }
+
+  //   //word-break: break-all;
+  // }
+}

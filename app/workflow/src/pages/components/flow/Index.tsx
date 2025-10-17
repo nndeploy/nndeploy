@@ -1,28 +1,21 @@
 import {
   EditorRenderer,
-  FlowNodeEntity,
-  FlowNodeFormData,
-  FormModelV2,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
-  getNodeForm,
-  usePlaygroundTools,
-  WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 
 import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
 import "./styles/my.css";
 //import { nodeRegistries } from "../../../nodes";
-import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
 import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, setupWebSocket } from "./api";
+import { apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 
-import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
+import { FlowDocumentJSON } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
@@ -32,51 +25,72 @@ import {
   //useGetRegistry
 } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
-import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
+import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
 import { getNextNameNumberSuffix } from "./functions";
-import store, { initialState, reducer } from "../../Layout/Design/store/store";
+import store, { } from "../../Layout/Design/store/store";
 import React from "react";
-import { initFreshFlowTree } from "../../Layout/Design/store/actionType";
-import { IFlowNodesRunningStatus, IOutputResource } from "./entity";
-import FlowConfigDrawer from "./FlowConfigDrawer";
+import { initFreshFlowTree, initFreshResourceTree } from "../../Layout/Design/store/actionType";
+import { IDownloadProgress, IRunInfo } from "./entity";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
-
-let nameId = 0;
+import { IResponse } from "../../../request/types";
+import { EnumFlowType } from "../../../enum";
 
 interface FlowProps {
   id: string;
+  flowType: EnumFlowType;
+
   activeKey: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
 }
 const Flow: React.FC<FlowProps> = (props) => {
-  //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
-  // const [state, dispatch] = useReducer(reducer, (initialState))
   const { state, dispatch } = React.useContext(store);
 
   const { nodeRegistries, nodeList } = state
+  const [downloadModalVisible, setDownloadModalVisible] = useState(false)
+  const [downloadModalList, setDownloadModalList] = useState<string[]>([])
 
-  const [outputResources, setOutputResources] = useState<IOutputResource>({ path: [], text: [] })
+  const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
-  const [flowNodesRunningStatus, setFlowNodesRunningStatus] = useState<IFlowNodesRunningStatus>({})
+  const [runInfo, setRunInfo] = useState<IRunInfo>({
+    isRunning: false,
+    time: Date.now(),
+    result: '',
+    runningTaskId: '',
+    downloadProgress: {},
+    log: {
+      items: [],
+      time_profile: {
+        init_time: undefined,
+        run_time: undefined
+
+      }
+    },
+
+    outputResource: {
+      type: 'memory',
+      content: {},
+      time: Date.now()
+    },
+    flowNodesRunningStatus: {}
+  })
 
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
+
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
   }, [state.dagGraphInfo.graph])
 
 
-
   const ref = useRef<FreeLayoutPluginContext | undefined>();
-
-  //const tools = usePlaygroundTools();
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: props.id,
+    // name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -124,26 +138,53 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
-  // const nodeList = useGetNodeList()
-
   const paramTypes = useGetParamTypes()
 
-  //const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
-  const fetchData = async (flowName: string) => {
-    //setLoading(true);
+  const fetchData = async (flowId: string, flowType: EnumFlowType) => {
 
-    //const nodeRegistries = await getNodeRegistry();
-    // setNodeRegistries(nodeRegistries);
-
-    if (!flowName) {
+    if (!flowId) {
       setLoading(false);
       return;
     }
-    const response = await apiGetWorkFlow(flowName);
-    if (response.flag == "error") {
-      return;
+
+    function getdownloadModals(businessNode: IBusinessNode) {
+
+      const modals: string[] = []
+      const fields = lodash.pick(businessNode, ['image_url_', 'video_url_', 'audio_url_', 'model_url_', 'other_url_'])
+      for (let field in fields) {
+        const urlArray: string[] = fields[field]
+        urlArray.map(url => {
+          if (url.startsWith('modelscope')) {
+            modals.push(url)
+          }
+        })
+
+      }
+      return modals
+
     }
+
+    let response: IResponse<IBusinessNode>
+
+    if (flowType == EnumFlowType.template) {
+      response = await apiGetTemeplateWorkFlow(flowId);
+      if (response.flag == "error") {
+        return;
+      }
+      const modals = getdownloadModals(response.result)
+      setDownloadModalList(modals)
+      setDownloadModalVisible(true)
+
+    } else {
+      response = await apiGetWorkFlow(flowId);
+      if (response.flag == "error") {
+        return;
+      }
+    }
+
+
+
 
     const designContent = transferBusinessContentToDesignContent(response.result, nodeRegistries)
 
@@ -156,10 +197,6 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     ref?.current?.document.reload(designContent);
 
-    //ref?.current?.document.reload(response.result.content);
-
-    //setFlowDocumentJSON()
-
     setTimeout(() => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
@@ -168,11 +205,9 @@ const Flow: React.FC<FlowProps> = (props) => {
         autoLayOutRef.current?.autoLayout()
       }
 
-
-
     }, 100);
 
-    //setFlowData(response);
+
     setLoading(false);
   };
   useEffect(() => {
@@ -180,18 +215,8 @@ const Flow: React.FC<FlowProps> = (props) => {
     if (nodeRegistries.length < 1) {
       return
     }
-    fetchData(props.id);
-  }, [props.id, nodeRegistries]);
-
-  // useEffect(() => {
-  //   if (ref.current) {
-  //     setTimeout(() => {
-  //       ref?.current?.document.fitView();
-
-  //       autoLayOutRef.current?.autoLayout()
-  //     }, 100)
-  //   }
-  // }, [props.activeKey, ref.current])
+    fetchData(props.id, props.flowType);
+  }, [props.id, nodeRegistries, props.flowType]);
 
   const demoContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -237,7 +262,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     };
 
     socket!.onclose = () => {
-      console.log("WebSocket 已断开连接");
+      //console.log("WebSocket 已断开连接");
 
       //connect()
 
@@ -249,18 +274,28 @@ const Flow: React.FC<FlowProps> = (props) => {
   }, [])
 
 
-
-  async function onRun(flowJson: FlowDocumentJSON) {
+  async function onDownload(flowJson: FlowDocumentJSON) {
     try {
+
+      setDownloading(true)
+
+      setRunInfo((oldRunInfo) => {
+        return {
+          ...oldRunInfo,
+          downloadProgress: {}
+        }
+      })
 
       const businessContent = designDataToBusinessData(
         flowJson,
-        graphTopNode
+        graphTopNode,
+        flowJson.nodes
       );
 
-      const response = await apiWorkFlowRun(businessContent);
+      const response = await apiModelsRunDownload(businessContent);
 
       if (response.flag == "error") {
+        setDownloading(false)
         Toast.error("run fail " + response.message);
         return;
       }
@@ -272,55 +307,253 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       };
 
+      var downloadResolve: any;
+      var downloadReject: any
+
       socket!.onmessage = (event) => {
 
-        function modifyNodeByName(nodeName: string, newContent: any, designContent: FlowDocumentJSON) {
-          function nodeIterate(
-            node: WorkflowNodeJSON,
-            process: (node: WorkflowNodeJSON) => void
-          ) {
-            process(node);
-            if (node.blocks && node.blocks.length > 0) {
-              node.blocks.forEach((block) => {
-                nodeIterate(block, process);
-              });
-            }
-          }
+        const response = JSON.parse(event.data);
 
-          designContent.nodes.map((node) => {
-            nodeIterate(node, (node) => {
-              if (node.data.name_ == nodeName) {
-                node.data = {
-                  ...node.data,
-                  ...newContent
+
+
+
+        if (response.flag != "success") {
+
+          downloadReject()
+          Toast.error(response.message);
+          setDownloading(false)
+          return;
+        } else {
+
+          if (response.result.type == 'model_download_done') {
+            downloadResolve()
+            Toast.success(response.message)
+            setDownloading(false)
+            setRunInfo((oldRunInfo) => {
+
+
+              const downloadProgress: IRunInfo['downloadProgress'] = {} 
+
+              for(const item of downloadModalList){
+
+                 let nameParts = item.split(':')
+                let name = nameParts[nameParts.length - 1]
+
+                
+                downloadProgress[name] = {
+                  filename: name,
+                  percent: 100,
+                  downloaded: 0,
+                  elapsed: 0,
+                  total: 0
                 }
               }
-            });
-          });
+              
+
+              return {
+                ...oldRunInfo,
+                downloadProgress
+              }
+            })
+          } else if (response.result.type == 'download_progress') {
+
+            const detail: IDownloadProgress = response.result.detail
+            setRunInfo((oldRunInfo) => {
+              return {
+                ...oldRunInfo,
+                downloadProgress: {
+                  ...oldRunInfo.downloadProgress,
+                  [detail.filename]: detail
+                }
+              }
+            })
+          }
+
+          else if (response.result.type == 'log') {
+
+
+            // setLog((oldLog) => {
+            //   var newLog = {
+            //     ...oldLog,
+            //     items: [...oldLog.items, response.result.log],
+
+            //   }
+            //   return newLog
+            // })
+
+            setRunInfo((oldRunInfo) => {
+              return {
+                ...oldRunInfo,
+                log: {
+                  ...oldRunInfo.log,
+                  items: [...oldRunInfo.log.items, response.result.log],
+                }
+              }
+            })
+          }
+
+        }
+      }
+
+
+      return new Promise((resolve, reject) => {
+        downloadResolve = resolve;
+        downloadReject = reject
+
+      })
+
+
+      //Toast.success("run sucess!");
+    } catch (error) {
+      Toast.error("run fail " + error);
+      setDownloading(false)
+    } finally {
+      //setDownloading(false)
+    }
+
+  }
+
+
+
+
+  async function onRun(flowJson: FlowDocumentJSON) {
+    try {
+
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          isRunning: true,
+          result: '',
+          log: {
+            items: [],
+            time_profile: {
+              init_time: undefined,
+              run_time: undefined
+            }
+          }
         }
 
+      })
+      const businessContent = designDataToBusinessData(
+        flowJson,
+        graphTopNode,
+        flowJson.nodes
+      );
 
+
+
+      const response = await apiWorkFlowRun(businessContent);
+
+      if (response.flag == "error") {
+        Toast.error("run fail " + response.message);
+        return;
+      }
+      const taskId = response.result.task_id
+
+      //setRunningTaskId(taskId)
+      setRunInfo(oldRunInfo => {
+        return {
+
+
+          ...oldRunInfo,
+          runningTaskId: taskId,
+        }
+      })
+
+      socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
+
+      socket!.onclose = () => {
+        let j = 0
+      };
+
+      socket!.onmessage = (event) => {
 
         const response = JSON.parse(event.data);
 
         if (response.flag != "success") {
+
+          if (response.result.type == 'task_run_info') {
+
+            setRunInfo(oldRunInfo => {
+
+
+              if (response.result.task_id == oldRunInfo.runningTaskId) {
+                return {
+
+
+                  ...oldRunInfo,
+                  isRunning: false,
+                  result: 'error',
+                  flowNodesRunningStatus: {},
+                }
+
+              } else {
+                return {
+                  ...oldRunInfo
+                }
+              }
+
+            })
+
+            Toast.error("run fail ");
+          }
           return;
         }
 
-        if (response.result.type == 'preview') {
-          const resource = response.result
+        if (response.result.type == 'memory') {
 
-          setOutputResources(resource)
+          setRunInfo(oldRunInfo => {
+            return {
+
+              ...oldRunInfo,
+              outputResource: { ...response.result, time: Date.now() }
+            }
+          })
+
         } else if (response.result.type == 'progress') {
-          setFlowNodesRunningStatus(response.result.detail)
+
+          setRunInfo(oldRunInfo => {
+
+            return {
+
+
+              ...oldRunInfo,
+              flowNodesRunningStatus: response.result.detail
+            }
+          })
+        } else if (response.result.type == 'log') {
+          setRunInfo(oldRunInfo => {
+            return {
+
+              ...oldRunInfo,
+              log: {
+                ...oldRunInfo.log,
+                items: [...oldRunInfo.log.items, response.result.log],
+              }
+            }
+          })
+        } else if (response.result.type == 'task_run_info') {
+
+          setRunInfo(oldRunInfo => {
+
+            return {
+              ...oldRunInfo,
+              isRunning: false,
+              result: 'success',
+              log: {
+                ...oldRunInfo.log,
+                time_profile: response.result.time_profile,
+              },
+              time: Date.now(),
+            }
+
+
+          })
+          dispatch(initFreshResourceTree({}))
         }
-
-
-
-
-      };
-
-
+      }
 
       //Toast.success("run sucess!");
     } catch (error) {
@@ -330,6 +563,9 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
+
+    setFlowType(EnumFlowType.workspace) //after save, template converted to user's flow
+
     setSaveDrawerVisible(false);
     setEntity({ ...entity });
 
@@ -379,7 +615,6 @@ const Flow: React.FC<FlowProps> = (props) => {
           name_: `${entity.name_}_${numberSuffix}`,
         },
       }
-      //if(response.result.is_dynamic_input_){
 
       node.data.inputs_ = node.data.inputs_.map((item: any) => {
         return {
@@ -387,9 +622,6 @@ const Flow: React.FC<FlowProps> = (props) => {
           id: 'port' + Math.random().toString(36).substr(2, 9),
         }
       })
-      //}
-
-      //if(response.result.is_dynamic_output_){
 
       node.data.outputs_ = node.data.outputs_.map((item: any) => {
         return {
@@ -400,18 +632,12 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
 
-      //}
-
       ref?.current?.document.createWorkflowNode(node);
     }
     if (dropzone.current) {
 
 
       dropzone.current.addEventListener("dragover", dragover);
-
-      // dropzone.current.addEventListener('dragleave', () => {
-      //     //dropzone.classList.remove('over'); // 离开时恢复样式
-      // });
 
 
       dropzone.current.removeEventListener("drop", dropFunction);
@@ -420,12 +646,12 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       dropzone.current.addEventListener("drop", dropFunction);
     }
-    //清理函数
+
     return () => {
-      //if (handleDrop) {
+
       dropzone?.current?.removeEventListener("dragover", dragover);
       dropzone?.current?.removeEventListener("drop", dropFunction);
-      // handleDrop = null;
+
 
     };
   }, [dropzone]);
@@ -440,7 +666,22 @@ const Flow: React.FC<FlowProps> = (props) => {
         <IconLoading />
       ) : (
         <FlowEnviromentContext.Provider
-          value={{ element: demoContainerRef, onSave, onRun, onConfig, graphTopNode, nodeList, paramTypes, outputResources, flowNodesRunningStatus }}
+          value={{
+            element: demoContainerRef,
+            onSave,
+            onRun,
+            onDownload,
+            downloading,
+            onConfig, graphTopNode, nodeList, paramTypes,
+
+
+            downloadModalVisible,
+            setDownloadModalVisible,
+            downloadModalList,
+            runInfo,
+            setRunInfo
+
+          }}
         >
           <FreeLayoutEditorProvider
             {...editorProps}
@@ -459,6 +700,14 @@ const Flow: React.FC<FlowProps> = (props) => {
               <SidebarRenderer />
 
             </SidebarProvider>
+            <NodeEntityForm
+              nodeEntity={graphTopNode}
+              visible={configDrawerVisible}
+              onClose={handleConfigDrawerClose}
+              onSave={handleConfigDrawerSure}
+              nodeList={nodeList!}
+              paramTypes={paramTypes}
+            />
           </FreeLayoutEditorProvider>
 
           <SideSheet
@@ -471,24 +720,10 @@ const Flow: React.FC<FlowProps> = (props) => {
               entity={entity!}
               onSure={onflowSaveDrawrSure}
               onClose={onFlowSaveDrawerClose}
+              flowType={flowType}
+
             />
           </SideSheet>
-
-          {/* <SideSheet
-            width={"30%"}
-            visible={configDrawerVisible}
-            onCancel={handleConfigDrawerClose}
-            title={"config flow"}
-          > */}
-          <NodeEntityForm
-            nodeEntity={graphTopNode}
-            visible={configDrawerVisible}
-            onClose={handleConfigDrawerClose}
-            onSave={handleConfigDrawerSure}
-            nodeList={nodeList!}
-            paramTypes={paramTypes}
-          />
-          {/* </SideSheet> */}
 
         </FlowEnviromentContext.Provider>
       )}

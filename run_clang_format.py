@@ -4,6 +4,27 @@
 
 """
 Runs clang format over all cpp files
+
+usage: python3 run_clang_format.py plugin/include/nndeploy/ocr plugin/source/nndeploy/ocr
+
+Runs clang-format over all files in given directories. Requires clang-format
+in PATH.
+
+positional arguments:
+  DIRPATH               path(s) used to glob source files
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --clang-format-binary PATH
+                        path to clang-format binary
+  -e EXTENSIONS, --extensions EXTENSIONS
+                        comma-delimited list of extensions used to glob source files
+  -style STYLE, --style STYLE
+                        formatting style
+  --no-inplace          do not format files inplace, but write output to the console (useful for debugging)
+  -j THREAD_COUNT, --j THREAD_COUNT
+                        number of clang-format instances to be run in parallel
+  -v, --verbose         output verbose comments
 """
 
 from __future__ import print_function
@@ -42,7 +63,7 @@ def parse_args(argv=None):
                         help='path to clang-format binary')
     parser.add_argument('-e', '--extensions', dest='extensions',
                         help='comma-delimited list of extensions used to glob source files',
-                        default="cc,h") # "c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++"
+                        default="c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++") # "c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++"
     parser.add_argument('-style',
                         help='formatting style',
                         default="file")

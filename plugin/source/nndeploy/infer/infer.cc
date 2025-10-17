@@ -213,25 +213,42 @@ std::shared_ptr<base::Param> Infer::getParamSharedPtr() {
   return param;
 }
 
+base::Status Infer::shareInference(Infer *infer) {
+  if (infer == nullptr) {
+    return base::kStatusCodeOk;
+  }
+  infer->type_ = type_;
+  infer->own_inference_ = false;
+  infer->inference_ = inference_;
+  infer->inference_input_names_ = inference_input_names_;
+  infer->inference_output_names_ = inference_output_names_;
+  infer->is_input_dynamic_ = is_input_dynamic_;
+  infer->is_output_dynamic_ = is_output_dynamic_;
+  infer->can_op_input_ = can_op_input_;
+  infer->can_op_output_ = can_op_output_;
+  return base::kStatusCodeOk;
+}
+
 base::Status Infer::init() {
   base::Status status = base::kStatusCodeOk;
-
-  if (!is_external_stream_ && stream_ == nullptr) {
-    stream_ = device::createStream(device_type_);
+  if (own_inference_) {
+    if (!is_external_stream_ && stream_ == nullptr) {
+      stream_ = device::createStream(device_type_);
+    }
+    if (device_type_ == inference_->getDeviceType() ||
+        (device::isHostDeviceType(device_type_) &&
+         device::isHostDeviceType(inference_->getDeviceType()))) {
+      inference_->setStream(stream_);
+    }
+    inference::InferenceParam *inference_param =
+        dynamic_cast<inference::InferenceParam *>(inference_->getParam());
+    if (inference_param != nullptr) {
+      inference_param->parallel_type_ = parallel_type_;
+    }
+    status = inference_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "abstract_inference init failed");
   }
-  if (device_type_ == inference_->getDeviceType() ||
-      (device::isHostDeviceType(device_type_) &&
-       device::isHostDeviceType(inference_->getDeviceType()))) {
-    inference_->setStream(stream_);
-  }
-  inference::InferenceParam *inference_param =
-      dynamic_cast<inference::InferenceParam *>(inference_->getParam());
-  if (inference_param != nullptr) {
-    inference_param->parallel_type_ = parallel_type_;
-  }
-  status = inference_->init();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "abstract_inference init failed");
   is_input_dynamic_ = inference_->isInputDynamic();
   is_output_dynamic_ = inference_->isOutputDynamic();
   can_op_input_ = inference_->canOpInput();
@@ -269,12 +286,15 @@ base::Status Infer::init() {
     }
     // output_type_info_[i]->setDesc(output_names[i]);
   }
+
   return status;
 }
 base::Status Infer::deinit() {
   base::Status status = base::kStatusCodeOk;
-  status = inference_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  if (own_inference_) {
+    status = inference_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  }
   return status;
 }
 
@@ -345,6 +365,7 @@ base::Status Infer::run() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   for (int i = 0; i < outputs_.size(); i++) {
     std::string name = outputs_[i]->getName();
+    // NNDEPLOY_LOGI("outputs_[%d]->getName() = %s\n", i, name.c_str());
     if (inference_output_names_.find(name) == inference_output_names_.end()) {
       name = output_type_info_[i]->getEdgeName();
     }
@@ -400,7 +421,8 @@ base::Status Infer::serialize(rapidjson::Value &json,
     return status;
   }
   auto type = type_;
-  if (type == base::kInferenceTypeNotSupport || type == base::kInferenceTypeNone) {
+  if (type == base::kInferenceTypeNotSupport ||
+      type == base::kInferenceTypeNone) {
     type = base::kInferenceTypeOnnxRuntime;
   }
   std::string type_str = base::inferenceTypeToString(type);

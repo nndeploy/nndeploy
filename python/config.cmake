@@ -284,6 +284,14 @@ if(ENABLE_NNDEPLOY_PLUGIN)
     )
     set(SOURCE ${SOURCE} ${PYTHON_DETECT_SOURCE})
   endif()
+
+  if(ENABLE_NNDEPLOY_PLUGIN_OCR)
+    file(GLOB_RECURSE PYTHON_OCR_SOURCE
+      "${ROOT_PATH}/python/src/ocr/*.h"
+      "${ROOT_PATH}/python/src/ocr/*.cc"
+    )
+    set(SOURCE ${SOURCE} ${PYTHON_OCR_SOURCE})
+  endif()
   
   if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
     file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
@@ -431,7 +439,7 @@ endif()
 # copy python module to python/nndeploy/
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "")
 # if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
-#     if (SYSTEM.Windows)
+#     if (SYSTEM_Windows)
 #         # Windows系统下的处理:
 #         # 1. 添加一个构建后命令,在目标${BINARY}构建完成后执行
 #         # 2. 使用CMAKE的copy_if_different命令复制文件
@@ -461,7 +469,7 @@ endif()
 # configure_file(${ROOT_PATH}/python/setup.py.cfg ${PROJECT_SOURCE_DIR}/python/setup.py)
 
 # install
-if(SYSTEM.Windows)
+if(SYSTEM_Windows)
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 else()
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
@@ -489,10 +497,27 @@ install(CODE "
       foreach(ext IN LISTS LIB_EXTENSIONS)
         file(GLOB_RECURSE DYNAMIC_LIBS \"\${search_path}/\${ext}\")
         foreach(lib_file IN LISTS DYNAMIC_LIBS)
-          get_filename_component(lib_name \"\${lib_file}\" NAME)
-          message(STATUS \"Copying dynamic library: \${lib_name}\")
-          file(COPY \"\${lib_file}\" 
-               DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+          # 检查是否为软连接，如果是则跳过
+          if(NOT IS_SYMLINK \"\${lib_file}\")
+            get_filename_component(lib_name \"\${lib_file}\" NAME)
+            message(STATUS \"Copying dynamic library: \${lib_name}\")
+            file(COPY \"\${lib_file}\" 
+                 DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+          else()
+            get_filename_component(lib_name \"\${lib_file}\" NAME)
+            # 检查是否为opencv库文件，如果是则仍然拷贝
+            if(\"\${lib_name}\" MATCHES \"^libopencv_.*\\.so\\.\")
+              message(STATUS \"Copying opencv symlink library: \${lib_name}\")
+              file(COPY \"\${lib_file}\" 
+                   DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+            elseif(\"\${lib_name}\" MATCHES \"^libopencv_.*\\.*\\.dylib\")
+              message(STATUS \"Copying opencv symlink library: \${lib_name}\")
+              file(COPY \"\${lib_file}\" 
+                   DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+            else()
+              message(STATUS \"Skipping symlink: \${lib_name}\")
+            endif()
+          endif()
         endforeach()
       endforeach()
     else()

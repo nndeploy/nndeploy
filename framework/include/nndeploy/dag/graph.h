@@ -35,21 +35,21 @@ class NNDEPLOY_CC_API Graph : public Node {
         std::vector<Edge *> outputs);
   virtual ~Graph();
 
-  base::Status setImageUrl(const std::string &key, const std::string &url);
-  base::Status removeImageUrl(const std::string &key);
-  base::Status setVideoUrl(const std::string &key, const std::string &url);
-  base::Status removeVideoUrl(const std::string &key);
-  base::Status setAudioUrl(const std::string &key, const std::string &url);
-  base::Status removeAudioUrl(const std::string &key);
-  base::Status setModelUrl(const std::string &key, const std::string &url);
-  base::Status removeModelUrl(const std::string &key);
-  base::Status setOtherUrl(const std::string &key, const std::string &url);
-  base::Status removeOtherUrl(const std::string &key);
-  std::string getImageUrl(const std::string &key);
-  std::string getVideoUrl(const std::string &key);
-  std::string getAudioUrl(const std::string &key);
-  std::string getModelUrl(const std::string &key);
-  std::string getOtherUrl(const std::string &key);
+  base::Status addImageUrl(const std::string &url);
+  base::Status removeImageUrl(const std::string &url);
+  base::Status addVideoUrl(const std::string &url);
+  base::Status removeVideoUrl(const std::string &url);
+  base::Status addAudioUrl(const std::string &url);
+  base::Status removeAudioUrl(const std::string &url);
+  base::Status addModelUrl(const std::string &url);
+  base::Status removeModelUrl(const std::string &url);
+  base::Status addOtherUrl(const std::string &url);
+  base::Status removeOtherUrl(const std::string &url);
+  std::vector<std::string> getImageUrl() const;
+  std::vector<std::string> getVideoUrl() const;
+  std::vector<std::string> getAudioUrl() const;
+  std::vector<std::string> getModelUrl() const;
+  std::vector<std::string> getOtherUrl() const;
 
   base::Status setEdgeQueueMaxSize(int queue_max_size);
   int getEdgeQueueMaxSize();
@@ -78,6 +78,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
   EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
 
+  // delete edge
+  base::Status deleteEdge(Edge *edge);
+
   // get edge
   Edge *getEdge(const std::string &name);
   std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
@@ -103,6 +106,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status addNode(Node *node, bool is_external = true);
   base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
+  // delete node
+  base::Status deleteNode(Node *node);
+
   // get node
   Node *getNode(const std::string &name);
   Node *getNode(int index);
@@ -114,6 +120,14 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Node *> getNodesRecursive();
   std::vector<std::string> getNodesName();
   std::vector<std::string> getNodesNameRecursive();
+  Node *getInputNode(int index);
+  Node *getOutputNode(int index);
+  Node *getInferNode(int index);
+
+  base::Status connect(Node *predecessor, Node *successor,
+                       int predecessor_port = 0, int successor_port = 0);
+  base::Status disconnect(Node *predecessor, Node *successor,
+                          int predecessor_port = 0, int successor_port = 0);
 
   std::map<std::string, std::shared_ptr<RunStatus>> getNodesRunStatus();
   std::map<std::string, std::shared_ptr<RunStatus>>
@@ -163,6 +177,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   virtual base::Status run();
   virtual bool synchronize();
+  virtual bool interrupt();
 
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
@@ -182,7 +197,14 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Edge *> trace(Edge *input);
 
   bool isForwardApiOk();
-  base::Status toStaticGraph();
+  virtual base::Status toStaticGraph();
+
+  // global resource
+  virtual base::Status addResourceWithoutState(const std::string &key,
+                                               const base::Any &value);
+  virtual base::Any &getResourceWithoutState(const std::string &key);
+  virtual base::Status addResourceWithState(const std::string &key, Edge *edge);
+  virtual Edge *getResourceWithState(const std::string &key);
 
   // create node
   // Not recommended api
@@ -320,17 +342,34 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deserialize(rapidjson::Value &json);
   virtual base::Status deserialize(const std::string &json_str);
 
+  virtual void setUnusedNodeNames(const std::string &node_name);
+  virtual void setUnusedNodeNames(const std::set<std::string> &node_names);
+  virtual void removeUnusedNodeNames(const std::string &node_name);
+  virtual void removeUnusedNodeNames(const std::set<std::string> &node_names);
+  virtual std::set<std::string> getUnusedNodeNames();
+  virtual void disableInputAndOutputNode();
+
+  // node_name:key:value
+  virtual void setNodeValue(const std::string &node_value_str);
+  virtual void setNodeValue(const std::string &node_name,
+                            const std::string &key, const std::string &value);
+  virtual void setNodeValue(
+      std::map<std::string, std::map<std::string, std::string>> node_value_map);
+  virtual std::map<std::string, std::map<std::string, std::string>>
+  getNodeValue();
+
  protected:
+  virtual base::Status removeUnusedNodeAndEdge();
   virtual base::Status construct();
   virtual base::Status executor();
 
  protected:
-  // 
-  std::map<std::string, std::string> image_url_;
-  std::map<std::string, std::string> video_url_;
-  std::map<std::string, std::string> audio_url_;
-  std::map<std::string, std::string> model_url_;
-  std::map<std::string, std::string> other_url_;
+  //
+  std::vector<std::string> image_url_;
+  std::vector<std::string> video_url_;
+  std::vector<std::string> audio_url_;
+  std::vector<std::string> model_url_;
+  std::vector<std::string> other_url_;
 
   bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
@@ -346,6 +385,32 @@ class NNDEPLOY_CC_API Graph : public Node {
       external_param_repository_;
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
+
+  std::set<std::string> unused_node_names_;
+  /*
+   * @brief 节点值
+   * @details
+   * 用于存储节点值
+   * 格式为：{node_name: {key: value}}
+   * 注：node_name为节点名称
+   * 注：key为节点值的key
+   * 注：value为节点值的value
+   */
+  std::map<std::string, std::map<std::string, std::string>> node_value_map_;
+  /**
+   * @brief 全局资源（无状态）
+   * @details
+   * 用于存储全局资源
+   * 例如tokenizer_encode和tokenizer_decode阶段，可以共享同一个tokenizer_cpp
+   */
+  std::map<std::string, base::Any> resource_without_state_;
+  /**
+   * @brief 全局资源（有状态）
+   * @details
+   * 用于存储全局资源
+   * 例如 sample 阶段需要使用的 history_tokens
+   */
+  std::map<std::string, Edge *> resource_with_state_;
 };
 
 template <typename T, typename... Args,

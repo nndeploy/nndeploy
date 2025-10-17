@@ -34,6 +34,8 @@ export const CommentEditor: FC<ICommentEditor> = (props) => {
       return;
     }
     model.element = editorRef.current;
+
+
   }, [editorRef]);
 
   return (
@@ -42,6 +44,7 @@ export const CommentEditor: FC<ICommentEditor> = (props) => {
       <textarea
         className="workflow-comment-editor-textarea"
         ref={editorRef}
+        value={model.value}
         style={style}
         readOnly={playground.config.readonly}
         onChange={(e) => {

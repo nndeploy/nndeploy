@@ -12,7 +12,9 @@ import { Tag } from "@douyinfe/semi-ui";
 export const NodeStatusBar: React.FC<any> = (props) => {
   const flowEnviroment = useFlowEnviromentContext()
 
-  const { flowNodesRunningStatus } = flowEnviroment
+  const { runInfo } = flowEnviroment
+
+  const { flowNodesRunningStatus } = runInfo
 
   const nodeRender = useNodeRender();
   /**
@@ -31,7 +33,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
 
   const isNodeIdle = nodeInfo.status === WorkflowNodeStatus.IDLE;
   const isNodeInitting = nodeInfo.status === WorkflowNodeStatus.INITTING;
-   const isNodeInitted = nodeInfo.status === WorkflowNodeStatus.INITTED;
+  const isNodeInitted = nodeInfo.status === WorkflowNodeStatus.INITTED;
   const isNodeRunning = nodeInfo.status === WorkflowNodeStatus.RUNNING;
   const isNodeDone = nodeInfo.status === WorkflowNodeStatus.DONE;
 
@@ -46,7 +48,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
       return styles.nodeStatusInitting;
     }
 
-     if (isNodeInitted) {
+    if (isNodeInitted) {
       return styles.nodeStatusInitted;
     }
 
@@ -99,7 +101,7 @@ export const NodeStatusBar: React.FC<any> = (props) => {
 
     if (isNodeInitted) {
       //return <IconSpin spin className={classnames(styles.icon, styles.initted)} />;
-      return <IconCheckCircleStroked className={classnames(styles.icon, styles.initted)}/>
+      return <IconCheckCircleStroked className={classnames(styles.icon, styles.initted)} />
     }
 
     if (isNodeRunning) {
@@ -123,10 +125,10 @@ export const NodeStatusBar: React.FC<any> = (props) => {
         {renderIcon()}
         {renderStatus()}
         {
-          [WorkflowNodeStatus.IDLE, WorkflowNodeStatus.INITTING, WorkflowNodeStatus.RUNNING].includes(nodeInfo.status) ? <></>: 
-          renderCost()
+          [WorkflowNodeStatus.IDLE, WorkflowNodeStatus.INITTING, WorkflowNodeStatus.RUNNING].includes(nodeInfo.status) ? <></> :
+            renderCost()
         }
-        
+
       </>
     }
   >

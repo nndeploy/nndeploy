@@ -17,15 +17,15 @@ class CompositeNode(_C.dag.CompositeNode):
         else:
             super().__init__(name, inputs, outputs)
             
-    def set_input_type(self, input_type: type):
+    def set_input_type(self, input_type: type, desc: str = ""):
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(input_type)
-        return _C.dag.Node.set_input_type_info(self, edge_type_info)
+        return _C.dag.Node.set_input_type_info(self, edge_type_info, desc)  
             
-    def set_output_type(self, output_type: type):
+    def set_output_type(self, output_type: type, desc: str = ""):
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
-        return _C.dag.Node.set_output_type_info(self, edge_type_info)
+        return _C.dag.Node.set_output_type_info(self, edge_type_info, desc)
             
     def set_input(self, input, index=-1):
         return super().set_input(input, index)

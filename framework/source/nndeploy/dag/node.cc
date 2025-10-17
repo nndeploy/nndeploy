@@ -1,5 +1,6 @@
 #include "nndeploy/dag/node.h"
 
+#include "nndeploy/dag/composite_node.h"
 #include "nndeploy/dag/graph.h"
 
 namespace nndeploy {
@@ -218,12 +219,14 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
-void Node::setDeveloper(const std::string &developer) { developer_ = developer; }
+void Node::setDeveloper(const std::string &developer) {
+  developer_ = developer;
+}
 std::string Node::getDeveloper() { return developer_; }
 void Node::setDesc(const std::string &desc) { desc_ = desc; }
 std::string Node::getDesc() { return desc_; }
-void Node::setGithub(const std::string &github) { github_ = github; }
-std::string Node::getGithub() { return github_; }
+void Node::setSource(const std::string &source) { source_ = source; }
+std::string Node::getSource() { return source_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -244,6 +247,42 @@ std::string Node::getInputName(int index) {
 }
 std::string Node::getOutputName(int index) {
   return output_type_info_[index]->getEdgeName();
+}
+
+int Node::getInputIndex(const std::string &name) {
+  for (int i = 0; i < input_type_info_.size(); i++) {
+    if (input_type_info_[i]->getEdgeName() == name) {
+      return i;
+    }
+  }
+  for (int i = 0; i < inputs_.size(); i++) {
+    if (inputs_[i]->getName() == name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int Node::getOutputIndex(const std::string &name) {
+  for (int i = 0; i < output_type_info_.size(); i++) {
+    if (output_type_info_[i]->getEdgeName() == name) {
+      return i;
+    }
+  }
+  for (int i = 0; i < outputs_.size(); i++) {
+    if (outputs_[i]->getName() == name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int Node::getInputCount() {
+  return std::max(input_type_info_.size(), inputs_.size());
+}
+
+int Node::getOutputCount() {
+  return std::max(output_type_info_.size(), outputs_.size());
 }
 
 base::Status Node::setInputName(const std::string &name, int index) {
@@ -312,6 +351,11 @@ base::Status Node::setGraph(Graph *graph) {
   return base::kStatusCodeOk;
 }
 Graph *Node::getGraph() { return graph_; }
+base::Status Node::setCompositeNode(CompositeNode *composite_node) {
+  composite_node_ = composite_node;
+  return base::kStatusCodeOk;
+}
+CompositeNode *Node::getCompositeNode() { return composite_node_; }
 
 base::Status Node::setDeviceType(base::DeviceType device_type) {
   device_type_ = device_type;
@@ -327,6 +371,7 @@ base::Status Node::setParam(base::Param *param) {
 }
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
+    NNDEPLOY_LOGI("Node [%s]::setParamSharedPtr param\n", name_.c_str());
     return param->copyTo(param_.get());
   } else {
     param_ = param;
@@ -342,6 +387,190 @@ base::Status Node::setExternalParam(
 }
 std::shared_ptr<base::Param> Node::getExternalParam(const std::string &key) {
   return external_param_[key];
+}
+
+base::Status Node::setParam(const std::string &key, base::Any &any) {
+  if (param_ != nullptr) {
+    return param_->set(key, any);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::getParam(const std::string &key, base::Any &any) {
+  if (param_ != nullptr) {
+    return param_->get(key, any);
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setParam(const std::string &key, const std::string &value) {
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::addResourceWithoutState(const std::string &key,
+                                           const base::Any &value) {
+  if (graph_ != nullptr) {
+    return graph_->addResourceWithoutState(key, value);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->addResourceWithoutState(key, value);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+}
+
+base::Any &Node::getResourceWithoutState(const std::string &key) {
+  if (graph_ != nullptr) {
+    return graph_->getResourceWithoutState(key);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->getResourceWithoutState(key);
+  } else {
+    static base::Any empty_any;  // 静态变量，生命周期持续到程序结束
+    NNDEPLOY_LOGE(
+        "Both graph_ and composite_node_ are nullptr in "
+        "createResourceWithoutState\n");
+    return empty_any;
+  }
+}
+
+Edge *Node::createResourceWithState(const std::string &key) {
+  if (graph_ != nullptr) {
+    Edge *edge = new Edge(key);
+    edge->setParallelType(parallel_type_);
+    std::vector<Node *> producers = {this};
+    auto queue_max_size = graph_->getEdgeQueueMaxSize();
+    edge->setQueueMaxSize(queue_max_size);
+    edge->increaseProducers(producers);
+    edge->construct();
+    graph_->addResourceWithState(key, edge);
+    return edge;
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->createResourceWithState(key);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return nullptr;
+  }
+}
+base::Status Node::addResourceWithState(const std::string &key, Edge *edge) {
+  if (graph_ != nullptr) {
+    return graph_->addResourceWithState(key, edge);
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->addResourceWithState(key, edge);
+  } else {
+    NNDEPLOY_LOGE("graph is nullptr and is_graph_ is false.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+}
+Edge *Node::getResourceWithState(const std::string &key) {
+  if (graph_ != nullptr) {
+    Edge *edge = graph_->getResourceWithState(key);
+    if (edge != nullptr) {
+      std::vector<Node *> consumers = {this};
+      edge->increaseConsumers(consumers);
+    }
+    return edge;
+  } else if (composite_node_ != nullptr) {
+    return composite_node_->getResourceWithState(key);
+  } else {
+    NNDEPLOY_LOGE("graph and composite_node are nullptr.\n");
+    return nullptr;
+  }
+}
+
+base::Status Node::setVersion(const std::string &version) {
+  version_ = version;
+  return base::kStatusCodeOk;
+}
+std::string Node::getVersion() { return version_; }
+
+base::Status Node::setRequiredParams(
+    const std::vector<std::string> &required_params) {
+  required_params_ = required_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addRequiredParam(const std::string &required_param) {
+  required_params_.emplace_back(required_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeRequiredParam(const std::string &required_param) {
+  auto it = std::find(required_params_.begin(), required_params_.end(),
+                      required_param);
+  if (it != required_params_.end()) {
+    required_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearRequiredParams() {
+  required_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getRequiredParams() { return required_params_; }
+
+base::Status Node::setUiParams(const std::vector<std::string> &ui_params) {
+  ui_params_ = ui_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addUiParam(const std::string &ui_param) {
+  ui_params_.emplace_back(ui_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeUiParam(const std::string &ui_param) {
+  auto it = std::find(ui_params_.begin(), ui_params_.end(), ui_param);
+  if (it != ui_params_.end()) {
+    ui_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearUiParams() {
+  ui_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getUiParams() { return ui_params_; }
+
+base::Status Node::setIoParams(const std::vector<std::string> &io_params) {
+  io_params_ = io_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addIoParam(const std::string &io_param) {
+  io_params_.emplace_back(io_param);
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeIoParam(const std::string &io_param) {
+  auto it = std::find(io_params_.begin(), io_params_.end(), io_param);
+  if (it != io_params_.end()) {
+    io_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearIoParams() {
+  io_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::vector<std::string> Node::getIoParams() { return io_params_; }
+
+base::Status Node::setDropdownParams(
+    const std::map<std::string, std::vector<std::string>> &dropdown_params) {
+  dropdown_params_ = dropdown_params;
+  return base::kStatusCodeOk;
+}
+base::Status Node::addDropdownParam(
+    const std::string &dropdown_param,
+    const std::vector<std::string> &dropdown_values) {
+  dropdown_params_[dropdown_param] = dropdown_values;
+  return base::kStatusCodeOk;
+}
+base::Status Node::removeDropdownParam(const std::string &dropdown_param) {
+  auto it = dropdown_params_.find(dropdown_param);
+  if (it != dropdown_params_.end()) {
+    dropdown_params_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::clearDropdownParams() {
+  dropdown_params_.clear();
+  return base::kStatusCodeOk;
+}
+std::map<std::string, std::vector<std::string>> Node::getDropdownParams() {
+  return dropdown_params_;
 }
 
 base::Status Node::setInput(Edge *input, int index) {
@@ -373,6 +602,22 @@ base::Status Node::setOutput(Edge *output, int index) {
       return base::kStatusCodeErrorInvalidParam;
     }
     outputs_[index] = output;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setIterInput(Edge *input, int index) {
+  if (input == nullptr) {
+    NNDEPLOY_LOGE("input is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  if (index == -1) {
+    inputs_.emplace_back(input);
+  } else {
+    if (index >= inputs_.size()) {
+      inputs_.resize(index + 1);
+    }
+    inputs_[index] = input;
   }
   return base::kStatusCodeOk;
 }
@@ -551,6 +796,9 @@ bool Node::getGraphFlag() { return is_graph_; }
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
 
+void Node::setIoType(IOType io_type) { io_type_ = io_type; }
+IOType Node::getIoType() { return io_type_; }
+
 void Node::setLoopCount(int loop_count) {
   if (loop_count > 0) {
     loop_count_ = loop_count;
@@ -618,7 +866,8 @@ void Node::setStream(device::Stream *stream) {
 device::Stream *Node::getStream() { return stream_; }
 
 base::Status Node::setInputTypeInfo(
-    std::shared_ptr<EdgeTypeInfo> input_type_info) {
+    std::shared_ptr<EdgeTypeInfo> input_type_info, std::string desc) {
+  input_type_info->setEdgeName(desc);
   input_type_info_.push_back(input_type_info);
   return base::Status::Ok();
 }
@@ -627,7 +876,8 @@ std::vector<std::shared_ptr<EdgeTypeInfo>> Node::getInputTypeInfo() {
 }
 
 base::Status Node::setOutputTypeInfo(
-    std::shared_ptr<EdgeTypeInfo> output_type_info) {
+    std::shared_ptr<EdgeTypeInfo> output_type_info, std::string desc) {
+  output_type_info->setEdgeName(desc);
   output_type_info_.push_back(output_type_info);
   return base::Status::Ok();
 }
@@ -641,10 +891,12 @@ base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
+  stop_ = false;
   setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 base::Status Node::deinit() {
+  stop_ = false;
   setInitializedFlag(false);
   return base::kStatusCodeOk;
 }
@@ -673,7 +925,28 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 bool Node::synchronize() { return true; }
 
+// bool Node::interrupt() {
+//   stop_ = true;
+//   return true;
+// }
+
+// bool Node::checkInterruptStatus() { return stop_; }
+
+bool Node::interrupt() {
+  bool first = !stop_.exchange(true, std::memory_order_acq_rel);
+  return true;
+}
+
+bool Node::checkInterruptStatus() {
+  return stop_.load(std::memory_order_acquire);
+}
+
+void Node::clearInterrupt() { stop_.store(false, std::memory_order_release); }
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
+  if (stop_ == true) {
+    return std::vector<Edge *>();
+  }
   // init
   if (initialized_ == false && is_trace_ == false) {
     // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
@@ -815,6 +1088,8 @@ bool Node::isInputsChanged(std::vector<Edge *> inputs) {
   return false;
 }
 
+base::Status Node::toStaticGraph() { return base::kStatusCodeOk; }
+
 std::vector<std::string> Node::getRealOutputsName() {
   std::vector<std::string> real_outputs_name;
   if (!outputs_.empty()) {
@@ -898,7 +1173,7 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
   json.AddMember("developer_", rapidjson::Value(developer_.c_str(), allocator),
                  allocator);
-  json.AddMember("github_", rapidjson::Value(github_.c_str(), allocator),
+  json.AddMember("source_", rapidjson::Value(source_.c_str(), allocator),
                  allocator);
   json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
                  allocator);
@@ -907,6 +1182,39 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("device_type_",
                  rapidjson::Value(device_type_str.c_str(), allocator),
                  allocator);
+
+  json.AddMember("version_", rapidjson::Value(version_.c_str(), allocator),
+                 allocator);
+  rapidjson::Value required_params(rapidjson::kArrayType);
+  for (auto &required_param : required_params_) {
+    required_params.PushBack(
+        rapidjson::Value(required_param.c_str(), allocator), allocator);
+  }
+  json.AddMember("required_params_", required_params, allocator);
+  rapidjson::Value ui_params(rapidjson::kArrayType);
+  for (auto &ui_param : ui_params_) {
+    ui_params.PushBack(rapidjson::Value(ui_param.c_str(), allocator),
+                       allocator);
+  }
+  json.AddMember("ui_params_", ui_params, allocator);
+  rapidjson::Value io_params(rapidjson::kArrayType);
+  for (auto &io_param : io_params_) {
+    io_params.PushBack(rapidjson::Value(io_param.c_str(), allocator),
+                       allocator);
+  }
+  json.AddMember("io_params_", io_params, allocator);
+  rapidjson::Value dropdown_params(rapidjson::kObjectType);
+  for (auto &dropdown_param : dropdown_params_) {
+    rapidjson::Value dropdown_values(rapidjson::kArrayType);
+    for (auto &dropdown_value : dropdown_param.second) {
+      dropdown_values.PushBack(
+          rapidjson::Value(dropdown_value.c_str(), allocator), allocator);
+    }
+    dropdown_params.AddMember(
+        rapidjson::Value(dropdown_param.first.c_str(), allocator),
+        dropdown_values, allocator);
+  }
+  json.AddMember("dropdown_params_", dropdown_params, allocator);
 
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
@@ -1034,11 +1342,26 @@ base::Status Node::serialize(rapidjson::Value &json,
                    allocator);
     json.AddMember("is_inner_", is_inner_, allocator);
   }
+  if (is_loop_) {
+    json.AddMember("is_loop_", is_loop_, allocator);
+  }
+  if (is_condition_) {
+    json.AddMember("is_condition_", is_condition_, allocator);
+  }
+  if (is_composite_node_) {
+    json.AddMember("is_composite_node_", is_composite_node_, allocator);
+  }
 
   // 写入节点类型
   std::string node_type_str = nodeTypeToString(node_type_);
   json.AddMember("node_type_",
                  rapidjson::Value(node_type_str.c_str(), allocator), allocator);
+  if (node_type_ == NodeType::kNodeTypeInput ||
+      node_type_ == NodeType::kNodeTypeOutput) {
+    std::string io_type_str = ioTypeToString(io_type_);
+    json.AddMember("io_type_", rapidjson::Value(io_type_str.c_str(), allocator),
+                   allocator);
+  }
 
   // 写入参数
   if (param_ != nullptr) {
@@ -1111,8 +1434,8 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     developer_ = json["developer_"].GetString();
   }
 
-  if (json.HasMember("github_") && json["github_"].IsString()) {
-    github_ = json["github_"].GetString();
+  if (json.HasMember("source_") && json["source_"].IsString()) {
+    source_ = json["source_"].GetString();
   }
 
   if (json.HasMember("desc_") && json["desc_"].IsString()) {
@@ -1123,6 +1446,56 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   if (json.HasMember("device_type_") && json["device_type_"].IsString()) {
     device_type_ = base::stringToDeviceType(json["device_type_"].GetString());
   }
+
+  if (json.HasMember("version_") && json["version_"].IsString()) {
+    version_ = json["version_"].GetString();
+  }
+
+  // if (json.HasMember("required_params_") &&
+  //     json["required_params_"].IsArray()) {
+  //   required_params_.clear();
+  //   auto &required_params_array = json["required_params_"];
+  //   for (int i = 0; i < required_params_array.Size(); i++) {
+  //     if (required_params_array[i].IsString()) {
+  //       required_params_.emplace_back(required_params_array[i].GetString());
+  //     }
+  //   }
+  // }
+  if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
+    ui_params_.clear();
+    auto &ui_params_array = json["ui_params_"];
+    for (int i = 0; i < ui_params_array.Size(); i++) {
+      if (ui_params_array[i].IsString()) {
+        ui_params_.emplace_back(ui_params_array[i].GetString());
+      }
+    }
+  }
+  // if (json.HasMember("io_params_") && json["io_params_"].IsArray()) {
+  //   io_params_.clear();
+  //   auto &io_params_array = json["io_params_"];
+  //   for (int i = 0; i < io_params_array.Size(); i++) {
+  //     if (io_params_array[i].IsString()) {
+  //       io_params_.emplace_back(io_params_array[i].GetString());
+  //     }
+  //   }
+  // }
+  // if (json.HasMember("dropdown_params_") &&
+  // json["dropdown_params_"].IsObject()) {
+  //   dropdown_params_.clear();
+  //   auto &dropdown_params_obj = json["dropdown_params_"];
+  //   for (auto it = dropdown_params_obj.MemberBegin(); it !=
+  //   dropdown_params_obj.MemberEnd(); ++it) {
+  //     if (it->value.IsArray()) {
+  //       std::vector<std::string> dropdown_values;
+  //       for (int i = 0; i < it->value.Size(); i++) {
+  //         if (it->value[i].IsString()) {
+  //           dropdown_values.emplace_back(it->value[i].GetString());
+  //         }
+  //       }
+  //       dropdown_params_[it->name.GetString()] = dropdown_values;
+  //     }
+  //   }
+  // }
 
   if (json.HasMember("is_external_stream_") &&
       json["is_external_stream_"].IsBool()) {
@@ -1144,6 +1517,17 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     is_inner_ = json["is_inner_"].GetBool();
   }
 
+  if (json.HasMember("is_loop_") && json["is_loop_"].IsBool()) {
+    is_loop_ = json["is_loop_"].GetBool();
+  }
+  if (json.HasMember("is_condition_") && json["is_condition_"].IsBool()) {
+    is_condition_ = json["is_condition_"].GetBool();
+  }
+  if (json.HasMember("is_composite_node_") &&
+      json["is_composite_node_"].IsBool()) {
+    is_composite_node_ = json["is_composite_node_"].GetBool();
+  }
+
   if (json.HasMember("is_time_profile_") && json["is_time_profile_"].IsBool()) {
     is_time_profile_ = json["is_time_profile_"].GetBool();
   }
@@ -1155,6 +1539,9 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // 读取节点类型
   if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
     node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
+  if (json.HasMember("io_type_") && json["io_type_"].IsString()) {
+    io_type_ = stringToIoType(json["io_type_"].GetString());
   }
   // 读取动态输入和输出
   if (json.HasMember("is_dynamic_input_") &&
@@ -1309,7 +1696,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
-  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  NNDEPLOY_LOGE("Failed to createNode [key: %s, name: %s]\n", node_key.c_str(),
+                node_name.c_str());
   return nullptr;
 }
 

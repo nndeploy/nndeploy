@@ -1,0 +1,19 @@
+.io-type-container {
+
+  .io-type-input-container {
+  
+  }
+
+  .io-type-output-container {
+    display: none;
+
+    &.show {
+      display: block;
+    }
+  }
+}
+
+.preview-image-modal {
+  display: flex;
+  justify-content: center;
+}

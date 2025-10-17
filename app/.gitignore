@@ -114,6 +114,7 @@ lib-esnext/
 lib-commonjs/
 lib-shim/
 dist/
+dist.zip
 dist-storybook/
 *.tsbuildinfo
 
@@ -126,4 +127,20 @@ dist-storybook/
 
 # 不忽略json文件
 !*.json
+
+*.properties
+
+android/.gradle/file-system.probe
+
+# 忽略android/app/src/main/assets/目录下的所有文件
+android/app/src/main/assets/*
+# 但不忽略android/app/src/main/assets/place.md文件
+!android/app/src/main/assets/place.md
+
+# 忽略android/app/src/main/jniLibs/目录下的所有文件
+android/app/src/main/jniLibs/arm64-v8a/*
+# 但不忽略android/app/src/main/jniLibs/arm64-v8a/place.md文件
+!android/app/src/main/jniLibs/arm64-v8a/place.md
+
+android/app/release
 

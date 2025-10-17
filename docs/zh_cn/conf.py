@@ -16,23 +16,6 @@ copyright = 'nndeploy'
 author = 'nndeploy'
 release = '0.2.0'
 
-# -- 编译和安装 nndeploy --------------------------------------------------
-def build_and_install_nndeploy():
-    """在conf.py中编译和安装nndeploy"""
-    
-    print("🚀 开始编译和安装 nndeploy...")
-    
-    try:
-       import nndeploy
-       return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ 编译/安装过程出错: {e}")
-        print(f"错误输出: {e.stderr if hasattr(e, 'stderr') and e.stderr else '无详细错误信息'}")
-        return False
-    except Exception as e:
-        print(f"❌ 意外错误: {e}")
-        return False
-
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -72,7 +55,7 @@ html_static_path = ['../source/_static']
 source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
 # Python API 配置
-sys.path.insert(0, os.path.abspath('../../python'))
+# sys.path.insert(0, os.path.abspath('../../python'))
 
 # 完善的Mock实现
 class IntelligentMockModule:
@@ -129,58 +112,51 @@ def safe_import_with_fallback():
     print("🔧 开始导入nndeploy模块...")
     
     # 检查是否存在C++扩展模块
-    nndeploy_path = os.path.abspath('../../python')
-    if nndeploy_path not in sys.path:
-        sys.path.insert(0, nndeploy_path)
+    # nndeploy_path = os.path.abspath('../../python')
+    # if nndeploy_path not in sys.path:
+    #     sys.path.insert(0, nndeploy_path)
     
     try:
-        import nndeploy._nndeploy_internal
-        print("✅ nndeploy._nndeploy_internal模块导入成功")     
+        # import nndeploy._nndeploy_internal
+        # print("✅ nndeploy._nndeploy_internal模块导入成功")     
         # 尝试导入完整的nndeploy
-        import nndeploy.dag
+        import nndeploy
         print("✅ nndeploy模块导入成功")
         return True
         
     except ImportError as e:
-        # 执行编译和安装
-        build_success = build_and_install_nndeploy()
-        if build_success:
-            print("✅ 编译和安装nndeploy成功")
-            return True
-        else:
-            print("❌ 编译和安装nndeploy失败")
-            print(f"⚠️  导入失败: {e}")
-            print("🔧 使用智能Mock模块...")
+        print(f"⚠️  导入失败: {e}")
+        print("🔧 使用智能Mock模块...")
 
-            # 创建mock模块层次结构
-            mock_nndeploy = IntelligentMockModule('nndeploy')
+        # 创建mock模块层次结构
+        mock_nndeploy = IntelligentMockModule('nndeploy')
 
-            # 设置主模块
-            sys.modules['nndeploy'] = mock_nndeploy
-            sys.modules['nndeploy._nndeploy_internal'] = IntelligentMockModule('_nndeploy_internal')
+        # 设置主模块
+        sys.modules['nndeploy'] = mock_nndeploy
+        sys.modules['nndeploy._nndeploy_internal'] = IntelligentMockModule('_nndeploy_internal')
 
-            # 设置所有子模块
-            submodules = [
-                'base', 'device', 'ir', 'op', 'net', 'inference', 
-                'dag', 'preprocess', 'tokenizer', 'codec', 
-                'classification', 'detect', 'track', 'segment', 
-                'matting', 'face', 'gan', '_C'
-            ]
+        # 设置所有子模块
+        submodules = [
+            'base', 'device', 'ir', 'op', 'net', 'inference', 
+            'dag', 'preprocess', 'tokenizer', 'codec', 
+            'classification', 'detect', 'track', 'segment', 
+            'matting', 'face', 'gan', '_C'
+        ]
 
-            for submodule in submodules:
-                module_name = f'nndeploy.{submodule}'
-                sys.modules[module_name] = IntelligentMockModule(module_name)
+        for submodule in submodules:
+            module_name = f'nndeploy.{submodule}'
+            sys.modules[module_name] = IntelligentMockModule(module_name)
 
-            # 为主要的nndeploy模块添加关键函数
-            mock_nndeploy.get_version = lambda: "0.2.0"
-            mock_nndeploy.framework_init = lambda: True
-            mock_nndeploy.framework_deinit = lambda: True
-            mock_nndeploy.get_type_enum_json = lambda: {}
-            mock_nndeploy.__version__ = "0.2.0"
+        # 为主要的nndeploy模块添加关键函数
+        mock_nndeploy.get_version = lambda: "0.2.0"
+        mock_nndeploy.framework_init = lambda: True
+        mock_nndeploy.framework_deinit = lambda: True
+        mock_nndeploy.get_type_enum_json = lambda: {}
+        mock_nndeploy.__version__ = "0.2.0"
 
-            print("✅ Mock模块设置完成")
-            return False
-        
+        print("✅ Mock模块设置完成")
+        return False
+            
            
 # 执行安全导入
 is_real_module = safe_import_with_fallback()

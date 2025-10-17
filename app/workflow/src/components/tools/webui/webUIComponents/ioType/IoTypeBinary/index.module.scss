@@ -1,0 +1,78 @@
+.io-type-container {
+
+  background: #f6f6f6bb;
+  width: 216px;
+  height: 216px;
+  min-height: 216px;
+  max-height: 216px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+
+  .io-type-input-container {
+
+    .upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .binary-container {
+
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+      }
+
+    }
+  }
+
+  .io-type-output-container {
+    .binary-container {
+      width: 216px;
+      height: 216px;
+      min-height: 216px;
+      max-height: 216px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .file-item-info {
+        border-radius: var(--semi-border-radius-medium);
+        display: flex;
+
+        padding: 8px 12px;
+        gap: 8px;
+
+        align-items: center;
+        justify-content: space-between;
+
+        background-color: rgba(46, 50, 56, .05);
+        cursor: pointer;
+
+        .fileName {
+          flex: 1;
+        }
+
+        .iconDelete {
+          flex-shrink: 0;
+
+          &:hover {
+            color: var(--semi-color-danger)
+          }
+        }
+
+        .download {
+          flex-shrink: 0;
+        }
+
+      }
+    }
+  }
+}

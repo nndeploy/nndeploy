@@ -18,3 +18,8 @@ from nndeploy.codec.codec import create_opencv_encode
 
 from nndeploy.codec.codec import BatchOpenCvDecode
 from nndeploy.codec.codec import BatchOpenCvEncode
+
+try:
+    from nndeploy.codec.pil import PILImageEncodec, PILImageDecodec, MakeImageGrid
+except ImportError:
+    pass

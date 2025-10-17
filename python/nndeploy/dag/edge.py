@@ -31,7 +31,7 @@ class Edge(_C.dag.Edge):
         
     def construct(self):
         return super().construct()
-        
+
     def set(self, data: any):
         # 检查传入的数据是否为nndeploy框架中的Buffer或Tensor类型
         # isinstance()函数用于判断对象是否为指定类型的实例
@@ -44,7 +44,7 @@ class Edge(_C.dag.Edge):
         elif issubclass(type(data), nndeploy.base.Param):
             status = super().set(data, True)
         else: # 处理其他类型的数据
-            status = self.set(data)
+            status = super().set(data)
         if status != nndeploy.base.StatusCode.Ok:
             raise ValueError("Failed to set data")
         return nndeploy.base.Status.ok()
@@ -83,10 +83,10 @@ class Edge(_C.dag.Edge):
         return super().get_graph_output_param()
         
     def get(self, node: _C.dag.Node = None):
-        return self.get(node)
+        return super().get(node)
         
     def get_graph_output(self):
-        return self.get_graph_output()
+        return super().get_graph_output()
         
     def get_index(self, node: _C.dag.Node) -> int:
         return super().get_index(node)
@@ -114,6 +114,12 @@ class Edge(_C.dag.Edge):
         
     def increase_consumers(self, consumers: list[_C.dag.Node]):
         return super().increase_consumers(consumers)
+    
+    def get_producers(self) -> list[_C.dag.Node]:
+        return super().get_producers()
+    
+    def get_consumers(self) -> list[_C.dag.Node]:
+        return super().get_consumers()
         
     def request_terminate(self) -> bool:
         return super().request_terminate()

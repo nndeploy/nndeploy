@@ -207,6 +207,29 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("reshape", &reshapeFunc, py::return_value_policy::take_ownership);
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);
   m.def("relu", &reluFunc, py::return_value_policy::take_ownership);
+  m.def("hardsigmoid", &hardsigmoidFunc,
+        py::return_value_policy::take_ownership);
+  m.def("selu", &seluFunc, py::return_value_policy::take_ownership);
+  m.def("tanh", &tanhFunc, py::return_value_policy::take_ownership);
+  m.def("abs", &absFunc, py::return_value_policy::take_ownership);
+  m.def("acos", &acosFunc, py::return_value_policy::take_ownership);
+  m.def("asin", &asinFunc, py::return_value_policy::take_ownership);
+  m.def("atan", &atanFunc, py::return_value_policy::take_ownership);
+  m.def("ceil", &ceilFunc, py::return_value_policy::take_ownership);
+  m.def("cos", &cosFunc, py::return_value_policy::take_ownership);
+  m.def("cosh", &coshFunc, py::return_value_policy::take_ownership);
+  m.def("erf", &erfFunc, py::return_value_policy::take_ownership);
+  m.def("exp", &expFunc, py::return_value_policy::take_ownership);
+  m.def("floor", &floorFunc, py::return_value_policy::take_ownership);
+  m.def("log", &logFunc, py::return_value_policy::take_ownership);
+  m.def("reciprocal", &reciprocalFunc, py::return_value_policy::take_ownership);
+  m.def("round", &roundFunc, py::return_value_policy::take_ownership);
+  m.def("sigmoid", &sigmoidFunc, py::return_value_policy::take_ownership);
+  m.def("sign", &signFunc, py::return_value_policy::take_ownership);
+  m.def("sin", &sinFunc, py::return_value_policy::take_ownership);
+  m.def("sinh", &sinhFunc, py::return_value_policy::take_ownership);
+  m.def("sqrt", &sqrtFunc, py::return_value_policy::take_ownership);
+  m.def("tan", &tanFunc, py::return_value_policy::take_ownership);
   m.def("conv", &convFunc, py::return_value_policy::take_ownership);
   m.def(
       "concat",

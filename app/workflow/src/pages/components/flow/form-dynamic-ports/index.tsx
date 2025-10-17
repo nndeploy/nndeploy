@@ -1,4 +1,4 @@
-import { Field, FieldArray } from "@flowgram.ai/free-layout-editor";
+import { Field, FieldArray, useNodeRender } from "@flowgram.ai/free-layout-editor";
 import { Button } from "@douyinfe/semi-ui";
 import { IconPlus, IconCrossCircleStroked } from "@douyinfe/semi-icons";
 
@@ -17,6 +17,8 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
   const { portType } = props;
 
   const readonly = !useIsSidebar();
+  const { form } = useNodeRender()
+
   return (
     <FieldArray name={portType}>
       {({ field }) => (
@@ -34,7 +36,7 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
                     >
                       <FxExpression
                         value={childField.value.type_}
-                        fieldType={{isArray: false, primateType: 'string'}}
+                        fieldType={{ isArray: false, primateType: 'string' }}
                         onChange={(v) => {
                           childField.onChange({
                             ...childField.value,
@@ -62,7 +64,7 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
                     >
                       <FxExpression
                         value={childField.value.desc_}
-                        fieldType={{isArray: false, primateType: 'string'}}
+                        fieldType={{ isArray: false, primateType: 'string' }}
                         onChange={(v) => {
                           childField.onChange({
                             ...childField.value,
@@ -95,14 +97,52 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
               <Button
                 theme="borderless"
                 icon={<IconPlus />}
-                onClick={() =>
-                  field.append({
-                    id: Math.random().toString(36).substr(2, 9), 
-                    ///@ts-ignore
-                    type_: field.value[field.value.length - 1]?.type_ || '',
-                     ///@ts-ignore
-                    desc_: field.value[field.value.length - 1]?.desc_ || '',
+                onClick={() => {
+
+                  // function update() {
+                  //   form?.setValueIn('all', {})
+                  // }
+                  // update()
+                  var temp = form?.getValueIn(portType)
+
+                  // setTimeout(() => {
+                  //   form?.setValueIn(portType, [...form?.getValueIn(portType), {
+                  //     id: 'new' + Math.random().toString(36).substr(2, 9),
+                  //     ///@ts-ignore
+                  //     type_: field.value[field.value.length - 1]?.type_ || '',
+                  //     ///@ts-ignore
+                  //     desc_: field.value[field.value.length - 1]?.desc_ +  Math.random().toString(36).substr(2, 9)|| ''
+                  //   }])
+                  // }, 100)
+
+                  const newFields = new Array(5).fill(true).map(() => {
+                    return {
+                      id:  Math.random().toString(36).substr(2, 9),
+                      ///@ts-ignore
+                      type_: field.value[field.value.length - 1]?.type_ || '',
+                      ///@ts-ignore
+                      desc_: field.value[field.value.length - 1]?.desc_ || '',
+                    }
                   })
+
+                  var length = form?.getValueIn(portType).length
+
+                   form?.setValueIn(portType, [...form?.getValueIn(portType), 
+                  ...newFields])
+
+                  setTimeout(()=>{
+                       form?.setValueIn(portType, [...form?.getValueIn(portType).slice(0, length +1), 
+                      ])
+                  }, 0)
+
+                  // field.append(new Array(5).fill(ture){
+                  //   id: 'new' + Math.random().toString(36).substr(2, 9),
+                  //   ///@ts-ignore
+                  //   type_: field.value[field.value.length - 1]?.type_ || '',
+                  //   ///@ts-ignore
+                  //   desc_: field.value[field.value.length - 1]?.desc_ || '',
+                  // })
+                }
                 }
               >
                 Add

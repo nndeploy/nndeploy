@@ -14,6 +14,24 @@
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
+  
+struct PyObjectWrapper {
+  PyObject *obj;  // 指向Python对象的指针
+
+  // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
+  PyObjectWrapper(PyObject *o) : obj(o) {
+    // py::gil_scoped_acquire acquire;
+    Py_INCREF(obj);
+    // py::gil_scoped_release release;
+  }
+
+  // 析构函数:减少引用计数,允许Python回收对象
+  ~PyObjectWrapper() {
+    py::gil_scoped_acquire acquire;
+    Py_DECREF(obj);
+    // py::gil_scoped_release release;
+  }
+};
 
 template <typename Base = Node>
 class PyNode : public Base {
@@ -60,6 +78,12 @@ class PyNode : public Base {
                            param);
   }
 
+  base::Status setParam(const std::string &key,
+                        const std::string &value) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam, key,
+                           value);
+  }
+
   //   base::Param *getParam() override {
   //     PYBIND11_OVERRIDE_NAME(base::Param *, Base, "get_param", getParam);
   //   }
@@ -83,7 +107,8 @@ class PyNode : public Base {
   }
 
   std::shared_ptr<RunStatus> getRunStatus() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<RunStatus>, Base, "get_run_status", getRunStatus);
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<RunStatus>, Base, "get_run_status",
+                           getRunStatus);
   }
 
   virtual void setTraceFlag(bool flag) override {
@@ -149,6 +174,10 @@ class PyNode : public Base {
   std::vector<Edge *> operator()(Edge *input) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
                            input);
+  }
+
+  base::Status toStaticGraph() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
   }
 
   std::vector<std::string> getRealOutputsName() override {
@@ -315,6 +344,10 @@ class PyGraph : public Base {
     PYBIND11_OVERRIDE_NAME(void, Base, "set_trace_flag", setTraceFlag, flag);
   }
 
+  base::Status toStaticGraph() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
+  }
+
   virtual base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator) override {
@@ -347,7 +380,61 @@ class PyGraph : public Base {
 
   virtual std::map<std::string, int> getLoopCountMap() override {
     using ReturnType = std::map<std::string, int>;
-    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map", getLoopCountMap);
+    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map",
+                           getLoopCountMap);
+  }
+
+  virtual void setUnusedNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_unused_node_names",
+                           setUnusedNodeNames, node_name);
+  }
+
+  virtual void setUnusedNodeNames(
+      const std::set<std::string> &node_names) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_unused_node_names",
+                           setUnusedNodeNames, node_names);
+  }
+
+  virtual void removeUnusedNodeNames(const std::string &node_name) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_unused_node_names",
+                           removeUnusedNodeNames, node_name);
+  }
+
+  virtual void removeUnusedNodeNames(
+      const std::set<std::string> &node_names) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_unused_node_names",
+                           removeUnusedNodeNames, node_names);
+  }
+
+  virtual std::set<std::string> getUnusedNodeNames() override {
+    PYBIND11_OVERRIDE_NAME(std::set<std::string>, Base, "get_unused_node_names",
+                           getUnusedNodeNames);
+  }
+
+  virtual void setNodeValue(const std::string &node_value_str) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_value_str);
+  }
+
+  virtual void setNodeValue(const std::string &node_name,
+                            const std::string &key,
+                            const std::string &value) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_name, key, value);
+  }
+
+  virtual void setNodeValue(
+      std::map<std::string, std::map<std::string, std::string>> node_value_map)
+      override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_node_value", setNodeValue,
+                           node_value_map);
+  }
+
+  virtual std::map<std::string, std::map<std::string, std::string>>
+  getNodeValue() override {
+    using ReturnType =
+        std::map<std::string, std::map<std::string, std::string>>;
+    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_node_value", getNodeValue);
   }
 };
 

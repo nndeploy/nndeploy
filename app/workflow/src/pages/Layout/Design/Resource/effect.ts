@@ -1,16 +1,23 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { apiGetResourceTree } from "./api";
 import { IResourceTreeNodeEntity, IServerResourceFileEntity, IServerResourceResonseData, ResourceTreeNodeData } from "./entity";
+import store from "../store/store";
 
 export function useGetTree(): {
+
   flatData: IResourceTreeNodeEntity[];
   setFlatData: React.Dispatch<React.SetStateAction<IResourceTreeNodeEntity[]>>;
 
   treeData: ResourceTreeNodeData[];
   setTreeData: React.Dispatch<React.SetStateAction<ResourceTreeNodeData[]>>;
+  getResourceTree: () => void;
+
 } {
   const [flatData, setFlatData] = useState<IResourceTreeNodeEntity[]>([]);
   const [treeData, setTreeData] = useState<ResourceTreeNodeData[]>([]);
+
+  const { state } = useContext(store)
+  const { freshResourceTreeCnt } = state
 
   function buildTreeFromArray(
     data: IResourceTreeNodeEntity[],
@@ -37,41 +44,61 @@ export function useGetTree(): {
       });
   }
 
-  function transforServerDataToFlatData(serverResourceResonseData: IServerResourceResonseData) {
+  // function transforServerDataToFlatData(serverResourceResonseData: IServerResourceResonseData) {
 
-    let flatItems: IResourceTreeNodeEntity[] = [
-      { id: 'images', "name": 'images', parentId: "", type: 'branch' },
-      { id: 'videos', "name": 'videos', parentId: "", type: 'branch' },
-      { id: 'models', "name": 'models', parentId: "", type: 'branch' }
-    ]
-    for (let fileType in serverResourceResonseData) {
+  //   let flatItems: IResourceTreeNodeEntity[] = [
+  //     { id: 'images', "name": 'images', parentId: "", type: 'branch' },
+  //     { id: 'videos', "name": 'videos', parentId: "", type: 'branch' },
+  //     { id: 'models', "name": 'models', parentId: "", type: 'branch' }
+  //   ]
+  //   for (let fileType in serverResourceResonseData) {
 
-      const files: IServerResourceFileEntity[] = serverResourceResonseData[fileType]
-      for (let i = 0; i < files.length; i++) {
-        let file = files[i]
-        const flatItem: IResourceTreeNodeEntity = { 
-          id: file.filename, name: file.filename, parentId: fileType, type: 'leaf', 
-          entity: file
-        
-        }
-        flatItems = [...flatItems, flatItem]
-      }
+  //     const files: IServerResourceFileEntity[] = serverResourceResonseData[fileType]
+  //     for (let i = 0; i < files.length; i++) {
+  //       let file = files[i]
+  //       const flatItem: IResourceTreeNodeEntity = { 
+  //         id: file.filename, name: file.filename, parentId: fileType, type: 'leaf', 
+  //         file_info: file
+
+  //       }
+  //       flatItems = [...flatItems, flatItem]
+  //     }
+  //   }
+  //   return flatItems
+  // }
+
+  async function getResourceTree() {
+    const response = await apiGetResourceTree()
+
+    //let flatData = transforServerDataToFlatData(response.result)
+
+    function getNodeById(id: string) {
+      return response.result.find(item => item.id == id)!
     }
-    return flatItems
+
+    if (response.flag != "success") {
+      return
+    }
+
+    response.result = response.result.map(item => {
+      return {
+        ...item,
+        parent_info: getNodeById(item.parentId)
+      }
+    })
+    setFlatData(response.result);
+    ;
   }
 
   useEffect(() => {
-    apiGetResourceTree().then((res) => {
-
-      let flatData = transforServerDataToFlatData(res.result)
-      setFlatData(flatData);
-    });
-  }, []);
+    
+    getResourceTree()
+  }, [freshResourceTreeCnt]);
 
   useEffect(() => {
     const tree = buildTreeFromArray(flatData);
     setTreeData(tree);
   }, [flatData]);
 
-  return { flatData, setFlatData, treeData, setTreeData };
+  return { flatData, setFlatData, treeData, setTreeData, getResourceTree };
 }

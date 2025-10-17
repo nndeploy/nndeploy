@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Use Material Components (M3) theme and turn off the ActionBar via AppCompat attr -->
+    <style name="Theme.NNDeployApp" parent="Theme.Material3.DayNight">
+        <item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+    </style>
+</resources>

@@ -6,12 +6,12 @@ name: Py4Linux_x86  # 工作流名称，在 GitHub Actions 界面中显示
 
 # 触发条件配置
 on:
-  workflow_dispatch:  # 手动触发
-  pull_request:       # Pull Request 触发
-  push:
-    branches:
-      - main          # 推送到 main 分支时触发
-      - testpypi      # 推送到 testpypi 分支时触发测试上传
+  workflow_dispatch:  # Manual trigger
+  # pull_request:       # Pull Request 触发
+  # push:
+  #   branches:
+  #     - main          # 推送到 main 分支时触发
+  #     - testpypi      # 推送到 testpypi 分支时触发测试上传
   release:
     types:
       - published     # 发布 Release 时触发
@@ -64,7 +64,9 @@ jobs:
             # 安装 Rust
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source $HOME/.cargo/env
-            rustup update
+            rustup toolchain install 1.88.0
+            rustup default 1.88.0
+            rustup target add x86_64-unknown-linux-gnu
 
           CIBW_BEFORE_BUILD: |
             # 设置环境变量 (manylinux_2_28 无需 devtoolset)
@@ -148,7 +150,7 @@ jobs:
   upload_testpypi:
     needs: build_wheels
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/testpypi' || (github.event_name == 'push' && github.ref == 'refs/heads/testpypi') || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/testpypi' || github.event_name == 'workflow_dispatch'
     
     steps:
       - uses: actions/download-artifact@v4
@@ -180,6 +182,42 @@ jobs:
           pip install twine
           twine check dist/*
           twine upload --repository testpypi dist/* --verbose --skip-existing
+
+  upload_pypi_manual:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/pypi' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: wheels/
+          
+      - name: 合并 wheels
+        run: |
+          mkdir -p dist/
+          find wheels/ -name "*.whl" -exec cp {} dist/ \;
+          ls -la dist/
+
+      - name: 验证 Token 配置
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          if [ -z "$TWINE_PASSWORD" ]; then
+            echo "错误: PYPI_NNDEPLOY_TOKEN 为空!"
+            exit 1
+          fi
+          echo "Token 配置正常"
+
+      - name: 上传到 PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_NNDEPLOY_TOKEN }}
+        run: |
+          pip install twine
+          twine check dist/*
+          twine upload dist/* --verbose
 
   upload_pypi:
     needs: build_wheels

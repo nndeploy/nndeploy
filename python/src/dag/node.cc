@@ -6,6 +6,12 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
 
+// Windows compatibility: define ssize_t if not available
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
@@ -55,8 +61,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_name", &Node::getName)
       .def("set_developer", &Node::setDeveloper, py::arg("developer"))
       .def("get_developer", &Node::getDeveloper)
-      .def("set_github", &Node::setGithub, py::arg("github"))
-      .def("get_github", &Node::getGithub)
+      .def("set_source", &Node::setSource, py::arg("source"))
+      .def("get_source", &Node::getSource)
       .def("set_desc", &Node::setDesc, py::arg("desc"))
       .def("get_desc", &Node::getDesc)
       .def("set_dynamic_input", &Node::setDynamicInput,
@@ -69,6 +75,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_output_names", &Node::getOutputNames)
       .def("get_input_name", &Node::getInputName, py::arg("index") = 0)
       .def("get_output_name", &Node::getOutputName, py::arg("index") = 0)
+      .def("get_input_index", &Node::getInputIndex, py::arg("name"))
+      .def("get_output_index", &Node::getOutputIndex, py::arg("name"))
+      .def("get_input_count", &Node::getInputCount)
+      .def("get_output_count", &Node::getOutputCount)
       .def("set_input_name", &Node::setInputName, py::arg("name"),
            py::arg("index") = 0)
       .def("set_output_name", &Node::setOutputName, py::arg("name"),
@@ -79,11 +89,46 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph", &Node::getGraph, py::return_value_policy::reference)
       .def("set_device_type", &Node::setDeviceType, py::arg("device_type"))
       .def("get_device_type", &Node::getDeviceType)
-      .def("set_param", &Node::setParamSharedPtr, py::arg("param"))
+      .def("set_param",
+           py::overload_cast<std::shared_ptr<base::Param>>(
+               &Node::setParamSharedPtr),
+           py::arg("param"))
+      .def("set_param",
+           py::overload_cast<const std::string &, const std::string &>(
+               &Node::setParam),
+           py::arg("key"), py::arg("value"))
       .def("get_param", &Node::getParamSharedPtr)
       .def("set_external_param", &Node::setExternalParam, py::arg("key"),
            py::arg("external_param"))
       .def("get_external_param", &Node::getExternalParam, py::arg("key"))
+      .def("set_version", &Node::setVersion, py::arg("version"))
+      .def("get_version", &Node::getVersion)
+      .def("set_required_params", &Node::setRequiredParams,
+           py::arg("required_params"))
+      .def("add_required_param", &Node::addRequiredParam,
+           py::arg("required_param"))
+      .def("remove_required_param", &Node::removeRequiredParam,
+           py::arg("required_param"))
+      .def("clear_required_params", &Node::clearRequiredParams)
+      .def("get_required_params", &Node::getRequiredParams)
+      .def("set_ui_params", &Node::setUiParams, py::arg("ui_params"))
+      .def("add_ui_param", &Node::addUiParam, py::arg("ui_param"))
+      .def("remove_ui_param", &Node::removeUiParam, py::arg("ui_param"))
+      .def("clear_ui_params", &Node::clearUiParams)
+      .def("get_ui_params", &Node::getUiParams)
+      .def("set_io_params", &Node::setIoParams, py::arg("io_params"))
+      .def("add_io_param", &Node::addIoParam, py::arg("io_param"))
+      .def("remove_io_param", &Node::removeIoParam, py::arg("io_param"))
+      .def("clear_io_params", &Node::clearIoParams)
+      .def("get_io_params", &Node::getIoParams)
+      .def("set_dropdown_params", &Node::setDropdownParams,
+           py::arg("dropdown_params"))
+      .def("add_dropdown_param", &Node::addDropdownParam,
+           py::arg("dropdown_param"), py::arg("dropdown_values"))
+      .def("remove_dropdown_param", &Node::removeDropdownParam,
+           py::arg("dropdown_param"))
+      .def("clear_dropdown_params", &Node::clearDropdownParams)
+      .def("get_dropdown_params", &Node::getDropdownParams)
       .def("set_input", &Node::setInput, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output", &Node::setOutput, py::arg("output"),
@@ -104,6 +149,191 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_output", &Node::getOutput, py::arg("index") = 0,
            py::return_value_policy::reference,
            py::call_guard<py::gil_scoped_release>())
+      .def(
+          "get_input_data",
+          [](Node &node, int index = 0) -> py::object {
+            Edge *edge = node.getInput(index);
+            if (edge == nullptr) {
+              return py::object(py::none());
+            }
+            // 尝试获取不同类型的数据
+            if (auto *tensor = edge->getTensor(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(tensor);
+            } else if (auto *buffer = edge->getBuffer(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(buffer);
+            } else if (auto *param = edge->getParam(&node)) {
+              py::gil_scoped_acquire acquire;
+              return py::cast(param);
+            }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+            else if (auto *mat = edge->getCvMat(&node)) {
+              py::gil_scoped_acquire acquire;
+              if (mat == nullptr) {
+                return py::object(py::array());  // 返回空数组
+              }
+
+              std::string format;
+              switch (mat->depth()) {
+                case CV_8U:
+                  format = "B";
+                  break;
+                case CV_8S:
+                  format = "b";
+                  break;
+                case CV_16U:
+                  format = "H";
+                  break;
+                case CV_16S:
+                  format = "h";
+                  break;
+                case CV_32S:
+                  format = "i";
+                  break;
+                case CV_32F:
+                  format = "f";
+                  break;
+                case CV_64F:
+                  format = "d";
+                  break;
+                default:
+                  throw std::runtime_error("Unsupported cv::Mat data type");
+              }
+
+              std::vector<ssize_t> shape;
+              std::vector<ssize_t> strides;
+
+              if (mat->channels() == 1) {
+                // 单通道图像
+                shape = {static_cast<ssize_t>(mat->rows),
+                         static_cast<ssize_t>(mat->cols)};
+                strides = {static_cast<ssize_t>(mat->step[0]),
+                           static_cast<ssize_t>(mat->elemSize1())};
+              } else {
+                // 多通道图像
+                shape = {static_cast<ssize_t>(mat->rows),
+                         static_cast<ssize_t>(mat->cols),
+                         static_cast<ssize_t>(mat->channels())};
+                strides = {
+                    static_cast<ssize_t>(mat->step[0]),
+                    static_cast<ssize_t>(mat->elemSize1() * mat->channels()),
+                    static_cast<ssize_t>(mat->elemSize1())};
+              }
+
+              return py::object(
+                  py::array(py::buffer_info(mat->data,         // 数据指针
+                                            mat->elemSize1(),  // 单个元素大小
+                                            format,            // 数据格式
+                                            shape.size(),      // 维度数
+                                            shape,             // 形状
+                                            strides            // 步长
+                                            )));
+            }
+#endif
+            else if (auto *obj = edge->get<PyObject>(&node)) {
+              if (!obj) {
+                return py::object(py::none());
+              }
+              return py::reinterpret_borrow<py::object>(obj);
+            }
+            return py::object(py::none());
+          },
+          py::arg("index") = 0, py::return_value_policy::reference,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "set_output_data",
+          [](Node &node, py::object obj, int index = 0,
+             bool is_external = true) -> base::Status {
+            Edge *edge = node.getOutput(index);
+            if (edge == nullptr) {
+              return base::kStatusCodeErrorNullParam;
+            }
+            auto *wrapper = new PyObjectWrapper(obj.ptr());
+            // 检查输入对象类型
+            if (py::isinstance<py::array>(obj)) {
+              // numpy array类型
+              auto buffer = obj.cast<py::array>();
+              //        // 获取numpy数组的维度和形状
+              py::buffer_info info = buffer.request();
+              char kind = info.format.front();
+              int channels = (info.ndim == 3) ? info.shape[2] : 1;
+              int cv_depth;
+#ifdef ENABLE_NNDEPLOY_OPENCV
+              // 根据numpy数组的数据类型和每个元素的大小来确定OpenCV的数据类型
+              switch (kind) {
+                case 'B':
+                  cv_depth = CV_8U;
+                  break;
+                case 'b':
+                  cv_depth = CV_8S;
+                  break;
+                case 'H':
+                  cv_depth = CV_16U;
+                  break;
+                case 'h':
+                  cv_depth = CV_16S;
+                  break;
+                case 'i':
+                  cv_depth = CV_32S;
+                  break;
+                case 'f':
+                  cv_depth = CV_32F;
+                  break;
+                case 'd':
+                  cv_depth = CV_64F;
+                  break;
+                default:
+                  throw std::runtime_error("Unsupported data type kind: " +
+                                           std::string(1, kind));
+              }
+              int type = CV_MAKETYPE(cv_depth, channels);
+              cv::Mat *mat =
+                  new cv::Mat(info.shape[0], info.shape[1], type, info.ptr);
+              base::Status status = edge->set4py(wrapper, mat, false);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set cv::Mat");
+              }
+              return status;
+#else
+              NNDEPLOY_LOGE("set cv::Mat is not supported");
+              base::Status status =
+                  base::StatusCode::kStatusCodeErrorNotSupport;
+              return status;
+#endif
+            } else if (py::isinstance<device::Tensor>(obj)) {
+              // Tensor类型
+              auto *tensor = obj.cast<device::Tensor *>();
+              base::Status status = edge->set4py(wrapper, tensor);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set device::Tensor");
+              }
+              return status;
+            } else if (py::isinstance<device::Buffer>(obj)) {
+              // Buffer类型
+              auto *buffer = obj.cast<device::Buffer *>();
+              base::Status status = edge->set4py(wrapper, buffer);
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set device::Buffer");
+              }
+              return status;
+            } else if (py::isinstance<base::Param>(obj)) {
+              // Param类型
+              auto param = obj.cast<std::shared_ptr<base::Param>>();
+              base::Status status = edge->set4py(wrapper, param.get());
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set base::Param");
+              }
+              return status;
+            } else {
+              base::Status status = edge->set4py(wrapper, obj.ptr());
+              if (status != base::StatusCode::kStatusCodeOk) {
+                throw std::runtime_error("Failed to set base::Param");
+              }
+              return status;
+            }
+          },
+          py::arg("obj"), py::arg("index") = 0, py::arg("is_external") = true)
       .def("get_all_input", &Node::getAllInput,
            py::return_value_policy::reference,
            py::call_guard<py::gil_scoped_release>())
@@ -136,23 +366,27 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_flag", &Node::getGraphFlag)
       .def("set_node_type", &Node::setNodeType, py::arg("node_type"))
       .def("get_node_type", &Node::getNodeType)
+      .def("set_io_type", &Node::setIoType, py::arg("io_type"))
+      .def("get_io_type", &Node::getIoType)
       .def("set_loop_count", &Node::setLoopCount, py::arg("loop_count"))
       .def("get_loop_count", &Node::getLoopCount)
       .def("set_stream", &Node::setStream, py::arg("stream"))
       .def("get_stream", &Node::getStream, py::return_value_policy::reference)
       .def(
           "set_input_type_info",
-          [](Node &node, std::shared_ptr<EdgeTypeInfo> input_type_info) {
-            return node.setInputTypeInfo(input_type_info);
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> input_type_info,
+             std::string desc = "") {
+            return node.setInputTypeInfo(input_type_info, desc);
           },
-          py::arg("input_type_info"))
+          py::arg("input_type_info"), py::arg("desc") = "")
       .def("get_input_type_info", &Node::getInputTypeInfo)
       .def(
           "set_output_type_info",
-          [](Node &node, std::shared_ptr<EdgeTypeInfo> output_type_info) {
-            return node.setOutputTypeInfo(output_type_info);
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> output_type_info,
+             std::string desc = "") {
+            return node.setOutputTypeInfo(output_type_info, desc);
           },
-          py::arg("output_type_info"))
+          py::arg("output_type_info"), py::arg("desc") = "")
       .def("get_output_type_info", &Node::getOutputTypeInfo)
       .def("default_param", &Node::defaultParam)
       .def("init", &Node::init, py::call_guard<py::gil_scoped_release>())
@@ -191,6 +425,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::overload_cast<std::vector<Edge *> &>(&Node::checkOutputs),
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
+      .def("to_static_graph", &Node::toStaticGraph,
+           py::return_value_policy::reference)
       .def("get_real_outputs_name", &Node::getRealOutputsName)
       .def("serialize",
            py::overload_cast<rapidjson::Value &,
@@ -341,27 +577,21 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
-
-      .def("set_image_url", &Graph::setImageUrl, py::arg("key"),
-           py::arg("url"))
-      .def("remove_image_url", &Graph::removeImageUrl, py::arg("key"))
-      .def("set_video_url", &Graph::setVideoUrl, py::arg("key"),
-           py::arg("url"))
-      .def("remove_video_url", &Graph::removeVideoUrl, py::arg("key"))
-      .def("set_audio_url", &Graph::setAudioUrl, py::arg("key"),
-           py::arg("url"))
-      .def("remove_audio_url", &Graph::removeAudioUrl, py::arg("key"))
-      .def("set_model_url", &Graph::setModelUrl, py::arg("key"),
-           py::arg("url"))
-      .def("remove_model_url", &Graph::removeModelUrl, py::arg("key"))
-      .def("set_other_url", &Graph::setOtherUrl, py::arg("key"),
-           py::arg("url"))
-      .def("remove_other_url", &Graph::removeOtherUrl, py::arg("key"))
-      .def("get_image_url", &Graph::getImageUrl, py::arg("key"))
-      .def("get_video_url", &Graph::getVideoUrl, py::arg("key"))
-      .def("get_audio_url", &Graph::getAudioUrl, py::arg("key"))
-      .def("get_model_url", &Graph::getModelUrl, py::arg("key"))
-      .def("get_other_url", &Graph::getOtherUrl, py::arg("key"))
+      .def("add_image_url", &Graph::addImageUrl, py::arg("url"))
+      .def("remove_image_url", &Graph::removeImageUrl, py::arg("url"))
+      .def("add_video_url", &Graph::addVideoUrl, py::arg("url"))
+      .def("remove_video_url", &Graph::removeVideoUrl, py::arg("url"))
+      .def("add_audio_url", &Graph::addAudioUrl, py::arg("url"))
+      .def("remove_audio_url", &Graph::removeAudioUrl, py::arg("url"))
+      .def("add_model_url", &Graph::addModelUrl, py::arg("url"))
+      .def("remove_model_url", &Graph::removeModelUrl, py::arg("url"))
+      .def("add_other_url", &Graph::addOtherUrl, py::arg("url"))
+      .def("remove_other_url", &Graph::removeOtherUrl, py::arg("url"))
+      .def("get_image_url", &Graph::getImageUrl)
+      .def("get_video_url", &Graph::getVideoUrl)
+      .def("get_audio_url", &Graph::getAudioUrl)
+      .def("get_model_url", &Graph::getModelUrl)
+      .def("get_other_url", &Graph::getOtherUrl)
       .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
@@ -433,6 +663,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("get_nodes_name_recursive", &Graph::getNodesNameRecursive,
            py::return_value_policy::reference)
+      .def("get_input_node", &Graph::getInputNode, py::arg("index"),
+           py::return_value_policy::reference)
+      .def("get_output_node", &Graph::getOutputNode, py::arg("index"),
+           py::return_value_policy::reference)
+      .def("get_infer_node", &Graph::getInferNode, py::arg("index"),
+           py::return_value_policy::reference)
       .def("get_nodes_run_status", &Graph::getNodesRunStatus,
            py::call_guard<py::gil_scoped_release>())
       .def("get_nodes_run_status_recursive", &Graph::getNodesRunStatusRecursive,
@@ -467,6 +703,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
       .def("synchronize", &Graph::synchronize,
+           py::call_guard<py::gil_scoped_release>())
+      .def("interrupt", &Graph::interrupt,
            py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
@@ -534,7 +772,36 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("json"))
       .def("deserialize",
            py::overload_cast<const std::string &>(&Graph::deserialize),
-           py::arg("json_str"));
+           py::arg("json_str"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::string &>(&Graph::setUnusedNodeNames),
+           py::arg("node_name"))
+      .def("set_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::setUnusedNodeNames),
+           py::arg("node_names"))
+      .def(
+          "remove_unused_node_names",
+          py::overload_cast<const std::string &>(&Graph::removeUnusedNodeNames),
+          py::arg("node_name"))
+      .def("remove_unused_node_names",
+           py::overload_cast<const std::set<std::string> &>(
+               &Graph::removeUnusedNodeNames),
+           py::arg("node_names"))
+      .def("get_unused_node_names", &Graph::getUnusedNodeNames)
+      .def("set_node_value",
+           py::overload_cast<const std::string &>(&Graph::setNodeValue),
+           py::arg("node_value_str"))
+      .def("set_node_value",
+           py::overload_cast<const std::string &, const std::string &,
+                             const std::string &>(&Graph::setNodeValue),
+           py::arg("node_name"), py::arg("key"), py::arg("value"))
+      .def("set_node_value",
+           py::overload_cast<
+               std::map<std::string, std::map<std::string, std::string>>>(
+               &Graph::setNodeValue),
+           py::arg("node_value_map"))
+      .def("get_node_value", &Graph::getNodeValue);
 
   //   m.def("serialize", py::overload_cast<Graph *>(&serialize),
   //   py::arg("graph")); m.def("save_file", &saveFile, py::arg("graph"),

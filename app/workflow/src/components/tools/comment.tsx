@@ -12,6 +12,8 @@ import { IconButton, Tooltip } from '@douyinfe/semi-ui';
 
 import { WorkflowNodeType } from '../../nodes';
 import { IconComment } from '../../assets/icon-comment';
+import { getNextNameNumberSuffix } from '../../pages/components/flow/functions';
+import { FlowDocumentJSON } from '../../typings';
 
 export const Comment = () => {
   const playground = usePlayground();
@@ -37,7 +39,30 @@ export const Comment = () => {
       setTooltipVisible(false);
       const canvasPosition = calcNodePosition(mouseEvent);
       // 创建节点
-      const node = document.createWorkflowNodeByType(WorkflowNodeType.Comment, canvasPosition);
+      //const node = document.createWorkflowNodeByType(WorkflowNodeType.Comment, canvasPosition);
+
+      let numberSuffix = getNextNameNumberSuffix(document.toJSON() as FlowDocumentJSON)
+
+      let nodeTemplate = {
+        // ...response.result,
+        id: Math.random().toString(36).substr(2, 9),
+        type: WorkflowNodeType.Comment,
+        meta: {
+          position: {
+            x: canvasPosition?.x,
+            y: canvasPosition?.y,
+          },
+        },
+        data: {
+          //title: response.result.key_,
+          key_: WorkflowNodeType.Comment, 
+
+          name_: `${'comment'}_${numberSuffix}`,
+        },
+      }
+
+      const node = document.createWorkflowNode(nodeTemplate);
+
       // 等待节点渲染
       await delay(16);
       // 选中节点

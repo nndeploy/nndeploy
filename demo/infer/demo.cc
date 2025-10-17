@@ -1,3 +1,27 @@
+
+/**
+ * nndeploy Inference Demo:
+ * This example demonstrates the inference functionality of the nndeploy
+ * framework, focusing on model interpretation, weight management, and neural
+ * network operations
+ *
+ * Main functionality demonstrations:
+ * 1. Model description and graph construction using TestDesc classes
+ * 2. IR (Intermediate Representation) interpretation and model loading
+ * 3. Safetensors format weight serialization/deserialization
+ * 4. Convolution, ReLU and other neural network operations and output
+ * processing
+ * 5. Model weight management and file I/O operations
+ *
+ * Core components:
+ * - TestDesc1/TestDesc: Custom model description classes defining network
+ * architecture
+ * - IR Interpreter: Model interpretation system for loading and processing
+ * models
+ * - Safetensors: Weight format handling for model persistence
+ * - Operation Expressions: High-level neural network operation definitions
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/shape.h"
@@ -10,10 +34,11 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
+#ifdef ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 // #include "onnx/defs/operator_sets.h"
 // #include "onnx/defs/schema.h"
-#include "nndeploy/framework.h"
 
 using namespace nndeploy;
 
@@ -90,12 +115,6 @@ void testOnnxImport() {
 }
 
 int main(int argc, char const *argv[]) {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   // printHelloWorld();
   // test_onnx_schemas();
   // testOnnxImport();
@@ -214,10 +233,5 @@ int main(int argc, char const *argv[]) {
     delete interpret;
   }
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

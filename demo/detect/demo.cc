@@ -7,7 +7,6 @@
 #include "nndeploy/detect/yolo/yolo.h"
 #include "nndeploy/detect/yolo/yolox.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
 // + 编译/运行/结果分析
@@ -60,12 +59,6 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   // 检测模型的有向无环图graph名称，例如:
@@ -158,7 +151,6 @@ int main(int argc, char *argv[]) {
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node, false);
 
-
   // 设置pipeline并行
   base::Status status = graph->setParallelType(pt);
   if (status != base::kStatusCodeOk) {
@@ -250,12 +242,6 @@ int main(int argc, char *argv[]) {
   delete graph;
   delete input;
   delete output;
-
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
 
   return 0;
 }
