@@ -1,7 +1,7 @@
-[简体中文](README.md) | English
+English | [Simplified Chinese](README.md)
 
 <h3 align="center">
-nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
+nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
 </h3>
 
 <p align="center">
@@ -26,9 +26,9 @@ nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
 </p>
 
 <p align="center">
-<a href="https://nndeploy.readthedocs.io/en/latest/"><b>Documentation</b></a> 
+<a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>Documentation</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-| <a href="docs/en/knowledge_shared/wechat.md"><b>WeChat</b></a> 
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 <!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a>  -->
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>Bilibili</b></a>  -->
@@ -43,98 +43,63 @@ nndeploy：An Easy-to-Use and High-Performance AI Deployment Framework
 
 ---
 
-## Latest Updates
+## Latest News
 
-- [2025/05/29]🔥 A free course on the inference framework, co-developed by the nndeploy open-source team and Huawei Ascend officials, is now available. It is suitable for those who want to get started with or improve their AI inference deployment skills. [Learn on Ascend Platform](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Learn on Bilibili](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+- [2025/01/29] 🔥 Collaborated with Ascend officially to launch a free inference framework course! The course provides in-depth explanations based on nndeploy's internal inference framework, helping developers quickly master core AI inference deployment technologies. [Ascend Platform Learning](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Bilibili Learning](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## Introduction
 
-nndeploy is a easy-to-use and high-performance AI deployment framework. Built on the design of visual workflows and multi-end inference, it enables developers to easily create SDKs tailored for specific platforms and hardware directly from training algorithm repositories, significantly reducing development time. Additionally, the framework comes pre-deployed with a wide range of AI models, including Large Language Models (LLMs), AIGC generation, face swapping, object detection, and image segmentation, allowing for out-of-the-box use.
+nndeploy is an easy-to-use, and high-performance AI deployment framework. Based on the design concepts of visual workflows and multi-backend inference, developers can quickly develop SDKs for specified platforms and hardware from algorithm repositories, significantly saving development time. Furthermore, the framework has already deployed numerous AI models including LLM, AIGC generation, face swap, object detection, image segmentation, etc., ready to use out-of-the-box.
 
-- **Visual Workflow**: Deploy AI algorithms through drag-and-drop operations. Adjust all node parameters of AI algorithms via the front-end visualization interface and quickly preview the effect after parameter tuning.
-- **Custom Nodes**: Support custom nodes in Python/C++. No front-end code is required, and they can be seamlessly integrated into the visualization interface.
+### **Simple and Easy to Use**
+
+- **Visual Workflow**: Deploy AI algorithms through drag-and-drop operations. Visually adjust all node parameters of the AI algorithm in the frontend and quickly preview the effect after parameter tuning.
+- **Custom Nodes**: Support Python/C++ custom nodes, seamlessly integrated into the visual interface without frontend code.
 - **Algorithm Combination**: Flexibly combine different algorithms to quickly build innovative AI applications.
-- **One-Click Deployment**: The built workflow can be exported as a JSON configuration file with one click. It supports direct calls via Python/C++ APIs, enabling seamless transition from the development environment to the production environment. It fully supports platforms such as Linux, Windows, macOS, Android, and iOS.
+- **One-Click Deployment**: The completed workflow can be exported as a JSON configuration file with one click, supporting direct calls via Python/C++ API, achieving seamless transition from development to production environments, and fully supporting platforms like Linux, Windows, macOS, Android, iOS, etc.
 
 ### **High Performance**
 
-- **Seamless Integration of 13 Inference Engines**: One workflow for multi-end deployment. It has integrated 13 mainstream inference frameworks with zero abstraction cost, covering full platforms including cloud, desktop, mobile, and edge.
+- **Parallel Optimization**: Supports execution modes like serial, pipeline parallel, task parallel, etc.
+- **Memory Optimization**: Optimization strategies like zero-copy, memory pool, memory reuse, etc.
+- **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD, etc.
+- **Multi-Backend Inference**: One workflow, multiple backend inference. Integrates 13 mainstream inference frameworks with zero abstraction cost, covering all platforms including cloud, desktop, mobile, edge, etc.
 
-  | Inference Framework                                                                 | Application Scenario          | Status |
-  | :----------------------------------------------------------------------------------- | :---------------------------- | :----- |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                              | Cross-platform inference      | ✅     |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                       | High-performance inference on NVIDIA GPU | ✅     |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                              | Optimization for Intel CPU/GPU | ✅     |
-  | [MNN](https://github.com/alibaba/MNN)                                                | Mobile inference engine launched by Alibaba | ✅     |
-  | [TNN](https://github.com/Tencent/TNN)                                                | Mobile inference engine launched by Tencent | ✅     |
-  | [ncnn](https://github.com/Tencent/ncnn)                                              | Mobile inference engine launched by Tencent | ✅     |
-  | [CoreML](https://github.com/apple/coremltools)                                       | Native acceleration for iOS/macOS | ✅     |
-  | [AscendCL](https://www.hiascend.com/en/)                                             | Inference framework for Huawei Ascend AI chips | ✅     |
-  | [RKNN](https://www.rock-chips.com/a/en/downloadcenter/BriefDatasheet/index.html)     | Inference framework for Rockchip NPU | ✅     |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)       | Inference framework for Qualcomm Snapdragon NPU | ✅     |
-  | [TVM](https://github.com/apache/tvm)                                                 | Deep learning compilation stack | ✅     |
-  | [PyTorch](https://pytorch.org/)                                                      | Rapid prototyping/cloud deployment | ✅     |
-  | [Self-developed Inference Framework](docs/en/inference/README_INFERENCE.md)          | Default inference framework   | ✅     |
-
-- **Parallel Optimization**: Support execution modes such as serial, pipeline parallelism, and task parallelism.
-- **Memory Optimization**: Optimization strategies including zero-copy, memory pool, and memory reuse.
-- **High-performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD implementations.
+  | Inference Framework                                                                         | Application Scenario              | Status |
+  | :----------------------------------------------------------------------------------------- | :-------------------------------- | :----- |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                                    | Cross-platform inference          | ✅     |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                             | NVIDIA GPU high-performance inference | ✅     |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                                    | Intel CPU/GPU optimization        | ✅     |
+  | [MNN](https://github.com/alibaba/MNN)                                                      | Mobile inference engine by Alibaba| ✅     |
+  | [TNN](https://github.com/Tencent/TNN)                                                      | Mobile inference engine by Tencent| ✅     |
+  | [ncnn](https://github.com/Tencent/ncnn)                                                    | Mobile inference engine by Tencent| ✅     |
+  | [CoreML](https://github.com/apple/coremltools)                                             | iOS/macOS native acceleration     | ✅     |
+  | [AscendCL](https://www.hiascend.com/zh/)                                                   | Huawei Ascend AI chip inference framework | ✅     |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html)           | Rockchip NPU inference framework  | ✅     |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)             | Qualcomm Snapdragon NPU inference framework | ✅     |
+  | [TVM](https://github.com/apache/tvm)                                                       | Deep learning compiler stack      | ✅     |
+  | [PyTorch](https://pytorch.org/)                                                            | Rapid prototyping / Cloud deployment | ✅     |
+  | [Self-developed Inference Framework](docs/zh_cn/inference/README_INFERENCE.md)             | Default inference framework       | ✅     |
 
 ### **Out-of-the-Box Algorithms**
 
-A list of deployed models has been created, with **100+ nodes** available. We will continue to deploy more high-value AI algorithms. If you have algorithms that need to be deployed, please let us know via [issues](https://github.com/nndeploy/nndeploy/issues).
+List of deployed models, with **100+ nodes** created. We will continue to deploy more high-value AI algorithms. If you have algorithms you need deployed, please let us know via [issue](https://github.com/nndeploy/nndeploy/issues).
 
-| Application Scenario | Available Models                                                                 | Notes                                              |
-| -------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
-| **Large Language Models** | **QWen-0.5B**                                                                    |                                                   |
-| **Image Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc.   | Support text-to-image, image-to-image, and image inpainting, implemented based on **diffusers** |
-| **Face Swapping**    | **deep-live-cam**                                                                |                                                   |
-| **OCR**              | **Paddle OCR**                                                                   |                                                   |
-| **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |                                                   |
-| **Object Tracking**  | FairMot                                                                          |                                                   |
-| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                   |
-| **Classification**   | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                   |
-| **API Services**     | OPENAI, DeepSeek, Moonshot                                                       | Support LLM and AIGC services                     |
+| Application Scenario   | Available Models                                                                              | Remarks                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Large Language Model** | **QWen-0.5B**                                                                                 |                                                     |
+| **Image Generation**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc.               | Supports text-to-image, image-to-image, inpainting; based on **diffusers** |
+| **Face Swap**          | **deep-live-cam**                                                                             |                                                     |
+| **OCR**                | **Paddle OCR**                                                                                |                                                     |
+| **Object Detection**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                                           |                                                     |
+| **Object Tracking**    | FairMot                                                                                       |                                                     |
+| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything**                                                     |                                                     |
+| **Classification**     | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet                    |                                                     |
+| **API Service**        | OPENAI, DeepSeek, Moonshot                                                                    | Supports LLM and AIGC services                      |
 
-> For more details, see the [List of Deployed Models](docs/en/quick_start/model_list.md)
-
-In practical use, we recommend adopting the following workflow:
-
-1. **Development Phase**: Design and debug through visual workflows, **develop custom nodes when necessary**
-2. **Validation Phase**: Validate algorithm effectiveness and performance in the visual interface
-3. **Deployment Phase**: Export validated workflows as JSON configuration files with one click, and load them directly in production environments through Python/C++ APIs
-
-Whether through the visual frontend interface or API calls, everything ultimately executes in the underlying high-performance C++ computation engine. This unified underlying architecture ensures that workflows have completely consistent execution behavior and performance in both development/debugging and production deployment environments, achieving the goal of "develop once, run everywhere".
-
-## Performance Comparison
-
-Test Environment: Ubuntu 22.04, CPU: 12th Gen Intel(R) Core(TM) i7-12700, GPU: RTX3060
-
-### Pipeline Parallel Acceleration
-
-Taking the end-to-end workflow of YOLOv11s as an example, the comparison of end-to-end time consumption is as follows:
-
-![yolov11s_performance](docs/image/workflow/yolo_performance.png)
-
-| Running Mode \ Inference Engine | ONNXRuntime | OpenVINO  | TensorRT  |
-| -------------------------------- | ----------- | --------- | --------- |
-| Serial                           | 54.803 ms   | 34.139 ms | 13.213 ms |
-| Pipeline Parallelism             | 47.283 ms   | 29.666 ms | 5.681 ms  |
-| Performance Improvement          | 13.7%       | 13.1%     | 57%       |
-
-### Task Parallel Acceleration
-
-End-to-end total time consumption of combined tasks (segmentation RMBGv1.4 + detection YOLOv11s + classification ResNet50), Serial vs. Task Parallelism:
-
-![rmbg_yolo_resnet.png](docs/image/workflow/rmbg_yolo_resnet.png)
-
-| Running Mode \ Inference Engine | ONNXRuntime | OpenVINO   | TensorRT  |
-| -------------------------------- | ----------- | ---------- | --------- |
-| Serial                           | 654.315 ms  | 489.934 ms | 59.140 ms |
-| Task Parallelism                 | 602.104 ms  | 435.181 ms | 51.883 ms |
-| Performance Improvement          | 7.98%       | 11.2%      | 12.2%     |
+> See more details in the [Deployed Model List Details](docs/zh_cn/quick_start/model_list.md)
 
 ## Quick Start
 
@@ -144,13 +109,13 @@ End-to-end total time consumption of combined tasks (segmentation RMBGv1.4 + det
   pip install --upgrade nndeploy
   ```
 
-+ **Launch the Visual Workflow**
++ **Start the Visual Interface**
 
   ```bash
   nndeploy-app --port 8000
   ```
 
-  After successful launch, open http://localhost:8000 to access the workflow interface
+  After successful startup, open http://localhost:8000 to access the workflow interface.
 
   <p align="left">
     <picture>
@@ -159,9 +124,9 @@ End-to-end total time consumption of combined tasks (segmentation RMBGv1.4 + det
     </picture>
   </p>  
 
-### Export and Execute the Workflow
++ **Export Workflow and Execute via Command Line**
 
-  After building the workflow in the visualization interface, save it as a JSON file (e.g., workflow.json), then execute the workflow using the following command:
+  After building the workflow, save it as a JSON file and execute via command line:
 
   ```bash
   # Python CLI
@@ -170,54 +135,115 @@ End-to-end total time consumption of combined tasks (segmentation RMBGv1.4 + det
   nndeploy_demo_run_json --json_file path/to/workflow.json
   ```
 
-  - API to Load and Run JSON Configuration Files
-    - [Python API Example Code](python/nndeploy/dag/run_json.py)
-    - [Python 检测算法示例代码](demo/detect/demo.cc)
-    - [C++ API Example Code](framework/include/nndeploy/dag/graph_runner.h)
-    - [C++ 检测算法示例代码](demo/detect/demo.py)
+- **Export Workflow and Load/Run via API**  
 
-> Python 3.10 or higher is required. By default, two inference backends (PyTorch and ONNXRuntime) are included. To use more inference backends (such as TensorRT, OpenVINO, ncnn, MNN, etc.), please use the developer mode.
+  After completing the workflow setup in the visual interface, it can be saved as a JSON file, then loaded and executed via Python/C++ API.
 
-> Use `nndeploy-clean` to clean up outdated backend resources.
+  - Python API loading and running LLM workflow
+    ```Python
+    graph = nndeploy.dag.Graph("")
+    graph.remove_in_out_node()
+    graph.load_file("path/to/llm_workflow.json")
+    graph.init()
+    input = graph.get_input(0)    
+    text = nndeploy.tokenizer.TokenizerText()
+    text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
+    input.set(text)
+    status = graph.run()
+    output = graph.get_output(0)
+    result = output.get_graph_output()  
+    graph.deinit()
+    ```
+  - C++ API loading and running LLM workflow
+    ```C++
+    std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
+    base::Status status = graph->loadFile("path/to/llm_workflow.json");
+    graph->removeInOutNode();
+    status = graph->init();
+    dag::Edge* input = graph->getInput(0);
+    tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+    text->texts_ = {
+        "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+    input->set(text, false);
+    status = graph->run();
+    dag::Edge* output = graph->getOutput(0);
+    tokenizer::TokenizerText* result =
+        output->getGraphOutput<tokenizer::TokenizerText>();
+    status = graph->deinit();
+    ```
+
+  More example code: [Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python Object Detection](demo/detect/demo.py) | [C++ Object Detection](demo/detect/demo.cc) | 
+
+
+**Recommended Process**
+
+- Development Phase: Design and debug through the visual workflow, verifying the algorithm's effect and performance in the visual interface. **Develop custom nodes if necessary**.
+- Deployment Phase: Export the verified workflow as a JSON configuration file with one click, and load and run it directly in the production environment via Python/C++ API.
+
+Whether through the visual frontend interface or API calls, they ultimately execute in the underlying unified high-performance C++ computation engine. This architectural design ensures that the workflow has completely consistent execution behavior and performance in both development/debugging and production deployment environments, realizing the "write once, run anywhere" philosophy.
+
+> Requires Python 3.10+, includes PyTorch and ONNXRuntime by default. For more inference backends, please use the developer mode.
 
 ### Documentation
 
-- [How to Build](docs/en/quick_start/build.md)
-- [How to Obtain Models](docs/en/quick_start/model.md)
-- [How to Execute](docs/en/quick_start/example.md)
-- [Python Quick Start](docs/en/quick_start/python.md)
-- [Visual Workflow Quick Start](docs/en/quick_start/workflow.md)
-- [C++ API](https://nndeploy.readthedocs.io/en/latest/cpp_api/doxygen.html)
-- [C++ Plugin Development Guide](docs/en/quick_start/plugin.md)
-- [Python++ API](https://nndeploy.readthedocs.io/en/latest/python_api/index.html)
-- [Python Plugin Development Guide](docs/en/quick_start/plugin_python.md)
+- [How to Build](docs/zh_cn/quick_start/build.md)
+- [How to Get Models](docs/zh_cn/quick_start/model.md)
+- [Visual Workflow](docs/zh_cn/quick_start/workflow.md)
+- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)
 
-## Stay Ahead
+## Performance Testing
 
-Give nndeploy a Star on GitHub to get notified of new releases immediately.
+Test Environment: Ubuntu 22.04, i7-12700, RTX3060
+
+- **Pipeline Parallel Acceleration**. Total end-to-end workflow time for YOLOv11s, Serial vs Pipeline Parallel.
+
+  <img src="docs/image/workflow/yolo_performance.png" width="60%">
+
+  | Execution Method\Inference Engine | ONNXRuntime | OpenVINO   | TensorRT |
+  | --------------------------------- | ----------- | ---------- | -------- |
+  | Serial                            | 54.803 ms   | 34.139 ms  | 13.213 ms|
+  | Pipeline Parallel                 | 47.283 ms   | 29.666 ms  | 5.681 ms |
+  | Performance Improvement           | 13.7%       | 13.1%      | 57%      |
+
+- **Task Parallel Acceleration**. Total end-to-end time for combined task (Segmentation RMBGv1.4 + Detection YOLOv11s + Classification ResNet50), Serial vs Task Parallel.
+
+  <img src="docs/image/workflow/rmbg_yolo_resnet.png" width="60%">
+
+  | Execution Method\Inference Engine | ONNXRuntime | OpenVINO    | TensorRT |
+  | --------------------------------- | ----------- | ----------- | -------- |
+  | Serial                            | 654.315 ms  | 489.934 ms  | 59.140 ms|
+  | Task Parallel                     | 602.104 ms  | 435.181 ms  | 51.883 ms|
+  | Performance Improvement           | 7.98%       | 11.2%       | 12.2%    |
+
+## Stay Updated
+
+Star nndeploy on GitHub and get notified immediately about new releases.
 
 <img src="docs/image/star.gif">
 
-## Roadmap
+## Next Steps
 
 - [Workflow Ecosystem](https://github.com/nndeploy/nndeploy/issues/191)
-- [On-Device LLM Inference](https://github.com/nndeploy/nndeploy/issues/161)
+- [On-Device Large Model Inference](https://github.com/nndeploy/nndeploy/issues/161)
 - [Architecture Optimization](https://github.com/nndeploy/nndeploy/issues/189)
 - [AI Box](https://github.com/nndeploy/nndeploy/issues/190)
 
 ## Contact Us
 
-- Currently, nndeploy is in the development stage. If you love open-source projects and enjoy exploring, whether for learning purposes or to share better ideas, you are welcome to join us.
+- nndeploy is currently in the development stage. If you love open source, enjoy tinkering, whether for learning purposes or have better ideas, you are welcome to join us.
 
-- WeChat: Always031856 (Feel free to add as a friend and join the active AI inference deployment communication group. Please note: nndeploy\_Your Name)
+- WeChat: Always031856 (Feel free to add as a friend, join the active AI inference deployment discussion group,备注：nndeploy\_Name)
 
   <img src="docs/image/wechat.jpg" width="225px">
 
-## Acknowledgements
+## Acknowledgments
 
 - Thanks to the following projects: [TNN](https://github.com/Tencent/TNN), [FastDeploy](https://github.com/PaddlePaddle/FastDeploy), [opencv](https://github.com/opencv/opencv), [CGraph](https://github.com/ChunelFeng/CGraph), [tvm](https://github.com/apache/tvm), [mmdeploy](https://github.com/open-mmlab/mmdeploy), [FlyCV](https://github.com/PaddlePaddle/FlyCV), [oneflow](https://github.com/Oneflow-Inc/oneflow), [flowgram.ai](https://github.com/bytedance/flowgram.ai), [deep-live-cam](https://github.com/hacksider/Deep-Live-Cam).
 
-- Thanks to [HelloGithub](https://hellogithub.com/repository/nndeploy/nndeploy) for the recommendation
+- Thanks to [HelloGithub](https://hellogithub.com/repository/nndeploy/nndeploy) for the recommendation.
 
   <a href="https://hellogithub.com/repository/314bf8e426314dde86a8c62ea5869cb7" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=314bf8e426314dde86a8c62ea5869cb7&claim_uid=mu47rJbh15yQlAs" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
