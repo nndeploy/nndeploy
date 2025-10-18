@@ -46,10 +46,11 @@ class LocalThread {
     thread_ = std::move(std::thread(&LocalThread::run, this));
   }
 
-  void setThreadPoolInfo(int index, std::vector<LocalThread *> *pool_threads) {
+  void setThreadPoolInfo(int index, std::vector<LocalThread *> *pool_threads,
+                         int total_thread_size) {
     index_ = index;
     pool_threads_ = pool_threads;
-    total_thread_size_ = (int)pool_threads->size();
+    total_thread_size_ = total_thread_size;
   }
 
   /**

@@ -1,3 +1,8 @@
+/**
+ * nndeploy Stable Diffusion Demo:
+ * Implementation of stable diffusion algorithm using static graph construction
+ */
+
 // #include <cuda_runtime.h>
 
 #include "flag.h"
@@ -5,7 +10,6 @@
 #include "nndeploy/base/mem_tracker.h"
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/stable_diffusion/ddim_scheduler.h"
 #include "nndeploy/stable_diffusion/text2image.h"
 #include "nndeploy/tokenizer/tokenizer.h"
@@ -22,12 +26,6 @@ int main(int argc, char* argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   // name of Stable Diffusion DAG: txt2img
@@ -139,10 +137,5 @@ int main(int argc, char* argv[]) {
   delete ddim_param;
   delete graph;
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

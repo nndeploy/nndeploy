@@ -1,5 +1,9 @@
+/**
+ * nndeploy Optimizer Demo:
+ * Test optimizer(default inference framework)
+ */
+
 #include "flag.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -14,12 +18,6 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   base::ModelType model_type = demo::getModelType();

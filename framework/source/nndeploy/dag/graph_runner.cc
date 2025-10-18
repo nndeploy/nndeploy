@@ -186,6 +186,14 @@ void GraphRunner::set_node_value(const std::string& node_name, const std::string
   node_value_map_[node_name][key] = value;
 }
 
+void GraphRunner::set_node_value(std::map<std::string, std::map<std::string, std::string>> node_value_map) {
+  for (const auto& node_value_item : node_value_map) {
+    for (const auto& key_value_item : node_value_item.second) {
+      node_value_map_[node_value_item.first][key_value_item.first] = key_value_item.second;
+    }
+  }
+}
+
 base::Status GraphRunner::buildGraph(const std::string& graph_json_str,
                                      const std::string& name) {
   graph_ = std::make_shared<Graph>(name);

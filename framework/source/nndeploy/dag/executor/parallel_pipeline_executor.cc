@@ -86,7 +86,11 @@ base::Status ParallelPipelineExecutor::deinit() {
  * @note 线程处于挂起状态基本不会占用资源
  */
 base::Status ParallelPipelineExecutor::run() {
-  run_size_++;
+  {
+    std::lock_guard<std::mutex> lk(pipeline_mutex_);
+    run_size_++;
+  }
+  pipeline_cv_.notify_all();
   return base::kStatusCodeOk;
 }
 
@@ -149,10 +153,7 @@ bool ParallelPipelineExecutor::interrupt() {
 }
 
 void ParallelPipelineExecutor::commitThreadPool() {
-  // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
   for (auto iter : topo_sort_node_) {
-    // NNDEPLOY_LOGI("commitThreadPool iter: %s.\n",
-    //               iter->node_->getName().c_str());
     auto func = [iter, this]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
@@ -165,13 +166,6 @@ void ParallelPipelineExecutor::commitThreadPool() {
         }
 
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
-        if (iter->node_->checkInterruptStatus()) {
-          iter->node_->setRunningFlag(false);
-          pipeline_cv_.notify_all();
-          NNDEPLOY_LOGW("[%s] interrupted after updateInput()\n",
-                        iter->node_->getName().c_str());
-          return base::kStatusCodeNodeInterrupt;
-        }
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           // NNDEPLOY_LOGI("node[%s] updateInput() complete!\n",
           //               iter->node_->getName().c_str());
@@ -180,29 +174,11 @@ void ParallelPipelineExecutor::commitThreadPool() {
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                  "node execute failed!\n");
           iter->node_->setRunningFlag(false);
-          // if (iter == topo_sort_node_.back()) {
-          //   std::lock_guard<std::mutex> lock(pipeline_mutex_);
-          //   completed_size_++;
-          //   if (completed_size_ == run_size_) {
-          //     // NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
-          //     pipeline_cv_.notify_all();
-          //   }
-          // }
-          if (iter->node_->getCompletedSize() == run_size_) {
-            pipeline_cv_.notify_all();
-          }
 
-          if (iter->node_->checkInterruptStatus()) {
+          if (iter->node_->getCompletedSize() >= run_size_) {
             pipeline_cv_.notify_all();
-            NNDEPLOY_LOGW("[%s] interrupted after run()",
-                          iter->node_->getName().c_str());
-            return base::kStatusCodeNodeInterrupt;
           }
-          // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
-          //               iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
-          // NNDEPLOY_LOGI("node[%s] updateInput() terminate!\n",
-          //               iter->node_->getName().c_str());
           break;
         } else {
           NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",

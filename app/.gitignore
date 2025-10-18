@@ -142,3 +142,5 @@ android/app/src/main/jniLibs/arm64-v8a/*
 # 但不忽略android/app/src/main/jniLibs/arm64-v8a/place.md文件
 !android/app/src/main/jniLibs/arm64-v8a/place.md
 
+android/app/release
+

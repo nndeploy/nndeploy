@@ -26,6 +26,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   virtual ~AbstractEdge();
 
   virtual base::Status setQueueMaxSize(int queue_max_size) = 0;
+  virtual base::Status setQueueOverflowPolicy(
+      base::QueueOverflowPolicy policy, int drop_count);
 
   virtual bool empty() = 0;
 

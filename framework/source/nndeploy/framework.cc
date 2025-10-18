@@ -18,10 +18,7 @@ std::string nndeployGetVersion() { return "nndeploy " + std::string(NNDEPLOY_VER
 int nndeployFrameworkInit() { return 0; }
 
 int nndeployFrameworkDeinit() {
-  base::Status status = device::destoryArchitecture();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("nndeployFrameworkDeinit failed\n");
-    return -1;
-  }
   return 0;
 }
+
+

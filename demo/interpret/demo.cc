@@ -1,5 +1,11 @@
+
+/**
+ * nndeploy Interpret Demo:
+ * Demonstrates the basic functionality and usage of nndeploy Interpret (Default
+ * inference framework)
+ */
+
 #include "flag.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -23,14 +29,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   // 模型类型，例如:
-  // kModelTypeOnnx/kModelTypeMnn/...
+  // kModelTypeOnnx/kModelTypeDefault/...
   base::ModelType model_type = demo::getModelType();
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
@@ -38,7 +38,8 @@ int main(int argc, char *argv[]) {
   std::string model_safetensors = getModelSafetensors();
 
   base::Status status = base::kStatusCodeOk;
-  auto interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
+  auto interpret =
+      std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
   if (interpret == nullptr) {
     NNDEPLOY_LOGE("ir::createInterpret failed.\n");
     return -1;
@@ -54,10 +55,5 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

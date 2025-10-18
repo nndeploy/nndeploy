@@ -1,6 +1,11 @@
+/**
+ * nndeploy Onnx Converter Demo:
+ * Implementation of onnx model convert to default model format(JSON +
+ * safetensors)
+ */
+
 // #include <experimental/filesystem>
 #include "gflags/gflags.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -143,12 +148,6 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   auto onnx_interpret =
       std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
   if (onnx_interpret == nullptr) {
@@ -177,10 +176,5 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

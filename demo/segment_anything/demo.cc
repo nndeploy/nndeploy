@@ -1,3 +1,8 @@
+/**
+ * nndeploy Segment Anything Demo:
+ * Implementation of segment anything algorithm using static graph construction
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
@@ -6,7 +11,6 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 

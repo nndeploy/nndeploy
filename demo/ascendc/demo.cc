@@ -1,3 +1,16 @@
+/**
+ * AscendC Operator Demo:
+ * This example demonstrates tensor addition on Ascend devices using nndeploy
+ * framework
+ *
+ * Main steps:
+ * 1. Initialize AscendCL runtime
+ * 2. Create CPU and AscendCL device instances
+ * 3. Build input/output tensors (half precision, shape [32,32,64,64])
+ * 4. Execute tensor addition using CANN operator library
+ * 5. Copy results back to host and verify correctness
+ */
+
 #include <cassert>
 #include <chrono>
 #include <fstream>
@@ -8,19 +21,12 @@
 #include "nndeploy/device/ascend_cl/ascend_cl_util.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/op_add.h"
 
 using namespace nndeploy;
 
 int main(int argc, char **argv) {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   base::DeviceType cpu_device_type;
   cpu_device_type.code_ = base::kDeviceTypeCodeCpu;
   device::Device *cpu_device = device::getDevice(cpu_device_type);
@@ -76,12 +82,6 @@ int main(int argc, char **argv) {
   free(a_data);
   free(b_data);
   free(c_data);
-
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
 
   return 0;
 }

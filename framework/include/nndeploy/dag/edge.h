@@ -56,6 +56,11 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   int getQueueMaxSize();
 
+  base::Status setQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                      int drop_count = 1);
+  base::QueueOverflowPolicy getQueueOverflowPolicy();
+  int getQueueDropCount();
+
   /**
    * @brief Set the Parallel Type object
    *
@@ -216,6 +221,9 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   std::condition_variable type_info_cv_;
   std::shared_ptr<EdgeTypeInfo> type_info_;
   int queue_max_size_ = 16;
+  base::QueueOverflowPolicy queue_overflow_policy_ =
+      base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure;
+  int queue_drop_count_ = 1;
 };
 
 }  // namespace dag

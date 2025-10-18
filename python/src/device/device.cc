@@ -406,8 +406,10 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
   m.def("disable_device", &disableDevice, "Disable current device");
 
   // export as device.destory_architecture
-  m.def("destory_architecture", &destoryArchitecture,
+  m.def("destory_architecture", py::overload_cast<>(&destoryArchitecture),
         "Destroy device architecture");
+  m.def("destory_architecture", py::overload_cast<base::DeviceTypeCode>(&destoryArchitecture),
+        "Destroy device architecture", py::arg("device_type_code"));
 }
 
 }  // namespace device

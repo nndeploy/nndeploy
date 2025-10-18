@@ -15,6 +15,13 @@ AbstractEdge::~AbstractEdge() {
   consumers_.clear();
 }
 
+base::Status AbstractEdge::setQueueOverflowPolicy(
+    base::QueueOverflowPolicy policy, int drop_count) {
+  (void)policy;
+  (void)drop_count;
+  return base::kStatusCodeOk;
+}
+
 void AbstractEdge::resetIndex() { index_ = -1; }
 
 base::ParallelType AbstractEdge::getParallelType() { return parallel_type_; }

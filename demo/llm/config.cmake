@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_demo_llama)
+set(BINARY nndeploy_demo_llm)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -12,8 +12,8 @@ include_directories(${ROOT_PATH}/demo)
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/demo/llama/*.h"
-  "${ROOT_PATH}/demo/llama/*.cc"
+  "${ROOT_PATH}/demo/llm/*.h"
+  "${ROOT_PATH}/demo/llm/*.cc"
 )
 file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"

@@ -1,10 +1,21 @@
 
 #include "flag.h"
 
+#include "nndeploy/base/dlopen.h"
+
 namespace nndeploy {
 namespace demo {
 
 DEFINE_bool(usage, false, "usage");
+
+DEFINE_bool(remove_in_out_node, false, "remove_in_out_node");
+DEFINE_string(task_id, "", "task_id");
+DEFINE_string(json_file, "", "json_file");
+DEFINE_string(plugin, "", "plugin");
+DEFINE_string(node_param, "", "node_param");
+DEFINE_bool(dump, false, "dump");
+DEFINE_bool(debug, false, "debug");
+DEFINE_bool(time_profile, true, "time_profile");
 
 DEFINE_string(name, "", "graph name");
 
@@ -50,7 +61,7 @@ DEFINE_string(precision_type, "", "precision_type");
 
 DEFINE_string(power_type, "", "power_type");
 
-DEFINE_string(parallel_type, "", "parallel_type");
+DEFINE_string(parallel_type, "kParallelTypeSequential", "parallel_type");
 
 DEFINE_string(cache_path, "", "cache_path");
 
@@ -129,6 +140,77 @@ void showUsage() {
 }
 
 std::string getName() { return FLAGS_name; }
+
+bool removeInOutNode() { return FLAGS_remove_in_out_node; }
+std::string getTaskId() { return FLAGS_task_id; }
+std::string getJsonFile() { return FLAGS_json_file; }
+std::vector<std::string> getPlugin() {
+  std::vector<std::string> plugin;
+  std::string plugin_str = FLAGS_plugin;
+  std::string::size_type pos1, pos2;
+  pos2 = plugin_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    plugin.emplace_back(plugin_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = plugin_str.find(",", pos1);
+  }
+  plugin.emplace_back(plugin_str.substr(pos1));
+  return plugin;
+}
+bool loadPlugin() {
+  std::vector<std::string> plugin = getPlugin();
+  for (const auto& plugin_item : plugin) {
+    bool success = base::loadLibraryFromPath(plugin_item, true);
+    if (!success) {
+      NNDEPLOY_LOGE("load plugin failed: %s", plugin_item.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+std::map<std::string, std::map<std::string, std::string>> getNodeParam() {
+  std::map<std::string, std::map<std::string, std::string>> node_param;
+  std::string node_param_str = FLAGS_node_param;
+
+  if (node_param_str.empty()) {
+    return node_param;
+  }
+
+  // 先按逗号分割每个节点参数项
+  std::vector<std::string> param_items;
+  std::string::size_type pos1, pos2;
+  pos2 = node_param_str.find(",");
+  pos1 = 0;
+
+  while (std::string::npos != pos2) {
+    param_items.emplace_back(node_param_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = node_param_str.find(",", pos1);
+  }
+  param_items.emplace_back(node_param_str.substr(pos1));
+
+  // 再按冒号分割每个参数项：node_name:param_key:param_value
+  for (const auto& param_item : param_items) {
+    std::string::size_type colon1 = param_item.find(":");
+    if (colon1 != std::string::npos) {
+      std::string::size_type colon2 = param_item.find(":", colon1 + 1);
+      if (colon2 != std::string::npos) {
+        std::string node_name = param_item.substr(0, colon1);
+        std::string param_key =
+            param_item.substr(colon1 + 1, colon2 - colon1 - 1);
+        std::string param_value = param_item.substr(colon2 + 1);
+
+        node_param[node_name][param_key] = param_value;
+      }
+    }
+  }
+
+  return node_param;
+}
+bool dump() { return FLAGS_dump; }
+bool debug() { return FLAGS_debug; }
+bool timeProfile() { return FLAGS_time_profile; }
 
 base::InferenceType getInferenceType() {
   return base::stringToInferenceType(FLAGS_inference_type);

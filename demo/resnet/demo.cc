@@ -1,5 +1,10 @@
+/**
+ * nndeploy ResNet Demo:
+ * ResNet algorithm(default inference framework)
+ */
+
 // #include <experimental/filesystem>
-#include "nndeploy/framework.h"
+
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -34,12 +39,6 @@ class CannTest : public ir::ModelDesc {
 int main() {
   // net::TestNet testNet;
   // testNet.init();
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
 
   base::Status status = base::kStatusCodeOk;
 
@@ -118,10 +117,5 @@ int main() {
 
   cann_net->deinit();
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }

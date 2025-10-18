@@ -1,3 +1,29 @@
+
+/**
+ * AscendC Operator Demo:
+ * This example demonstrates tensor addition on Ascend devices using nndeploy
+ * framework with custom AscendC kernel implementation
+ *
+ * Main steps:
+ * 1. Initialize nndeploy framework and AscendCL runtime
+ * 2. Create CPU and AscendCL device instances
+ * 3. Build input/output tensors (half precision, shape [32,32,64,64])
+ * 4. Execute tensor addition using custom AscendC kernel with tiling
+ * optimization
+ * 5. Copy results back to host and verify correctness
+ * 6. Clean up allocated resources
+ *
+ * Key components:
+ * - getTilingData(): Calculates optimal block distribution and tiling
+ * parameters based on available AIV cores and memory constraints
+ * - AddTilingData: Structure containing tiling configuration for kernel
+ * execution
+ * - Custom AscendC kernel: Implements efficient tensor addition with memory
+ *   alignment and multi-core parallelization
+ * - Platform management: Utilizes PlatformAscendCManager for hardware resource
+ *   allocation and core number detection
+ */
+
 // #ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
 // #include <iostream>
 

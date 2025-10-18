@@ -73,8 +73,7 @@ int runJson(
 // 运行JSON配置文件，移除工作流中的输入和输出节点,用户自己配置输入和输出
 int runJsonRemoveInOutNode(
     std::string json_file, base::ParallelType pt,
-    std::map<std::string, std::map<std::string, std::string>> node_param,
-    std::string input_path, std::string output_path) {
+    std::map<std::string, std::map<std::string, std::string>> node_param) {
   std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
   if (!graph) {
     NNDEPLOY_LOGE("create graph failed");
@@ -97,8 +96,10 @@ int runJsonRemoveInOutNode(
   graph->dump();
 
   dag::Edge* input = graph->getInput(0);
-  cv::Mat image = cv::imread(input_path);
-  input->set(image);
+  tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+  text->texts_ = {
+      "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+  input->set(text, false);
 
   status = graph->run();
   if (status != base::kStatusCodeOk) {
@@ -107,9 +108,11 @@ int runJsonRemoveInOutNode(
   }
 
   dag::Edge* output = graph->getOutput(0);
-  cv::Mat* result = output->getGraphOutputCvMat();
+  tokenizer::TokenizerText* result =
+      output->getGraphOutput<tokenizer::TokenizerText>();
   if (result) {
-    cv::imwrite(output_path, *result);
+    // std::cout << "A:" << result->texts_[0] << std::endl;
+    ;
   }
 
   status = graph->deinit();
@@ -131,14 +134,11 @@ int main(int argc, char* argv[]) {
   bool remove_in_out_node = demo::removeInOutNode();
   base::ParallelType pt = demo::getParallelType();
   std::string json_file = demo::getJsonFile();
-  std::string input_path = demo::getInputPath();
-  std::string output_path = demo::getOutputPath();
   std::map<std::string, std::map<std::string, std::string>> node_param =
       demo::getNodeParam();
 
   if (remove_in_out_node) {
-    return runJsonRemoveInOutNode(json_file, pt, node_param, input_path,
-                                  output_path);
+    return runJsonRemoveInOutNode(json_file, pt, node_param);
   } else {
     return runJson(json_file, pt, node_param);
   }

@@ -10,29 +10,15 @@ import requests
 import platform
 from pathlib import Path
 import time
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 def download_with_retry(url, filename, max_retries=3, timeout=300):
     """带重试机制的下载函数"""
-    session = requests.Session()
-    
-    # 配置重试策略
-    retry_strategy = Retry(
-        total=max_retries,
-        status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET", "OPTIONS"],
-        backoff_factor=1
-    )
-    
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
+    import time
     
     for attempt in range(max_retries + 1):
         try:
             print(f"Downloading attempt {attempt + 1}/{max_retries + 1}...")
-            response = session.get(url, stream=True, timeout=timeout)
+            response = requests.get(url, stream=True, timeout=timeout)
             if response.status_code != 200:
                 raise Exception(f"Download failed, status code: {response.status_code}")
             

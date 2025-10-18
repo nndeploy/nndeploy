@@ -1101,6 +1101,32 @@ ParallelType stringToParallelType(const std::string &src) {
   }
 }
 
+std::string overflowPolicyToString(QueueOverflowPolicy src) {
+  switch (src) {
+    case kQueueOverflowPolicyNodeBackpressure:
+      return "kQueueOverflowPolicyNodeBackpressure";
+    case kQueueOverflowPolicyAllBackpressure:
+      return "kQueueOverflowPolicyAllBackpressure";
+    case kQueueOverflowPolicyDropOldest:
+      return "kQueueOverflowPolicyDropOldest";
+    default:
+      return "kQueueOverflowPolicyNodeBackpressure";
+  }
+}
+
+QueueOverflowPolicy stringToOverflowPolicy(const std::string &src) {
+  if (src == "kQueueOverflowPolicyNodeBackpressure") {
+    return kQueueOverflowPolicyNodeBackpressure;
+  } else if (src == "kQueueOverflowPolicyAllBackpressure") {
+    return kQueueOverflowPolicyAllBackpressure;
+  } else if (src == "kQueueOverflowPolicyDropOldest") {
+    return kQueueOverflowPolicyDropOldest;
+  } else {
+    NNDEPLOY_LOGI("Unsupported overflow policy: %s.\n", src.c_str());
+    return kQueueOverflowPolicyNodeBackpressure;
+  }
+}
+
 EdgeType stringToEdgeType(const std::string &src) {
   if (src == "kEdgeTypeFixed") {
     return kEdgeTypeFixed;

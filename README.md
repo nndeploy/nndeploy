@@ -1,7 +1,10 @@
-
 [English](README_EN.md) | 简体中文
 
-<p align="left">
+<h3 align="center">
+nndeploy：一款简单易用且高性能的AI部署框架
+</h3>
+
+<p align="center">
 <a href="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/linux.yml/badge.svg" alt="Linux" style="height: 16px;">
 </a>
@@ -22,28 +25,14 @@
 </a>
 </p>
 
-<h1 align="center">
-nndeploy
-</h1>
-
-nndeploy是一款基于工作流的多端AI推理部署框架，让AI算法的落地变得像搭积木一样简单！
-
-采用可视化工作流设计，内置丰富的算法节点，用户只需拖拽操作即可快速构建专业AI应用，无需编写复杂代码。
-
-支持Python/C++自定义节点开发，无需前端代码，自动集成到可视化界面
-
-构建的工作流可一键导出JSON配置文件，支持Python/C++ API加载运行。集成主流推理引擎和深度优化策略，确保最佳性能，支持一次开发多端部署，覆盖Linux、Windows、macOS、Android、iOS全平台。
-
----
-
-<!-- <p align="center">
+<p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> 
-| <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
-| <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
-| <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-</p> -->
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a> 
+| <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
+<!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
+<!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
+</p>
 
 <p align="center">
   <picture>
@@ -56,155 +45,178 @@ nndeploy是一款基于工作流的多端AI推理部署框架，让AI算法的�
 
 ## 最新动态
 
-- [2025/05/29]🔥nndeploy开源团队和昇腾官方合作的推理框架免费课程上线拉，适合想入门和提升AI推理部署能力的同学。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) 
+- [2025/01/29] 🔥 与昇腾官方合作推出推理框架免费课程！课程基于nndeploy内部推理框架讲解，帮助开发者快速掌握AI推理部署技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
-## 快速开始
+## 介绍
 
-### 安装
-
-```bash
-pip install --upgrade nndeploy
-```
-
-### 启动可视化工作流
-
-```bash
-# 方法一：仅使用内置节点
-nndeploy-app --port 8000
-
-# 方法二：使用用户自定义节点
-nndeploy-app --port 8000 --plugin plugin1.py plugin2.py 
-```
-
-- 命令参数说明
-  - `--port`：指定Web服务端口号（默认为8000）
-  - `--plugin`：加载用户自定义插件文件（可选参数，如果没有该参数，仅使用内置节点）
-    - Python插件：参考[Python插件模板写法](template/python/template.py)
-    - C++插件：参考[C++插件模板写法](template/cpp/template.h)
-    - 可以同时加载多个插件：`--plugin plugin1.py plugin2.so`
-
-启动成功后，打开 http://localhost:8000 即可访问工作流界面。
-
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
-    <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
-  </picture>
-</p>
-
-
-### 导出工作流并执行
-
-在可视化界面中完成工作流的搭建后，可将其保存为JSON文件（例如workflow.json），然后可以使用以下命令执行该工作流：
-
-```bash
-nndeploy-run-json --json-file workflow.json --plugin plugin.py
-```
-
-- API加载运行JSON配置文件
-  - [Python API示例代码](python/nndeploy/dag/run_json.py)
-  - [C++ API示例代码](framework/include/nndeploy/dag/graph_runner.h)
-
-> 需要 Python 3.10 及以上版本。默认包含 PyTorch 和 ONNXRuntime 两个推理后端，如需使用更多推理后端（如 TensorRT、OpenVINO、ncnn、MNN 等），请采用开发者模式
-
-> 使用`nndeploy-clean`可清理过期的后端资源。
-
-### 文档
-- [如何构建](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
-- [Python快速开始](docs/zh_cn/quick_start/python.md)
-- [可视化工作流快速开始](docs/zh_cn/quick_start/workflow.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
-- [C++插件开发手册](docs/zh_cn/quick_start/plugin.md)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-- [Python插件开发手册](docs/zh_cn/quick_start/plugin_python.md)
-
-## 特性
+nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括LLM、AIGC生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
 
 ### **简单易用**
 
-- **可视化工作流**：通过拖拉拽操作就能部署AI算法，前端可视化调节AI算法的所有节点参数，快速预览算法调参后的效果
-- **自定义节点**：支持Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
-- **算法组合**：灵活组合不同算法，快速构建创新AI应用
-- **一键部署**：搭建好的工作流可导出为JSON，Python/C++直接调用，从开发到生产环境无缝衔接
+- **可视化工作流**：通过拖拉拽操作就能部署 AI 算法，前端可视化调节 AI 算法的所有节点参数，快速预览算法调参后的效果
+- **自定义节点**：支持 Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
+- **算法组合**：灵活组合不同算法，快速构建创新 AI 应用
+- **一键部署**：搭建完成的工作流可一键导出为 JSON 配置文件，支持 Python/C++ API 直接调用，实现从开发环境到生产环境的无缝衔接，全面支持 Linux、Windows、macOS、Android、iOS 等平台。
 
 ### **高性能**
 
-- **13种推理引擎无缝集成**：一套工作流，多端部署。通过零抽象成本接入了13种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
-
-  | 推理框架 | 适用场景 | 状态 |
-  | :------- | :------ | :--- |
-  | [PyTorch](https://pytorch.org/) | 研发调试、快速原型 | ✅ |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | 跨平台推理 | ✅ |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT) | NVIDIA GPU高性能推理 | ✅ |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | Intel CPU/GPU优化 | ✅ |
-  | [MNN](https://github.com/alibaba/MNN) | 阿里推出的移动端推理引擎 | ✅ |
-  | [TNN](https://github.com/Tencent/TNN) | 腾讯推出的移动端推理引擎 | ✅ |
-  | [ncnn](https://github.com/Tencent/ncnn) | 腾讯推出的移动端推理引擎 | ✅ |
-  | [CoreML](https://github.com/apple/coremltools) | iOS/macOS原生加速 | ✅ |
-  | [AscendCL](https://www.hiascend.com/zh/) | 华为昇腾AI芯片推理框架 | ✅ |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微NPU推理框架 | ✅ |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | 高通骁龙NPU推理框架 | ✅ |
-  | [TVM](https://github.com/apache/tvm) | 深度学习编译栈 | ✅ |
-  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md) | 定制化推理需求 | ✅ |
-
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
-- **高性能优化**：内置C++/CUDA/Ascend C/SIMD等优化实现的节点
+- **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
+- **多端推理**：一套工作流，多端推理。通过零抽象成本接入了 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
 
-## **算法生态**
+  | 推理框架                                                                         | 适用场景                 | 状态 |
+  | :------------------------------------------------------------------------------- | :----------------------- | :--- |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | 跨平台推理               | ✅   |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | NVIDIA GPU 高性能推理    | ✅   |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | Intel CPU/GPU 优化       | ✅   |
+  | [MNN](https://github.com/alibaba/MNN)                                            | 阿里推出的移动端推理引擎 | ✅   |
+  | [TNN](https://github.com/Tencent/TNN)                                            | 腾讯推出的移动端推理引擎 | ✅   |
+  | [ncnn](https://github.com/Tencent/ncnn)                                          | 腾讯推出的移动端推理引擎 | ✅   |
+  | [CoreML](https://github.com/apple/coremltools)                                   | iOS/macOS 原生加速       | ✅   |
+  | [AscendCL](https://www.hiascend.com/zh/)                                         | 华为昇腾 AI 芯片推理框架 | ✅   |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | 瑞芯微 NPU 推理框架      | ✅   |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | 高通骁龙 NPU 推理框架    | ✅   |
+  | [TVM](https://github.com/apache/tvm)                                             | 深度学习编译栈           | ✅   |
+  | [PyTorch](https://pytorch.org/)                                                  | 快速原型/云端落地        | ✅   |
+  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 缺省推理框架             | ✅   |
 
-目前已部署包括大语言模型（LLM）、AIGC生成、换脸、目标检测、分割等在内的 100+ 主流AI模型，我们将持续部署更多高价值的AI算法，打造丰富的多端AI生态，满足各类行业与创新应用需求。
+### **开箱即用的算法**
 
-| 应用场景 | 可用模型 | 支持平台 | 备注 |
-|---------|---------|---------|---------|
-| **大语言模型** | **QWen-0.5B** | Linux/Windows/macOS/Android/iOS |  |
-| **图片生成** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, Kandinsky, Wuerstchen, Stable Cascade, PixArt Alpha, PixArt Sigma, Sana, AuraFlow, Flux, Lumina, CogView3 Plus, CogView4等等模型 | Linux/Windows/macOS | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
-| **换脸** | **deep-live-cam** | Linux/Windows/macOS | |
-| **目标检测** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx** | Linux/Windows/macOS/Android/iOS | |
-| **目标追踪** | FairMot | Linux/Windows/macOS/Android/iOS | |
-| **图像分割** | RBMGv1.4, PPMatting, **Segment Anything** | Linux/Windows/macOS/Android/iOS | |
-| **分类** | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet | Linux/Windows/macOS/Android/iOS | |
-| **API LLM** | OPENAI, DeepSeek, Moonshot | Linux/Windows/macOS | |
-| **API AIGC** | OPENAI | Linux/Windows/macOS | |
+已部署模型列表，并制作**100+节点**，我们将持续部署更多高价值的 AI 算法。如果您有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们。
 
-> 注：如果你有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
+| 应用场景       | 可用模型                                                                         | 备注                                                |
+| -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **大语言模型** | **QWen-0.5B**                                                                    |                                                     |
+| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
+| **换脸**       | **deep-live-cam**                                                                |                                                     |
+| **OCR**        | **Paddle OCR**                                                                   |                                                     |
+| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |                                                     |
+| **目标追踪**   | FairMot                                                                          |                                                     |
+| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                     |
+| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
+| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                              |
 
-### YOLO可视化调参与一键部署
+> 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
-可视化界面实时调整检测参数，无需修改代码即可观察效果变化，支持一键切换到TensorRT等推理引擎实现高性能部署。
+## 快速开始
 
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="yolo_edit_param.gif">
-    <img alt="nndeploy" src="docs/image/yolo_edit_deploy.gif" width=100%>
-  </picture>
-</p>
++ **安装**
 
-### 多模型工作流演示
+  ```bash
+  pip install --upgrade nndeploy
+  ```
 
-可视化搭建检测+分割+分类工作流，支持多推理框架切换和并行模式，实现一次搭建、多端部署。
++ **启动可视化界面**
 
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="seg_detect_class.gif">
-    <img alt="nndeploy" src="docs/image/seg_detect_class.gif" width=100%>
-  </picture>
-</p>
+  ```bash
+  nndeploy-app --port 8000
+  ```
 
-### 零代码搭建换脸+分割工作流
+  启动成功后，打开 http://localhost:8000 即可访问工作流界面
 
-通过拖拽操作组合人脸检测、换脸算法、人像分割等AI功能，无需编写代码，参数调整1-2秒看到效果。让**产品经理、设计师、非AI开发者**快速将创意变成原型。
+  <p align="left">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
+      <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
+    </picture>
+  </p>  
 
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="face_swap_seg.gif">
-    <img alt="nndeploy" src="docs/image/face_swap_seg.gif" width=100%>
-  </picture>
-</p>
++ **导出工作流并命令行执行**
+
+  完成工作流搭建后，保存为 JSON 文件并通过命令行执行：
+
+  ```bash
+  # Python CLI
+  nndeploy-run-json --json_file path/to/workflow.json
+  # C++ CLI
+  nndeploy_demo_run_json --json_file path/to/workflow.json
+  ```
+
+- **导出工作流并API加载运行**  
+
+  在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行
+
+  - Python API加载运行LLM工作流
+    ```Python
+    graph = nndeploy.dag.Graph("")
+    graph.remove_in_out_node()
+    graph.load_file("path/to/llm_workflow.json")
+    graph.init()
+    input = graph.get_input(0)    
+    text = nndeploy.tokenizer.TokenizerText()
+    text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
+    input.set(text)
+    status = graph.run()
+    output = graph.get_output(0)
+    result = output.get_graph_output()  
+    graph.deinit()
+    ```
+  - C++ API加载运行LLM工作流
+    ```C++
+    std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
+    base::Status status = graph->loadFile("path/to/llm_workflow.json");
+    graph->removeInOutNode();
+    status = graph->init();
+    dag::Edge* input = graph->getInput(0);
+    tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+    text->texts_ = {
+        "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+    input->set(text, false);
+    status = graph->run();
+    dag::Edge* output = graph->getOutput(0);
+    tokenizer::TokenizerText* result =
+        output->getGraphOutput<tokenizer::TokenizerText>();
+    status = graph->deinit();
+    ```
+
+  更多加载并运行工作流，示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
+
+
+**推荐流程**
+
+- 开发阶段：通过可视化工作流进行设计和调试，在可视化界面中验证算法的效果和性能。**必要时需开发自定义节点**
+- 部署阶段：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
+
+无论是通过可视化前端界面还是 API 调用，最终都会在底层统一的高性能 C++ 计算引擎中执行。这种架构设计确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的理念。
+
+> 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
+
+### 文档
+
+- [如何构建](docs/zh_cn/quick_start/build.md)
+- [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [可视化工作流](docs/zh_cn/quick_start/workflow.md)
+- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+
+## 性能测试
+
+测试环境：Ubuntu 22.04，i7-12700，RTX3060
+
+- **流水线并行加速**。以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
+
+  <img src="docs/image/workflow/yolo_performance.png" width="60%">
+
+  | 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
+  | ----------------- | ----------- | --------- | --------- |
+  | 串行              | 54.803 ms   | 34.139 ms | 13.213 ms |
+  | 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
+  | 性能提升          | 13.7%       | 13.1%     | 57%       |
+
+- **任务并行加速**。组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
+
+  <img src="docs/image/workflow/rmbg_yolo_resnet.png" width="60%">
+
+  | 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
+  | ----------------- | ----------- | ---------- | --------- |
+  | 串行              | 654.315 ms  | 489.934 ms | 59.140 ms |
+  | 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
+  | 性能提升          | 7.98%       | 11.2%      | 12.2%     |
 
 ## 保持领先
 
@@ -216,20 +228,20 @@ nndeploy-run-json --json-file workflow.json --plugin plugin.py
 
 - [工作流生态](https://github.com/nndeploy/nndeploy/issues/191)
 - [端侧大模型推理](https://github.com/nndeploy/nndeploy/issues/161)
-- [AI Box](https://github.com/nndeploy/nndeploy/issues/190)
 - [架构优化](https://github.com/nndeploy/nndeploy/issues/189)
+- [AI Box](https://github.com/nndeploy/nndeploy/issues/190)
 
 ## 联系我们
 
-- 当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
+- 当前 nndeploy 正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
 
-- 微信：Always031856（欢迎加好友，进活跃的AI推理部署交流群，备注：nndeploy_姓名）
-  
+- 微信：Always031856（欢迎加好友，进活跃的 AI 推理部署交流群，备注：nndeploy\_姓名）
+
   <img src="docs/image/wechat.jpg" width="225px">
 
 ## 致谢
 
-- 感谢以下项目：[TNN](https://github.com/Tencent/TNN)、[FastDeploy](https://github.com/PaddlePaddle/FastDeploy)、[opencv](https://github.com/opencv/opencv)、[CGraph](https://github.com/ChunelFeng/CGraph)、[CThreadPool](https://github.com/ChunelFeng/CThreadPool)、[tvm](https://github.com/apache/tvm)、[mmdeploy](https://github.com/open-mmlab/mmdeploy)、[FlyCV](https://github.com/PaddlePaddle/FlyCV)、[oneflow](https://github.com/Oneflow-Inc/oneflow)、[flowgram.ai](https://github.com/bytedance/flowgram.ai)、[deep-live-cam](https://github.com/hacksider/Deep-Live-Cam)。
+- 感谢以下项目：[TNN](https://github.com/Tencent/TNN)、[FastDeploy](https://github.com/PaddlePaddle/FastDeploy)、[opencv](https://github.com/opencv/opencv)、[CGraph](https://github.com/ChunelFeng/CGraph)、[tvm](https://github.com/apache/tvm)、[mmdeploy](https://github.com/open-mmlab/mmdeploy)、[FlyCV](https://github.com/PaddlePaddle/FlyCV)、[oneflow](https://github.com/Oneflow-Inc/oneflow)、[flowgram.ai](https://github.com/bytedance/flowgram.ai)、[deep-live-cam](https://github.com/hacksider/Deep-Live-Cam)。
 
 - 感谢[HelloGithub](https://hellogithub.com/repository/nndeploy/nndeploy)推荐
 
