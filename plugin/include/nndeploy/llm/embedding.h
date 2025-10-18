@@ -85,6 +85,18 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   std::string share_disk_embedding_key_ = "disk_embedding";
 
+  std::string getShareKey() {
+    std::string key = "";
+    key += embedding_weight_path_;
+    key += std::to_string(hidden_size_);
+    key += base::dataTypeToString(data_type_);
+    key += base::dataFormatToString(data_format_);
+    key += std::to_string(use_quantization_);
+    key += std::to_string(weight_offset_);
+    key += std::to_string(a_offset_);
+    key += std::to_string(alpha_size_);
+    key += std::to_string(quant_bit_);
+  }
   using base::Param::serialize;
   virtual base::Status serialize(
       rapidjson::Value& json,
