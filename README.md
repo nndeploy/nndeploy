@@ -198,11 +198,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 测试环境：Ubuntu 22.04，i7-12700，RTX3060
 
-- 流水线并行加速
+- **流水线并行加速**。以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
 
-  以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
-
-  <img src="docs/image/workflow/yolo_performance.png" width="20%">
+  <img src="docs/image/workflow/yolo_performance.png" width="50%">
 
   | 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
   | ----------------- | ----------- | --------- | --------- |
@@ -210,11 +208,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   | 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
   | 性能提升          | 13.7%       | 13.1%     | 57%       |
 
-- 任务并行加速
+- **任务并行加速**。组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
 
-  组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
-
-  <img src="docs/image/workflow/rmbg_yolo_resnet.png" width="20%">
+  <img src="docs/image/workflow/rmbg_yolo_resnet.png" width="50%">
 
   | 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
   | ----------------- | ----------- | ---------- | --------- |
