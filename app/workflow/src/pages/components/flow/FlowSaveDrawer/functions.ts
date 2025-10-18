@@ -681,12 +681,147 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   return businessData;
 }
 
+export function transferBusinessNodeToDesignNodeIterate(
+  businessNode: IBusinessNode,
+  layout?: Inndeploy_ui_layout['layout']
+): FlowNodeJSON {
+
+  if (businessNode.name_ == 'Prefill_1') {
+    // debugger
+  }
+
+
+
+  // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
+
+  var type = businessNode.key_
+
+  const designNode: FlowNodeJSON = {
+    id: `${businessNode.id}`,
+    //type: businessNode.key_.split("::").pop() + "",
+    type,
+
+    meta: {
+      //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
+      position: layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
+      size: layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
+      //...nodeExtra[businessNode.name_], 
+      //expandInfo: nodeExtra[businessNode.name_],
+      defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true
+    },
+    data: {
+      // ...businessNode,
+    },
+  };
+
+  // if (
+  //   businessNode.node_repository_ &&
+  //   businessNode.node_repository_.length > 0
+  // ) {
+  //   const nodeRepositories = businessNode.node_repository_;
+  //   delete businessNode["node_repository_"];
+  //   const blocks = nodeRepositories.map((childNode) => {
+  //     return transferBusinessNodeToDesignNode(childNode);
+  //   });
+
+  //   designNode.blocks = blocks;
+  // }
+
+  function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
+    let collectionPoints: any[] = [];
+
+    businessNode[type].map((collectionPoint: any) => {
+      const find = collectionPoints.find((item) => {
+        return item.desc_ == collectionPoint.desc_;
+      });
+
+      if (!find) {
+        collectionPoints = [
+          ...collectionPoints,
+          {
+            id: collectionPoint.id,
+            desc_: collectionPoint.desc_,
+            type_: collectionPoint.type_,
+          },
+        ];
+      }
+    });
+
+    return collectionPoints;
+  }
+
+  const inputs_ = uniqCollectionPoint(businessNode, "inputs_");
+  const outputs_ = uniqCollectionPoint(businessNode, "outputs_");
+
+  businessNode.inputs_ = inputs_;
+  businessNode.outputs_ = outputs_;
+
+  designNode.data = { ...businessNode };
+
+  if (businessNode.node_repository_ && businessNode.node_repository_.length > 0) {
+    const nodeRepositories = businessNode.node_repository_;
+    delete businessNode["node_repository_"];
+    const blocks = nodeRepositories.map((childNode) => {
+      return transferBusinessNodeToDesignNodeIterate(childNode);
+    });
+
+    designNode.blocks = blocks;
+  }
+
+  return designNode;
+}
+
+export function businessNodeNormalize(businessNode: IBusinessNode) {
+  businessNode.id = businessNode.id
+    ? businessNode.id
+    : "node_" + Math.random().toString(36).substr(2, 9);
+
+  let inputs_ = businessNode.inputs_ ?? [];
+
+  let inputCollectionNameIdMap: { [key: string]: string } = {};
+  inputs_.map((item) => {
+    if (!item.id) {
+      let portId = "";
+      if (inputCollectionNameIdMap[item.desc_]) {
+        portId = inputCollectionNameIdMap[item.desc_];
+      } else {
+        portId = "port_" + Math.random().toString(36).substr(2, 9);
+        inputCollectionNameIdMap[item.desc_] = portId;
+      }
+
+      item.id = portId;
+    }
+  });
+
+  let outputCollectionNameIdMap: { [key: string]: string } = {};
+
+  let outputs_ = businessNode.outputs_ ?? [];
+  outputs_.map((item) => {
+    if (!item.id) {
+      let portId = "";
+      if (outputCollectionNameIdMap[item.desc_]) {
+        portId = outputCollectionNameIdMap[item.desc_];
+      } else {
+        portId = "port_" + Math.random().toString(36).substr(2, 9);
+        outputCollectionNameIdMap[item.desc_] = portId;
+      }
+
+      item.id = portId;
+    }
+  });
+
+  const nodeRepositories_ = businessNode.node_repository_ ?? [];
+  nodeRepositories_.map((item) => {
+    businessNodeNormalize(item);
+  });
+}
+
 export function transferBusinessContentToDesignContent(
   businessContent: IBusinessNode,
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
 
-  const {layout, groups =  []} = businessContent.nndeploy_ui_layout
+  const { layout, groups = [] } = businessContent.nndeploy_ui_layout
 
   function businessNodeIterate(
     businessNode: IBusinessNode,
@@ -770,50 +905,7 @@ export function transferBusinessContentToDesignContent(
   function businessContentNormalize(businessContent: IBusinessNode) {
 
     /** 给node与其相关的port加上id */
-    function businessNodeNormalize(businessNode: IBusinessNode) {
-      businessNode.id = businessNode.id
-        ? businessNode.id
-        : "node_" + Math.random().toString(36).substr(2, 9);
 
-      let inputs_ = businessNode.inputs_ ?? [];
-
-      let inputCollectionNameIdMap: { [key: string]: string } = {};
-      inputs_.map((item) => {
-        if (!item.id) {
-          let portId = "";
-          if (inputCollectionNameIdMap[item.desc_]) {
-            portId = inputCollectionNameIdMap[item.desc_];
-          } else {
-            portId = "port_" + Math.random().toString(36).substr(2, 9);
-            inputCollectionNameIdMap[item.desc_] = portId;
-          }
-
-          item.id = portId;
-        }
-      });
-
-      let outputCollectionNameIdMap: { [key: string]: string } = {};
-
-      let outputs_ = businessNode.outputs_ ?? [];
-      outputs_.map((item) => {
-        if (!item.id) {
-          let portId = "";
-          if (outputCollectionNameIdMap[item.desc_]) {
-            portId = outputCollectionNameIdMap[item.desc_];
-          } else {
-            portId = "port_" + Math.random().toString(36).substr(2, 9);
-            outputCollectionNameIdMap[item.desc_] = portId;
-          }
-
-          item.id = portId;
-        }
-      });
-
-      const nodeRepositories_ = businessNode.node_repository_ ?? [];
-      nodeRepositories_.map((item) => {
-        businessNodeNormalize(item);
-      });
-    }
     const nodeRepository = businessContent.node_repository_ ?? [];
 
     for (let i = 0; i < nodeRepository.length; i++) {
@@ -829,96 +921,9 @@ export function transferBusinessContentToDesignContent(
     edges: [],
   };
 
-  function transferBusinessNodeToDesignNodeIterate(
-    businessNode: IBusinessNode
-  ): FlowNodeJSON {
-
-    if (businessNode.name_ == 'Prefill_1') {
-      // debugger
-    }
 
 
 
-    // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
-
-    var type = businessNode.key_
-
-    const designNode: FlowNodeJSON = {
-      id: `${businessNode.id}`,
-      //type: businessNode.key_.split("::").pop() + "",
-      type,
-
-      meta: {
-        //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
-        position: layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 }, 
-        size: layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
-        //...nodeExtra[businessNode.name_], 
-        //expandInfo: nodeExtra[businessNode.name_],
-        defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true
-      },
-      data: {
-        // ...businessNode,
-      },
-    };
-
-    // if (
-    //   businessNode.node_repository_ &&
-    //   businessNode.node_repository_.length > 0
-    // ) {
-    //   const nodeRepositories = businessNode.node_repository_;
-    //   delete businessNode["node_repository_"];
-    //   const blocks = nodeRepositories.map((childNode) => {
-    //     return transferBusinessNodeToDesignNode(childNode);
-    //   });
-
-    //   designNode.blocks = blocks;
-    // }
-
-    function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
-      let collectionPoints: any[] = [];
-
-      businessNode[type].map((collectionPoint: any) => {
-        const find = collectionPoints.find((item) => {
-          return item.desc_ == collectionPoint.desc_;
-        });
-
-        if (!find) {
-          collectionPoints = [
-            ...collectionPoints,
-            {
-              id: collectionPoint.id,
-              desc_: collectionPoint.desc_,
-              type_: collectionPoint.type_,
-            },
-          ];
-        }
-      });
-
-      return collectionPoints;
-    }
-
-    const inputs_ = uniqCollectionPoint(businessNode, "inputs_");
-    const outputs_ = uniqCollectionPoint(businessNode, "outputs_");
-
-    businessNode.inputs_ = inputs_;
-    businessNode.outputs_ = outputs_;
-
-    designNode.data = { ...businessNode };
-
-    if (businessNode.node_repository_ && businessNode.node_repository_.length > 0) {
-      const nodeRepositories = businessNode.node_repository_;
-      delete businessNode["node_repository_"];
-      const blocks = nodeRepositories.map((childNode) => {
-        return transferBusinessNodeToDesignNodeIterate(childNode);
-      });
-
-      designNode.blocks = blocks;
-    }
-
-    return designNode;
-  }
-
-  
 
   const outputMap = getAllOutputPortNameToNodePortIdMap();
 
@@ -969,7 +974,7 @@ export function transferBusinessContentToDesignContent(
   const edges = buildEdges()
 
   designData.edges = edges;
-  
+
 
 
   let flowGroups = groups.map(group => {

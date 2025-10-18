@@ -2,6 +2,7 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 
 import "@flowgram.ai/free-layout-editor/index.css";
@@ -24,7 +25,7 @@ import {
   useGetParamTypes,
   //useGetRegistry
 } from "./effect";
-import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
+import { businessNodeNormalize, designDataToBusinessData, transferBusinessContentToDesignContent, transferBusinessNodeToDesignNodeIterate } from "./FlowSaveDrawer/functions";
 import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
@@ -332,14 +333,14 @@ const Flow: React.FC<FlowProps> = (props) => {
             setRunInfo((oldRunInfo) => {
 
 
-              const downloadProgress: IRunInfo['downloadProgress'] = {} 
+              const downloadProgress: IRunInfo['downloadProgress'] = {}
 
-              for(const item of downloadModalList){
+              for (const item of downloadModalList) {
 
-                 let nameParts = item.split(':')
+                let nameParts = item.split(':')
                 let name = nameParts[nameParts.length - 1]
 
-                
+
                 downloadProgress[name] = {
                   filename: name,
                   percent: 100,
@@ -348,7 +349,7 @@ const Flow: React.FC<FlowProps> = (props) => {
                   total: 0
                 }
               }
-              
+
 
               return {
                 ...oldRunInfo,
@@ -439,7 +440,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
-        flowJson.nodes, 
+        flowJson.nodes,
         ref?.current!
       );
 
@@ -600,6 +601,18 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
 
+
+      const nodeRepository = entity.node_repository_ ?? [];
+
+      let blocks: WorkflowNodeJSON[] =  []
+
+      for (let i = 0; i < nodeRepository.length; i++) {
+        let businessNode = nodeRepository[i];
+        businessNodeNormalize(businessNode);
+        let designNode = transferBusinessNodeToDesignNodeIterate(businessNode);
+        blocks.push(designNode)
+      }
+
       let node = {
         // ...response.result,
         id: Math.random().toString(36).substr(2, 9),
@@ -613,9 +626,10 @@ const Flow: React.FC<FlowProps> = (props) => {
         },
         data: {
           //title: response.result.key_,
-          ...entity,
+          ...lodash.omit(entity,['node_repository_']),
           name_: `${entity.name_}_${numberSuffix}`,
         },
+        blocks
       }
 
       node.data.inputs_ = node.data.inputs_.map((item: any) => {
@@ -631,6 +645,8 @@ const Flow: React.FC<FlowProps> = (props) => {
           id: 'port_' + Math.random().toString(36).substr(2, 9),
         }
       })
+
+  
 
 
 
@@ -658,7 +674,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     };
   }, [dropzone]);
 
-  function getPopupContainer(){
+  function getPopupContainer() {
     return demoContainerRef?.current!!
   }
 
@@ -714,24 +730,24 @@ const Flow: React.FC<FlowProps> = (props) => {
               nodeList={nodeList!}
               paramTypes={paramTypes}
             />
-                     <SideSheet
-            width={"80%"}
-            visible={saveDrawerVisible}
-            onCancel={handleSaveDrawerClose}
-            title={"save flow"}
-            getPopupContainer={getPopupContainer}
-          >
-            <FlowSaveDrawer
-              entity={entity!}
-              onSure={onflowSaveDrawrSure}
-              onClose={onFlowSaveDrawerClose}
-              flowType={flowType}
+            <SideSheet
+              width={"80%"}
+              visible={saveDrawerVisible}
+              onCancel={handleSaveDrawerClose}
+              title={"save flow"}
+              getPopupContainer={getPopupContainer}
+            >
+              <FlowSaveDrawer
+                entity={entity!}
+                onSure={onflowSaveDrawrSure}
+                onClose={onFlowSaveDrawerClose}
+                flowType={flowType}
 
-            />
-          </SideSheet>
+              />
+            </SideSheet>
           </FreeLayoutEditorProvider>
 
- 
+
 
         </FlowEnviromentContext.Provider>
       )}
