@@ -15,7 +15,7 @@ export const BorderArea: FC<IBorderArea> = (props) => {
   const {  onResize } = props;
 
   return (
-    <div>
+    <>
       {/* 左边 */}
       <DragArea
         style={{
@@ -108,6 +108,6 @@ export const BorderArea: FC<IBorderArea> = (props) => {
         getDelta={({ x, y }) => ({ top: 0, right: 0, bottom: y, left: x })}
         onResize={onResize}
       />
-    </div>
+    </>
   );
 };

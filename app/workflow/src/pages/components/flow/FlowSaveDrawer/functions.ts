@@ -1,14 +1,18 @@
 import {
+  FlowNodeRenderData,
+  FreeLayoutPluginContext,
   WorkflowEdgeJSON,
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON, FlowNodeRegistry } from "../../../../typings";
 import {
   IBusinessNode,
+  Inndeploy_ui_layout,
   IWorkFlowEntity,
 } from "../../../Layout/Design/WorkFlow/entity";
 import { resourceLimits } from "worker_threads";
 import { random } from "lodash";
+import { IExpandInfo, INodeUiExtraInfo } from "../entity";
 
 // export function buildBusinessDataFromDesignData(designData: FlowDocumentJSON) {
 //   let businessData: IBusinessNode = {
@@ -162,50 +166,207 @@ import { random } from "lodash";
 //   return businessData;
 // }
 
-export function getAllEdges(designData: FlowDocumentJSON) {
+
+function designNodeIterate(
+  node: WorkflowNodeJSON,
+  process: (node: WorkflowNodeJSON) => void
+) {
+  process(node);
+  if (node.blocks && node.blocks.length > 0) {
+    node.blocks.forEach((block) => {
+      designNodeIterate(block, process);
+    });
+  }
+}
+
+function businessNodeIterate(
+  node: IBusinessNode,
+  process: (node: IBusinessNode) => void
+) {
+  process(node);
+  if (node.node_repository_ && node.node_repository_.length > 0) {
+    node.node_repository_.forEach((respoitory) => {
+      businessNodeIterate(respoitory, process);
+    });
+  }
+}
+
+export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLayoutPluginContext) {
   let edges = designData.edges;
 
-  function nodeIterate(
-    node: WorkflowNodeJSON,
-    process: (node: WorkflowNodeJSON) => void
-  ) {
-    process(node);
-    if (node.blocks && node.blocks.length > 0) {
-      node.blocks.forEach((block) => {
-        nodeIterate(block, process);
-      });
-    }
-  }
-
   designData.nodes.map((node) => {
-    nodeIterate(node, (node) => {
+    designNodeIterate(node, (node) => {
       if (node.edges && node.edges.length > 0)
         edges = [...edges, ...node.edges];
     });
   });
 
-  var results: WorkflowEdgeJSON[] = [];
+  function edgesUnify(edges: WorkflowEdgeJSON[]) {
+    let results: WorkflowEdgeJSON[] = [];
 
-  edges.map((edge) => {
-    var find = false;
-    results.map((result) => {
-      if (
-        result.sourceNodeID == edge.sourceNodeID &&
-        result.targetNodeID == edge.targetNodeID &&
-        result.sourcePortID == edge.sourcePortID &&
-        result.targetPortID == edge.targetPortID
-      ) {
-        find = true;
+    edges.map((edge) => {
+      var find = false;
+      results.map((result) => {
+        if (
+          result.sourceNodeID == edge.sourceNodeID &&
+          result.targetNodeID == edge.targetNodeID &&
+          result.sourcePortID == edge.sourcePortID &&
+          result.targetPortID == edge.targetPortID
+        ) {
+          find = true;
+        }
+      });
+      if (!find) {
+        results = [...results, edge];
       }
     });
-    if (!find) {
-      results = [...results, edge];
+    return results
+
+  }
+
+  let results = edgesUnify(edges)
+
+
+  function buildSubCavasEdges(lines: WorkflowEdgeJSON[]) {
+    const subcavasEdges: WorkflowEdgeJSON[] = []
+
+
+    function isContainerNode(nodeId: string) {
+      let node = clientContext.document.getNode(nodeId)
+      let form = node?.form
+      let isContainer = form?.getValueIn('is_graph') ?? false
+      return isContainer
     }
-  });
+    function getNodeExpandInfo(nodeId: string) {
+      let node = clientContext.document.getNode(nodeId)
+      let expandInfo: IExpandInfo = node?.getNodeMeta().expandInfo
+      return expandInfo
+    }
 
-  return results;
+    lines.map(line => {
+
+      let isSourceNodeContainer = isContainerNode(line.sourceNodeID)
+
+      if (isSourceNodeContainer) {
+
+        let sourceNodeExpandInfo: IExpandInfo = getNodeExpandInfo(line.sourceNodeID)
+
+        sourceNodeExpandInfo?.outputLines?.map(outputLine => {
+          let subcavasEdge: WorkflowEdgeJSON = {
+
+            sourceNodeID: outputLine.oldFrom!,
+
+            sourcePortID: outputLine.oldFromPort,
+
+            targetNodeID: outputLine.to,
+            targetPortID: outputLine.toPort,
+          }
+          const isToNodeContainer = isContainerNode(outputLine.to)
+          if (isToNodeContainer) {
+            // const toNodeExpandInfo = getNodeExpandInfo(subcavasEdge.targetNodeID)
+            // const find = toNodeExpandInfo.inputLines.find(inputLine => {
+            //   return inputLine.from == subcavasEdge.sourceNodeID && inputLine.fromPort == subcavasEdge.sourcePortID
+            // })
+            // if (find) {
+            //   subcavasEdge.targetNodeID = find.to
+            //   subcavasEdge.targetPortID = find.oldToPort
+            // }
+            subcavasEdge.targetNodeID = outputLine.oldTo!
+            subcavasEdge.targetPortID = outputLine.oldToPort
+
+          }
+
+          const find = subcavasEdges.find(item => {
+            return item.sourceNodeID == subcavasEdge.sourceNodeID && item.targetNodeID == subcavasEdge.targetNodeID && item.sourcePortID == subcavasEdge.sourcePortID && item.targetPortID == subcavasEdge.targetPortID
+          })
+
+          if (!find) {
+            subcavasEdges.push(subcavasEdge)
+          }
+
+        })
+      }
+
+      let isTargetNodeContainer = isContainerNode(line.targetNodeID)
+
+      if (isTargetNodeContainer) {
+
+
+        let targetNodeExpandInfo: IExpandInfo = getNodeExpandInfo(line.targetNodeID)
+
+        targetNodeExpandInfo.inputLines?.map(inputLine => {
+          let subcavasEdge: WorkflowEdgeJSON = {
+
+            sourceNodeID: inputLine.from,
+
+            sourcePortID: inputLine.fromPort,
+
+            targetNodeID: inputLine.oldTo!,
+            targetPortID: inputLine.oldToPort,
+          }
+
+          const isFromNodeContainer = isContainerNode(inputLine.from)
+          if (isFromNodeContainer) {
+            // const fromNodeExpandInfo = getNodeExpandInfo(subcavasEdge.sourceNodeID)
+            // const find = fromNodeExpandInfo.outputLines.find(outputLine => {
+            //   return outputLine.to == subcavasEdge.sourceNodeID && outputLine.fromPort == subcavasEdge.sourcePortID
+            // })
+            // if (find) {
+            //   subcavasEdge.sourceNodeID = find.from
+            //   subcavasEdge.targetPortID = find.oldFromPort
+            // }
+            subcavasEdge.sourceNodeID = inputLine.oldFrom!
+            subcavasEdge.sourcePortID = inputLine.oldFromPort
+
+          }
+
+
+          const find = subcavasEdges.find(item => {
+            return item.sourceNodeID == subcavasEdge.sourceNodeID && item.targetNodeID == subcavasEdge.targetNodeID && item.sourcePortID == subcavasEdge.sourcePortID && item.targetPortID == subcavasEdge.targetPortID
+          })
+
+          if (!find) {
+            subcavasEdges.push(subcavasEdge)
+          }
+
+        })
+      }
+    })
+
+    return subcavasEdges
+
+  }
+
+  const subcavasEdges = buildSubCavasEdges(results)
+
+  function substractContainerLines(lines: WorkflowEdgeJSON[]) {
+    const result = lines.filter(item => {
+
+      // inputLines
+      let targetNode = clientContext.document.getNode(item.targetNodeID)
+      let targetForm = targetNode?.form
+      let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
+
+      // inputLines
+      let sourceNode = clientContext.document.getNode(item.sourceNodeID)
+      let sourceForm = sourceNode?.form
+      let isSourceNodeContainer = sourceForm?.getValueIn('is_graph') ?? false
+
+      return !isTargetNodeContainer && !isSourceNodeContainer
+
+    })
+    return result
+  }
+
+  results = substractContainerLines(results)
+
+  return [...results, ...subcavasEdges];
 }
-
+/** 获取所有线条的 映射表:  
+ *   name: edge.sourceNodeID + "@" + edge.sourcePortID -> value: source_node_name + "@" + source_port.desc_ 
+ *   name: edge.edge.targetNodeID + "@" + edge.targetPortID -> value: source_node_name + "@" + source_port.desc_
+ * 
+ * */
 export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON[]) {
   function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON): string {
     if (node.id === nodeId) {
@@ -249,8 +410,8 @@ export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON
   let edge_map: { [key: string]: string } = {};
   allEdges.map((edge) => {
 
-    var name = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string); 
-    if(!name){
+    var name = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
+    if (!name) {
       let j = 0;
     }
     edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = name
@@ -260,40 +421,50 @@ export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON
   return edge_map
 }
 
-export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode, allNodes: FlowNodeJSON[]) {
+export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopNode: IBusinessNode, allNodes: FlowNodeJSON[], clientContext: FreeLayoutPluginContext) {
 
-  let allEdges = getAllEdges(designData);
+  let allEdges = getAllEdges(designData, clientContext);
 
 
-  function getNodesPostion() {
+  function getNodesLayout() {
 
-    let layout: { [nodeName: string]: { x: number, y: number } } = {}
-    designData.nodes.map((node) => {
-      if (node.meta && node.meta.position) {
+    let nodesExtraInfo: { [nodeName: string]: INodeUiExtraInfo } = {}
 
-        layout[node.data.name_] = node.meta.position
+    function processNode(node: WorkflowNodeJSON) {
+
+      let tempNode = clientContext?.document?.getNode(node.id as string)
+      let expanded = tempNode?.getData(FlowNodeRenderData).expanded
+
+      let nodeMeta = clientContext?.document?.getNode(node.id as string)?.getNodeMeta();
+      //const expandInfo: IExpandInfo = nodeMeta?.expandInfo
+
+      nodesExtraInfo[node.data.name_] = {
+        position: node.meta?.position || { x: 0, y: 0 },
+        size: nodeMeta?.size || { width: 180, height: 48 },
+        expanded: expanded,
+
+        // inputLines: expandInfo?.inputLines || [],
+        // outputLines: expandInfo?.outputLines || []
+
       }
+    }
+    designData.nodes.map(node => {
 
+      designNodeIterate(node, processNode)
 
-      if (node.blocks && node.blocks.length > 0) {
-        node.blocks.map((block) => {
-          if (block.meta && block.meta.position) {
-            layout[block.data.name_] = block.meta.position
-          }
-        })
-      }
     })
 
-    return layout
+
+    return nodesExtraInfo
   }
 
-  const layout = getNodesPostion()
+  const nodesLayout = getNodesLayout()
 
   function getGroupInfos() {
     let groups = designData.nodes.filter(node => node.type == 'group')
     let groupInfos = groups.map(group => {
       let groupName = group.data.name_
-      let childrenNodes = group.blocks?.map(blockNode => {
+      let childrenNodes: string[] = group.blocks?.map(blockNode => {
         return blockNode.data.name_
       }) ?? []
 
@@ -324,7 +495,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     ...graphTopNode,
     node_repository_: [],
     nndeploy_ui_layout: {
-      layout,
+      layout: nodesLayout,
       groups
     }
   };
@@ -370,17 +541,17 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   ): IBusinessNode {
 
 
-    function nodeIterate(
-      node: any,
-      process: (node: any) => void,
-    ) {
-      process(node);
-      if (node?.node_repository_ && node?.node_repository_.length > 0) {
-        node.node_repository_.forEach((itemNode: WorkflowNodeJSON) => {
-          nodeIterate(itemNode, process);
-        });
-      }
-    }
+    // function nodeIterate(
+    //   node: any,
+    //   process: (node: any) => void,
+    // ) {
+    //   process(node);
+    //   if (node?.blocks && node?.blocks.length > 0) {
+    //     node.blocks.forEach((itemNode: WorkflowNodeJSON) => {
+    //       nodeIterate(itemNode, process);
+    //     });
+    //   }
+    // }
 
     function changeNodeDescendConnecitonName(node: WorkflowNodeJSON, originName: string, name_: string) {
       if (originName == name_) {
@@ -388,11 +559,12 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
       }
 
       ///@ts-ignore
-      const respositories: any[] = node?.data.node_repository_ ?? []
+      //const respositories: any[] = node?.data.node_repository_ ?? []
+      const childrenblocks: WorkflowNodeJSON[] = node?.blocks ?? []
 
-      respositories.map(node => {
+      childrenblocks.map(node => {
 
-        nodeIterate(node, function (node: WorkflowNodeJSON) {
+        designNodeIterate(node, function (node: WorkflowNodeJSON) {
           ///@ts-ignore
           const inputs = node.inputs_ ?? []
           inputs.map((item: any) => {
@@ -418,7 +590,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
       const originName = input.name_
       const name_ = edge_map[node.id + "@" + input.id]
 
-      if(!name_){
+      if (!name_) {
         //debugger
       }
 
@@ -456,9 +628,9 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
       });
     }
 
-    if (node.data.node_repository_) {
-      node_repository_ = node.data.node_repository_
-    }
+    // if (node.data.node_repository_) {
+    //   node_repository_ = node.data.node_repository_
+    // }
 
     let businessNode: IBusinessNode = {
       ...node.data,
@@ -509,119 +681,231 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   return businessData;
 }
 
+export function transferBusinessNodeToDesignNodeIterate(
+  businessNode: IBusinessNode,
+  layout?: Inndeploy_ui_layout['layout']
+): FlowNodeJSON {
+
+  if (businessNode.name_ == 'Prefill_1') {
+    // debugger
+  }
+
+
+
+  // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
+
+  var type = businessNode.key_
+
+  const designNode: FlowNodeJSON = {
+    id: `${businessNode.id}`,
+    //type: businessNode.key_.split("::").pop() + "",
+    type,
+
+    meta: {
+      //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
+      position: layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
+      size: layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
+      //...nodeExtra[businessNode.name_], 
+      //expandInfo: nodeExtra[businessNode.name_],
+      defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true
+    },
+    data: {
+      // ...businessNode,
+    },
+  };
+
+  // if (
+  //   businessNode.node_repository_ &&
+  //   businessNode.node_repository_.length > 0
+  // ) {
+  //   const nodeRepositories = businessNode.node_repository_;
+  //   delete businessNode["node_repository_"];
+  //   const blocks = nodeRepositories.map((childNode) => {
+  //     return transferBusinessNodeToDesignNode(childNode);
+  //   });
+
+  //   designNode.blocks = blocks;
+  // }
+
+  function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
+    let collectionPoints: any[] = [];
+
+    businessNode[type].map((collectionPoint: any) => {
+      const find = collectionPoints.find((item) => {
+        return item.desc_ == collectionPoint.desc_;
+      });
+
+      if (!find) {
+        collectionPoints = [
+          ...collectionPoints,
+          {
+            id: collectionPoint.id,
+            desc_: collectionPoint.desc_,
+            type_: collectionPoint.type_,
+          },
+        ];
+      }
+    });
+
+    return collectionPoints;
+  }
+
+  const inputs_ = uniqCollectionPoint(businessNode, "inputs_");
+  const outputs_ = uniqCollectionPoint(businessNode, "outputs_");
+
+  businessNode.inputs_ = inputs_;
+  businessNode.outputs_ = outputs_;
+
+  designNode.data = { ...businessNode };
+
+  if (businessNode.node_repository_ && businessNode.node_repository_.length > 0) {
+    const nodeRepositories = businessNode.node_repository_;
+    delete businessNode["node_repository_"];
+    const blocks = nodeRepositories.map((childNode) => {
+      return transferBusinessNodeToDesignNodeIterate(childNode);
+    });
+
+    designNode.blocks = blocks;
+  }
+
+  return designNode;
+}
+
+export function businessNodeNormalize(businessNode: IBusinessNode) {
+  businessNode.id = businessNode.id
+    ? businessNode.id
+    : "node_" + Math.random().toString(36).substr(2, 9);
+
+  let inputs_ = businessNode.inputs_ ?? [];
+
+  let inputCollectionNameIdMap: { [key: string]: string } = {};
+  inputs_.map((item) => {
+    if (!item.id) {
+      let portId = "";
+      if (inputCollectionNameIdMap[item.desc_]) {
+        portId = inputCollectionNameIdMap[item.desc_];
+      } else {
+        portId = "port_" + Math.random().toString(36).substr(2, 9);
+        inputCollectionNameIdMap[item.desc_] = portId;
+      }
+
+      item.id = portId;
+    }
+  });
+
+  let outputCollectionNameIdMap: { [key: string]: string } = {};
+
+  let outputs_ = businessNode.outputs_ ?? [];
+  outputs_.map((item) => {
+    if (!item.id) {
+      let portId = "";
+      if (outputCollectionNameIdMap[item.desc_]) {
+        portId = outputCollectionNameIdMap[item.desc_];
+      } else {
+        portId = "port_" + Math.random().toString(36).substr(2, 9);
+        outputCollectionNameIdMap[item.desc_] = portId;
+      }
+
+      item.id = portId;
+    }
+  });
+
+  const nodeRepositories_ = businessNode.node_repository_ ?? [];
+  nodeRepositories_.map((item) => {
+    businessNodeNormalize(item);
+  });
+}
+
 export function transferBusinessContentToDesignContent(
   businessContent: IBusinessNode,
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
 
-  const layout = businessContent.nndeploy_ui_layout?.layout ?? {}
-
-  const groups = businessContent.nndeploy_ui_layout?.groups ?? []
+  const { layout, groups = [] } = businessContent.nndeploy_ui_layout
 
   function businessNodeIterate(
     businessNode: IBusinessNode,
     process: (businessNode: IBusinessNode) => void
   ) {
     process(businessNode);
-  
-  }
 
-  function getAllOutputNameMap() {
+  }
+  /** 获取所有node的 输出节点的 name_->{nodeId, portId}映射表 */
+  function getAllOutputPortNameToNodePortIdMap() {
     const outputMap: { [key: string]: { nodeId: string; portId: string } } = {};
 
-    businessContent.node_repository_?.map((businessNode) => {
-      businessNodeIterate(businessNode, function (businessNode) {
-        if (businessNode.outputs_) {
-          businessNode.outputs_?.map((output) => {
-            if (output.name_) {
-              outputMap[output.name_] = {
-                nodeId: businessNode.id,
-                portId: output.id,
-              };
-            }
-          });
-        }
+    function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
+      if (businessNode.outputs_) {
+        businessNode.outputs_?.map((output) => {
+          if (output.name_) {
+
+            const outputFullName = [
+              //...parentNodePath, 
+              output.name_].join("!")
+            outputMap[outputFullName] = {
+              nodeId: businessNode.id,
+              portId: output.id,
+            };
+          }
+        });
+      }
+      const children = businessNode.node_repository_ ?? [];
+      children.map((childNode) => {
+        processNode(childNode, [...parentNodePath, businessNode.name_]);
       });
+    }
+
+    businessContent.node_repository_?.map((businessNode) => {
+      processNode(businessNode, []);
     });
 
     return outputMap;
   }
-
-  function getAllInputNameMap() {
+  /** 获取所有node的 输入节点的 名字->[{nodeId, portId}]映射表 */
+  function getAllInputPortNameToNodePortIdMap() {
     const inputMap: { [key: string]: { nodeId: string; portId: string }[] } = {};
 
-    businessContent.node_repository_?.map((businessNode) => {
-      businessNodeIterate(businessNode, function (businessNode) {
-        if (businessNode.inputs_) {
-          businessNode.inputs_?.map((input) => {
-            if (input.name_) {
 
-              if (inputMap[input.name_]) {
-                inputMap[input.name_] = [...inputMap[input.name_], {
-                  nodeId: businessNode.id,
-                  portId: input.id,
-                }];
-              } else {
-                inputMap[input.name_] = [{
-                  nodeId: businessNode.id,
-                  portId: input.id,
-                }];
-              }
+    function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
+      if (businessNode.inputs_) {
+        businessNode.inputs_?.map((input) => {
+          if (input.name_) {
 
+            const outputFullName = [
+              //...parentNodePath, 
+              input.name_].join("!")
+            if (inputMap[outputFullName]) {
+              inputMap[outputFullName] = [...inputMap[outputFullName], {
+                nodeId: businessNode.id,
+                portId: input.id,
+              }];
+            } else {
+              inputMap[outputFullName] = [{
+                nodeId: businessNode.id,
+                portId: input.id,
+              }];
             }
-          });
-        }
+
+          }
+        });
+      }
+      const children = businessNode.node_repository_ ?? [];
+      children.map((childNode) => {
+        processNode(childNode, [...parentNodePath, businessNode.name_]);
       });
+    }
+
+    businessContent.node_repository_?.map((businessNode) => {
+      processNode(businessNode, []);
     });
 
     return inputMap;
   }
-
+  /** 遍历业务内容节点库 → 标准化每个节点 → 标准化端口 → 递归处理子节点 → 确保整个业务节点树的ID系统一致性 */
   function businessContentNormalize(businessContent: IBusinessNode) {
-    function businessNodeNormalize(businessNode: IBusinessNode) {
-      businessNode.id = businessNode.id
-        ? businessNode.id
-        : "node" + Math.random().toString(36).substr(2, 9);
 
-      let inputs_ = businessNode.inputs_ ?? [];
+    /** 给node与其相关的port加上id */
 
-      let inputCollectionNameIdMap: { [key: string]: string } = {};
-      inputs_.map((item) => {
-        if (!item.id) {
-          let portId = "";
-          if (inputCollectionNameIdMap[item.desc_]) {
-            portId = inputCollectionNameIdMap[item.desc_];
-          } else {
-            portId = "port" + Math.random().toString(36).substr(2, 9);
-            inputCollectionNameIdMap[item.desc_] = portId;
-          }
-
-          item.id = portId;
-        }
-      });
-
-      let outputCollectionNameIdMap: { [key: string]: string } = {};
-
-      let outputs_ = businessNode.outputs_ ?? [];
-      outputs_.map((item) => {
-        if (!item.id) {
-          let portId = "";
-          if (outputCollectionNameIdMap[item.desc_]) {
-            portId = outputCollectionNameIdMap[item.desc_];
-          } else {
-            portId = "port" + Math.random().toString(36).substr(2, 9);
-            outputCollectionNameIdMap[item.desc_] = portId;
-          }
-
-          item.id = portId;
-        }
-      });
-
-      const nodeRepositories_ = businessNode.node_repository_ ?? [];
-      nodeRepositories_.map((item) => {
-        businessNodeNormalize(item);
-      });
-    }
     const nodeRepository = businessContent.node_repository_ ?? [];
 
     for (let i = 0; i < nodeRepository.length; i++) {
@@ -637,121 +921,66 @@ export function transferBusinessContentToDesignContent(
     edges: [],
   };
 
-  function transferBusinessNodeToDesignNode(
-    businessNode: IBusinessNode
-  ): FlowNodeJSON {
 
-    if (businessNode.is_graph_) {
-      //debugger
-    }
 
-    // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
 
-    var type = businessNode.key_
 
-    const designNode: FlowNodeJSON = {
-      id: `${businessNode.id}`,
-      //type: businessNode.key_.split("::").pop() + "",
-      type,
+  const outputMap = getAllOutputPortNameToNodePortIdMap();
 
-      meta: {
-        position: layout[businessNode.name_] ?? { x: 0, y: 0 },
-      },
-      data: {
-        // ...businessNode,
-      },
-    };
+  console.log('outputMap', outputMap)
 
-    // if (
-    //   businessNode.node_repository_ &&
-    //   businessNode.node_repository_.length > 0
-    // ) {
-    //   const nodeRepositories = businessNode.node_repository_;
-    //   delete businessNode["node_repository_"];
-    //   const blocks = nodeRepositories.map((childNode) => {
-    //     return transferBusinessNodeToDesignNode(childNode);
-    //   });
+  const inputMap = getAllInputPortNameToNodePortIdMap();
 
-    //   designNode.blocks = blocks;
-    // }
-
-    function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
-      let collectionPoints: any[] = [];
-
-      businessNode[type].map((collectionPoint: any) => {
-        const find = collectionPoints.find((item) => {
-          return item.desc_ == collectionPoint.desc_;
-        });
-
-        if (!find) {
-          collectionPoints = [
-            ...collectionPoints,
-            {
-              id: collectionPoint.id,
-              desc_: collectionPoint.desc_,
-              type_: collectionPoint.type_,
-            },
-          ];
-        }
-      });
-
-      return collectionPoints;
-    }
-
-    const inputs_ = uniqCollectionPoint(businessNode, "inputs_");
-    const outputs_ = uniqCollectionPoint(businessNode, "outputs_");
-
-    businessNode.inputs_ = inputs_;
-    businessNode.outputs_ = outputs_;
-
-    designNode.data = { ...businessNode };
-
-    return designNode;
-  }
-
-  const outputMap = getAllOutputNameMap();
-
-  const inputMap = getAllInputNameMap();
+  console.log('inputMap', inputMap)
 
   const nodeRepository = businessContent.node_repository_ ?? [];
 
   for (let i = 0; i < nodeRepository.length; i++) {
     let businessNode = nodeRepository[i];
-    let designNode = transferBusinessNodeToDesignNode(businessNode);
+    let designNode = transferBusinessNodeToDesignNodeIterate(businessNode);
     designData.nodes = [...designData.nodes, designNode];
   }
 
-  var edges: WorkflowEdgeJSON[] = [];
+  function buildEdges() {
+    var edges: WorkflowEdgeJSON[] = [];
 
-  for (let connectionName in outputMap) {
-    var outputInfo = outputMap[connectionName];
-    var sourceInfos = inputMap[connectionName];
+    for (let connectionName in outputMap) {
+      var outputInfo = outputMap[connectionName];
+      var sourceInfos = inputMap[connectionName];
 
-    if (!sourceInfos) {
-      continue
+      if (!sourceInfos) {
+        continue
+      }
+
+      sourceInfos.map(sourceInfo => {
+        var connection: WorkflowEdgeJSON = {
+          sourceNodeID: outputInfo.nodeId,
+          targetNodeID: sourceInfo.nodeId,
+          sourcePortID: outputInfo.portId,
+          targetPortID: sourceInfo.portId,
+        };
+
+        edges.push(connection);
+      })
+
+
+
     }
-
-    sourceInfos.map(sourceInfo => {
-      var connection: WorkflowEdgeJSON = {
-        sourceNodeID: outputInfo.nodeId,
-        targetNodeID: sourceInfo.nodeId,
-        sourcePortID: outputInfo.portId,
-        targetPortID: sourceInfo.portId,
-      };
-
-      edges.push(connection);
-    })
+    return edges
 
 
-
-    designData.edges = edges;
   }
+
+  const edges = buildEdges()
+
+  designData.edges = edges;
+
 
 
   let flowGroups = groups.map(group => {
     let groupName = group.name
 
-    let flowGroup = {
+    let flowGroup: FlowNodeJSON = {
       id: "group_" + Math.random().toString(36).substr(2, 9),
       type: "group",
       meta: {
@@ -767,13 +996,13 @@ export function transferBusinessContentToDesignContent(
 
     }
 
-    for(let i = 0 ; i < group.children.length; i++){
-      let childNodeName =  group.children[i]
+    for (let i = 0; i < group.children.length; i++) {
+      let childNodeName = group.children[i]
 
       let childNodeIndex = designData.nodes.findIndex(node => node.data.name_ == childNodeName)
-      if(childNodeIndex != -1){
+      if (childNodeIndex != -1) {
 
-        flowGroup.blocks =  [...flowGroup.blocks, ...designData.nodes.splice(childNodeIndex, 1)]
+        flowGroup.blocks = [...flowGroup.blocks!, ...designData.nodes.splice(childNodeIndex, 1)]
       }
     }
 
