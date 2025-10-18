@@ -439,7 +439,8 @@ const Flow: React.FC<FlowProps> = (props) => {
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
-        flowJson.nodes
+        flowJson.nodes, 
+        ref?.current!
       );
 
 
@@ -608,6 +609,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             x: position?.x,
             y: position?.y,
           },
+          size: { width: 180, height: 648 },
         },
         data: {
           //title: response.result.key_,
@@ -619,14 +621,14 @@ const Flow: React.FC<FlowProps> = (props) => {
       node.data.inputs_ = node.data.inputs_.map((item: any) => {
         return {
           ...item,
-          id: 'port' + Math.random().toString(36).substr(2, 9),
+          id: 'port_' + Math.random().toString(36).substr(2, 9),
         }
       })
 
       node.data.outputs_ = node.data.outputs_.map((item: any) => {
         return {
           ...item,
-          id: 'port' + Math.random().toString(36).substr(2, 9),
+          id: 'port_' + Math.random().toString(36).substr(2, 9),
         }
       })
 
@@ -655,6 +657,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     };
   }, [dropzone]);
+
+  function getPopupContainer(){
+    return demoContainerRef?.current!!
+  }
 
 
   //const nodeRegistries = useGetRegistry()
@@ -708,13 +714,12 @@ const Flow: React.FC<FlowProps> = (props) => {
               nodeList={nodeList!}
               paramTypes={paramTypes}
             />
-          </FreeLayoutEditorProvider>
-
-          <SideSheet
+                     <SideSheet
             width={"80%"}
             visible={saveDrawerVisible}
             onCancel={handleSaveDrawerClose}
             title={"save flow"}
+            getPopupContainer={getPopupContainer}
           >
             <FlowSaveDrawer
               entity={entity!}
@@ -724,6 +729,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
             />
           </SideSheet>
+          </FreeLayoutEditorProvider>
+
+ 
 
         </FlowEnviromentContext.Provider>
       )}

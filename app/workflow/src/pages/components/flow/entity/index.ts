@@ -51,3 +51,41 @@ export interface IRunInfo {
   time: number,
 
 }
+
+export interface ILineEntity {
+
+  oldFrom?: string;
+  from: string,
+
+  oldFromPort?: string | number,
+  fromPort: string | number,
+
+
+  oldTo?: string;
+  to: string,
+
+  oldToPort?: string | number,
+  toPort: string | number,
+
+  type_: string,
+  desc_: string,
+  
+  [key:string]:any
+}
+
+
+export interface IExpandInfo {
+  //expanded: boolean,
+
+  inputLines: ILineEntity[],
+  outputLines: ILineEntity[]
+}
+
+export interface INodeUiExtraInfo {
+  expanded?: boolean,
+  position?: { x: number, y: number },
+  size?: { width: number, height: number },
+
+  // inputLines?: ILineEntity[],
+  // outputLines?: ILineEntity[]
+}

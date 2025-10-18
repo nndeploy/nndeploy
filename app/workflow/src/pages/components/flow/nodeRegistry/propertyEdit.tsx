@@ -155,7 +155,7 @@ export function PropertyEdit(
           <NodeRepositoryEditor node_repository_={repositories as INodeEntity[]}
             nodeList={nodeList} paramTypes={paramTypes}
 
-            registryKey = {registryKey}
+            registryKey={registryKey}
             onUpdate={(values) => {
               //console.log(values)
               props.onChange(values)

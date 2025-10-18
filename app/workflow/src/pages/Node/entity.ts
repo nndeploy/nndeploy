@@ -55,6 +55,7 @@ export interface INodeEntity{
   param_?: {
     [key:string]: any
   }, 
+  is_graph_: boolean;
 
   node_repository_?: INodeEntity[]; 
   

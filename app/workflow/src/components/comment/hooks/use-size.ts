@@ -18,28 +18,30 @@ export const useSize = ( paramSize?: { width: number; height: number }) => {
   const nodeMeta = node.getNodeMeta();
   const playground = usePlayground();
   const historyService = useService(HistoryService);
-  //const { size = { width: 200, height: 150 } } = nodeMeta;
-  const  size = paramSize ?? { width: 200, height: 80 }
+  const { size = { width: 200, height: 80 } } = nodeMeta;
+  //const  size = paramSize ?? { width: 200, height: 80 }
   const transform = node.getData(TransformData);
   const formModel = node.getData(FlowNodeFormData).getFormModel<FormModelV2>();
-  const formSize = formModel.getValueIn<{ width: number; height: number }>(
-    CommentEditorFormField.Size
-  );
+  // const formSize = formModel.getValueIn<{ width: number; height: number }>(
+  //   CommentEditorFormField.Size
+  // );
 
-  const [width, setWidth] = useState(formSize?.width ?? size.width);
-  const [height, setHeight] = useState(formSize?.height ?? size.height);
+  const [width, setWidth] = useState( paramSize?.width ?? size.width);
+  const [height, setHeight] = useState(  paramSize?.height ??  size.height);
 
   // 初始化表单值
   useEffect(() => {
-    const initSize = formModel.getValueIn<{ width: number; height: number }>(
-      CommentEditorFormField.Size
-    );
-    if (!initSize) {
-      formModel.setValueIn(CommentEditorFormField.Size, {
-        width,
-        height,
-      });
-    }
+    // const initSize = formModel.getValueIn<{ width: number; height: number }>(
+    //   CommentEditorFormField.Size
+    // );
+    // if (!initSize) {
+    //   formModel.setValueIn(CommentEditorFormField.Size, {
+    //     width,
+    //     height,
+    //   });
+    // }
+
+    nodeMeta.size = { width, height }
   }, [formModel, width, height]);
 
   // 同步表单外部值变化：初始化/undo/redo/协同
