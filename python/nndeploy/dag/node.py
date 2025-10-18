@@ -738,9 +738,9 @@ remove_node_keys = [
     "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
     "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
     "nndeploy::preprocess::BatchPreprocess",
-    "nndeploy::qwen::PrefillEmbeddingNode", "nndeploy::qwen::DecodeEmbeddingNode", "nndeploy::qwen::PrefillSampleNode",
-    "nndeploy::qwen::DecodeSampleNode", "nndeploy::qwen::PromptNode", "nndeploy::qwen::PrintNode",
-    "nndeploy::qwen::QwenPrefill", "nndeploy::qwen::QwenDecode",
+    # "nndeploy::qwen::PrefillEmbeddingNode", "nndeploy::qwen::DecodeEmbeddingNode", "nndeploy::qwen::PrefillSampleNode",
+    # "nndeploy::qwen::DecodeSampleNode", "nndeploy::qwen::PromptNode", "nndeploy::qwen::PrintNode",
+    # "nndeploy::qwen::QwenPrefill", "nndeploy::qwen::QwenDecode",
 ]
 
 
