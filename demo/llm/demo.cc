@@ -93,42 +93,28 @@ int runJsonRemoveInOutNode(
     return -1;
   }
 
-  // graph->dump();
+  graph->dump();
 
   dag::Edge* input = graph->getInput(0);
-  dag::Edge* output = graph->getOutput(0);
+  tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+  text->texts_ = {
+      "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+  input->set(text, false);
 
-  int count = graph->getLoopCount();
-  for (int i = 0; i < count; ++i) {
-    tokenizer::TokenizerText *text = new tokenizer::TokenizerText();
-    text->texts_ = { "<|im_start|>user\nWho is Jordan<|im_end|>\n<|im_start|>assistant\n" };
-    input->set(text, false);
-    status = graph->run();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("run failed. ERROR: %s\n", status.desc().c_str());
-      return -1;
-    }
-    if (pt != base::ParallelType::kParallelTypePipeline) {
-      dag::Edge* output = graph->getOutput(0);
-      tokenizer::TokenizerText* text =
-          output->getGraphOutput<tokenizer::TokenizerText>();
-      if (text) {
-        // std::cout << "A:" << text->texts_[0] << std::endl;
-        ;
-      }
-    }
+  status = graph->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("run failed. ERROR: %s\n", status.desc().c_str());
+    return -1;
   }
-  if (pt == base::ParallelType::kParallelTypePipeline) {
-    for (int i = 0; i < count; ++i) {
-      dag::Edge* output = graph->getOutput(0);
-      tokenizer::TokenizerText* text =
-          output->getGraphOutput<tokenizer::TokenizerText>();
-      if (text) {
-        // std::cout << "A:" << text->texts_[0] << std::endl;
-        ;
-      }
-    }
+
+  dag::Edge* output = graph->getOutput(0);
+  tokenizer::TokenizerText* result =
+      output->getGraphOutput<tokenizer::TokenizerText>();
+  if (result) {
+    // std::cout << "A:" << result->texts_[0] << std::endl;
+    ;
   }
+
   status = graph->deinit();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deinit failed. ERROR: %s\n", status.desc().c_str());

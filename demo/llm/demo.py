@@ -20,8 +20,6 @@ def parse_args():
     # parallel_type: kParallelTypeSequential
     parser.add_argument("--parallel_type", type=str, default="Sequential", required=False)
     # remove_in_out_node: True
-    parser.add_argument("--input_path", type=str, default="", required=False)
-    parser.add_argument("--output_path", type=str, default="", required=False)
     parser.add_argument("--remove_in_out_node", action="store_true", default=False, required=False)
     args = parser.parse_args()
     json_file = args.json_file
@@ -30,9 +28,7 @@ def parse_args():
     }
     parallel_type = nndeploy.base.name_to_parallel_type[args.parallel_type]
     remove_in_out_node = args.remove_in_out_node
-    input_path = args.input_path
-    output_path = args.output_path
-    return json_file, node_param_map, parallel_type, remove_in_out_node, input_path, output_path
+    return json_file, node_param_map, parallel_type, remove_in_out_node
 
 def run_json(json_file, node_param_map, parallel_type):
     graph = nndeploy.dag.Graph(json_file)
@@ -63,7 +59,7 @@ def run_json(json_file, node_param_map, parallel_type):
     nndeploy.base.time_profiler_print(graph.get_name())
   
   
-def run_json_remove_in_out_node(json_file, node_param_map, parallel_type, input_path, output_path):
+def run_json_remove_in_out_node(json_file, node_param_map, parallel_type):
     graph = nndeploy.dag.Graph("")
     graph.set_node_value(node_param_map)
     graph.set_time_profile_flag(True)
@@ -73,22 +69,22 @@ def run_json_remove_in_out_node(json_file, node_param_map, parallel_type, input_
     graph.init()
     
     input = graph.get_input(0)    
-    import cv2
-    image = cv2.imread(input_path)
-    input.set(image)
+    text = nndeploy.tokenizer.TokenizerText()
+    text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
+    input.set(text)
     status = graph.run()
     output = graph.get_output(0)
     result = output.get_graph_output()
-    if result is not None and output_path != "":
-        cv2.imwrite(output_path, result)
+    if result is not None:
+        pass
     
     graph.deinit()
     nndeploy.base.time_profiler_print(graph.get_name())
    
 if __name__ == "__main__":
-    json_file, node_param_map, parallel_type, remove_in_out_node, input_path, output_path = parse_args()
+    json_file, node_param_map, parallel_type, remove_in_out_node = parse_args()
     if remove_in_out_node:
-        run_json_remove_in_out_node(json_file, node_param_map, parallel_type, input_path, output_path)
+        run_json_remove_in_out_node(json_file, node_param_map, parallel_type)
     else:
         run_json(json_file, node_param_map, parallel_type)
   

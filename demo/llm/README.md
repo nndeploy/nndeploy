@@ -2,13 +2,18 @@
 
 运行nndeploy前端拉出来的llm工作流
 
-## run_json
+## run_json (完整的运行整个工作流)
 
 ```bash
+cd path/to/nndeploy
 
+# Python CLI
+python3 demo/llm/demo.py --json_file resources/workflow/QwenMNN.json
+
+# C++ CLI
 ./build/nndeploy_demo_llm --json_file resources/workflow/QwenMNN.json
 
-
+# Result
 A: 李白，唐代诗人，被誉为“诗仙”，以其高超的诗歌造诣和神奇的笔墨语言而受到世界的广泛喜爱。李白所作诗词广受欢迎，对于其深远影响和艺术成就的评价极高。李白生于唐代中叶，死于唐玄宗时期，活了600余岁，是唐代著名的诗人，被后人尊称为“诗圣”。
 TimeProfiler: QwenMNN
 -----------------------------------------------------------------------------------
@@ -32,12 +37,19 @@ stream_out run()         82          0.358              0.004              0.000
 -----------------------------------------------------------------------------------
 ```
 
-## run_json_remove_in_out_node
+## run_json_remove_in_out_node（开发者自己有输入输出逻辑，移除工作流中的输入和输出节点）
 
 ```bash
+
+cd path/to/nndeploy
+
+# Python CLI
+python3 demo/llm/demo.py --json_file resources/workflow/QwenMNN.json --remove_in_out_node
+
+# C++ CLI
 ./build/nndeploy_demo_llm --json_file resources/workflow/QwenMNN.json --remove_in_out_node
 
-
+# result
 A: Jordan is a surname that was commonly used in the United States during the late 19th century. It was commonly used in the United States as a middle name, in order to not conflict with the common surname of Samuel.
 
 Jordan was most likely given this surname by his father, who may have given Jordan this name simply because he had his own name and was not related to any other Jordan family. Today, Jordan is a popular last name in several countries around the world.

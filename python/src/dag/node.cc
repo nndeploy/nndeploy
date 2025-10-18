@@ -795,6 +795,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                &Graph::removeUnusedNodeNames),
            py::arg("node_names"))
       .def("get_unused_node_names", &Graph::getUnusedNodeNames)
+      .def("remove_in_out_node", &Graph::removeInOutNode)
       .def("set_node_value",
            py::overload_cast<const std::string &>(&Graph::setNodeValue),
            py::arg("node_value_str"))
