@@ -137,21 +137,50 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 - **导出工作流并API加载运行**  
 
-  在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行，参考示例代码开发自定义算法 SDK
+  在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行
 
-  - [Python 目标检测示例代码](demo/detect/demo.py)
-  - [C++ 目标检测示例代码](demo/detect/demo.cc)
-  - [Python LLM示例代码](demo/llm/demo.py)
-  - [C++ LLM示例代码](demo/llm/demo.cc)
-  - [Python CLI(nndeploy-run-json)代码](python/nndeploy/dag/graph_runner.py)
-  - [C++ CLI(nndeploy_demo_run_json)代码](framework/include/nndeploy/dag/graph_runner.h)
+  - Python API加载运行LLM工作流
+    ```Python
+    graph = nndeploy.dag.Graph("")
+    graph.remove_in_out_node()
+    graph.load_file("path/to/llm_workflow.json")
+    graph.init()
+    input = graph.get_input(0)    
+    text = nndeploy.tokenizer.TokenizerText()
+    text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
+    input.set(text)
+    status = graph.run()
+    output = graph.get_output(0)
+    result = output.get_graph_output()  
+    graph.deinit()
+    ```
+  - C++ API加载运行LLM工作流
+    ```C++
+    std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
+    base::Status status = graph->loadFile("path/to/llm_workflow.json");
+    graph->removeInOutNode();
+    status = graph->init();
+    dag::Edge* input = graph->getInput(0);
+    tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+    text->texts_ = {
+        "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+    input->set(text, false);
+    status = graph->run();
+    dag::Edge* output = graph->getOutput(0);
+    tokenizer::TokenizerText* result =
+        output->getGraphOutput<tokenizer::TokenizerText>();
+    status = graph->deinit();
+    ```
 
-- **推荐落地流程**
+  更多示例代码查看[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
 
-  - **开发阶段**：通过可视化工作流进行设计和调试，在可视化界面中验证算法的效果和性能。**必要时需开发自定义节点**
-  - **部署阶段**：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
 
-  无论是通过可视化前端界面还是 API 调用，最终都会在底层统一的高性能 C++ 计算引擎中执行。这种架构设计确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的理念。
+**推荐流程**
+
+- 开发阶段：通过可视化工作流进行设计和调试，在可视化界面中验证算法的效果和性能。**必要时需开发自定义节点**
+- 部署阶段：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
+
+无论是通过可视化前端界面还是 API 调用，最终都会在底层统一的高性能 C++ 计算引擎中执行。这种架构设计确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的理念。
 
 > 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
 
@@ -165,34 +194,33 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
 
-## 性能比较
+## 性能测试
 
-测试环境：Ubuntu 22.04，CPU：12th Gen Intel(R) Core(TM) i7-12700，GPU：RTX3060
+测试环境：Ubuntu 22.04，i7-12700，RTX3060
 
-### 流水线并行加速
+- 流水线并行加速
 
-以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
+  以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
 
-![yolov11s_performance](docs/image/workflow/yolo_performance.png)
+  <img src="docs/image/workflow/yolo_performance.png" width="20%">
 
-| 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
-| ----------------- | ----------- | --------- | --------- |
-| 串行              | 54.803 ms   | 34.139 ms | 13.213 ms |
-| 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
-| 性能提升          | 13.7%       | 13.1%     | 57%       |
+  | 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
+  | ----------------- | ----------- | --------- | --------- |
+  | 串行              | 54.803 ms   | 34.139 ms | 13.213 ms |
+  | 流水线并行        | 47.283 ms   | 29.666 ms | 5.681 ms  |
+  | 性能提升          | 13.7%       | 13.1%     | 57%       |
 
-### 任务并行加速
+- 任务并行加速
 
-组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
+  组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
 
-![rmbg_yolo_resnet.png](docs/image/workflow/rmbg_yolo_resnet.png)
+  <img src="docs/image/workflow/rmbg_yolo_resnet.png" width="20%">
 
-| 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
-| ----------------- | ----------- | ---------- | --------- |
-| 串行              | 654.315 ms  | 489.934 ms | 59.140 ms |
-| 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
-| 性能提升          | 7.98%       | 11.2%      | 12.2%     |
-
+  | 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
+  | ----------------- | ----------- | ---------- | --------- |
+  | 串行              | 654.315 ms  | 489.934 ms | 59.140 ms |
+  | 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
+  | 性能提升          | 7.98%       | 11.2%      | 12.2%     |
 
 ## 保持领先
 
