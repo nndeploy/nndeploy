@@ -235,7 +235,7 @@ Star nndeploy on GitHub and get notified immediately about new releases.
 
 - nndeploy is currently in the development stage. If you love open source, enjoy tinkering, whether for learning purposes or have better ideas, you are welcome to join us.
 
-- WeChat: Always031856 (Feel free to add as a friend, join the active AI inference deployment discussion group,备注：nndeploy\_Name)
+- WeChat: Always031856 (Feel free to add as a friend to join our active AI inference deployment discussion group. Please note: nndeploy\_name)
 
   <img src="docs/image/wechat.jpg" width="225px">
 
