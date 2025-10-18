@@ -1912,6 +1912,14 @@ Edge *Graph::getResourceWithState(const std::string &key) {
 
 base::Status Graph::removeUnusedNodeAndEdge() {
   base::Status status = base::kStatusCodeOk;
+  if (is_remove_in_out_node_) {
+    for (auto node_wrapper : node_repository_) {
+      if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput ||
+          node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+        unused_node_names_.insert(node_wrapper->node_->getName());
+      }
+    }
+  }
   if (!unused_node_names_.empty()) {
     // #. 更新边的信息
     for (auto edge_wrapper : edge_repository_) {
@@ -2827,14 +2835,7 @@ void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
   }
 }
 std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
-void Graph::disableInputAndOutputNode() {
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput ||
-        node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
-      unused_node_names_.insert(node_wrapper->node_->getName());
-    }
-  }
-}
+void Graph::removeInOutNode() { is_remove_in_out_node_ = true; }
 
 void Graph::setNodeValue(const std::string &node_value_str) {
   // 查找第一个冒号的位置

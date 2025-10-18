@@ -17,6 +17,62 @@ namespace demo {
 DECLARE_bool(usage);
 
 /**
+ * @brief 是否不包含输入和输出节点，默认包含
+ * @note
+ *  --remove_in_out_node
+ */
+DECLARE_bool(remove_in_out_node);
+
+/**
+ * @brief task_id
+ * @note
+ *  --task_id llm
+ */
+DECLARE_string(task_id);
+
+/**
+ * @brief 指定的JSON配置文件
+ * @note
+ *  --json_file workflow.json
+ */
+DECLARE_string(json_file);
+
+/**
+ * @brief 插件路径列表，支持多个插件
+ * @note
+ *  --plugin path/to/plugin1.so,path/to/plugin2.so
+ */
+DECLARE_string(plugin);
+
+/**
+ * @brief 节点参数设置，格式为 node_name:param_key:param_value
+ * @note
+ *  --node_param node1:param1:value1,node2:param2:value2,node3:param3:value3
+ */
+DECLARE_string(node_param);
+
+/**
+ * @brief 是否启用dump模式
+ * @note
+ *  --dump
+ */
+DECLARE_bool(dump);
+
+/**
+ * @brief 是否启用debug模式
+ * @note
+ *  --debug
+ */
+DECLARE_bool(debug);
+
+/**
+ * @brief 是否启用时间分析器
+ * @note
+ *  --time_profile
+ */
+DECLARE_bool(time_profile);
+
+/**
  * @brief Construct a new declare string object
  * @note
  * --name
@@ -241,6 +297,15 @@ DECLARE_string(detector_model_outputs);
 void showUsage();
 
 std::string getName();
+bool removeInOutNode();
+std::string getTaskId();
+std::string getJsonFile();
+std::vector<std::string> getPlugin();
+bool loadPlugin();
+std::map<std::string, std::map<std::string, std::string>> getNodeParam();
+bool dump();
+bool debug();
+bool timeProfile();
 base::InferenceType getInferenceType();
 base::DeviceType getDeviceType();
 base::ModelType getModelType();

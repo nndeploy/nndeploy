@@ -45,13 +45,13 @@ nndeploy：一款简单易用且高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/01/29]🔥与昇腾官方合作，推出推理框架免费课程！课程基于nndeploy内部推理框架深度讲解，助力开发者快速掌握AI推理核心技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+- [2025/01/29]🔥与昇腾官方合作，推出推理框架免费课程！课程基于nndeploy内部推理框架深度讲解，帮助开发者快速掌握AI推理部署核心技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## 介绍
 
-nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括大语言模型（LLM）、AIGC 生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
+nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括LLM、AIGC生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
 
 ### **简单易用**
 
@@ -62,6 +62,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 ### **高性能**
 
+- **并行优化**：支持串行、流水线并行、任务并行等执行模式
+- **内存优化**：零拷贝、内存池、内存复用等优化策略
+- **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
 - **多端推理**：一套工作流，多端推理。通过零抽象成本接入了 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
 
   | 推理框架                                                                         | 适用场景                 | 状态 |
@@ -80,13 +83,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   | [PyTorch](https://pytorch.org/)                                                  | 快速原型/云端落地        | ✅   |
   | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 缺省推理框架             | ✅   |
 
-- **并行优化**：支持串行、流水线并行、任务并行等执行模式
-- **内存优化**：零拷贝、内存池、内存复用等优化策略
-- **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
-
 ### **开箱即用的算法**
 
-已部署模型列表，并制作**100+节点**，我们将持续部署更多高价值的 AI 算法。如果您有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们
+已部署模型列表，并制作**100+节点**，我们将持续部署更多高价值的 AI 算法。如果您有需要部署的算法，请通过[issue](https://github.com/nndeploy/nndeploy/issues)告诉我们。
 
 | 应用场景       | 可用模型                                                                         | 备注                                                |
 | -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -100,15 +99,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 | **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
 | **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                              |
 
-> 更多详情查看[已部署模型列表](docs/zh_cn/quick_start/model_list.md)
-
-在实际使用中，我们推荐采用以下落地流程：
-
-1. **开发阶段**：通过可视化工作流进行设计和调试，**必要时需开发自定义节点**
-2. **验证阶段**：在可视化界面中验证算法的效果和性能表现
-3. **部署阶段**：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
-
-无论是通过可视化前端界面还是 API 调用，最终都会在底层的高性能 C++ 计算引擎中执行。这种统一的底层架构确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的目标。
+> 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
 ## 快速开始
 
@@ -148,13 +139,19 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
   在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行，参考示例代码开发自定义算法 SDK
 
-  - [Python CLI(nndeploy-run-json)代码](python/nndeploy/dag/graph_runner.py)
-  - [C++ CLI(nndeploy_demo_run_json)代码](framework/include/nndeploy/dag/graph_runner.h)
   - [Python 目标检测示例代码](demo/detect/demo.py)
   - [C++ 目标检测示例代码](demo/detect/demo.cc)
   - [Python LLM示例代码](demo/llm/demo.py)
   - [C++ LLM示例代码](demo/llm/demo.cc)
-  
+  - [Python CLI(nndeploy-run-json)代码](python/nndeploy/dag/graph_runner.py)
+  - [C++ CLI(nndeploy_demo_run_json)代码](framework/include/nndeploy/dag/graph_runner.h)
+
+- **推荐落地流程**
+
+  - **开发阶段**：通过可视化工作流进行设计和调试，在可视化界面中验证算法的效果和性能。**必要时需开发自定义节点**
+  - **部署阶段**：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
+
+  无论是通过可视化前端界面还是 API 调用，最终都会在底层统一的高性能 C++ 计算引擎中执行。这种架构设计确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的理念。
 
 > 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
 
