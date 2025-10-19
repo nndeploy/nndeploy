@@ -29,8 +29,8 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       padding: () => ({
         top: 25,
         bottom: 5,
-        left: 10,
-        right: 10,
+        left: 15,
+        right: 15,
       }),
     },
     formMeta: formMeta,
