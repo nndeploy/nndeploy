@@ -27,10 +27,10 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       expandable: !!nodeEntity.is_graph_, // disable expanded
 
       padding: () => ({
-        top: 60,
-        bottom: 20,
-        left: 20,
-        right: 20,
+        top: 20,
+        bottom: 5,
+        left: 5,
+        right: 5,
       }),
     },
     formMeta: formMeta,
