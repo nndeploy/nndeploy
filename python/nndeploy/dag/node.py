@@ -500,6 +500,7 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
     else:
         return _C.dag.create_node(node_key, node_name, inputs, outputs)
 
+skip_graph_keys = ["nndeploy::dag::Graph", "nndeploy::dag::FixedLoop"]
 
 def get_node_json(node_key: str):
     """Get the JSON representation of a node type.
@@ -528,8 +529,9 @@ def get_node_json(node_key: str):
     
     # print(node)   
     is_graph = node.get_graph_flag()
+    key = node.get_key()
     
-    if is_graph:
+    if is_graph and key not in skip_graph_keys:
         # print(node)        
         node.set_inner_flag(True)
         status = node.to_static_graph()
@@ -733,7 +735,7 @@ def import_global_import_lib():
     
 # List of node keys to exclude from node listing
 remove_node_keys = [
-    "nndeploy::dag::Graph", "nndeploy::dag::FixedLoop",
+    # "nndeploy::dag::Graph", "nndeploy::dag::FixedLoop",
     "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition", "nndeploy::dag::Comment",
     "nndeploy::codec::BatchOpenCvDecode", "nndeploy::codec::BatchOpenCvEncode",
     "nndeploy::super_resolution::SuperResolutionGraph", "nndeploy::super_resolution::SuperResolutionPostProcess",
