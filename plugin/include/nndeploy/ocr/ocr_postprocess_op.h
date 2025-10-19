@@ -9,6 +9,8 @@
 #include <ostream>
 #include <vector>
 
+#include "nndeploy/base/macro.h"
+
 #include "nndeploy/ocr/clipper.h"
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -16,7 +18,7 @@
 namespace nndeploy {
 namespace ocr {
 
-class PostProcessor {
+class NNDEPLOY_CC_API PostProcessor {
  public:
   void GetContourArea(const std::vector<std::vector<float>> &box,
                       float unclip_ratio, float &distance);

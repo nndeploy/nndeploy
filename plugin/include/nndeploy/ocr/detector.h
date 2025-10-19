@@ -30,11 +30,11 @@ namespace ocr {
 class NNDEPLOY_CC_API DetectorParam : public base::Param {
  public:
   int version_ = -1;
-  using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator);
-  using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json);
+  // using base::Param::serialize;
+  // virtual base::Status serialize(rapidjson::Value &json,
+  //                                rapidjson::Document::AllocatorType &allocator);
+  // using base::Param::deserialize;
+  // virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API DetectorPreProcessParam : public base::Param {
