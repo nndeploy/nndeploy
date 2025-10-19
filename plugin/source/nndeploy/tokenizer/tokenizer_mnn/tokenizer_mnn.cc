@@ -182,8 +182,8 @@ base::Status TokenizerDecodeMnn::deserialize(rapidjson::Value& json) {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::tokenizer::TokenizerEncodeMnn", TokenizerEncodeMnn);
-REGISTER_NODE("nndeploy::tokenizer::TokenizerDecodeMnn", TokenizerDecodeMnn);
+// REGISTER_NODE("nndeploy::tokenizer::TokenizerEncodeMnn", TokenizerEncodeMnn);
+// REGISTER_NODE("nndeploy::tokenizer::TokenizerDecodeMnn", TokenizerDecodeMnn);
 
 }  // namespace tokenizer
 }  // namespace nndeploy

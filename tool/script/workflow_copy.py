@@ -14,6 +14,15 @@ def copy_workflow_json_files(src_dir, dst_dir):
         print(f"Source directory does not exist: {src_dir}")
         return
 
+    if "template/nndeploy-workflow" in dst_dir:
+        # delete all files in the directory but keep the directory structure
+        if os.path.exists(dst_dir):
+            for root, dirs, files in os.walk(dst_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    os.remove(file_path)
+                    print(f"Deleted file: {file_path}")
+
     for root, dirs, files in os.walk(src_dir):
         for file in files:
             if file.endswith(".json"):
@@ -34,4 +43,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     copy_workflow_json_files(args.src_dir, args.dst_dir)
 
-# python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/workflow
+# copy to resources/workflow
+## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/workflow
+# copy to /resources/template/nndeploy-workflow
+## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/template/nndeploy-workflow

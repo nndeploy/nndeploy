@@ -104,7 +104,7 @@ class NNDEPLOY_CC_API OcrText : public base::Param {
 
 class NNDEPLOY_CC_API PrintOcrNodeParam : public base::Param {
  public:
-  std::string path_;
+  std::string path_ = "resources/others/ocr_out.txt";
 
   using base::Param::serialize;
   virtual base::Status serialize(rapidjson::Value &json,

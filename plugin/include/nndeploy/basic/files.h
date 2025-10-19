@@ -141,7 +141,7 @@ class NNDEPLOY_CC_API InputCppBinaryFile : public dag::Node {
   }
 
  private:
-  std::string path_ = "";
+  std::string path_;
 };
 
 
@@ -208,7 +208,7 @@ class NNDEPLOY_CC_API OutputCppTextFile : public dag::Node {
   }
 
  private:
-  std::string path_ = "";
+  std::string path_ = "resources/others/output.txt";
 };
 
 class NNDEPLOY_CC_API OutputCppBinaryFile : public dag::Node {
@@ -274,7 +274,7 @@ class NNDEPLOY_CC_API OutputCppBinaryFile : public dag::Node {
   }
 
  private:
-  std::string path_ = "";
+  std::string path_ = "resources/others/output.bin";
 };
 
 
