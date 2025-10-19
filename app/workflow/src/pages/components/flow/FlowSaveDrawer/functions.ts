@@ -762,7 +762,7 @@ export function transferBusinessNodeToDesignNodeIterate(
     const nodeRepositories = businessNode.node_repository_;
     delete businessNode["node_repository_"];
     const blocks = nodeRepositories.map((childNode) => {
-      return transferBusinessNodeToDesignNodeIterate(childNode);
+      return transferBusinessNodeToDesignNodeIterate(childNode, layout);
     });
 
     designNode.blocks = blocks;
@@ -937,7 +937,7 @@ export function transferBusinessContentToDesignContent(
 
   for (let i = 0; i < nodeRepository.length; i++) {
     let businessNode = nodeRepository[i];
-    let designNode = transferBusinessNodeToDesignNodeIterate(businessNode);
+    let designNode = transferBusinessNodeToDesignNodeIterate(businessNode, layout);
     designData.nodes = [...designData.nodes, designNode];
   }
 

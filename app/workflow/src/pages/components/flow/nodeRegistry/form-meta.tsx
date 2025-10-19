@@ -179,7 +179,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             }
             {
               isContainer && 
-                <SubCanvasRender />
+                <SubCanvasRender style={{visibility:'hidden'}} offsetY={-50}/>
              
             }
 
