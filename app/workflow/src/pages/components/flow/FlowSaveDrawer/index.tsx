@@ -25,10 +25,10 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
 
   const clientContext = useClientContext();
 
-   let find = props.entity.designContent.nodes.find(item=>item.data.name_ == 'Prefill_1')
+  // let find = props.entity.designContent.nodes.find(item=>item.data.name_ == 'Prefill_1')
 
-  let node = clientContext.document.getNode(find!.id)
-  const extraInfo = node?.getExtInfo()
+ // let node = clientContext.document.getNode(find!.id)
+  //const extraInfo = node?.getExtInfo()
 
   
 

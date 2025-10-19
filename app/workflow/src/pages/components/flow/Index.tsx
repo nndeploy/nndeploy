@@ -622,7 +622,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             x: position?.x,
             y: position?.y,
           },
-          size: { width: 180, height: 648 },
+          size: { width: 180, height: 48 },
         },
         data: {
           //title: response.result.key_,
