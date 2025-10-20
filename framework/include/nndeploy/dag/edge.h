@@ -113,6 +113,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Param *getParam(const Node *node);
   base::Param *getGraphOutputParam();
 
+  void *getGraphOutputPtr();
+
   template <typename T>
   base::Status set(T *t, bool is_external = true) {
     this->setTypeInfo<T>();

@@ -19,9 +19,9 @@ GraphRunner::~GraphRunner() {
   }
 }
 
-std::shared_ptr<GraphRunnerResult> GraphRunner::run(const std::string& graph_json_str,
-                                   const std::string& name,
-                                   const std::string& task_id) {
+std::shared_ptr<GraphRunnerResult> GraphRunner::run(
+    const std::string& graph_json_str, const std::string& name,
+    const std::string& task_id) {
   std::shared_ptr<GraphRunnerResult> result =
       std::make_shared<GraphRunnerResult>();
   result->status = base::kStatusCodeOk;
@@ -106,6 +106,15 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(const std::string& graph_jso
     // 对于非流水线模式，立即获取输出
     if (parallel_type != base::ParallelType::kParallelTypePipeline) {
       std::vector<Edge*> outputs = graph_->getAllOutput();
+      for (auto* output : outputs) {
+        if (output) {
+          void* ptr = output->getGraphOutputPtr();
+          if (ptr == nullptr) {
+            NNDEPLOY_LOGE("Graph output data ptr is nullptr\n");
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -113,6 +122,15 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(const std::string& graph_jso
   if (parallel_type == base::ParallelType::kParallelTypePipeline) {
     for (int i = 0; i < count; ++i) {
       std::vector<Edge*> outputs = graph_->getAllOutput();
+      for (auto* output : outputs) {
+        if (output) {
+          void* ptr = output->getGraphOutputPtr();
+          if (ptr == nullptr) {
+            NNDEPLOY_LOGE("Graph output data ptr is nullptr\n");
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -182,14 +200,18 @@ void GraphRunner::set_loop_max_flag(bool is_loop_max_flag) {
   is_loop_max_flag_ = is_loop_max_flag;
 }
 
-void GraphRunner::set_node_value(const std::string& node_name, const std::string& key, const std::string& value) {
+void GraphRunner::set_node_value(const std::string& node_name,
+                                 const std::string& key,
+                                 const std::string& value) {
   node_value_map_[node_name][key] = value;
 }
 
-void GraphRunner::set_node_value(std::map<std::string, std::map<std::string, std::string>> node_value_map) {
+void GraphRunner::set_node_value(
+    std::map<std::string, std::map<std::string, std::string>> node_value_map) {
   for (const auto& node_value_item : node_value_map) {
     for (const auto& key_value_item : node_value_item.second) {
-      node_value_map_[node_value_item.first][key_value_item.first] = key_value_item.second;
+      node_value_map_[node_value_item.first][key_value_item.first] =
+          key_value_item.second;
     }
   }
 }
@@ -200,7 +222,7 @@ base::Status GraphRunner::buildGraph(const std::string& graph_json_str,
   if (!graph_) {
     return base::kStatusCodeErrorOutOfMemory;
   }
-  
+
   graph_->setNodeValue(node_value_map_);
 
   base::Status status;

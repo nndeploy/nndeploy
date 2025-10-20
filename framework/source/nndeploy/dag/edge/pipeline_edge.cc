@@ -480,6 +480,24 @@ base::Param *PipelineEdge::getGraphOutputParam() {
   return dp->getParam();
 }
 
+void *PipelineEdge::getGraphOutputPtr() {
+  PipelineDataPacket *dp = nullptr;
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
+    NNDEPLOY_LOGI("User voluntarily terminates.\n");
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
+    NNDEPLOY_LOGI("getGraphOutput update error.\n");
+  } else {
+    dp = getPipelineDataPacket(nullptr);
+  }
+  if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
+    return nullptr;
+  }
+  return dp->getDataPtr();
+}
+
 int64_t PipelineEdge::getIndex(const Node *node) {
   PipelineDataPacket *dp = getPipelineDataPacket(node);
   if (dp == nullptr) {
