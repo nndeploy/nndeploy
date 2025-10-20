@@ -233,6 +233,14 @@ base::Param *Edge::getGraphOutputParam() {
   return abstact_edge_->getGraphOutputParam();
 }
 
+void *Edge::getGraphOutputPtr() {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  return abstact_edge_->getGraphOutputPtr();
+}
+
 int64_t Edge::getIndex(const Node *node) {
   return abstact_edge_->getIndex(node);
 }

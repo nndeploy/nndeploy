@@ -62,6 +62,8 @@ class FixedEdge : public AbstractEdge {
   virtual base::Param *getParam(const Node *node);
   virtual base::Param *getGraphOutputParam();
 
+  virtual void *getGraphOutputPtr();
+
   virtual int64_t getIndex(const Node *node);
   virtual int64_t getGraphOutputIndex();
 

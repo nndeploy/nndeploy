@@ -26,8 +26,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   virtual ~AbstractEdge();
 
   virtual base::Status setQueueMaxSize(int queue_max_size) = 0;
-  virtual base::Status setQueueOverflowPolicy(
-      base::QueueOverflowPolicy policy, int drop_count);
+  virtual base::Status setQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                              int drop_count);
 
   virtual bool empty() = 0;
 
@@ -90,6 +90,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   virtual bool notifyWritten(base::Param *param) = 0;
   virtual base::Param *getParam(const Node *node) = 0;
   virtual base::Param *getGraphOutputParam() = 0;
+
+  virtual void *getGraphOutputPtr() = 0;
 
   template <typename T>
   base::Status set(T *t, bool is_external = true) {
@@ -204,7 +206,7 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
     DataPacket *data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
@@ -212,7 +214,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
     }
     this->increaseIndex();
     data_packet->setIndex(index_);
-    base::Status status = data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
+    base::Status status =
+        data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set any.\n");
       delete data_packet;
