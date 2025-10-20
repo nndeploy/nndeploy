@@ -146,6 +146,7 @@ class GraphRunner:
             if parallel_type == nndeploy.base.ParallelType.Pipeline:
                 for i in range(count):
                     outputs = self.graph.get_all_output()
+                    results = {}
                     for output in outputs:
                         result = output.get_graph_output()
                         if result is not None:
