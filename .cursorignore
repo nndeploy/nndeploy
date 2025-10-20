@@ -232,7 +232,7 @@ compile_commands.json
 
 # model
 *.onnx
-*.json
+# *.json
 *.safetensors
 *.pth
 *.pt

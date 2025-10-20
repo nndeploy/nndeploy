@@ -332,7 +332,7 @@ class NNDEPLOY_CC_API PrintNode : public dag::Node {
   void set_path(std::string path) { path_ = path; }
 
  private:
-  std::string path_ = "";
+  std::string path_ = "resources/others/qwen_out.txt";
 };
 
 class NNDEPLOY_CC_API QwenPrefill : public dag::CompositeNode {
