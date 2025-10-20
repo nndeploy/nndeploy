@@ -1119,7 +1119,40 @@ class ParallelType(_C.base.ParallelType):
         if parallel_type_name not in name_to_parallel_type:
             raise ValueError(f"Unsupported parallel type name: {parallel_type_name}")
         return cls(name_to_parallel_type[parallel_type_name])
+
+name_to_overflow_policy = {
+    "NodeBackpressure": _C.base.QueueOverflowPolicy.NodeBackpressure,
+    "AllBackpressure": _C.base.QueueOverflowPolicy.AllBackpressure,
+    "DropOldest": _C.base.QueueOverflowPolicy.DropOldest,
+}
+
+overflow_policy_to_name = {v: k for k, v in name_to_overflow_policy.items()}
+
+
+def get_overflow_policy_enum_json():
+    enum_list = []
+    for overflow_policy_name, overflow_policy_code in name_to_overflow_policy.items():
+        overflow_policy_str = _C.base.overflow_policy_to_string(overflow_policy_code)
+        enum_list.append(overflow_policy_str)
+    overflow_policy_enum = {}
+    for single_enum in enum_list:
+        overflow_policy_enum[f"{single_enum}"] = enum_list
+    return overflow_policy_enum
+
+
+all_type_enum.append(get_overflow_policy_enum_json)
+
+
+class QueueOverflowPolicy(_C.base.QueueOverflowPolicy):
+    NodeBackpressure = _C.base.QueueOverflowPolicy.NodeBackpressure,
+    AllBackpressure = _C.base.QueueOverflowPolicy.AllBackpressure
+    DropOldest = _C.base.QueueOverflowPolicy.DropOldest
     
+    @classmethod
+    def from_name(cls, overflow_policy_name: str):
+        if overflow_policy_name not in name_to_overflow_policy:
+            raise ValueError(f"Unsupported overflow policy name: {overflow_policy_name}")
+        return cls(name_to_overflow_policy[overflow_policy_name])
     
 name_to_edge_type = {
     "Fixed": _C.base.EdgeType.Fixed,

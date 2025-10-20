@@ -16,6 +16,7 @@ Decode::Decode(const std::string& name, std::vector<dag::Edge*> inputs,
 
   decode_infer_node_ = dynamic_cast<llm::LlmInfer*>(
       this->createNode<llm::LlmInfer>("decode_infer"));
+  decode_infer_node_->setPrefill(false);
   decode_sampler_node_ =
       dynamic_cast<Sampler*>(this->createNode<Sampler>("decode_sampler"));
   decode_token_node_ =

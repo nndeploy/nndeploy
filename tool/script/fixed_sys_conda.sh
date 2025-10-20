@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# When script is not working, execute directly in terminal
+# # Set LD_LIBRARY_PATH to prioritize system libraries
+# export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+# # Set LD_PRELOAD
+# export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+
 # System library priority and preload settings script
 # Used to resolve system library conflicts in conda environments
 
@@ -41,9 +48,3 @@ if [ ${#REMAINING_ARGS[@]} -gt 0 ]; then
     exec "${REMAINING_ARGS[@]}"
 fi
 
-# When script is not working, execute directly in terminal
-# # Set LD_LIBRARY_PATH to prioritize system libraries
-# export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-
-# # Set LD_PRELOAD
-# export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6

@@ -119,6 +119,7 @@ base::Param *FixedEdge::getParam(const Node *node) {
 base::Param *FixedEdge::getGraphOutputParam() {
   return data_packet_->getParam();
 }
+void *FixedEdge::getGraphOutputPtr() { return data_packet_->getDataPtr(); }
 
 int64_t FixedEdge::getIndex(const Node *node) {
   return data_packet_->getIndex();

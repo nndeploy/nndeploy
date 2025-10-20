@@ -1,16 +1,22 @@
 
-# Python插件开发手册
+# Python自定义节点开发手册
 
-## 插件开发简介
+## **自定义节点参考代码**：
 
-在nndeploy框架中，插件（plugin）是一种可以组合调用的功能模块，通过Python实现的插件继承自`nndeploy.dag.Node`基类。插件通过DAG（有向无环图）进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理等等。
+- [template/python/template.py](https://github.com/nndeploy/nndeploy/blob/main/template/python/template.py)
 
-插件设计的目的是：
+- 使用方法：nndeploy-app --port 8000 --plugin path/to/template/python/template.py
+
+## 自定义节点开发简介
+
+在nndeploy框架中，自定义节点是一种可以组合调用的功能模块，通过Python实现的自定义节点继承自`nndeploy.dag.Node`基类。自定义节点通过DAG（有向无环图）进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理等等。
+
+自定义节点设计的目的是：
 
 - **模块化**：将特定的逻辑封装为节点，易于组合和替换
-- **解耦性**：将插件与调度模块进行解耦
+- **解耦性**：将自定义节点与调度模块进行解耦
 - **可扩展性**：开发者可以轻松接入新的算法和数据处理流程
-- **跨语言互操作**：Python插件可与C++插件无缝集成
+- **跨语言互操作**：Python自定义节点可与C++自定义节点无缝集成
 
 ### 什么是DAG
 
@@ -21,7 +27,7 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 
 图在运行时根据节点输入输出边判断节点的执行顺序，自动调度各个节点执行。
 
-### 插件在流水线中的位置
+### 自定义节点在流水线中的位置
 
 以GFPGAN人脸修复为例，推理流程大致如下：
 
@@ -35,11 +41,11 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 输入图像 → 预处理节点 → 推理节点 → 后处理节点 → 检测结果
 ```
 
-通过这些插件的组合，我们可以构建完整的AI算法部署流程。
+通过这些自定义节点的组合，我们可以构建完整的AI算法部署流程。
 
-## Python插件编写基础
+## Python自定义节点编写基础
 
-nndeploy中的Python插件本质上是自定义的DAG节点，继承自`nndeploy.dag.Node`。要实现一个Python插件，一般需要完成以下步骤：
+nndeploy中的Python自定义节点本质上是自定义的DAG节点，继承自`nndeploy.dag.Node`。要实现一个Python自定义节点，一般需要完成以下步骤：
 
 ### 1. 定义节点类
 
@@ -439,7 +445,7 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceAnalysis", insightface_anal
 
 ### 创建子图
 
-当插件涉及更复杂的功能逻辑时，可以通过创建子图（继承`nndeploy.dag.Graph`）来组织多个节点：
+当自定义节点涉及更复杂的功能逻辑时，可以通过创建子图（继承`nndeploy.dag.Graph`）来组织多个节点：
 
 ```python
 import nndeploy.dag
@@ -599,7 +605,7 @@ def run(self):
     return nndeploy.base.Status.ok()
 ```
 
-## 插件部署和使用
+## 自定义节点部署和使用
 
 ### 1. 文件组织
 

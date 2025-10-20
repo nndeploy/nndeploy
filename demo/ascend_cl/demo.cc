@@ -1,11 +1,20 @@
 
+/**
+ * Example code:
+ * 1. Initialize AscendCL
+ * 2. Create input and output Tensors
+ * 3. Call CANN operator library API
+ * 4. Synchronously wait for task execution to complete
+ * 5. Get output results
+ * 6. Release resources
+ */
+
 #include <iostream>
 #include <vector>
 
 #include "acl/acl.h"
 #include "aclnnop/aclnn_softmax.h"
 #include "nndeploy/base/log.h"
-#include "nndeploy/framework.h"
 
 #define CHECK_RET(cond, return_expr) \
   do {                               \
@@ -79,14 +88,6 @@ int CreateAclTensor(const std::vector<T>& hostData,
 }
 
 int main() {
-  NNDEPLOY_LOGE("BK.\n");
-  // int nndp_ret = nndeployFrameworkInit();
-  // if (nndp_ret != 0) {
-  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
-  //   return nndp_ret;
-  // }
-
-  NNDEPLOY_LOGE("BK.\n");
   // 1. （固定写法）device/stream初始化，参考AscendCL对外接口列表
   // 根据自己的实际device填写deviceId
   int32_t deviceId = 0;
@@ -175,10 +176,5 @@ int main() {
   aclrtResetDevice(deviceId);
   aclFinalize();
 
-  // nndp_ret = nndeployFrameworkDeinit();
-  // if (nndp_ret != 0) {
-  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
-  //   return nndp_ret;
-  // }
   return 0;
 }

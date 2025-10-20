@@ -66,4 +66,4 @@ def main():
 if __name__ == "__main__":
     main()
     
-# python3 tool/script/android_install_resouces.py -r  resources/ -a /home/always/github/public/nndeploy/app/android/app/src/main/assets
+# python3 tool/script/android_install_resouces.py -r  /home/always/github/public/nndeploy/resources/ -a /home/always/github/public/nndeploy/app/android/app/src/main/assets

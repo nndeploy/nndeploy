@@ -28,7 +28,7 @@ python3 clone_submodule.py
 
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
 
-    + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
+    + **注意：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，由于该库依赖rust，打开前**务必**参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)**
 
 > 注：所有后端均可选。三方库可使用自己的，也可使用nndeploy预编译版本：
 > + [huggingface](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party)：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
@@ -107,7 +107,45 @@ make install                # 在build目录下生成安装目录
 
 > 注: 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
 
-## 6. 补充说明    
+## 6. Python安装
+
+nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度学习模型。
+
+- 环境要求
+
+  - Python 3.10+
+  - 支持的操作系统：Linux(< Python3.13 && x86)、Windows、macOS(OS >=14 && ARM)，其他平台建议采用开发者模式
+
++ 安装方式
+
+  + 方式一：PyPI 安装（推荐）
+
+  适用于大多数用户的快速安装：
+
+  ```bash
+  pip install nndeploy
+  ```
+
+  + 方式二：源码编译安装
+
+  适用于开发者用户：
+
+  ```bash
+  cd ../python
+  pip install -e .
+  ```
+
+- 安装验证
+
+  运行以下命令确认安装成功：
+
+  ```bash
+  python -c "import nndeploy; print(nndeploy.__version__)"
+  ```
+
+  > 注：当与conda环境产生冲突，无法运行时，参考[解决方案脚本](https://github.com/nndeploy/nndeploy/blob/main/tool/script/fixed_sys_conda.sh)
+
+## 7. 补充说明    
 
 - TensorRT
   - 安装TensorRT cpp sdk [参考链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-debian)、cudnn、cuda、GPU driver

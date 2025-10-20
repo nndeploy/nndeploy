@@ -88,7 +88,9 @@ QwenConfig parseConfig(const std::string& file_path) {
 
   config.kv_init_shape_.insert(config.kv_init_shape_.begin(),
                                config.layer_nums_);
-  for (auto& s : config.kv_init_shape_) NNDEPLOY_LOGI("%d,", s);
+  for (auto& s : config.kv_init_shape_) {
+    NNDEPLOY_LOGI("%d,", s);
+  }
   NNDEPLOY_LOGI("]\n");
 
   return config;

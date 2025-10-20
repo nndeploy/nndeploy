@@ -1,3 +1,23 @@
+
+/**
+ * nndeploy DAG Demo:
+ * Demonstrates the basic functionality and usage of nndeploy DAG (Directed
+ * Acyclic Graph)
+ *
+ * Usage Instructions:
+ * 1. Inherit from dag::Node class to create custom nodes (e.g., ProcessNode)
+ * 2. Connect nodes through dag::Edge to build data flow graphs
+ * 3. Use dag::Graph to manage the execution of the entire computation graph
+ * 4. Support complex control flows such as conditional branches and loops
+ *
+ * Main Steps:
+ * 1. Create a simple DAG containing a single node
+ * 2. Create a complex DAG containing multiple nodes
+ * 3. Create a DAG with loops
+ * 4. Create a DAG with conditional branches
+ * 5. Clean up resources and deinitialize the framework
+ */
+
 #include <random>
 
 #include "flag.h"
@@ -10,7 +30,6 @@
 #include "nndeploy/dag/loop.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
 using namespace nndeploy;
@@ -152,9 +171,9 @@ class NNDEPLOY_CC_API DemoLoop : public dag::Loop {
  public:
   DemoLoop(const std::string &name, std::vector<dag::Edge *> inputs,
            std::vector<dag::Edge *> outputs)
-      : dag::Loop(name, inputs, outputs) {
-          // inputs_.emplace_back(input);
-          // outputs_.emplace_back(output);
+      : dag::Loop(name, inputs, outputs){
+            // inputs_.emplace_back(input);
+            // outputs_.emplace_back(output);
         };
   // DemoLoop(const std::string &name, std::vector<dag::Edge *> inputs,
   //         std::vector<dag::Edge *> outputs)
@@ -166,7 +185,7 @@ class NNDEPLOY_CC_API DemoLoop : public dag::Loop {
   //     outputs_.emplace_back(output);
   //   }
   // };
-  virtual ~DemoLoop() {};
+  virtual ~DemoLoop(){};
 
   virtual int loops() { return 2; };
 };
@@ -196,7 +215,7 @@ class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
       outputs_.emplace_back(output);
     }
   };
-  virtual ~DemoCondition() {};
+  virtual ~DemoCondition(){};
 
   virtual int choose() { return 1; };
 };
@@ -575,57 +594,52 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
 int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("start!\n");
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
+  int ret = 0;
   int count = 1;
   for (int i = 0; i < count; i++) {
-    ret = photosRepairGraph(base::kParallelTypeSequential,
-                            base::kParallelTypeSequential,
-                            base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("photosRepairGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = serialGraph(base::kParallelTypeSequential,
-                      base::kParallelTypeSequential,
-                      base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = serialGraph(base::kParallelTypeSequential,
-                      base::kParallelTypeSequential,
-                      base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeSequential,
-                        base::kParallelTypeSequential,
-                        base::kParallelTypeSequential);
-    if (ret != 0) {
-      NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
-      return ret;
-    }
-    // parallel task grah
-    NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask start.\n");
-    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                      base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
-    NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
-    ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                        base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
+    // ret = photosRepairGraph(base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("photosRepairGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("serialGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // ret = parallelGraph(base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential);
+    // if (ret != 0) {
+    //   NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
+    //   return ret;
+    // }
+    // // parallel task grah
+    // NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask start.\n");
+    // ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                   base::kParallelTypeTask);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
+    // NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
+    // ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                     base::kParallelTypeTask);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
     // parallel pipepline graph
     ret = serialGraph(base::kParallelTypePipeline, base::kParallelTypePipeline,
                       base::kParallelTypePipeline, 100);
@@ -676,11 +690,6 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_LOGE("end!\n");
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
   return 0;
 }
 

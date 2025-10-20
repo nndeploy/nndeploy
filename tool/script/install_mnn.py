@@ -9,8 +9,34 @@ import tarfile
 import requests
 import platform
 from pathlib import Path
+import time
 
-
+def download_with_retry(url, filename, max_retries=3, timeout=300):
+    """带重试机制的下载函数"""
+    import time
+    
+    for attempt in range(max_retries + 1):
+        try:
+            print(f"Downloading attempt {attempt + 1}/{max_retries + 1}...")
+            response = requests.get(url, stream=True, timeout=timeout)
+            if response.status_code != 200:
+                raise Exception(f"Download failed, status code: {response.status_code}")
+            
+            with open(filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            
+            print(f"Download successful on attempt {attempt + 1}")
+            return True
+            
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries:
+                wait_time = 2 ** attempt  # 指数退避
+                print(f"Waiting {wait_time} seconds before retry...")
+                time.sleep(wait_time)
+            else:
+                raise e
 
 # 设置标准输出编码为UTF-8，解决Windows下中文输出问题
 if platform.system() == "Windows":
@@ -144,13 +170,14 @@ source_url = f"https://github.com/alibaba/MNN/archive/refs/tags/{MNN_VER}.tar.gz
 source_filename = f"MNN-{MNN_VER}.tar.gz"
 
 print(f"Downloading source from: {source_url}")
-response = requests.get(source_url, stream=True)
-if response.status_code != 200:
-    raise Exception(f"Source download failed, status code: {response.status_code}")
+# response = requests.get(source_url, stream=True)
+# if response.status_code != 200:
+#     raise Exception(f"Source download failed, status code: {response.status_code}")
 
-with open(source_filename, 'wb') as f:
-    for chunk in response.iter_content(chunk_size=8192):
-        f.write(chunk)
+# with open(source_filename, 'wb') as f:
+#     for chunk in response.iter_content(chunk_size=8192):
+#         f.write(chunk)
+download_with_retry(source_url, source_filename)
 
 # 解压源代码
 print("Extracting source code...")

@@ -161,9 +161,31 @@ std::vector<std::string> Graph::getOtherUrl() const { return other_url_; }
 
 base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   queue_max_size_ = queue_max_size;
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ != nullptr) {
+      edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
+    }
+  }
   return base::kStatusCodeOk;
 }
 int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
+
+base::Status Graph::setEdgeQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                               int drop_count) {
+  queue_overflow_policy_ = policy;
+  queue_drop_count_ = drop_count <= 0 ? 1 : drop_count;
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ != nullptr) {
+      edge_wrapper->edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                                  queue_drop_count_);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::QueueOverflowPolicy Graph::getEdgeQueueOverflowPolicy() {
+  return queue_overflow_policy_;
+}
+int Graph::getEdgeQueueDropCount() { return queue_drop_count_; }
 
 // base::Status Graph::setParallelType(const base::ParallelType &paralle_type) {
 //   if (parallel_type_ == base::kParallelTypeNone) {
@@ -1879,8 +1901,7 @@ base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
 Edge *Graph::getResourceWithState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) == resource_with_state_.end()) {
-      NNDEPLOY_LOGI("global resource with state[%s] not found!\n",
-      key.c_str());
+      NNDEPLOY_LOGI("global resource with state[%s] not found!\n", key.c_str());
       return nullptr;
     }
     return resource_with_state_[key];
@@ -1891,6 +1912,14 @@ Edge *Graph::getResourceWithState(const std::string &key) {
 
 base::Status Graph::removeUnusedNodeAndEdge() {
   base::Status status = base::kStatusCodeOk;
+  if (is_remove_in_out_node_) {
+    for (auto node_wrapper : node_repository_) {
+      if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput ||
+          node_wrapper->node_->getNodeType() == NodeType::kNodeTypeOutput) {
+        unused_node_names_.insert(node_wrapper->node_->getName());
+      }
+    }
+  }
   if (!unused_node_names_.empty()) {
     // #. 更新边的信息
     for (auto edge_wrapper : edge_repository_) {
@@ -2090,6 +2119,10 @@ base::Status Graph::construct() {
     status = edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setQueueMaxSize failed!");
+    status = edge_wrapper->edge_->setQueueOverflowPolicy(queue_overflow_policy_,
+                                                         queue_drop_count_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setQueueOverflowPolicy failed!");
   }
 
   // if (!is_inner_) {
@@ -2392,6 +2425,12 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
+    std::string overflow_policy =
+        base::overflowPolicyToString(queue_overflow_policy_);
+    json.AddMember("queue_overflow_policy_",
+                   rapidjson::Value(overflow_policy.c_str(), allocator),
+                   allocator);
+    json.AddMember("queue_drop_count_", queue_drop_count_, allocator);
     json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
     json.AddMember("loop_count_", loop_count_, allocator);
 
@@ -2593,6 +2632,20 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
 
+  if (json.HasMember("queue_overflow_policy_") &&
+      json["queue_overflow_policy_"].IsString()) {
+    queue_overflow_policy_ = base::stringToOverflowPolicy(
+        json["queue_overflow_policy_"].GetString());
+  }
+
+  if (json.HasMember("queue_drop_count_") &&
+      json["queue_drop_count_"].IsInt()) {
+    queue_drop_count_ = json["queue_drop_count_"].GetInt();
+    if (queue_drop_count_ <= 0) {
+      queue_drop_count_ = 1;
+    }
+  }
+
   if (json.HasMember("unused_node_names_") &&
       json["unused_node_names_"].IsArray()) {
     const rapidjson::Value &unused_node_names = json["unused_node_names_"];
@@ -2782,6 +2835,7 @@ void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
   }
 }
 std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
+void Graph::removeInOutNode() { is_remove_in_out_node_ = true; }
 
 void Graph::setNodeValue(const std::string &node_value_str) {
   // 查找第一个冒号的位置

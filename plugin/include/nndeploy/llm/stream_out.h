@@ -45,9 +45,10 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::llm::StreamOut";
     desc_ = "StreamOut: Stream output node";
+    this->setDynamicOutput(true);
     this->setInputTypeInfo<tokenizer::TokenizerText>("input_text");
     this->setOutputTypeInfo<tokenizer::TokenizerText>("output_text");
-    this->setOutputTypeInfo<std::string>("stream_output");
+    // this->setOutputTypeInfo<std::string>("stream_output");
   }
 
   virtual ~StreamOut() {}
@@ -55,6 +56,12 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
   virtual base::Status init() override {
     is_first_ = true;
     return base::kStatusCodeOk;
+  };
+
+  virtual base::Status deinit() override {
+    if (stream_output_) {
+      delete stream_output_;
+    }
   };
 
   bool isStopTexts() {
@@ -77,9 +84,7 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     if (is_first_) {
       stream_output_ = new std::string();
       if (enable_stream_) {
-        printf("A: ");
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("A: ");
       }
       output_text_ = new tokenizer::TokenizerText();
       output_text_->texts_.resize(input_text->texts_.size());
@@ -91,20 +96,18 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     if (isStopTexts()) {
       outputs_[0]->set(output_text_, true);
       if (enable_stream_) {
-        printf("\n");
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("\n");
       }
     } else {
       output_text_->texts_[0] += (*stream_output_);
       if (enable_stream_) {
-        printf("%s", input_text->texts_[0].c_str());
-        // 强制刷新
-        fflush(stdout);
+        NNDEPLOY_PRINTF("%s", input_text->texts_[0].c_str());
       }
     }
 
-    outputs_[1]->set(stream_output_, true);
+    if (outputs_.size() > 1) {
+      outputs_[1]->set(stream_output_, true);
+    }
     return base::kStatusCodeOk;
   };
 

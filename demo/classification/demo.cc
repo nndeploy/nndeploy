@@ -1,22 +1,26 @@
+
+/**
+ * nndeploy Classification Demo:
+ * Implementation of classification algorithm using dynamic graph construction
+ */
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/classification/classification.h"
+#include "nndeploy/classification/drawlabel.h"
 #include "nndeploy/classification/result.h"
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/codec/opencv/opencv_codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-#include "nndeploy/classification/drawlabel.h"
 
 using namespace nndeploy;
 
 DEFINE_bool(is_softmax, true, "is_softmax");
 
 bool isSoftmax() { return FLAGS_is_softmax; }
-
 
 class classificationDemo : public dag::Graph {
  public:
@@ -27,18 +31,19 @@ class classificationDemo : public dag::Graph {
                     base::CodecFlag codec_flag) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
-    decode_node_ = (codec::OpenCvImageDecode *)this
-                       ->createNode<codec::OpenCvImageDecode>(
-                           "decode_node_", codec_flag);
-    graph_ =
-        (classification::ResnetGraph *)this
-            ->createNode<classification::ResnetGraph>("resnet");
+    decode_node_ =
+        (codec::OpenCvImageDecode *)this->createNode<codec::OpenCvImageDecode>(
+            "decode_node_", codec_flag);
+    graph_ = (classification::ResnetGraph *)this
+                 ->createNode<classification::ResnetGraph>("resnet");
     graph_->setInferenceType(inference_type);
-    draw_node_ = (classification::DrawLable *)this->createNode<classification::DrawLable>(
-        "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
-    encode_node_ = (codec::OpenCvImageEncode *)this
-                       ->createNode<codec::OpenCvImageEncode>(
-                           "encode_node_", codec_flag);
+    draw_node_ = (classification::DrawLable *)this
+                     ->createNode<classification::DrawLable>(
+                         "draw_node", std::vector<dag::Edge *>(),
+                         std::vector<dag::Edge *>());
+    encode_node_ =
+        (codec::OpenCvImageEncode *)this->createNode<codec::OpenCvImageEncode>(
+            "encode_node_", codec_flag);
     return status;
   }
 
@@ -123,7 +128,7 @@ int main(int argc, char *argv[]) {
   bool is_softmax = isSoftmax();
 
   classificationDemo graph_demo("classification_demo");
-  
+
   graph_demo.setTimeProfileFlag(true);
   graph_demo.make(inference_type, codec_flag);
   graph_demo.defaultParam();
@@ -147,12 +152,12 @@ int main(int argc, char *argv[]) {
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
-  
+
   int size = 18;
   graph_demo.decode_node_->setSize(size);
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
-  
+
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {
@@ -177,7 +182,7 @@ int main(int argc, char *argv[]) {
       }
       NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
-    // graph_demo.synchronize();
+    graph_demo.synchronize();
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 

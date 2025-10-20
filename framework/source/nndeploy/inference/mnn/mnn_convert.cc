@@ -67,6 +67,25 @@ base::DataFormat MnnConvert::convertToDataFormat(
   }
   return dst;
 }
+base::DataFormat MnnConvert::convertToDataFormat(
+  const MNN::Express::Dimensionformat &src) {
+base::DataFormat dst;
+switch (src) {
+  case MNN::Express::Dimensionformat::NHWC:
+    dst = base::kDataFormatNHWC;
+    break;
+  case MNN::Express::Dimensionformat::NCHW:
+    dst = base::kDataFormatNCHW;
+    break;
+  case MNN::Express::Dimensionformat::NC4HW4:
+    dst = base::kDataFormatNC4HW;
+    break;
+  default:
+    dst = base::kDataFormatNotSupport;
+    break;
+}
+return dst;
+}
 MNN::Tensor::DimensionType MnnConvert::convertFromDataFormat(
     const base::DataFormat &src) {
   MNN::Tensor::DimensionType dst = MNN::Tensor::CAFFE;
@@ -207,6 +226,66 @@ MNN::Tensor *MnnConvert::convertFromTensor(device::Tensor *src) {
       MnnConvert::convertFromDataFormat(desc.data_format_);
   MNN::Tensor *dst = MNN::Tensor::create(shape, type, data, dimType);
   return dst;
+}
+
+// TODO: 内存拷贝，异构内存拷贝
+device::Tensor *convertToTensor(const MNN::Express::VARP &var, std::string name,
+                                device::Device *device, bool is_copy) {
+  // auto src = var.get()->getTensor();
+  // if (src == nullptr) {
+  //   return nullptr;
+  // }
+
+  // halide_type_t src_data_type = src->getType();
+  // base::DataType data_type = MnnConvert::convertToDataType(src_data_type);
+  // MNN::Tensor::DimensionType src_data_format = src->getDimensionType();
+  // base::DataFormat format = MnnConvert::convertToDataFormat(src_data_format);
+  // base::IntVector shape = src->shape();
+  // base::SizeVector stride = base::SizeVector();
+  // device::TensorDesc desc(data_type, format, shape, stride);
+  // device::Tensor *dst = nullptr;
+  // if (device == nullptr) {
+  //   dst = new device::Tensor(desc, name);
+  // } else {
+  //   auto src_buffer = src->buffer();
+  //   void *data_ptr = (void *)src_buffer.host;
+  //   base::IntVector memory_config = base::IntVector();
+  //   dst = new device::Tensor(device, desc, data_ptr, name, memory_config);
+  // }
+  // return dst;
+
+  auto info = var->getInfo();
+
+  halide_type_t src_data_type = info->type;
+  base::DataType data_type = MnnConvert::convertToDataType(src_data_type);
+  // NNDEPLOY_PRINTF("data_type: %s\n", base::dataTypeToString(data_type).c_str());
+  MNN::Express::Dimensionformat src_data_format = info->order;
+  base::DataFormat format = MnnConvert::convertToDataFormat(src_data_format);
+  // NNDEPLOY_PRINTF("format: %s\n", base::dataFormatToString(format).c_str());
+  base::IntVector shape = info->dim; 
+  // for (auto i = 0; i < shape.size(); i++) {
+  //   NNDEPLOY_PRINTF("shape[%d]: %d\n", i, shape[i]);
+  // }
+  base::SizeVector stride = base::SizeVector();
+  device::TensorDesc desc(data_type, format, shape, stride);
+  device::Tensor *dst = nullptr;
+  if (device == nullptr) {
+    dst = new device::Tensor(desc, name);
+  } else {
+    void *data_ptr = (void *)(var->readMap<float>());
+    base::IntVector memory_config = base::IntVector();
+    // auto device_type = device->getDeviceType();
+    // NNDEPLOY_PRINTF("device: %s\n", base::deviceTypeToString(device_type).c_str());
+    dst = new device::Tensor(device, desc, data_ptr, name, memory_config);
+  }
+
+  if (is_copy) {
+    device::Tensor *ret_tensor = dst->clone();
+    delete dst;
+    return ret_tensor;
+  } else {
+    return dst;
+  }
 }
 
 }  // namespace inference

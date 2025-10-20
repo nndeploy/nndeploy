@@ -53,6 +53,10 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   base::Status setEdgeQueueMaxSize(int queue_max_size);
   int getEdgeQueueMaxSize();
+  base::Status setEdgeQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                          int drop_count = 1);
+  base::QueueOverflowPolicy getEdgeQueueOverflowPolicy();
+  int getEdgeQueueDropCount();
 
   virtual base::Status setInput(Edge *input, int index = -1);
   virtual base::Status setOutput(Edge *output, int index = -1);
@@ -347,6 +351,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual void removeUnusedNodeNames(const std::string &node_name);
   virtual void removeUnusedNodeNames(const std::set<std::string> &node_names);
   virtual std::set<std::string> getUnusedNodeNames();
+  virtual void removeInOutNode();
 
   // node_name:key:value
   virtual void setNodeValue(const std::string &node_value_str);
@@ -380,11 +385,15 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
   int queue_max_size_ = 16;
+  base::QueueOverflowPolicy queue_overflow_policy_ =
+      base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure;
+  int queue_drop_count_ = 1;
   std::map<std::string, std::shared_ptr<base::Param>>
       external_param_repository_;
   bool is_loop_max_flag_ = true;
   bool is_forward_api_ok_ = true;
 
+  bool is_remove_in_out_node_ = false;
   std::set<std::string> unused_node_names_;
   /*
    * @brief 节点值

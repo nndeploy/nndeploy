@@ -84,8 +84,11 @@ jobs:
       - name: Download and setup iOS OpenCV
         run: |
           cd tool/script
+          export PYTHONUNBUFFERED=1
           python install_mnn.py --system iOS
           python mobile_install_opencv.py --system iOS
+        env:
+          PYTHONHTTPSVERIFY: 0
           
       # Configure CMake build environment
       - name: Configure build

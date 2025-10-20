@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
 #define _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
 
+#include <mutex>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -8,6 +10,7 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
+#include "nndeploy/base/ring_queue.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
 #include "nndeploy/dag/node.h"
@@ -34,6 +37,8 @@ class PipelineEdge : public AbstractEdge {
   virtual ~PipelineEdge();
 
   virtual base::Status setQueueMaxSize(int queue_max_size);
+  virtual base::Status setQueueOverflowPolicy(base::QueueOverflowPolicy policy,
+                                              int drop_count);
 
   virtual bool empty();
 
@@ -72,6 +77,8 @@ class PipelineEdge : public AbstractEdge {
   virtual base::Param *getParam(const Node *node);
   virtual base::Param *getGraphOutputParam();
 
+  virtual void *getGraphOutputPtr();
+
   virtual int64_t getIndex(const Node *node);
   virtual int64_t getGraphOutputIndex();
 
@@ -85,6 +92,17 @@ class PipelineEdge : public AbstractEdge {
  private:
   PipelineDataPacket *getPipelineDataPacket(const Node *node);
 
+  void pushBackUnlocked(PipelineDataPacket *dp);
+  PipelineDataPacket *atUnlocked(size_t index) const;
+  PipelineDataPacket *frontUnlocked() const;
+  PipelineDataPacket *backUnlocked() const;
+  PipelineDataPacket *popFrontUnlocked();
+  size_t queueSizeUnlocked() const;
+  size_t queueLimit() const;
+  void waitForSpaceLocked(std::unique_lock<std::mutex> &lock);
+  size_t dropOldestUnlocked(size_t count);
+  bool hasGraphOutputConsumer() const;
+
  private:
   std::once_flag once_;
   std::mutex mutex_;
@@ -94,13 +112,16 @@ class PipelineEdge : public AbstractEdge {
   // 队列最大值
   // std::mutex queue_mutex_;
   std::condition_variable queue_cv_;
-  int queue_max_size_;
+  int queue_max_size_ = 16;
   // 数据包
-  std::list<PipelineDataPacket *> data_packets_;
+  base::RingQueue<PipelineDataPacket *> data_queue_;
   // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
   std::map<Node *, int> to_consume_index_;
   // 每个消费者 消费 的当前数据包
   std::map<Node *, PipelineDataPacket *> consuming_dp_;
+  base::QueueOverflowPolicy overflow_policy_ =
+      base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure;
+  int drop_count_ = 1;
 };
 
 }  // namespace dag

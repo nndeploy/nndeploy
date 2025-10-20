@@ -129,6 +129,17 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
 
   int max_length_ = 77;
 
+  std::string getShareKey() {
+    std::string key = "";
+    key += tokenizerTypeToString(tokenizer_type_);
+    key += json_blob_;
+    key += model_blob_;
+    key += vocab_blob_;
+    key += merges_blob_;
+    key += added_tokens_;
+    return key;
+  }
+
   using base::Param::serialize;
   virtual base::Status serialize(
       rapidjson::Value &json,

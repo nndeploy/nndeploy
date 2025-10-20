@@ -57,6 +57,7 @@ object ImageInImageOut {
             val output_node_param = alg.parameters["output_node"] as Map<String, String>
             runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), processedInputFile.absolutePath)
             val resultPath = File(extResDir, "images/result.${alg.id}.jpg")
+
             runner.setNodeValue(output_node_param.keys.first(), output_node_param.values.first(), resultPath.absolutePath)
             
             val ok = runner.run(workflowOut.absolutePath, alg.id, "task_${System.currentTimeMillis()}")

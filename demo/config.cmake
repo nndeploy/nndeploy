@@ -98,7 +98,7 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
-  # include(${ROOT_PATH}/demo/llama/config.cmake)
+  include(${ROOT_PATH}/demo/llm/config.cmake)
   include(${ROOT_PATH}/demo/qwen/config.cmake)
 endif()
 

@@ -1,3 +1,8 @@
+/**
+ * nndeploy Tokenizer Cpp Demo:
+ * Test tokenizer_cpp
+ */
+
 #include <tokenizers_cpp.h>
 
 #include <cassert>
@@ -7,7 +12,6 @@
 #include <string>
 
 #include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/stable_diffusion/clip.h"
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
@@ -136,12 +140,6 @@ void RWKVWorldTokenizerExample() {
 }
 
 int main(int argc, char* argv[]) {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
   SentencePieceTokenizerExample();
   HuggingFaceTokenizerExample();
   RWKVWorldTokenizerExample();

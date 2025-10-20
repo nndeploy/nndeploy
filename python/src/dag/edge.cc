@@ -44,6 +44,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_queue_max_size", &Edge::setQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_queue_max_size", &Edge::getQueueMaxSize)
+      .def("set_queue_overflow_policy", &Edge::setQueueOverflowPolicy,
+           py::arg("policy"), py::arg("drop_count") = 1)
+      .def("get_queue_overflow_policy", &Edge::getQueueOverflowPolicy)
+      .def("get_queue_drop_count", &Edge::getQueueDropCount)
 
       // 并行类型设置和获取
       .def("set_parallel_type", &Edge::setParallelType, py::arg("paralle_type"))
