@@ -45,9 +45,10 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::llm::StreamOut";
     desc_ = "StreamOut: Stream output node";
+    this->setDynamicOutput(true);
     this->setInputTypeInfo<tokenizer::TokenizerText>("input_text");
     this->setOutputTypeInfo<tokenizer::TokenizerText>("output_text");
-    this->setOutputTypeInfo<std::string>("stream_output");
+    // this->setOutputTypeInfo<std::string>("stream_output");
   }
 
   virtual ~StreamOut() {}
@@ -75,7 +76,9 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     tokenizer::TokenizerText* input_text =
         dynamic_cast<tokenizer::TokenizerText*>(inputs_[0]->getParam(this));
     if (is_first_) {
-      stream_output_ = new std::string();
+      if (outputs_.size() > 1) {
+        stream_output_ = new std::string();
+      }
       if (enable_stream_) {
         NNDEPLOY_PRINTF("A: ");
       }
@@ -84,7 +87,9 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       is_first_ = false;
     }
 
-    *stream_output_ = input_text->texts_[0];
+    if (outputs_.size() > 1) {
+      *stream_output_ = input_text->texts_[0];
+    }
 
     if (isStopTexts()) {
       outputs_[0]->set(output_text_, true);
@@ -98,7 +103,9 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       }
     }
 
-    outputs_[1]->set(stream_output_, true);
+    if (outputs_.size() > 1) {
+      outputs_[1]->set(stream_output_, true);
+    }
     return base::kStatusCodeOk;
   };
 
