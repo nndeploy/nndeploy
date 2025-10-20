@@ -48,9 +48,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     copy_workflow_json_files(args.src_dir, args.dst_dir)
 
-# copy to resources/workflow
+# copy (note: change directory paths as needed)
+
+# githuh(nndeploy-workflow) -> resources/workflow
 ## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/workflow
-# copy to /resources/template/nndeploy-workflow
+
+# githuh(nndeploy-workflow) -> resources/template/nndeploy-workflow
 ## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/template/nndeploy-workflow
-# copy to github/public/nndeploy-workflow
+
+# resources/template/nndeploy-workflow -> githuh(nndeploy-workflow)
 ## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy/resources/template/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy-workflow
