@@ -147,20 +147,23 @@ std::string getJsonFile() { return FLAGS_json_file; }
 std::vector<std::string> getPlugin() {
   std::vector<std::string> plugin;
   std::string plugin_str = FLAGS_plugin;
-  std::string::size_type pos1, pos2;
-  pos2 = plugin_str.find(",");
-  pos1 = 0;
-  while (std::string::npos != pos2) {
-    plugin.emplace_back(plugin_str.substr(pos1, pos2 - pos1));
-    pos1 = pos2 + 1;
-    pos2 = plugin_str.find(",", pos1);
+  if (plugin_str != "") {
+    std::string::size_type pos1, pos2;
+    pos2 = plugin_str.find(",");
+    pos1 = 0;
+    while (std::string::npos != pos2) {
+      plugin.emplace_back(plugin_str.substr(pos1, pos2 - pos1));
+      pos1 = pos2 + 1;
+      pos2 = plugin_str.find(",", pos1);
+    }
+    plugin.emplace_back(plugin_str.substr(pos1));
   }
-  plugin.emplace_back(plugin_str.substr(pos1));
   return plugin;
 }
 bool loadPlugin() {
   std::vector<std::string> plugin = getPlugin();
   for (const auto& plugin_item : plugin) {
+    // NNDEPLOY_LOGI("load plugin: %s", plugin_item.c_str());
     bool success = base::loadLibraryFromPath(plugin_item, true);
     if (!success) {
       NNDEPLOY_LOGE("load plugin failed: %s", plugin_item.c_str());
