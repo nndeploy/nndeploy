@@ -122,7 +122,6 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(
   if (parallel_type == base::ParallelType::kParallelTypePipeline) {
     for (int i = 0; i < count; ++i) {
       std::vector<Edge*> outputs = graph_->getAllOutput();
-      std::cout << "pipeline mode" << std::endl;
       for (auto* output : outputs) {
         if (output) {
           void* ptr = output->getGraphOutputPtr();
