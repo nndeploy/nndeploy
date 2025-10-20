@@ -58,6 +58,12 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     return base::kStatusCodeOk;
   };
 
+  virtual base::Status deinit() override {
+    if (stream_output_) {
+      delete stream_output_;
+    }
+  };
+
   bool isStopTexts() {
     // TODO，大语言模型的输出字符是什么？
     std::string text = *stream_output_;
@@ -76,9 +82,7 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     tokenizer::TokenizerText* input_text =
         dynamic_cast<tokenizer::TokenizerText*>(inputs_[0]->getParam(this));
     if (is_first_) {
-      if (outputs_.size() > 1) {
-        stream_output_ = new std::string();
-      }
+      stream_output_ = new std::string();
       if (enable_stream_) {
         NNDEPLOY_PRINTF("A: ");
       }
@@ -87,9 +91,7 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       is_first_ = false;
     }
 
-    if (outputs_.size() > 1) {
-      *stream_output_ = input_text->texts_[0];
-    }
+    *stream_output_ = input_text->texts_[0];
 
     if (isStopTexts()) {
       outputs_[0]->set(output_text_, true);
