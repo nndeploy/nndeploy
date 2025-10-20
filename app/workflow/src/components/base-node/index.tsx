@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { FlowNodeEntity, useNodeRender } from '@flowgram.ai/free-layout-editor';
+import { FlowNodeEntity, useClientContext, useNodeRender } from '@flowgram.ai/free-layout-editor';
 import { ConfigProvider } from '@douyinfe/semi-ui';
 
 import { NodeRenderContext } from '../../context';
@@ -20,11 +20,17 @@ export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
    */
   const form = nodeRender.form;
 
+  const ctx = useClientContext()
+
   /**
    * Used to make the Tooltip scale with the node, which can be implemented by itself depending on the UI library
    * 用于让 Tooltip 跟随节点缩放, 这个可以根据不同的 ui 库自己实现
    */
-  const getPopupContainer = useCallback(() => node.renderData.node || document.body, []);
+  //const getPopupContainer = useCallback(() => node.renderData.node || document.body, []);
+
+  const getPopupContainer = useCallback(
+    () => ctx.playground.node.querySelector('.gedit-flow-render-layer') as HTMLDivElement,
+    [])
 
   return (
     <ConfigProvider getPopupContainer={getPopupContainer}>
@@ -33,7 +39,7 @@ export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
           {form?.state.invalid && <ErrorIcon />}
           {form?.render()}
         </NodeWrapper>
-         <NodeStatusBar />
+        <NodeStatusBar />
       </NodeRenderContext.Provider>
     </ConfigProvider>
   );

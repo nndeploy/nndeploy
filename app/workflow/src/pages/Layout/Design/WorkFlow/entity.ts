@@ -1,5 +1,6 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import { FlowDocumentJSON } from "../../../../typings";
+import { INodeUiExtraInfo } from "../../../components/flow/entity";
 
 export interface IWorkFlowTreeNodeEntity{
   id: string; 
@@ -22,15 +23,30 @@ export interface ITreeWorkFlowResponseData{
   workflows: IBusinessNode[]
 }
 
+export interface Inndeploy_ui_layout{
+  // position?: { x: number, y: number },
+  // size?: { width: number, height: number },
+  layout: { [nodeName: string]: INodeUiExtraInfo }
+  //nodeExtra: { [nodeName: string]: INodeUiExtraInfo }
+  groups: {name: string, children: string[]}[]
+}
+
+export interface IConnectinPoint{
+  id?: string, 
+  name_:string,
+   type_: string, 
+   desc_: string
+}
 export interface IBusinessNode{
   key_: string; 
   name_: string; 
   desc_:string;
   device_type_: string; 
-  inputs_:any[], 
-  outputs_:any[], 
+  inputs_:IConnectinPoint[], 
+  outputs_:IConnectinPoint[], 
   node_repository_?: IBusinessNode[], 
   [key: string]: any;
+  nndeploy_ui_layout?: Inndeploy_ui_layout
 }
 
 export interface IWorkFlowEntity{
