@@ -30,16 +30,23 @@ export interface Inndeploy_ui_layout{
   //nodeExtra: { [nodeName: string]: INodeUiExtraInfo }
   groups: {name: string, children: string[]}[]
 }
+
+export interface IConnectinPoint{
+  id?: string, 
+  name_:string,
+   type_: string, 
+   desc_: string
+}
 export interface IBusinessNode{
   key_: string; 
   name_: string; 
   desc_:string;
   device_type_: string; 
-  inputs_:any[], 
-  outputs_:any[], 
+  inputs_:IConnectinPoint[], 
+  outputs_:IConnectinPoint[], 
   node_repository_?: IBusinessNode[], 
   [key: string]: any;
-  nndeploy_ui_layout: Inndeploy_ui_layout
+  nndeploy_ui_layout?: Inndeploy_ui_layout
 }
 
 export interface IWorkFlowEntity{

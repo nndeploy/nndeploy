@@ -2,6 +2,7 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  WorkflowLinePortInfo,
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 
@@ -19,13 +20,13 @@ import { apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 import { FlowDocumentJSON } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
-import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { IBusinessNode, Inndeploy_ui_layout, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import {
   //useGetNodeList, 
   useGetParamTypes,
   //useGetRegistry
 } from "./effect";
-import { businessNodeNormalize, designDataToBusinessData, transferBusinessContentToDesignContent, transferBusinessNodeToDesignNodeIterate } from "./FlowSaveDrawer/functions";
+import { buildEdges, businessNodeNormalize, designDataToBusinessData, transferBusinessContentToDesignContent, transferBusinessNodeToDesignNodeIterate } from "./FlowSaveDrawer/functions";
 import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
@@ -92,6 +93,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
     // name: '',
+    name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -100,6 +102,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     businessContent: {
       key_: "nndeploy::dag::Graph",
       name_: "demo",
+      desc_: "",
       device_type_: "kDeviceTypeCodeX86:0",
       inputs_: [],
       outputs_: [
@@ -154,6 +157,8 @@ const Flow: React.FC<FlowProps> = (props) => {
       const modals: string[] = []
       const fields = lodash.pick(businessNode, ['image_url_', 'video_url_', 'audio_url_', 'model_url_', 'other_url_'])
       for (let field in fields) {
+
+        ///@ts-ignore
         const urlArray: string[] = fields[field]
         urlArray.map(url => {
           if (url.startsWith('modelscope')) {
@@ -595,62 +600,133 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       const nodeString = e?.dataTransfer?.getData("text")!;
 
-      const entity = JSON.parse(nodeString)
+      let entity: IBusinessNode = JSON.parse(nodeString)
 
-      var type = entity.key_
+      businessNodeNormalize(entity)
+
+
+      const edges = buildEdges(entity)
+
+      const lines: WorkflowLinePortInfo[] = edges.map(item => {
+        return {
+          from: item.sourceNodeID,
+          fromPort: item.sourcePortID,
+          to: item.targetNodeID,
+          toPort: item.targetPortID
+        }
+      })
+
+      //var type = entity.key_
 
       let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
 
+      entity.name_ = `${entity.name_}_${numberSuffix}`
 
-      const nodeRepository = entity.node_repository_ ?? [];
-
-      let blocks: WorkflowNodeJSON[] =  []
-
-      for (let i = 0; i < nodeRepository.length; i++) {
-        let businessNode = nodeRepository[i];
-        businessNodeNormalize(businessNode);
-        let designNode = transferBusinessNodeToDesignNodeIterate(businessNode);
-        blocks.push(designNode)
-      }
-
-      let node = {
-        // ...response.result,
-        id: Math.random().toString(36).substr(2, 9),
-        type,
-        meta: {
-          position: {
-            x: position?.x,
-            y: position?.y,
+      const nndeploy_ui_layout: Inndeploy_ui_layout =  entity?.nndeploy_ui_layout ?? {
+        layout: {
+          "tokenizer_encode": {
+            position: { x: 20, y: 10 },
+            size: { width: 200, height: 80 }
           },
-          size: { width: 180, height: 48 },
+          "prefill_infer": {
+            position: { x: 250, y: 10 },
+           // size: { width: 200, height: 80 }
+          },
+          "prefill_sampler": {
+            position: { x: 20, y: 120 },
+            size: { width: 200, height: 80 }
+          },
+
+
         },
-        data: {
-          //title: response.result.key_,
-          ...lodash.omit(entity,['node_repository_']),
-          name_: `${entity.name_}_${numberSuffix}`,
-        },
-        blocks
+        groups: []
       }
 
-      node.data.inputs_ = node.data.inputs_.map((item: any) => {
-        return {
-          ...item,
-          id: 'port_' + Math.random().toString(36).substr(2, 9),
+      for (let nodeName in nndeploy_ui_layout.layout) {
+        const nodeLayout = nndeploy_ui_layout.layout[nodeName]
+        nodeLayout.position = {
+          x: nodeLayout?.position?.x! + position.x,
+          y: nodeLayout.position?.y! + position.y
         }
-      })
 
-      node.data.outputs_ = node.data.outputs_.map((item: any) => {
-        return {
-          ...item,
-          id: 'port_' + Math.random().toString(36).substr(2, 9),
-        }
-      })
+      }
 
-  
+      const layout = {
+        [entity.name_]: {
+          position: position,
+          size: { width: 200, height: 80 }
+        },
+        ...nndeploy_ui_layout.layout
+      }
+
+      // const layout: Inndeploy_ui_layout['layout'] = {
+      //   [entity.name_]: {
+      //     position: position,
+      //     size: { width: 200, height: 80 }
+      //   },
 
 
+      // }
+
+
+      // const nodeRepository = entity.node_repository_ ?? [];
+
+      // let blocks: WorkflowNodeJSON[] =  []
+
+      // for (let i = 0; i < nodeRepository.length; i++) {
+      //   let businessNode = nodeRepository[i];
+      //   businessNodeNormalize(businessNode);
+      //   let designNode = transferBusinessNodeToDesignNodeIterate(businessNode);
+      //   blocks.push(designNode)
+      // }
+
+      let node = transferBusinessNodeToDesignNodeIterate(entity, layout)
+
+      // let node: WorkflowNodeJSON = {
+      //   // ...response.result,
+      //   id: Math.random().toString(36).substr(2, 9),
+      //   type,
+      //   meta: {
+      //     position: {
+      //       x: position?.x,
+      //       y: position?.y,
+      //     },
+      //     size: { width: 180, height: 48 },
+      //   },
+      //   data: {
+      //     //title: response.result.key_,
+      //     ...lodash.omit(entity,['node_repository_']),
+      //     name_: `${entity.name_}_${numberSuffix}`,
+      //   },
+      //   blocks
+      // }
+
+      // node.data.inputs_ = node.data.inputs_.map((item: any) => {
+      //   return {
+      //     ...item,
+      //     id: 'port_' + Math.random().toString(36).substr(2, 9),
+      //   }
+      // })
+
+      // node.data.outputs_ = node.data.outputs_.map((item: any) => {
+      //   return {
+      //     ...item,
+      //     id: 'port_' + Math.random().toString(36).substr(2, 9),
+      //   }
+      // })
 
       ref?.current?.document.createWorkflowNode(node);
+
+      const linesManager = ref?.current?.document.linesManager
+
+      lines.map(line => {
+        linesManager?.createLine(line)
+      })
+
+
+
+
+
     }
     if (dropzone.current) {
 

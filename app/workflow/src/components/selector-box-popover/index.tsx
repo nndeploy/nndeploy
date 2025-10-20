@@ -7,7 +7,7 @@ import { IconCopy, IconDeleteStroked, IconExpand, IconSave, IconShrink } from '@
 
 import { IconGroup } from '../group';
 import { FlowCommandId } from '../../shortcuts/constants';
-import { designDataToBusinessData, getEdgeMaps } from '../../pages/components/flow/FlowSaveDrawer/functions';
+import { designDataToBusinessData, getEdgeToNameMaps } from '../../pages/components/flow/FlowSaveDrawer/functions';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import FlowSaveDrawer from '../../pages/components/flow/FlowSaveDrawer';
 import { IWorkFlowEntity } from '../../pages/Layout/Design/WorkFlow/entity';
@@ -187,7 +187,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
 
     let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode)
 
-    let edgeMaps = getEdgeMaps(allNodes, designContent.edges)
+    let edgeMaps = getEdgeToNameMaps(allNodes, designContent.edges)
 
     let selectedNodeIds = selectedNodes.map(node => {
       return node.id

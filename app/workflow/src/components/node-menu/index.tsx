@@ -3,7 +3,6 @@ import { FC, useCallback, useState, type MouseEvent } from 'react';
 import {
   delay,
   useClientContext,
-  useNodeRender,
   useService,
   WorkflowDragService,
   WorkflowNodeEntity,
@@ -31,10 +30,6 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
   const selectService = useService(WorkflowSelectService);
   const dragService = useService(WorkflowDragService);
   const canMoveOut = nodeIntoContainerService.canMoveOutContainer(node);
-  const nodeRender = useNodeRender();
-  const form = nodeRender.form;
-
-
 
   const rerenderMenu = useCallback(() => {
     // force destroy component - 强制销毁组件触发重新渲染
@@ -120,6 +115,8 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
           >
             Delete
           </Dropdown.Item>
+         
+          
         </Dropdown.Menu>
       }
     >

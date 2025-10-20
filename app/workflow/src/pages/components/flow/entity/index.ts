@@ -55,6 +55,7 @@ export interface IRunInfo {
 export interface ILineEntity {
 
   oldFrom?: string;
+  oldFrom_name?: string;
   from: string,
 
   oldFromPort?: string | number,
@@ -62,6 +63,7 @@ export interface ILineEntity {
 
 
   oldTo?: string;
+   oldTo_name?: string;
   to: string,
 
   oldToPort?: string | number,
