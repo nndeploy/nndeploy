@@ -62,6 +62,7 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
     if (stream_output_) {
       delete stream_output_;
     }
+    return base::kStatusCodeOk;
   };
 
   bool isStopTexts() {
