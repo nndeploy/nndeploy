@@ -288,3 +288,5 @@ gfpgan/
 tool/script/third_party/
 tool/script/download/
 tool/script/nndeploy_build_env/
+
+app/workflow/package-lock.json
