@@ -7,7 +7,7 @@ import { IconCopy, IconDeleteStroked, IconExpand, IconSave, IconShrink } from '@
 
 import { IconGroup } from '../group';
 import { FlowCommandId } from '../../shortcuts/constants';
-import { designDataToBusinessData, getEdgeToNameMaps } from '../../pages/components/flow/FlowSaveDrawer/functions';
+import {  } from '../../pages/components/flow/FlowSaveDrawer/functions';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../typings';
 import FlowSaveDrawer from '../../pages/components/flow/FlowSaveDrawer';
 import { IWorkFlowEntity } from '../../pages/Layout/Design/WorkFlow/entity';
@@ -15,6 +15,8 @@ import store from '../../pages/Layout/Design/store/store';
 import { initFreshFlowTree } from '../../pages/Layout/Design/store/actionType';
 import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
 import { apiWorkFlowSave } from '../../pages/Layout/Design/WorkFlow/api';
+import { designDataToBusinessData, getEdgeToNameMaps } from '../../pages/components/flow/FlowSaveDrawer/toBusiness';
+import { EnumFlowType } from '../../enum';
 
 const BUTTON_HEIGHT = 24;
 
@@ -47,12 +49,14 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
     businessContent: {
       key_: "nndeploy::dag::Graph",
       name_: "demo",
+      desc_: "", 
       device_type_: "kDeviceTypeCodeX86:0",
       inputs_: [],
       outputs_: [
         {
           name_: "detect_out",
           type_: "kNotSet",
+          desc_: ""
         },
       ],
       is_external_stream_: false,
@@ -106,9 +110,9 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
           // }
 
           let edge = {
-            sourceNodeID: line.from.id,
+            sourceNodeID: line.from!.id,
             targetNodeID: line.to!.id,
-            sourcePortID: line.fromPort.portID,
+            sourcePortID: line.fromPort!.portID,
             targetPortID: line.toPort!.portID
           }
 
@@ -131,9 +135,9 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
           // }
 
           let edge = {
-            sourceNodeID: line.from.id,
+            sourceNodeID: line.from!.id,
             targetNodeID: line.to!.id,
-            sourcePortID: line.fromPort.portID,
+            sourcePortID: line.fromPort!.portID,
             targetPortID: line.toPort!.portID
           }
 
@@ -185,9 +189,9 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
 
     let designContent: FlowDocumentJSON = buildDesignData(selectedNodes)
 
-    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode)
+    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes as any,  ctx)
 
-    let edgeMaps = getEdgeToNameMaps(allNodes, designContent.edges)
+    let edgeMaps = getEdgeToNameMaps(allNodes as any, designContent.edges)
 
     let selectedNodeIds = selectedNodes.map(node => {
       return node.id
@@ -200,7 +204,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
       let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
 
       let outputs = soureNode.data.outputs_ ?? []
-      let output = outputs.find(item => item.id == edge.sourcePortID)
+      let output = outputs.find((item : any) => item.id == edge.sourcePortID)
 
       let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
       return {
@@ -218,7 +222,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
       let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
 
       let inputs = outputNode.data.inputs_ ?? []
-      let input = inputs.find(item => item.id == edge.targetPortID)
+      let input = inputs.find((item : any) => item.id == edge.targetPortID)
 
       let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
       return {
@@ -234,19 +238,12 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
     let temp = businessContent
     let i = 0;
 
-    const response = await apiWorkFlowSave(businessContent);
+    const response = await apiWorkFlowSave("", businessContent);
     if (response.flag == "success") {
       Toast.success('save subflow successed')
     }else{
       Toast.error('save subflow failed')
     }
-
-
-
-    //setEntity({ ...entity, designContent })
-
-
-    //setSaveDrawerVisible(true)
   }
 
   return <>
@@ -265,29 +262,6 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
         size="small"
         style={{ display: 'flex', flexWrap: 'nowrap', height: BUTTON_HEIGHT }}
       >
-        {/* <Tooltip content={'Collapse'}>
-          <Button
-            icon={<IconShrink />}
-            style={{ height: BUTTON_HEIGHT }}
-            type="primary"
-            theme="solid"
-            onMouseDown={(e) => {
-              commandRegistry.executeCommand(FlowCommandId.COLLAPSE);
-            }}
-          />
-        </Tooltip>
-
-        <Tooltip content={'Expand'}>
-          <Button
-            icon={<IconExpand />}
-            style={{ height: BUTTON_HEIGHT }}
-            type="primary"
-            theme="solid"
-            onMouseDown={(e) => {
-              commandRegistry.executeCommand(FlowCommandId.EXPAND);
-            }}
-          />
-        </Tooltip> */}
 
         <Tooltip content={'Create Group'}>
           <Button
@@ -300,32 +274,6 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
             }}
           />
         </Tooltip>
-
-        {/* <Tooltip content={'Copy'}>
-          <Button
-            icon={<IconCopy />}
-            style={{ height: BUTTON_HEIGHT }}
-            type="primary"
-            theme="solid"
-            onClick={() => {
-              commandRegistry.executeCommand(FlowCommandId.COPY);
-            }}
-          />
-        </Tooltip> */}
-
-        {/* <Tooltip content={'Save'}>
-          <Button
-            icon={<IconSave />}
-            style={{ height: BUTTON_HEIGHT }}
-            type="primary"
-            theme="solid"
-            onClick={() => {
-              //commandRegistry.executeCommand(FlowCommandId.COPY);
-              console.log('保存........')
-              onSubGraphSave()
-            }}
-          />
-        </Tooltip> */}
 
         <Tooltip content={'Delete'}>
           <Button
@@ -349,6 +297,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
     >
       <FlowSaveDrawer
         entity={entity!}
+        flowType={EnumFlowType.workspace}
         onSure={onflowSaveDrawrSure}
         onClose={onFlowSaveDrawerClose}
       />

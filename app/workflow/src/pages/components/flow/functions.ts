@@ -1,9 +1,10 @@
 
-import { FreeLayoutPluginContext } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FreeLayoutPluginContext } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON } from "../../../typings";
 import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import lodash from 'lodash'
+import { IExpandInfo } from "./entity";
 
 function getNodeRegistry(registryKey: any, nodeList: INodeEntity[]) {
   //const registryKey = form.values['key_']
@@ -207,3 +208,35 @@ export function getNodeById(nodeId: string, clientContext: FreeLayoutPluginConte
   let node = clientContext.document.getNode(nodeId)
   return node
 }
+export function getNodeByName(name: string, clientContext: FreeLayoutPluginContext) {
+  const allNodes = clientContext.document.getAllNodes()
+  const find = allNodes.find(node => {
+    return node.form?.getValueIn('name_') == name
+  })
+
+  return find
+}
+
+export function getAllInnerNodes(node: FlowNodeEntity) {
+  let allChildren: FlowNodeEntity[] = []
+  if (node.blocks && node.blocks.length > 0) {
+    node.blocks.forEach((child) => {
+      allChildren.push(child);
+      allChildren = allChildren.concat(...getAllInnerNodes(child));
+    });
+  }
+  return allChildren;
+}
+
+export function getNodeNameByNodeId(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let name = node?.form?.getValueIn('name_')
+  return name
+}
+
+export function getNodeExpandInfo(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let expandInfo: IExpandInfo | undefined = node?.getNodeMeta().expandInfo
+  return expandInfo
+}
+
