@@ -186,7 +186,7 @@ export function transferBusinessNodeToDesignNodeIterate(
 
   var type = businessNode.key_
 
-  const needInitShrip =  layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === false
+  const needInitShrip =  layout?.[businessNode.name_]?.expanded === false // layout?.[businessNode.name_]?.expanded === undefined ||
   if(needInitShrip){
     iShrimpDelayIndex++
   }

@@ -24,6 +24,7 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       isContainer: !!nodeEntity.is_graph_ ,
       useDynamicPort: true,
       dynamicPort: true,
+      disableSideBar: !!nodeEntity.is_graph_,
       expandable: !!nodeEntity.is_graph_, // disable expanded
 
       padding: () => ({
