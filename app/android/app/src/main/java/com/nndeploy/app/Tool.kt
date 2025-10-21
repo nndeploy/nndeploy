@@ -53,7 +53,7 @@ import androidx.compose.animation.core.tween
 
 
 /**
- * AI页面ViewModel
+ * AI Page ViewModel
  */
 class AIViewModel : ViewModel() {
     var selectedAlgorithm by mutableStateOf<AIAlgorithm?>(null)
@@ -61,12 +61,12 @@ class AIViewModel : ViewModel() {
     var outputUri by mutableStateOf<Uri?>(null)
     var isProcessing by mutableStateOf(false)
     
-    // 可用的AI算法列表
+    // Available AI algorithms list
     val availableAlgorithms = AlgorithmFactory.createDefaultAlgorithms()
 }
 
 /**
- * AI算法首页
+ * AI Algorithm Home Page
  */
 @Composable
 fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
@@ -77,7 +77,7 @@ fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel())
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
     ) {
-        // 标题栏
+        // Title bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -85,20 +85,20 @@ fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel())
                 .padding(16.dp)
         ) {
             Text(
-                text = "nndeploy算法中心",
+                text = "nndeploy Algorithm Center",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A)
             )
         }
         
-        // 算法列表
+        // Algorithm list
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 按类别分组显示
+            // Group by category
             val groupedAlgorithms = vm.availableAlgorithms.groupBy { it.category }
             
             groupedAlgorithms.forEach { (category, algorithms) ->
@@ -127,7 +127,7 @@ fun AIScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel())
 }
 
 /**
- * AI算法卡片
+ * AI Algorithm Card
  */
 @Composable
 fun AIAlgorithmCard(
@@ -148,7 +148,7 @@ fun AIAlgorithmCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 算法图标
+            // Algorithm icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -166,7 +166,7 @@ fun AIAlgorithmCard(
             
             Spacer(modifier = Modifier.width(16.dp))
             
-            // 算法信息
+            // Algorithm information
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -185,7 +185,7 @@ fun AIAlgorithmCard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // 支持的输入类型标签
+                // Supported input type tags
                 Row {
                     algorithm.inputType.forEach { type ->
                         InputTypeChip(type)
@@ -194,7 +194,7 @@ fun AIAlgorithmCard(
                 }
             }
             
-            // 箭头图标
+            // Arrow icon
             Icon(
                 imageVector = Icons.Default.ArrowForward,
                 contentDescription = null,
@@ -206,18 +206,18 @@ fun AIAlgorithmCard(
 }
 
 /**
- * 输入类型标签
+ * Input Type Chip
  */
 @Composable
 fun InputTypeChip(inputType: InOutType) {
     val (text, color) = when (inputType) {
-        InOutType.IMAGE -> "图片" to Color(0xFF10B981)
-        InOutType.VIDEO -> "视频" to Color(0xFFF59E0B)
-        InOutType.CAMERA -> "摄像头" to Color(0xFFEF4444)
-        InOutType.AUDIO -> "音频" to Color(0xFFFF6B6B)
-        InOutType.TEXT -> "文本" to Color(0xFF4ECDC4)
-        InOutType.PROMPT -> "提示词" to Color(0xFF8B5CF6)
-        InOutType.ALL -> "全支持" to Color(0xFF06B6D4)
+        InOutType.IMAGE -> "Image" to Color(0xFF10B981)
+        InOutType.VIDEO -> "Video" to Color(0xFFF59E0B)
+        InOutType.CAMERA -> "Camera" to Color(0xFFEF4444)
+        InOutType.AUDIO -> "Audio" to Color(0xFFFF6B6B)
+        InOutType.TEXT -> "Text" to Color(0xFF4ECDC4)
+        InOutType.PROMPT -> "Prompt" to Color(0xFF8B5CF6)
+        InOutType.ALL -> "All" to Color(0xFF06B6D4)
     }
     
     Box(
@@ -238,7 +238,7 @@ fun InputTypeChip(inputType: InOutType) {
 }
 
 /**
- * AI算法处理页面
+ * AI Algorithm Processing Page
  */
 @Composable
 fun CVProcessScreen(
@@ -250,29 +250,29 @@ fun CVProcessScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    // 找到对应的算法
+    // Find the corresponding algorithm
     val algorithm = AlgorithmFactory.getAlgorithmsById(vm.availableAlgorithms, algorithmId)
     
-    // 图片选择器
+    // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
         vm.inputUri = uri
     }
     
-    // 视频选择器
+    // Video picker
     val videoPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
         vm.inputUri = uri
     }
     
-    // 拍照
+    // Camera
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            // 这里需要处理拍照成功的情况
+            // Handle photo taken successfully
             Log.w("CVProcessScreen", "Photo taken successfully")
         }
     }
@@ -282,7 +282,7 @@ fun CVProcessScreen(
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
     ) {
-        // 顶部栏
+        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -293,11 +293,11 @@ fun CVProcessScreen(
             IconButton(onClick = { nav.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "返回"
+                    contentDescription = "Back"
                 )
             }
             Text(
-                text = algorithm?.name ?: "AI处理",
+                text = algorithm?.name ?: "AI Processing",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A),
@@ -305,7 +305,7 @@ fun CVProcessScreen(
             )
         }
         
-        // 输入区域
+        // Input area
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -321,7 +321,7 @@ fun CVProcessScreen(
                 if (vm.inputUri != null) {
                     AsyncImage(
                         model = vm.inputUri,
-                        contentDescription = "输入内容",
+                        contentDescription = "Input content",
                         modifier = Modifier.fillMaxWidth(0.8f)
                     )
                 } else {
@@ -336,7 +336,7 @@ fun CVProcessScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "选择输入内容",
+                            text = "Select input content",
                             fontSize = 16.sp,
                             color = Color(0xFF6B7280)
                         )
@@ -345,34 +345,34 @@ fun CVProcessScreen(
             }
         }
         
-        // 输入选择按钮
+        // Input selection buttons
         algorithm?.let { algo ->
             InputSelectionButtons(
                 inputTypes = algo.inputType,
                 onImageSelect = { imagePickerLauncher.launch("image/*") },
                 onVideoSelect = { videoPickerLauncher.launch("video/*") },
                 onCameraPhoto = { 
-                    // 创建临时文件用于拍照
+                    // Create temporary file for photo
                     val photoUri = CameraUtils.createPhotoUri(context)
                     vm.inputUri = photoUri
                     cameraLauncher.launch(photoUri)
                 },
                 onCameraVideo = {
-                    // 录像功能实现
-                    Toast.makeText(context, "录像功能待实现", Toast.LENGTH_SHORT).show()
+                    // Video recording function implementation
+                    Toast.makeText(context, "Video recording feature to be implemented", Toast.LENGTH_SHORT).show()
                 }
             )
         }
         
-        // 处理按钮
+        // Process button
         Button(
             onClick = {
                 vm.inputUri?.let { uri ->
                     scope.launch {
                         vm.isProcessing = true
-                        // 判断algorithm是否存在
+                        // Check if algorithm exists
                         if (algorithm == null) {
-                            Toast.makeText(context, "算法 $algorithmId 不存在", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Algorithm $algorithmId does not exist", Toast.LENGTH_LONG).show()
                             return@launch
                         }
                         try {
@@ -391,7 +391,7 @@ fun CVProcessScreen(
                             vm.isProcessing = false
                         }
                     }
-                } ?: Toast.makeText(context, "请先选择输入内容", Toast.LENGTH_SHORT).show()
+                } ?: Toast.makeText(context, "Please select input content first", Toast.LENGTH_SHORT).show()
             },
             enabled = vm.inputUri != null && !vm.isProcessing,
             modifier = Modifier
@@ -406,16 +406,16 @@ fun CVProcessScreen(
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("处理中...")
+                Text("Processing...")
             } else {
-                Text("开始处理", fontSize = 16.sp)
+                Text("Start Processing", fontSize = 16.sp)
             }
         }
     }
 }
 
 /**
- * 输入选择按钮组
+ * Input Selection Button Group
  */
 @Composable
 fun InputSelectionButtons(
@@ -429,7 +429,7 @@ fun InputSelectionButtons(
         modifier = Modifier.padding(16.dp)
     ) {
         Text(
-            text = "选择输入方式",
+            text = "Select input method",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF374151),
@@ -440,7 +440,7 @@ fun InputSelectionButtons(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 根据算法支持的输入类型显示对应按钮
+            // Show corresponding buttons based on algorithm supported input types
             if (inputTypes.contains(InOutType.IMAGE)) {
                 OutlinedButton(
                     onClick = onImageSelect,
@@ -448,7 +448,7 @@ fun InputSelectionButtons(
                 ) {
                     Icon(Icons.Default.Photo, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("相册")
+                    Text("Gallery")
                 }
                 OutlinedButton(
                     onClick = onCameraPhoto,
@@ -456,7 +456,7 @@ fun InputSelectionButtons(
                 ) {
                     Icon(Icons.Default.CameraAlt, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("拍照")
+                    Text("Camera")
                 }
             }
         }
@@ -464,7 +464,7 @@ fun InputSelectionButtons(
 }
 
 /**
- * AI处理结果页面
+ * AI Processing Result Page
  */
 @Composable
 fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewModel()) {
@@ -476,7 +476,7 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
     ) {
-        // 顶部栏
+        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -487,11 +487,11 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
             IconButton(onClick = { nav.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "返回"
+                    contentDescription = "Back"
                 )
             }
             Text(
-                text = "处理结果",
+                text = "Processing Result",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A),
@@ -499,7 +499,7 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
             )
         }
         
-        // 结果展示区域
+        // Result display area
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -515,12 +515,12 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
                 if (vm.outputUri != null) {
                     AsyncImage(
                         model = vm.outputUri,
-                        contentDescription = "处理结果",
+                        contentDescription = "Processing result",
                         modifier = Modifier.fillMaxWidth(0.9f)
                     )
                 } else {
                     Text(
-                        text = "暂无处理结果",
+                        text = "No processing result",
                         fontSize = 16.sp,
                         color = Color(0xFF6B7280)
                     )
@@ -528,7 +528,7 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
             }
         }
         
-        // 操作按钮
+        // Action buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -539,9 +539,9 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
                 onClick = {
                     vm.outputUri?.let { uri ->
                         if (FileUtils.saveCopyToDownloads(context, uri)) {
-                            Toast.makeText(context, "保存成功", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Saved successfully", Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, "保存失败", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Save failed", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
@@ -549,7 +549,7 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
             ) {
                 Icon(Icons.Default.Download, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("保存")
+                Text("Save")
             }
             
             Button(
@@ -561,18 +561,18 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
                             putExtra(android.content.Intent.EXTRA_STREAM, uri)
                             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
-                        context.startActivity(android.content.Intent.createChooser(shareIntent, "分享结果"))
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Share result"))
                     }
                 },
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.Share, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("分享")
+                Text("Share")
             }
         }
         
-        // 继续处理按钮
+        // Continue processing button
         Button(
             onClick = { nav.navigate("ai") },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
@@ -582,13 +582,13 @@ fun CVResultScreen(nav: NavHostController, sharedViewModel: AIViewModel = viewMo
                 .height(52.dp),
             shape = RoundedCornerShape(26.dp)
         ) {
-            Text("继续处理其他算法", fontSize = 16.sp)
+            Text("Continue processing other algorithms", fontSize = 16.sp)
         }
     }
 }
 
 /**
- * 根据URI确定输入媒体类型
+ * Determine input media type based on URI
  */
 private fun determineInputType(uri: Uri, context: Context): com.nndeploy.ai.InputMediaType {
     return try {
@@ -596,15 +596,15 @@ private fun determineInputType(uri: Uri, context: Context): com.nndeploy.ai.Inpu
         when {
             mimeType?.startsWith("image/") == true -> com.nndeploy.ai.InputMediaType.IMAGE
             mimeType?.startsWith("video/") == true -> com.nndeploy.ai.InputMediaType.VIDEO
-            else -> com.nndeploy.ai.InputMediaType.IMAGE // 默认为图片
+            else -> com.nndeploy.ai.InputMediaType.IMAGE // Default to image
         }
     } catch (e: Exception) {
-        com.nndeploy.ai.InputMediaType.IMAGE // 异常时默认为图片
+        com.nndeploy.ai.InputMediaType.IMAGE // Default to image on exception
     }
 }
 
 /**
- * LLM聊天处理页面
+ * LLM Chat Processing Page
  */
 @Composable
 fun LlmChatProcessScreen(
@@ -616,10 +616,10 @@ fun LlmChatProcessScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    // 找到对应的算法
+    // Find the corresponding algorithm
     val algorithm = AlgorithmFactory.getAlgorithmsById(vm.availableAlgorithms, algorithmId)
     
-    // 聊天消息状态
+    // Chat message state
     var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
     var inputText by remember { mutableStateOf("") }
     var isTyping by remember { mutableStateOf(false) }
@@ -629,7 +629,7 @@ fun LlmChatProcessScreen(
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
     ) {
-        // 顶部栏
+        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -640,11 +640,11 @@ fun LlmChatProcessScreen(
             IconButton(onClick = { nav.popBackStack() }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "返回"
+                    contentDescription = "Back"
                 )
             }
             Text(
-                text = algorithm?.name ?: "AI聊天",
+                text = algorithm?.name ?: "AI Chat",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A),
@@ -657,12 +657,12 @@ fun LlmChatProcessScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
-                    contentDescription = "清空聊天"
+                    contentDescription = "Clear chat"
                 )
             }
         }
         
-        // 聊天消息区域
+        // Chat message area
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -690,14 +690,14 @@ fun LlmChatProcessScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "开始与AI对话",
+                                text = "Start conversation with AI",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF374151)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "输入您的问题，AI将为您提供帮助",
+                                text = "Enter your question, AI will help you",
                                 fontSize = 14.sp,
                                 color = Color(0xFF6B7280),
                                 textAlign = TextAlign.Center
@@ -711,7 +711,7 @@ fun LlmChatProcessScreen(
                 }
             }
             
-            // 正在输入指示器
+            // Typing indicator
             if (isTyping) {
                 item {
                     TypingIndicator()
@@ -719,7 +719,7 @@ fun LlmChatProcessScreen(
             }
         }
         
-        // 输入区域
+        // Input area
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -737,7 +737,7 @@ fun LlmChatProcessScreen(
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it },
-                    placeholder = { Text("输入您的问题...") },
+                    placeholder = { Text("Enter your question...") },
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 8.dp),
@@ -752,10 +752,10 @@ fun LlmChatProcessScreen(
                 IconButton(
                     onClick = {
                         if (inputText.isNotBlank() && !isTyping) {
-                            // 1. 保存当前输入文本到局部变量
+                            // 1. Save current input text to local variable
                             val currentInput = inputText
                             
-                            // 2. 立即显示用户消息到聊天界面
+                            // 2. Immediately show user message in chat interface
                             val userMessage = ChatMessage(
                                 content = currentInput,
                                 isUser = true,
@@ -763,21 +763,21 @@ fun LlmChatProcessScreen(
                             )
                             messages = messages + userMessage
                             
-                            // 3. 立即清空输入框，提升用户体验
+                            // 3. Immediately clear input field to improve user experience
                             inputText = ""
                             
-                            // 4. 启动协程处理AI响应
+                            // 4. Launch coroutine to handle AI response
                             scope.launch {
                                 isTyping = true
                                 try {
-                                    // 判断algorithm是否存在
+                                    // Check if algorithm exists
                                     if (algorithm == null) {
-                                        Toast.makeText(context, "算法 $algorithmId 不存在", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Algorithm $algorithmId does not exist", Toast.LENGTH_LONG).show()
                                         return@launch
                                     }
                                     
                                     Log.d("LlmChatProcessScreen", "currentInput: $currentInput")
-                                    // 5. 使用保存的输入文本进行处理
+                                    // 5. Use saved input text for processing
                                     val result = PromptInPromptOut.processPromptInPromptOut(context, currentInput, algorithm)
                                     
                                     when (result) {
@@ -791,7 +791,7 @@ fun LlmChatProcessScreen(
                                         }
                                         is PromptProcessResult.Error -> {
                                             val errorMessage = ChatMessage(
-                                                content = "抱歉，处理出现错误：${result.message}",
+                                                content = "Sorry, an error occurred: ${result.message}",
                                                 isUser = false,
                                                 timestamp = System.currentTimeMillis(),
                                                 isError = true
@@ -802,7 +802,7 @@ fun LlmChatProcessScreen(
                                 } catch (e: Exception) {
                                     Log.e("LlmChatProcessScreen", "AI processing failed", e)
                                     val errorMessage = ChatMessage(
-                                        content = "抱歉，发生了未知错误：${e.message}",
+                                        content = "Sorry, an unknown error occurred: ${e.message}",
                                         isUser = false,
                                         timestamp = System.currentTimeMillis(),
                                         isError = true
@@ -824,7 +824,7 @@ fun LlmChatProcessScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
-                        contentDescription = "发送",
+                        contentDescription = "Send",
                         tint = if (inputText.isNotBlank() && !isTyping) Color.White else Color(0xFF9CA3AF)
                     )
                 }
@@ -834,7 +834,7 @@ fun LlmChatProcessScreen(
 }
 
 /**
- * 聊天消息数据类
+ * Chat Message Data Class
  */
 data class ChatMessage(
     val content: String,
@@ -844,7 +844,7 @@ data class ChatMessage(
 )
 
 /**
- * 聊天消息项组件
+ * Chat Message Item Component
  */
 @Composable
 fun ChatMessageItem(message: ChatMessage) {
@@ -908,7 +908,7 @@ fun ChatMessageItem(message: ChatMessage) {
 }
 
 /**
- * 正在输入指示器
+ * Typing Indicator
  */
 @Composable
 fun TypingIndicator() {
@@ -957,4 +957,3 @@ fun TypingIndicator() {
         Spacer(modifier = Modifier.width(48.dp))
     }
 }
-

@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * AI算法信息数据类
+ * AI Algorithm Information Data Class
  */
 data class AIAlgorithm(
     val id: String,
@@ -19,21 +19,21 @@ data class AIAlgorithm(
     val tags: List<String>,
     val version: String = "1.0.0",
     val author: String = "nndeploy",
-    val parameters: Map<String, Any> = emptyMap(), // 算法参数
+    val parameters: Map<String, Any> = emptyMap(), // Algorithm parameters
     val processFunction: String = "none"
 )
 
 /**
- * 输入输出类型枚举
+ * Input/Output Type Enum
  */
 enum class InOutType(val displayName: String, val icon: ImageVector) {
-    IMAGE("图片", Icons.Default.Image),
-    VIDEO("视频", Icons.Default.VideoFile),
-    CAMERA("摄像头", Icons.Default.CameraAlt),
-    PROMPT("提示词", Icons.Default.TextFields),
-    AUDIO("音频", Icons.Default.AudioFile),
-    TEXT("文本", Icons.Default.Description),
-    ALL("全支持", Icons.Default.AllInclusive);
+    IMAGE("Image", Icons.Default.Image),
+    VIDEO("Video", Icons.Default.VideoFile),
+    CAMERA("Camera", Icons.Default.CameraAlt),
+    PROMPT("Prompt", Icons.Default.TextFields),
+    AUDIO("Audio", Icons.Default.AudioFile),
+    TEXT("Text", Icons.Default.Description),
+    ALL("All Supported", Icons.Default.AllInclusive);
     
     companion object {
         fun fromString(type: String): InOutType? {
@@ -43,7 +43,7 @@ enum class InOutType(val displayName: String, val icon: ImageVector) {
 }
 
 /**
- * 输入媒体类型枚举
+ * Input Media Type Enum
  */
 enum class InputMediaType {
     IMAGE,
@@ -54,60 +54,60 @@ enum class InputMediaType {
 }
 
 /**
- * 算法类别枚举
+ * Algorithm Category Enum
  */
 enum class AlgorithmCategory(val displayName: String, val icon: ImageVector) {
-    COMPUTER_VISION("计算机视觉", Icons.Default.Visibility),
-    NATURAL_LANGUAGE("自然语言处理", Icons.Default.TextFields),
-    AUDIO_PROCESSING("音频处理", Icons.Default.AudioFile),
-    GENERATIVE_AI("生成式AI", Icons.Default.AutoAwesome),
-    OTHER("其他", Icons.Default.Category)
+    COMPUTER_VISION("Computer Vision", Icons.Default.Visibility),
+    NATURAL_LANGUAGE("Natural Language Processing", Icons.Default.TextFields),
+    AUDIO_PROCESSING("Audio Processing", Icons.Default.AudioFile),
+    GENERATIVE_AI("Generative AI", Icons.Default.AutoAwesome),
+    OTHER("Other", Icons.Default.Category)
 }
 
 /**
- * 算法处理状态
+ * Algorithm Processing Status
  */
 enum class ProcessingStatus {
-    IDLE,           // 空闲
-    LOADING,        // 加载中
-    PROCESSING,     // 处理中
-    COMPLETED,      // 完成
-    ERROR,          // 错误
-    CANCELLED       // 已取消
+    IDLE,           // Idle
+    LOADING,        // Loading
+    PROCESSING,     // Processing
+    COMPLETED,      // Completed
+    ERROR,          // Error
+    CANCELLED       // Cancelled
 }
 
 /**
- * 算法运行时信息
+ * Algorithm Runtime Information
  */
 data class AlgorithmRuntime(
     val status: ProcessingStatus = ProcessingStatus.IDLE,
-    val progress: Float = 0f,           // 处理进度 0.0-1.0
-    val startTime: Long = 0L,           // 开始时间
-    val endTime: Long = 0L,             // 结束时间
+    val progress: Float = 0f,           // Processing progress 0.0-1.0
+    val startTime: Long = 0L,           // Start time
+    val endTime: Long = 0L,             // End time
     val errorMessage: String? = null
 )
 
 /**
- * 算法工厂类
+ * Algorithm Factory Class
  */
 object AlgorithmFactory {
     
     /**
-     * 创建预定义的算法列表
+     * Create predefined algorithm list
      */
     fun createDefaultAlgorithms(): List<AIAlgorithm> {
         return listOf(
-            // 计算机视觉算法
+            // Computer Vision Algorithms
             AIAlgorithm(
                 id = "image_segmentation",
                 name = "nndeploy Segment",
-                description = "智能识别并分割图像中的不同对象和区域",
+                description = "Intelligently identify and segment different objects and regions in images",
                 icon = Icons.Default.Crop,
                 inputType = listOf(InOutType.IMAGE),
                 outputType = listOf(InOutType.IMAGE),
                 category = AlgorithmCategory.COMPUTER_VISION.displayName,
                 workflowAsset = "resources/workflow/SegmentRMBGMNN.json",
-                tags = listOf("分割", "目标检测", "图像处理"),
+                tags = listOf("segmentation", "object detection", "image processing"),
                 parameters = mapOf(
                     "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
                     "output_node" to mapOf("OpenCvImageEncode_16" to "path_"),
@@ -117,13 +117,13 @@ object AlgorithmFactory {
             AIAlgorithm(
                 id = "image_classification",
                 name = "nndeploy Classification",
-                description = "智能识别图像中的物体类别和标签",
+                description = "Intelligently identify object categories and labels in images",
                 icon = Icons.Default.Category,
                 inputType = listOf(InOutType.IMAGE),
                 outputType = listOf(InOutType.TEXT),
                 category = AlgorithmCategory.COMPUTER_VISION.displayName,
                 workflowAsset = "resources/workflow/ClassificationResNetMnn.json",
-                tags = listOf("分类", "识别", "标签"),
+                tags = listOf("classification", "recognition", "labeling"),
                 parameters = mapOf(
                     "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
                     "output_node" to mapOf("OpenCvImageEncode_26" to "path_"),
@@ -131,17 +131,17 @@ object AlgorithmFactory {
                 processFunction = "processImageInImageOut"
             ),
             
-            // 自然语言处理算法
+            // Natural Language Processing Algorithms
             AIAlgorithm(
                 id = "text_chat",
                 name = "nndeploy Chat",
-                description = "基于大语言模型的智能对话系统，支持多轮对话和上下文理解",
+                description = "Intelligent dialogue system based on large language models, supporting multi-turn conversations and context understanding",
                 icon = Icons.Default.QuestionAnswer,
                 inputType = listOf(InOutType.PROMPT),
                 outputType = listOf(InOutType.TEXT),
                 category = AlgorithmCategory.NATURAL_LANGUAGE.displayName,
                 workflowAsset = "resources/workflow/QwenMNN.json",
-                tags = listOf("对话", "聊天", "问答"),
+                tags = listOf("dialogue", "chat", "Q&A"),
                 parameters = mapOf(
                     "input_node" to mapOf("Prompt_4" to "user_content_"),
                     "output_node" to mapOf("LlmOut_3" to "path_"),
@@ -149,17 +149,17 @@ object AlgorithmFactory {
                 processFunction = "processPromptInPromptOut"
             ),
             
-            // 生成式AI算法
+            // Generative AI Algorithms
             // AIAlgorithm(
             //     id = "text_to_image",
-            //     name = "文本生成图像",
-            //     description = "根据文本描述生成对应的图像内容，支持多种艺术风格",
+            //     name = "Text to Image",
+            //     description = "Generate corresponding image content based on text descriptions, supporting multiple artistic styles",
             //     icon = Icons.Default.AutoAwesome,
             //     inputType = listOf(InOutType.PROMPT),
             //     outputType = listOf(InOutType.IMAGE),
             //     category = AlgorithmCategory.GENERATIVE_AI.displayName,
             //     workflowAsset = "resources/workflow/TextToImage.json",
-            //     tags = listOf("生成", "创作", "艺术"),
+            //     tags = listOf("generation", "creation", "art"),
             //     parameters = mapOf(
             //         "input_node" to mapOf("OpenCvImageDecode_11" to "path_"),
             //         "output_node" to mapOf("OpenCvImageEncode_26" to "path_"),
@@ -170,35 +170,35 @@ object AlgorithmFactory {
     }
     
     /**
-     * 根据类别筛选算法
+     * Filter algorithms by category
      */
     fun getAlgorithmsByCategory(algorithms: List<AIAlgorithm>, category: AlgorithmCategory): List<AIAlgorithm> {
         return algorithms.filter { it.category == category.displayName }
     }
     
     /**
-     * 根据输入类型筛选算法
+     * Filter algorithms by input type
      */
     fun getAlgorithmsByInputType(algorithms: List<AIAlgorithm>, inputType: InOutType): List<AIAlgorithm> {
         return algorithms.filter { it.inputType.contains(inputType) || it.inputType.contains(InOutType.ALL) }
     }
 
     /**
-     * 根据名字返回算法
+     * Get algorithm by name
      */
     fun getAlgorithmsByName(algorithms: List<AIAlgorithm>, name: String): AIAlgorithm? {
         return algorithms.find { it.name == name }
     }
 
     /**
-     * 根据id返回算法
+     * Get algorithm by id
      */
     fun getAlgorithmsById(algorithms: List<AIAlgorithm>, id: String): AIAlgorithm? {
         return algorithms.find { it.id == id }
     } 
     
     /**
-     * 搜索算法
+     * Search algorithms
      */
     fun searchAlgorithms(algorithms: List<AIAlgorithm>, query: String): List<AIAlgorithm> {
         val lowerQuery = query.lowercase()

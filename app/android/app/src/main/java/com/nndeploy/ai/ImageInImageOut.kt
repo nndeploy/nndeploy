@@ -11,44 +11,44 @@ import com.nndeploy.base.VideoUtils
 import java.io.File
 
 /**
- * AI算法处理器 - 支持图片、视频、摄像头输入
+ * AI Algorithm Processor - supports image, video, camera input
  */
 object ImageInImageOut {
     
     /**
-     * 分割算法处理
+     * Segmentation algorithm processing
      */
     suspend fun processImageInImageOut(context: Context, inputUri: Uri, alg: AIAlgorithm): ProcessResult {
         return try {
             Log.w("ImageInImageOut", "Starting processing for ${alg.name}")
             
-            // 1) 确保外部资源就绪
+            // 1) Ensure external resources are ready
             val extResDir = FileUtils.ensureExternalResourcesReady(context)
             val extRoot = FileUtils.getExternalRoot(context)
             val extWorkflowDir = File(extResDir, "workflow").apply { mkdirs() }
             
-            // 打印三个变量
+            // Print three variables
             Log.d("ImageInImageOut", "extResDir: ${extResDir.absolutePath}")
             Log.d("ImageInImageOut", "extRoot: ${extRoot.absolutePath}")
             Log.d("ImageInImageOut", "extWorkflowDir: ${extWorkflowDir.absolutePath}")
 
             val workflowAsset = alg.workflowAsset
             
-            // 3) 预处理输入数据
+            // 3) Preprocess input data
             val (processedInputFile, processedInputUri) = ImageUtils.preprocessImage(context, inputUri)
             
-            // 4) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
+            // 4) Read workflow from assets and replace relative paths with external absolute paths
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
             val resolvedJson = rawJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
-            // 打印解析后的JSON内容
+            // Print resolved JSON content
             Log.d("ImageInImageOut", "Resolved JSON content: $resolvedJson")
             
-            // 5) 写到外部私有目录，得到真实文件路径
+            // 5) Write to external private directory to get real file path
             val workflowOut = File(extWorkflowDir, alg.id + "_resolved.json").apply {
                 writeText(resolvedJson)
             }
 
-            // 6) 以文件路径运行底层
+            // 6) Run underlying system with file path
             val runner = GraphRunner()
             runner.setJsonFile(true)
             runner.setTimeProfile(true)
@@ -69,21 +69,20 @@ object ImageInImageOut {
                 ProcessResult.Success(Uri.fromFile(resultPath))
             } else {
                 Log.d("ImageInImageOut", "resultPath not exists")
-                ProcessResult.Error("结果文件未找到: ${resultPath.absolutePath}")
+                ProcessResult.Error("Result file not found: ${resultPath.absolutePath}")
             }
             
         } catch (e: Exception) {
             Log.e("ImageInImageOut", "Segmentation processing failed", e)
-            ProcessResult.Error("处理失败: ${e.message}")
+            ProcessResult.Error("Processing failed: ${e.message}")
         }
     }  
 }
 
 /**
- * 处理结果封装
+ * Processing result wrapper
  */
 sealed class ProcessResult {
     data class Success(val resultUri: Uri) : ProcessResult()
     data class Error(val message: String) : ProcessResult()
 }
-
