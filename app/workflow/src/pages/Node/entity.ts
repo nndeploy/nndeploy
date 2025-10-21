@@ -1,5 +1,4 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
-import { JsonSchema } from "../components/type-selector/types";
 import { IBusinessNode } from "../Layout/Design/WorkFlow/entity";
 
 
@@ -55,7 +54,7 @@ export interface INodeEntity{
   param_?: {
     [key:string]: any
   }, 
-  is_graph_: boolean;
+  is_graph_?: boolean;
 
   node_repository_?: INodeEntity[]; 
   

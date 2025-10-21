@@ -56,7 +56,9 @@ export interface ILineEntity {
 
   oldFrom?: string;
   oldFrom_name?: string;
+
   from: string,
+  from_name:string; 
 
   oldFromPort?: string | number,
   fromPort: string | number,
@@ -65,6 +67,7 @@ export interface ILineEntity {
   oldTo?: string;
    oldTo_name?: string;
   to: string,
+  to_name:string; 
 
   oldToPort?: string | number,
   toPort: string | number,
@@ -72,7 +75,7 @@ export interface ILineEntity {
   type_: string,
   desc_: string,
   
-  [key:string]:any
+ // [key:string]:any
 }
 
 

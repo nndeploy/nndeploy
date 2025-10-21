@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
 import { debounce } from "lodash-es";
 import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
@@ -10,7 +10,6 @@ import { FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
 import { createFreeGroupPlugin } from "@flowgram.ai/free-group-plugin";
 import { createContainerNodePlugin } from "@flowgram.ai/free-container-plugin";
 
-import { onDragLineEnd } from "../utils";
 import { FlowNodeRegistry, FlowDocumentJSON } from "../typings";
 import { shortcuts } from "../shortcuts";
 import { CustomService, RunningService } from "../services";
@@ -22,10 +21,8 @@ import {
   BaseNode,
   CommentRender,
   GroupNodeRender,
-  LineAddButton,
   NodePanel,
 } from "../components";
-import { useFlowEnviromentContext } from "../context/flow-enviroment-context";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
 import { getNodeById, isContainerNode } from "../pages/components/flow/functions";
@@ -36,8 +33,8 @@ export function useEditorProps(
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
 
-   const { state } = React.useContext(store);
-   const {dagGraphInfo } = state
+   //const { state } = React.useContext(store);
+
   return useMemo<FreeLayoutProps>(() => {
     return {
       /**
@@ -78,6 +75,7 @@ export function useEditorProps(
         hovered: "#37d0ff",
         selected: "#37d0ff",
         error: "red",
+        flowing: "#5DD6E3",
       },
       /*
        * Check whether the line can be added
@@ -224,7 +222,7 @@ export function useEditorProps(
        * Playground init
        */
       onInit() {
-        //console.log("--- Playground init ---");
+        console.log("--- Playground init ---");
       },
       /**
        * Playground render
@@ -232,7 +230,7 @@ export function useEditorProps(
       onAllLayersRendered(ctx) {
         //  Fitview
         ctx.document.fitView(false);
-        //console.log("--- Playground rendered ---");
+        console.log("--- Playground rendered ---");
       },
       /**
        * Playground dispose
@@ -271,7 +269,7 @@ export function useEditorProps(
             nodeBorderColor: "rgba(6, 7, 9, 0.10)",
             overlayColor: "rgba(255, 255, 255, 0.55)",
           },
-          inactiveDebounceTime: 1,
+          //inactiveDebounceTime: 1,
         }),
         /**
          * Variable plugin
