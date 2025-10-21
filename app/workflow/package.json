@@ -28,9 +28,9 @@
     "watch": "exit 0"
   },
   "dependencies": {
-    "@douyinfe/semi-icons": "^2.72.3",
+    "@douyinfe/semi-icons": "^2.80.0",
+    "@douyinfe/semi-ui": "^2.80.0",
     "@douyinfe/semi-icons-lab": "^2.80.0",
-    "@douyinfe/semi-ui": "^2.72.3",
     "@flowgram.ai/runtime-interface": "0.5.5",
     "@flowgram.ai/form-materials": "0.5.5",
     "@flowgram.ai/free-container-plugin": "0.5.5",

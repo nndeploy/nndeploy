@@ -28,6 +28,8 @@ import {
 import { useFlowEnviromentContext } from "../context/flow-enviroment-context";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
+import { getNodeById, isContainerNode } from "../pages/components/flow/functions";
+import { IExpandInfo } from "../pages/components/flow/entity";
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
@@ -109,6 +111,46 @@ export function useEditorProps(
        * 判断是否能删除连线, 这个会在默认快捷键 (Backspace or Delete) 触发
        */
       canDeleteLine(ctx, line, newLineInfo, silent) {
+
+        if(isContainerNode(line.from!.id, ctx)){
+          const fromNode  = getNodeById(line.from!.id, ctx)
+          const expandInfo : IExpandInfo= fromNode?.getNodeMeta().expandInfo 
+          let  {outputLines = [] } = expandInfo
+
+          outputLines = outputLines.filter(outputLine=>{
+            if( outputLine.from == line.from!.id &&  outputLine.fromPort == line.fromPort?.portID 
+              && outputLine.to == line.to!.id &&  outputLine.toPort == line.toPort?.portID
+              
+            ){
+              return false
+            }
+            return true
+          })
+
+          fromNode!.getNodeMeta().expandInfo = {...expandInfo, outputLines}
+
+
+
+        }
+
+        if(isContainerNode(line.to!.id, ctx)){
+          const toNode  = getNodeById(line.to!.id, ctx)
+          const expandInfo : IExpandInfo= toNode?.getNodeMeta().expandInfo 
+          let  {inputLines = [] } = expandInfo
+
+          inputLines = inputLines.filter(inputLine=>{
+            if( inputLine.from == line.from!.id &&  inputLine.fromPort == line.fromPort?.portID 
+              && inputLine.to == line.to!.id &&  inputLine.toPort == line.toPort?.portID
+              
+            ){
+              return false
+            }
+            return true
+          })
+
+          toNode!.getNodeMeta().expandInfo = {...expandInfo, inputLines}
+
+        }
         return true;
       },
       /**

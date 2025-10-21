@@ -6,7 +6,7 @@ import { Button, Input, Toast } from '@douyinfe/semi-ui';
 import { GroupField } from '../constant';
 import lodash from 'lodash';
 import { FlowDocumentJSON, FlowNodeJSON } from '../../../typings';
-import { designDataToBusinessData, getAllEdges, getEdgeMaps } from '../../../pages/components/flow/FlowSaveDrawer/functions';
+import { designDataToBusinessData, getAllEdges, getEdgeToNameMaps } from '../../../pages/components/flow/FlowSaveDrawer/functions';
 import { useFlowEnviromentContext } from '../../../context/flow-enviroment-context';
 import { apiWorkFlowSave } from '../../../pages/Layout/Design/WorkFlow/api';
 import { ReadableStreamDefaultController } from 'node:stream/web';
@@ -89,7 +89,7 @@ export const GroupTitle: FC = () => {
 
     let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes)
 
-    let edgeMaps = getEdgeMaps(allNodes, allEdges)
+    let edgeMaps = getEdgeToNameMaps(allNodes, allEdges)
 
     let selectedNodeIds = selectedNodes.map(node => {
       return node.id

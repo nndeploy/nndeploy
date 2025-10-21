@@ -1,4 +1,4 @@
-import { Field, FieldRenderProps, FlowNodeEntity, FlowNodeRenderData, getNodeForm, useClientContext, WorkflowLineEntity, WorkflowLinePortInfo, WorkflowNodeLinesData, WorkflowNodePortsData } from '@flowgram.ai/free-layout-editor';
+import { Field, FieldRenderProps, FlowNodeEntity, FlowNodeRenderData, FreeLayoutPluginContext, getNodeForm, useClientContext, WorkflowLineEntity, WorkflowLinePortInfo, WorkflowNodeLinesData, WorkflowNodePortsData } from '@flowgram.ai/free-layout-editor';
 import { Typography, Button } from '@douyinfe/semi-ui';
 import { IconSmallTriangleDown, IconSmallTriangleLeft } from '@douyinfe/semi-icons';
 import { getIcon } from './utils';
@@ -10,6 +10,8 @@ import lodash, { debounce, throttle } from 'lodash';
 import { toggleLoopExpanded } from '../../../../utils/toggle-loop-expanded';
 import { useEffect, useState } from 'react';
 import { IExpandInfo, ILineEntity } from '../entity';
+import { getNodeByName } from './function';
+import { getNodeById, isContainerNode } from '../functions';
 
 const { Text } = Typography;
 
@@ -32,12 +34,6 @@ export function FormHeader() {
     }
   }, [])
 
-  function isContainerNode(nodeId: string) {
-    let node = clientContext.document.getNode(nodeId)
-    let form = node?.form
-    let isContainer = form?.getValueIn('is_graph_') ?? false
-    return isContainer
-  }
 
 
   const handleExpand = (e: React.MouseEvent) => {
@@ -68,9 +64,9 @@ export function FormHeader() {
 
 
         //const renderData = node.getData<FlowNodeRenderData>(FlowNodeRenderData)
-        //return;
+        return;
 
-        const isContainer = isContainerNode(node.id)
+        const isContainer = isContainerNode(node.id, clientContext)
 
         if (!isContainer) {
           return
@@ -109,8 +105,8 @@ export function FormHeader() {
         let newExpandOutputLines = expandOutputLines.filter(expandOutputLine => {
           let findResult = outputLines.find(outputLine => {
             return expandOutputLine.from === outputLine.from?.id && expandOutputLine.fromPort === outputLine.fromPort?.portID
-            && 
-            expandOutputLine.to === outputLine.to?.id && expandOutputLine.toPort === outputLine.toPort?.portID
+              &&
+              expandOutputLine.to === outputLine.to?.id && expandOutputLine.toPort === outputLine.toPort?.portID
           })
 
           return findResult
@@ -154,10 +150,7 @@ export function FormHeader() {
 
 
 
-  function getNodeById(nodeId: string) {
-    let node = clientContext.document.getNode(nodeId)
-    return node
-  }
+
 
   function getNodeExpandInfo(nodeId: string) {
     let node = clientContext.document.getNode(nodeId)
@@ -202,6 +195,7 @@ export function FormHeader() {
           let result: ILineEntity = {
             oldFrom: '',
             oldFromPort: '',
+
             from: line.from!.id,
             from_name: getNodeName(line.from!.id),
             fromPort: line.fromPort!.portID,
@@ -222,7 +216,7 @@ export function FormHeader() {
           }
 
 
-          const isFromNodeContainer = isContainerNode(line.from!.id)
+          const isFromNodeContainer = isContainerNode(line.from!.id, clientContext)
           if (isFromNodeContainer) {
             const formNodeExandInfo = getNodeExpandInfo(line.from!.id)
             formNodeExandInfo?.outputLines.map(outputLine => {
@@ -231,6 +225,7 @@ export function FormHeader() {
                 && outputLine.to == result.oldTo && outputLine.toPort == result.oldToPort) {
 
                 result.oldFrom = outputLine.oldFrom
+                result.oldFrom_name = outputLine.oldFrom_name
                 result.oldFromPort = outputLine.oldFromPort
 
               }
@@ -246,13 +241,20 @@ export function FormHeader() {
 
     }
 
+    let prefillNode = getNodeByName('Prefill_2', clientContext)
+    let prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
+
     const allInputLines = getInputLines()
     adjustInputLinesReleventContainerNodeExpandInfo(allInputLines)
 
 
+     prefillNode = getNodeByName('Prefill_2', clientContext)
+    prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
+
+
     function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: ILineEntity[]) {
       allInputLines.map(inputLine => {
-        const isFromNodeContainer = isContainerNode(inputLine.from)
+        const isFromNodeContainer = isContainerNode(inputLine.from, clientContext)
         if (!isFromNodeContainer) {
           return
         }
@@ -287,7 +289,14 @@ export function FormHeader() {
           }
         })
 
-        getNodeById(inputLine.from)!.getNodeMeta().expandInfo = { ...formNodeExandInfo, outputLines }
+        if (getNodeById(inputLine.from, clientContext)?.form?.getValueIn('name_') == 'Prefill_2') {
+          let k = 0
+        }
+
+        getNodeById(inputLine.from, clientContext)!.getNodeMeta().expandInfo = { ...formNodeExandInfo, outputLines }
+
+        let temp = getNodeById(inputLine.from, clientContext)!.getNodeMeta().expandInfo
+        let j = 0
 
 
       })
@@ -338,7 +347,7 @@ export function FormHeader() {
             desc_: port?.desc_,
           }
 
-          const isToNodeContainer = isContainerNode(line.to!.id)
+          const isToNodeContainer = isContainerNode(line.to!.id, clientContext)
           if (isToNodeContainer) {
             const toNodeExandInfo = getNodeExpandInfo(line.to!.id)
             toNodeExandInfo?.inputLines.map(inputLine => {
@@ -349,6 +358,7 @@ export function FormHeader() {
 
               ) {
                 result.oldTo = inputLine.oldTo
+                result.oldTo_name = inputLine.oldTo_name
                 result.oldToPort = inputLine.oldToPort
               }
 
@@ -377,7 +387,7 @@ export function FormHeader() {
 
     function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines: ILineEntity[]) {
       allOutputLines.map(outputLine => {
-        const isToNodeContainer = isContainerNode(outputLine.to)
+        const isToNodeContainer = isContainerNode(outputLine.to, clientContext)
         if (!isToNodeContainer) {
           return
         }
@@ -413,11 +423,15 @@ export function FormHeader() {
           }
         })
 
-        getNodeById(outputLine.to)!.getNodeMeta().expandInfo = { ...toNodeExandInfo, inputLines }
+        getNodeById(outputLine.to, clientContext)!.getNodeMeta().expandInfo = { ...toNodeExandInfo, inputLines }
 
 
       })
     }
+
+
+     prefillNode = getNodeByName('Prefill_2', clientContext)
+    prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
     let inputs = allInputLines.map(item => {
       return {
@@ -458,8 +472,16 @@ export function FormHeader() {
 
     }
 
+    if (node.form?.getValueIn('name_') == 'Prefill_2') {
+      let k = 0
+    }
+
     node.getNodeMeta().expandInfo = expandInfo
     // node.updateExtInfo({ expandInfo })
+
+
+    prefillNode = getNodeByName('Prefill_2', clientContext)
+    prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
     setTimeout(() => {
 
@@ -534,7 +556,7 @@ export function FormHeader() {
 
         linesManager.createLine(line)
 
-        const isFromNodeContainer = isContainerNode(inputLine.from)
+        const isFromNodeContainer = isContainerNode(inputLine.from, clientContext)
         if (!isFromNodeContainer) {
           return
         }
@@ -568,7 +590,10 @@ export function FormHeader() {
           }
         })
 
-        getNodeById(inputLine.from)!.getNodeMeta().expandInfo = { ...formNodeExandInfo, outputLines }
+        getNodeById(inputLine.from, clientContext)!.getNodeMeta().expandInfo = { ...formNodeExandInfo, outputLines }
+
+        let temp = getNodeById(inputLine.from, clientContext)!.getNodeMeta().expandInfo
+        let j = 0
 
 
       })
@@ -590,7 +615,7 @@ export function FormHeader() {
         }
 
 
-        const isToNodeContainer = isContainerNode(outputLine.to)
+        const isToNodeContainer = isContainerNode(outputLine.to, clientContext)
         if (!isToNodeContainer) {
           return
         }
@@ -625,7 +650,10 @@ export function FormHeader() {
           }
         })
 
-        getNodeById(outputLine.to)!.getNodeMeta().expandInfo = { ...toNodeExandInfo, inputLines }
+        getNodeById(outputLine.to, clientContext)!.getNodeMeta().expandInfo = { ...toNodeExandInfo, inputLines }
+
+        let temp = getNodeById(outputLine.to, clientContext)!.getNodeMeta().expandInfo
+        let j = 0
       })
 
       expandInfo.inputLines = []

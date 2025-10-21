@@ -342,15 +342,15 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
   function substractContainerLines(lines: WorkflowEdgeJSON[]) {
     const result = lines.filter(item => {
 
-      // inputLines
+
+      let sourceNode = clientContext.document.getNode(item.sourceNodeID)
+      let sourceForm = sourceNode?.form
+      let isSourceNodeContainer = sourceForm?.getValueIn('is_graph') ?? false
+
       let targetNode = clientContext.document.getNode(item.targetNodeID)
       let targetForm = targetNode?.form
       let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
 
-      // inputLines
-      let sourceNode = clientContext.document.getNode(item.sourceNodeID)
-      let sourceForm = sourceNode?.form
-      let isSourceNodeContainer = sourceForm?.getValueIn('is_graph') ?? false
 
       return !isTargetNodeContainer && !isSourceNodeContainer
 
@@ -367,13 +367,16 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
  *   name: edge.edge.targetNodeID + "@" + edge.targetPortID -> value: source_node_name + "@" + source_port.desc_
  * 
  * */
-export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON[]) {
-  function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON): string {
+export function getEdgeToNameMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON[]) {
+  function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON, parentNodeNames: string[]): string {
     if (node.id === nodeId) {
       let node_name = node.data.name_ as string;
       for (let edge of node.data.outputs_ ?? []) {
         if (edge.id === portId) {
-          let edge_name = node_name + "@" + edge.desc_;
+
+          let parts = [...parentNodeNames, node_name, edge.desc_]
+
+          let edge_name = parts.join('@');
           return edge_name;
         }
       }
@@ -381,7 +384,7 @@ export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON
     }
     if (node.blocks && node.blocks.length > 0) {
       for (let childNode of node.blocks) {
-        let result = getEdgeNameByIterate(nodeId, portId, childNode);
+        let result = getEdgeNameByIterate(nodeId, portId, childNode, [...parentNodeNames, node.data.name_]);
         if (result) {
           return result;
         }
@@ -395,7 +398,7 @@ export function getEdgeMaps(allNodes: FlowNodeJSON[], allEdges: WorkflowEdgeJSON
     try {
       for (let i = 0; i < allNodes.length; i++) {
         let node = allNodes[i];
-        let result = getEdgeNameByIterate(nodeId, portId, node);
+        let result = getEdgeNameByIterate(nodeId, portId, node, []);
         if (result) {
           return result;
         }
@@ -532,7 +535,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     return "";
   }
 
-  const edge_map = getEdgeMaps(allNodes, allEdges)
+  const edgeToNameMap = getEdgeToNameMaps(allNodes, allEdges)
 
 
 
@@ -588,7 +591,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     const inputArray_ = (node.data.inputs_ ?? []).map((input: any) => {
 
       const originName = input.name_
-      const name_ = edge_map[node.id + "@" + input.id]
+      const name_ = edgeToNameMap[node.id + "@" + input.id]
 
       if (!name_) {
         //debugger
@@ -607,7 +610,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
 
       const originName = output.name_
-      const name_ = edge_map[node.id + "@" + output.id]
+      const name_ = edgeToNameMap[node.id + "@" + output.id]
       changeNodeDescendConnecitonName(node, originName, name_)
 
       return {
@@ -816,12 +819,125 @@ export function businessNodeNormalize(businessNode: IBusinessNode) {
   });
 }
 
+///////////////////////////////////
+
+
+function getAllOutputPortNameToNodePortIdMap(businessContent: IBusinessNode) {
+  const outputMap: { [key: string]: { nodeId: string; portId: string } } = {};
+
+  function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
+    if (businessNode.outputs_) {
+      businessNode.outputs_?.map((output) => {
+        if (output.name_) {
+
+          const outputFullName = [
+            //...parentNodePath, 
+            output.name_].join("!")
+          outputMap[outputFullName] = {
+            nodeId: businessNode.id,
+            portId: output.id!,
+          };
+        }
+      });
+    }
+    const children = businessNode.node_repository_ ?? [];
+    children.map((childNode) => {
+      processNode(childNode, [...parentNodePath, businessNode.name_]);
+    });
+  }
+
+  businessContent.node_repository_?.map((businessNode) => {
+    processNode(businessNode, []);
+  });
+
+  return outputMap;
+}
+/** 获取所有node的 输入节点的 名字->[{nodeId, portId}]映射表 */
+function getAllInputPortNameToNodePortIdMap(businessContent: IBusinessNode) {
+  const inputMap: { [key: string]: { nodeId: string; portId: string }[] } = {};
+
+
+  function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
+    if (businessNode.inputs_) {
+      businessNode.inputs_?.map((input) => {
+        if (input.name_) {
+
+          const outputFullName = [
+            //...parentNodePath, 
+            input.name_].join("!")
+          if (inputMap[outputFullName]) {
+            inputMap[outputFullName] = [...inputMap[outputFullName], {
+              nodeId: businessNode.id,
+              portId: input.id!,
+            }];
+          } else {
+            inputMap[outputFullName] = [{
+              nodeId: businessNode.id,
+              portId: input.id!,
+            }];
+          }
+
+        }
+      });
+    }
+    const children = businessNode.node_repository_ ?? [];
+    children.map((childNode) => {
+      processNode(childNode, [...parentNodePath, businessNode.name_]);
+    });
+  }
+
+  businessContent.node_repository_?.map((businessNode) => {
+    processNode(businessNode, []);
+  });
+
+  return inputMap;
+}
+
+export function buildEdges(businessContent: IBusinessNode) {
+
+  const outputMap = getAllOutputPortNameToNodePortIdMap(businessContent);
+
+  console.log('outputMap', outputMap)
+
+  const inputMap = getAllInputPortNameToNodePortIdMap(businessContent);
+
+  console.log('inputMap', inputMap)
+
+  var edges: WorkflowEdgeJSON[] = [];
+
+  for (let connectionName in outputMap) {
+    var outputInfo = outputMap[connectionName];
+    var sourceInfos = inputMap[connectionName];
+
+    if (!sourceInfos) {
+      continue
+    }
+
+    sourceInfos.map(sourceInfo => {
+      var connection: WorkflowEdgeJSON = {
+        sourceNodeID: outputInfo.nodeId,
+        targetNodeID: sourceInfo.nodeId,
+        sourcePortID: outputInfo.portId,
+        targetPortID: sourceInfo.portId,
+      };
+
+      edges.push(connection);
+    })
+
+
+
+  }
+  return edges
+
+
+}
+
 export function transferBusinessContentToDesignContent(
   businessContent: IBusinessNode,
   nodeRegistries: FlowNodeRegistry[]
 ): FlowDocumentJSON {
 
-  const { layout, groups = [] } = businessContent.nndeploy_ui_layout
+  const { layout, groups = [] } = businessContent.nndeploy_ui_layout ?? {}
 
   function businessNodeIterate(
     businessNode: IBusinessNode,
@@ -831,76 +947,7 @@ export function transferBusinessContentToDesignContent(
 
   }
   /** 获取所有node的 输出节点的 name_->{nodeId, portId}映射表 */
-  function getAllOutputPortNameToNodePortIdMap() {
-    const outputMap: { [key: string]: { nodeId: string; portId: string } } = {};
 
-    function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
-      if (businessNode.outputs_) {
-        businessNode.outputs_?.map((output) => {
-          if (output.name_) {
-
-            const outputFullName = [
-              //...parentNodePath, 
-              output.name_].join("!")
-            outputMap[outputFullName] = {
-              nodeId: businessNode.id,
-              portId: output.id,
-            };
-          }
-        });
-      }
-      const children = businessNode.node_repository_ ?? [];
-      children.map((childNode) => {
-        processNode(childNode, [...parentNodePath, businessNode.name_]);
-      });
-    }
-
-    businessContent.node_repository_?.map((businessNode) => {
-      processNode(businessNode, []);
-    });
-
-    return outputMap;
-  }
-  /** 获取所有node的 输入节点的 名字->[{nodeId, portId}]映射表 */
-  function getAllInputPortNameToNodePortIdMap() {
-    const inputMap: { [key: string]: { nodeId: string; portId: string }[] } = {};
-
-
-    function processNode(businessNode: IBusinessNode, parentNodePath: string[]) {
-      if (businessNode.inputs_) {
-        businessNode.inputs_?.map((input) => {
-          if (input.name_) {
-
-            const outputFullName = [
-              //...parentNodePath, 
-              input.name_].join("!")
-            if (inputMap[outputFullName]) {
-              inputMap[outputFullName] = [...inputMap[outputFullName], {
-                nodeId: businessNode.id,
-                portId: input.id,
-              }];
-            } else {
-              inputMap[outputFullName] = [{
-                nodeId: businessNode.id,
-                portId: input.id,
-              }];
-            }
-
-          }
-        });
-      }
-      const children = businessNode.node_repository_ ?? [];
-      children.map((childNode) => {
-        processNode(childNode, [...parentNodePath, businessNode.name_]);
-      });
-    }
-
-    businessContent.node_repository_?.map((businessNode) => {
-      processNode(businessNode, []);
-    });
-
-    return inputMap;
-  }
   /** 遍历业务内容节点库 → 标准化每个节点 → 标准化端口 → 递归处理子节点 → 确保整个业务节点树的ID系统一致性 */
   function businessContentNormalize(businessContent: IBusinessNode) {
 
@@ -925,13 +972,7 @@ export function transferBusinessContentToDesignContent(
 
 
 
-  const outputMap = getAllOutputPortNameToNodePortIdMap();
 
-  console.log('outputMap', outputMap)
-
-  const inputMap = getAllInputPortNameToNodePortIdMap();
-
-  console.log('inputMap', inputMap)
 
   const nodeRepository = businessContent.node_repository_ ?? [];
 
@@ -941,37 +982,9 @@ export function transferBusinessContentToDesignContent(
     designData.nodes = [...designData.nodes, designNode];
   }
 
-  function buildEdges() {
-    var edges: WorkflowEdgeJSON[] = [];
-
-    for (let connectionName in outputMap) {
-      var outputInfo = outputMap[connectionName];
-      var sourceInfos = inputMap[connectionName];
-
-      if (!sourceInfos) {
-        continue
-      }
-
-      sourceInfos.map(sourceInfo => {
-        var connection: WorkflowEdgeJSON = {
-          sourceNodeID: outputInfo.nodeId,
-          targetNodeID: sourceInfo.nodeId,
-          sourcePortID: outputInfo.portId,
-          targetPortID: sourceInfo.portId,
-        };
-
-        edges.push(connection);
-      })
 
 
-
-    }
-    return edges
-
-
-  }
-
-  const edges = buildEdges()
+  const edges = buildEdges(businessContent)
 
   designData.edges = edges;
 
