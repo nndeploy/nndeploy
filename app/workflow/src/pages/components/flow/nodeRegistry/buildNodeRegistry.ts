@@ -3,6 +3,9 @@ import { FlowNodeRegistry } from "../../../../typings";
 import { INodeEntity } from "../../../Node/entity";
 import { formMeta } from "./form-meta";
 import iconCondition from '../../../../assets/icon-condition.svg';
+import iconLoop from '../../../../assets/icon-loop.jpg';
+import iconComposite from '../../../../assets/compose-line.png';
+import iconGraph from '../../../../assets/photography.png';
 
 
 export function buildNodeRegistry(nodeEntity: INodeEntity) {
@@ -14,10 +17,25 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
 
   const isContainer = nodeEntity.is_composite_node_ || nodeEntity.is_loop_ || nodeEntity.is_graph_
 
+    function getIcon(){
+
+      if(nodeEntity.is_loop_){
+        return iconLoop
+      }
+      else if(nodeEntity.is_composite_node_){
+        return iconComposite
+      }
+      else if(nodeEntity.is_graph_){
+        return iconGraph //
+      }else{
+        return undefined 
+      }
+    }
+
   const nodeRegistry: FlowNodeRegistry = {
     type: nodeEntity.key_,
     info: {
-      icon: iconCondition,
+      icon: getIcon(),
       description:
         "Connect multiple downstream branches. Only the corresponding branch will be executed if the set conditions are met.",
     },

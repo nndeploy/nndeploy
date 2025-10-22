@@ -11,6 +11,7 @@ import { IExpandInfo } from '../entity';
 import lodash from 'lodash'
 import { adjustInputLinesReleventContainerNodeExpandInfo, adjustOutputLinesReleventContainerNodeExpandInfo, destroySubcavasInputLines, destroySubcavasOutputLines, getSubcavasInputLines, getSubcavasOutputLines } from './function';
 import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode } from '../functions';
+import { getIcon } from './utils';
 
 const { Text } = Typography;
 
@@ -429,7 +430,7 @@ export function FormHeader() {
   return (
     <>
       <Header>
-        {/* {getIcon(node)} */}
+        {getIcon(node)}
         <Title>
           {/* <Field name="key_">
           {({ field: { value, onChange }, fieldState }: FieldRenderProps<string>) => (
