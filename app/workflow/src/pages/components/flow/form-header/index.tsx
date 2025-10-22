@@ -61,16 +61,16 @@ export function FormHeader() {
     // 折叠 loop 子节点
     //if (node.flowNodeType === 'loop') {
 
-    if(isContainerNode(node.id, clientContext)){
+    //if(isContainerNode(node.id, clientContext)){
 
       toggleLoopExpanded(node, expanded);
-    }
+    //}
 
     // node.updateExtInfo({ expanded });
 
     // node.updateExtInfo({ hoby: 'pingpang' });
     //}
-  }, [expanded, isSidebar]);
+  }, [expanded]);
 
 
   // useEffect(() => {
@@ -276,7 +276,7 @@ export function FormHeader() {
 
       }, 20)
 
-    }, 20)
+    }, 50)
 
 
 
@@ -297,10 +297,11 @@ export function FormHeader() {
     form?.setValueIn('inputs_', [])
     form?.setValueIn('outputs_', [])
 
-    node.getData(WorkflowNodePortsData).updateAllPorts([])
+    
 
     setTimeout(() => {
 
+      node.getData(WorkflowNodePortsData).updateAllPorts([])
       node.getData(WorkflowNodePortsData).updateDynamicPorts()
 
       expandInfo.inputLines.map(inputLine => {
@@ -422,7 +423,7 @@ export function FormHeader() {
 
       //node.updateExtInfo({ expandInfo })
       node.getNodeMeta().expandInfo = expandInfo
-    }, 20)
+    }, 10)
 
 
   }

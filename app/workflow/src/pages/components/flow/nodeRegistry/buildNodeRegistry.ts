@@ -15,7 +15,7 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
 
   //let type = ['nndeploy::detect::YoloGraph'].includes( nodeEntity.key_) ? 'group': nodeEntity.key_
 
-  const isContainer = nodeEntity.is_composite_node_ || nodeEntity.is_loop_ || nodeEntity.is_graph_
+  const isContainer = nodeEntity.is_loop_ || nodeEntity.is_graph_ || nodeEntity.is_composite_node_ 
 
     function getIcon(){
 
