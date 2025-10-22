@@ -172,7 +172,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
     status = graph->deinit();
     ```
 
-  更多加载并运行工作流，示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
+  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
 
 
 **推荐开发流程**
