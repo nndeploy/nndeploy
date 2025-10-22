@@ -18,7 +18,7 @@
 # python app.py --plugin plugin1.py plugin2.so     # Load specified plugins
 # python app.py --front-end-version @latest        # Specify frontend version
 
-import server.app as app
+import nndeploy.server.app as app
 
 if __name__ == "__main__":
     app.main()

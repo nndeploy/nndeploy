@@ -18,7 +18,7 @@
 # python clean.py --plugin           # only clean plugin directory
 # python clean.py --keep logs db     # keep logs and db directory, clean other directories
 
-import server.clean as clean
+import nndeploy.server.clean as clean
 
 if __name__ == "__main__":
     clean.main()

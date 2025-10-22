@@ -43,9 +43,7 @@ base::Status LlmInfer::setPrefill(bool is_prefill) {
   return base::kStatusCodeOk;
 }
 
-int LlmInfer::getMaxSeqLen() {
-  return llm_infer_->getMaxSeqLen();
-}
+int LlmInfer::getMaxSeqLen() { return llm_infer_->getMaxSeqLen(); }
 
 base::Status LlmInfer::init() {
   llm_infer_ = this->createLlmInfer(inputs_, outputs_, infer_key_, model_key_,
@@ -110,6 +108,16 @@ base::Status LlmInfer::setIterInput(dag::Edge* input, int index) {
 
 base::Status LlmInfer::serialize(
     rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  this->addRequiredParam("is_prefill");
+  this->addRequiredParam("model_key");
+  this->addRequiredParam("infer_key");
+  this->addRequiredParam("config_path");
+  std::set<std::string> model_key_set = LlmInferFactory::getInstance()->getModelKeys();
+  std::vector<std::string> model_key_list(model_key_set.begin(), model_key_set.end());
+  this->addDropdownParam("model_key", model_key_list);
+  std::set<std::string> infer_key_set = LlmInferFactory::getInstance()->getInferKeys();
+  std::vector<std::string> infer_key_list(infer_key_set.begin(), infer_key_set.end());
+  this->addDropdownParam("infer_key", infer_key_list);
   base::Status status = dag::CompositeNode::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("LlmInfer::serialize failed\n");
