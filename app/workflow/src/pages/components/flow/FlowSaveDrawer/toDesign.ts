@@ -1,5 +1,6 @@
 
 import {
+  IPoint,
   WorkflowEdgeJSON,
 } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON, FlowNodeRegistry } from "../../../../typings";
@@ -8,7 +9,7 @@ import {
   Inndeploy_ui_layout,
 } from "../../../Layout/Design/WorkFlow/entity";
 import { businessNodeIterate, businessNodeNormalize } from "./functions";
-import { ILineEntity } from "../entity";
+import { ILineEntity, INodeUiExtraInfo } from "../entity";
 
 
 let iShrimpDelayIndex = 0
@@ -18,7 +19,7 @@ function getAllOutputPortNameToNodePortIdMap(businessContent: IBusinessNode, lay
 
   function processNode(businessNode: IBusinessNode) {
 
-    if(businessNode.is_graph_){  // subcavas dont't make line when loaded 
+    if (businessNode.is_graph_) {  // subcavas dont't make line when loaded 
       return
     }
     if (businessNode.outputs_) {
@@ -177,7 +178,8 @@ export function buildEdges(businessContent: IBusinessNode, layout: Inndeploy_ui_
 
 export function transferBusinessNodeToDesignNodeIterate(
   businessNode: IBusinessNode,
-  layout?: Inndeploy_ui_layout['layout']
+  layout?: Inndeploy_ui_layout['layout'],
+  parentNodes: IBusinessNode[] = []
 ): FlowNodeJSON {
 
   if (businessNode.name_ == 'Prefill_1') {
@@ -186,10 +188,40 @@ export function transferBusinessNodeToDesignNodeIterate(
 
   var type = businessNode.key_
 
-  const needInitShrip =  layout?.[businessNode.name_]?.expanded === false // layout?.[businessNode.name_]?.expanded === undefined ||
-  if(needInitShrip){
+  const needInitShrip = layout?.[businessNode.name_]?.expanded === false // layout?.[businessNode.name_]?.expanded === undefined ||
+  if (needInitShrip) {
     iShrimpDelayIndex++
   }
+
+  function getNodeUiExtraInfo() {
+
+    let nodeUiExtraInfo : INodeUiExtraInfo = {position: {x: 0, y: 0}, size: { width: 200, height: 80 }}
+   
+    if (parentNodes.length > 0) {
+
+       let current: INodeUiExtraInfo
+
+      for (let i = 0; i < parentNodes.length; i++) {
+        if (i == 0) {
+          const parentNodeName = parentNodes[i].name_
+          current = layout?.[parentNodeName]!
+        } else {
+          const parentNodeName = parentNodes[i].name_
+          ///@ts-ignore
+          current = current?.children?.[parentNodeName]!
+        }
+      }
+      ///@ts-ignore
+      nodeUiExtraInfo = current?.children?.[businessNode.name_] ?? nodeUiExtraInfo
+
+
+    }else{
+       nodeUiExtraInfo = layout?.[businessNode.name_] ?? nodeUiExtraInfo
+    }
+    return nodeUiExtraInfo
+  }
+
+  const nodeUiExtraInfo = getNodeUiExtraInfo()
 
   const designNode: FlowNodeJSON = {
     id: `${businessNode.id}`,
@@ -198,14 +230,14 @@ export function transferBusinessNodeToDesignNodeIterate(
 
     meta: {
       //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
-      position: layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
-      size: layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
+      position:  nodeUiExtraInfo.position,    //layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
+      size:  nodeUiExtraInfo.size,     //layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
       //...nodeExtra[businessNode.name_], 
       //expandInfo: nodeExtra[businessNode.name_],
-      defaultExpanded: true, 
-       needInitShrip, 
-      
-       iShrimpDelayIndex: needInitShrip ? iShrimpDelayIndex : 0,
+      defaultExpanded: true,
+      needInitShrip,
+
+      iShrimpDelayIndex: needInitShrip ? iShrimpDelayIndex : 0,
       //defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true
     },
     data: {
@@ -243,17 +275,17 @@ export function transferBusinessNodeToDesignNodeIterate(
   businessNode.inputs_ = inputs_;
   businessNode.outputs_ = outputs_;
 
+  const node_repository_ = businessNode.node_repository_ ? businessNode.node_repository_ : []
+  delete businessNode["node_repository_"];
+
   designNode.data = { ...businessNode };
 
-  if (businessNode.node_repository_ && businessNode.node_repository_.length > 0) {
-    const nodeRepositories = businessNode.node_repository_;
-    delete businessNode["node_repository_"];
-    const blocks = nodeRepositories.map((childNode) => {
-      return transferBusinessNodeToDesignNodeIterate(childNode, layout);
-    });
+  const blocks = node_repository_.map((childNode) => {
+    return transferBusinessNodeToDesignNodeIterate(childNode, layout, [...parentNodes, businessNode]);
+  })
 
-    designNode.blocks = blocks;
-  }
+  designNode.blocks = blocks;
+
 
   return designNode;
 }
@@ -301,7 +333,7 @@ export function transferBusinessContentToDesignContent(
 
   for (let i = 0; i < nodeRepository.length; i++) {
     let businessNode = nodeRepository[i];
-    let designNode = transferBusinessNodeToDesignNodeIterate(businessNode, layout);
+    let designNode = transferBusinessNodeToDesignNodeIterate(businessNode, layout, []);
     designData.nodes = [...designData.nodes, designNode];
   }
 
@@ -391,11 +423,11 @@ export function transferBusinessContentToDesignContent(
 //         const nameParts = input.name_.split('@')
 //         const topName = nameParts[0]
 //         if (innerNodeNames.includes(topName)) {
-//           return 
+//           return
 //         }
 
 //         let inputLine : ILineEntity = {
-//           from: 
+//           from:
 //         }
 
 

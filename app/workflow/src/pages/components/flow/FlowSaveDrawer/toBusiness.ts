@@ -273,7 +273,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     let nodesExtraInfo: { [nodeName: string]: INodeUiExtraInfo } = {}
 
-    function processNode(node: WorkflowNodeJSON) {
+    function processNode(node: WorkflowNodeJSON, parrentNodes: WorkflowNodeJSON[]) {
 
       let tempNode = clientContext?.document?.getNode(node.id as string)
       let expanded = tempNode?.getData(FlowNodeRenderData).expanded
@@ -281,22 +281,43 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
       let nodeMeta = clientContext?.document?.getNode(node.id as string)?.getNodeMeta();
       //const expandInfo: IExpandInfo = nodeMeta?.expandInfo
 
-      nodesExtraInfo[node.data.name_] = {
+      const nodeExpandInfo: INodeUiExtraInfo = {
         position: node.meta?.position || { x: 0, y: 0 },
         size: nodeMeta?.size || { width: 180, height: 48 },
         expanded: expanded,
 
-        // inputLines: expandInfo?.inputLines || [],
-        // outputLines: expandInfo?.outputLines || []
+      }
+
+
+      let current: INodeUiExtraInfo
+
+      if (parrentNodes.length < 1) {
+        nodesExtraInfo[node.data.name_] = nodeExpandInfo
+      } else {
+        for (let i = 0; i < parrentNodes.length; i++) {
+
+          const parentNodeName: string = parrentNodes[i].data.name_;
+
+          if (i == 0) {
+            current = nodesExtraInfo[parentNodeName]
+          } else {
+            ///@ts-ignore
+            current = current?.children?.[parentNodeName]
+
+          }
+          current.children = current.children || {}
+          current.children[node.data.name_] = nodeExpandInfo
+        }
 
       }
+
+
     }
     designData.nodes.map(node => {
 
       designNodeIterate(node, processNode)
 
     })
-
 
     return nodesExtraInfo
   }
@@ -570,7 +591,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
       })
     } else {
 
-       outputArray_ = (node.data.outputs_ ?? []).map((output: any) => {
+      outputArray_ = (node.data.outputs_ ?? []).map((output: any) => {
 
 
         const originName = output.name_

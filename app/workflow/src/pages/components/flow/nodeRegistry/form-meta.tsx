@@ -90,6 +90,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'dropdown_params',
     'required_params_',
     'size',
+    'blocks',
 
 
   ];

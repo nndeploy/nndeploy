@@ -43,7 +43,7 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
 
         // toPort: "new_port_" + Math.random().toString(36).substr(2, 9),
         type_: port?.type_,
-        desc_: `${old_to_name}@${port?.desc_}`,
+        desc_: `${port?.desc_}`,
       }
 
 
@@ -63,13 +63,26 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
 
         })
       }
-      line.dispose()
+      // line.dispose()
       return result
     })
   })
   return allInputLines.flat()
 
 
+}
+
+export function destroySubcavasInputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
+  const allInnerNodes = getAllInnerNodes(node)
+  const allInnerNodeIds = allInnerNodes.map((node) => node.id)
+  allInnerNodes.map((innerNode) => {
+    let lines = innerNode.getData(WorkflowNodeLinesData).inputLines.filter((line) => {
+      return !allInnerNodeIds.includes(line.from!.id)
+    })
+    lines.map(line => {
+      line.dispose()
+    })
+  })
 }
 
 export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {
@@ -126,6 +139,9 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
 /** lines from this this node's children to  outside */
 export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
 
+
+  const fromNodePortToNewPortMap: { [fromNodeAndPort: string]: string } = {}
+
   const allInnerNodes = getAllInnerNodes(node)
   const allInnerNodeIds = allInnerNodes.map((node) => node.id)
   const allOutputLines = allInnerNodes.map((innerNode) => {
@@ -147,6 +163,25 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
 
       const oldFrom_name = getNodeNameByNodeId(line.from!.id, clientContext)
 
+      function getNewFromPort() {
+        let newFromPort = ''
+
+        const alreadyPort = fromNodePortToNewPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
+
+
+        if (alreadyPort) {
+          newFromPort = alreadyPort
+        } else {
+          newFromPort = "new_port_" + Math.random().toString(36).substr(2, 9)
+          fromNodePortToNewPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newFromPort
+        }
+        return newFromPort
+      }
+
+      const newFromPort = getNewFromPort()
+
+
+
       let result: ILineEntity = {
 
         oldFrom: line.from!.id,
@@ -157,7 +192,7 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
         from_name: getNodeNameByNodeId(node.id, clientContext),
         //from: node.id, 
 
-        fromPort: "new_port_" + Math.random().toString(36).substr(2, 9),
+        fromPort: newFromPort,  //"new_port_" + Math.random().toString(36).substr(2, 9),
         //fromPort: "new_port_" + Math.random().toString(36).substr(2, 9),
         to: line.to!.id,
         to_name: getNodeNameByNodeId(line.to!.id, clientContext),
@@ -169,7 +204,7 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
         oldToPort: '',
 
         type_: port?.type_,
-        desc_: `${oldFrom_name}@${port?.desc_}`,
+        desc_: `${port?.desc_}`,
       }
 
       const isToNodeContainer = isContainerNode(line.to!.id, clientContext)
@@ -192,7 +227,7 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
 
 
 
-      line.dispose()
+      // line.dispose()
 
       return result
 
@@ -205,6 +240,22 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
   return allOutputLines.flat()
 
 
+}
+
+export function destroySubcavasOutputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
+
+  const allInnerNodes = getAllInnerNodes(node)
+  const allInnerNodeIds = allInnerNodes.map((node) => node.id)
+  allInnerNodes.map((innerNode) => {
+    let lines = innerNode.getData(WorkflowNodeLinesData).outputLines.filter((line) => {
+      return !allInnerNodeIds.includes(line.to!.id)
+    })
+    lines.map(line => {
+      line.dispose()
+    })
+
+
+  })
 }
 
 export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {

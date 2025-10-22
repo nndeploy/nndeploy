@@ -90,6 +90,7 @@ export interface INodeUiExtraInfo {
   expanded?: boolean,
   position?: { x: number, y: number },
   size?: { width: number, height: number },
+  children?: {[nodeName:string]: INodeUiExtraInfo}
 
   // inputLines?: ILineEntity[],
   // outputLines?: ILineEntity[]

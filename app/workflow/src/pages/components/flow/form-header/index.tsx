@@ -8,7 +8,8 @@ import { Feedback } from '../../../../form-components';
 import { toggleLoopExpanded } from '../../../../utils/toggle-loop-expanded';
 import { useEffect, useState } from 'react';
 import { IExpandInfo } from '../entity';
-import { adjustInputLinesReleventContainerNodeExpandInfo, adjustOutputLinesReleventContainerNodeExpandInfo, getSubcavasInputLines, getSubcavasOutputLines } from './function';
+import lodash from 'lodash'
+import { adjustInputLinesReleventContainerNodeExpandInfo, adjustOutputLinesReleventContainerNodeExpandInfo, destroySubcavasInputLines, destroySubcavasOutputLines, getSubcavasInputLines, getSubcavasOutputLines } from './function';
 import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode } from '../functions';
 
 const { Text } = Typography;
@@ -168,6 +169,7 @@ export function FormHeader() {
     let prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
     const allInputLines = getSubcavasInputLines(node, clientContext)
+    destroySubcavasInputLines(node, clientContext)
     adjustInputLinesReleventContainerNodeExpandInfo(allInputLines, clientContext)
 
 
@@ -175,6 +177,7 @@ export function FormHeader() {
     prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
     const allOutputLines = getSubcavasOutputLines(node, clientContext)
+    destroySubcavasOutputLines(node, clientContext)
     adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines, clientContext)
 
 
@@ -190,7 +193,11 @@ export function FormHeader() {
         desc_: item.desc_,
       }
     })
-    let outputs = allOutputLines.map(item => {
+
+
+    let temp =  lodash.uniqBy(allOutputLines, ['oldFrom',  'oldFromPort'])
+
+    let outputs = lodash.uniqBy(allOutputLines, ['oldFrom',  'oldFromPort']).map(item => {
       return {
         //id: "new_port_" + Math.random().toString(36).substr(2, 9),
         id: item.fromPort,
