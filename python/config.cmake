@@ -329,6 +329,8 @@ if(ENABLE_NNDEPLOY_PLUGIN)
     file(GLOB_RECURSE PYTHON_LLM_SOURCE
       "${ROOT_PATH}/python/src/llm/*.h"
       "${ROOT_PATH}/python/src/llm/*.cc"
+      "${ROOT_PATH}/python/src/qwen/*.h"
+      "${ROOT_PATH}/python/src/qwen/*.cc"
     )
     set(SOURCE ${SOURCE} ${PYTHON_LLM_SOURCE})
   endif()

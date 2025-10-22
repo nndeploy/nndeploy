@@ -20,9 +20,9 @@ nndeploy：一款简单易用且高性能的AI部署框架
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS" style="height: 16px;">
 </a>
- <a href="https://pepy.tech/projects/nndeploy">
+ <!-- <a href="https://pepy.tech/projects/nndeploy">
   <img src="https://static.pepy.tech/personalized-badge/nndeploy?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads" style="height: 16px;">
-</a>
+</a> -->
 </p>
 
 <p align="center">
@@ -218,9 +218,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   | 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
   | 性能提升          | 7.98%       | 11.2%      | 12.2%     |
 
-## 保持领先
+## 关注项目
 
-在 GitHub 上给 nndeploy Star，并立即收到新版本的通知。
+如果您觉得 nndeploy 对您有帮助，欢迎在 GitHub 上给我们 Star，这将帮助我们持续改进项目。
 
 <img src="docs/image/star.gif">
 
@@ -235,7 +235,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 - 当前 nndeploy 正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
 
-- 微信：Always031856（欢迎加好友，进活跃的 AI 推理部署交流群，备注：nndeploy\_姓名）
+- 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
 
   <img src="docs/image/wechat.jpg" width="225px">
 
