@@ -263,7 +263,6 @@ ref_repo
 # app/
 # translation
 *.mo
-/app/workflow/package-lock.json
 
 # server/resources rule
 server/resources/**
