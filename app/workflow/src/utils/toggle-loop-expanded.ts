@@ -42,7 +42,7 @@ export function toggleLoopExpanded(
     // When folded, the width and height no longer change according to the child nodes, and need to be set manually
     // 折叠起来，宽高不再根据子节点变化，需要手动设置
     node.transform.size = {
-      width:  200,// bounds.width,
+      width:   200, //bounds.width,
       height: HeightCollapsed,
     };
   } else {

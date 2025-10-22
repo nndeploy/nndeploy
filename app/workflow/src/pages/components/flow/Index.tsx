@@ -2,6 +2,7 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  usePlaygroundTools,
   WorkflowLinePortInfo,
 } from "@flowgram.ai/free-layout-editor";
 
@@ -54,6 +55,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   const { nodeRegistries, nodeList } = state
   const [downloadModalVisible, setDownloadModalVisible] = useState(false)
   const [downloadModalList, setDownloadModalList] = useState<string[]>([])
+
+ //  const tools = usePlaygroundTools();
 
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
@@ -647,6 +650,13 @@ const Flow: React.FC<FlowProps> = (props) => {
       let node = transferBusinessNodeToDesignNodeIterate(entity, layout)
 
       ref?.current?.document.createWorkflowNode(node);
+
+      // tools.autoLayout({
+      //   containerNode: ref?.current?.document.getNode(node.id),
+      //   enableAnimation: true,
+      //   animationDuration: 1000,
+      //   disableFitView: true,
+      // })
 
       const linesManager = ref?.current?.document.linesManager
 
