@@ -45,6 +45,13 @@
 #define NNDEPLOY_PRAGMA(X) _Pragma(#X)
 #endif
 
+
+/**
+ * @brief Force load library symbol
+ * 
+ */
+#define NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(TYPE)
+
 /**
  * @brief deprecated
  *

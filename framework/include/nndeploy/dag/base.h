@@ -46,10 +46,10 @@ enum class IOType {
   kIOTypeBinary = 15,  // Binary file type
 
   // Media file types
-  kIOTypeImage = 20,  // Image file type
-  kIOTypeVideo = 21,  // Video file type
-  kIOTypeAudio = 22,  // Audio file type
-  kIOTypeCamera = 23,  // Camera type
+  kIOTypeImage = 20,       // Image file type
+  kIOTypeVideo = 21,       // Video file type
+  kIOTypeAudio = 22,       // Audio file type
+  kIOTypeCamera = 23,      // Camera type
   kIOTypeMicrophone = 24,  // Microphone type
 
   // Model
@@ -251,8 +251,7 @@ extern NNDEPLOY_CC_API std::string nodeTypeToString(NodeType node_type);
 extern NNDEPLOY_CC_API NodeType
 stringToNodeType(const std::string& node_type_str);
 extern NNDEPLOY_CC_API std::string ioTypeToString(IOType io_type);
-extern NNDEPLOY_CC_API IOType
-stringToIoType(const std::string& io_type_str);
+extern NNDEPLOY_CC_API IOType stringToIoType(const std::string& io_type_str);
 
 // extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeTypeFlag edge_type);
 // extern NNDEPLOY_CC_API EdgeTypeFlag
@@ -315,7 +314,7 @@ struct NNDEPLOY_CC_API RunStatus {
     if (is_running) {
       return "RUNNING";
     } else if (run_size > 0 && completed_size > 0 &&
-               graph_run_size == completed_size) {
+               run_size == completed_size) {
       return "DONE";
     } else if (run_size == 0 && completed_size == 0 &&
                std::abs(init_time + 1.0f) < 1e-6) {

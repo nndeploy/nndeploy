@@ -20,9 +20,9 @@ nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS" style="height: 16px;">
 </a>
- <a href="https://pepy.tech/projects/nndeploy">
+ <!-- <a href="https://pepy.tech/projects/nndeploy">
   <img src="https://static.pepy.tech/personalized-badge/nndeploy?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads" style="height: 16px;">
-</a>
+</a> -->
 </p>
 
 <p align="center">
@@ -218,9 +218,9 @@ Test Environment: Ubuntu 22.04, i7-12700, RTX3060
   | Task Parallel                     | 602.104 ms  | 435.181 ms  | 51.883 ms|
   | Performance Improvement           | 7.98%       | 11.2%       | 12.2%    |
 
-## Stay Updated
+## Follow the Project
 
-Star nndeploy on GitHub and get notified immediately about new releases.
+If you find nndeploy helpful, we welcome you to give us a Star on GitHub, which will help us continuously improve the project.
 
 <img src="docs/image/star.gif">
 
@@ -235,7 +235,7 @@ Star nndeploy on GitHub and get notified immediately about new releases.
 
 - nndeploy is currently in the development stage. If you love open source, enjoy tinkering, whether for learning purposes or have better ideas, you are welcome to join us.
 
-- WeChat: Always031856 (Feel free to add as a friend to join our active AI inference deployment discussion group. Please note: nndeploy\_name)
+- WeChat: Always031856 (Feel free to add as a friend to join the group discussion. Please note: nndeploy\_name)
 
   <img src="docs/image/wechat.jpg" width="225px">
 

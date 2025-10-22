@@ -363,6 +363,16 @@ class NNDEPLOY_CC_API LlmInferFactory {
     return keys;
   }
 
+  std::set<std::string> getModelKeys() {
+    std::set<std::string> keys;
+    for (auto &it : creators_) {
+      for (auto &model_it : it.second) {
+        keys.insert(model_it.first);
+      }
+    }
+    return keys;
+  }
+
   std::set<std::pair<std::string, std::string>> getAllKeys() {
     std::set<std::pair<std::string, std::string>> keys;
     for (auto &infer_it : creators_) {

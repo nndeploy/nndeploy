@@ -5,7 +5,19 @@
 
 - [template/python/template.py](https://github.com/nndeploy/nndeploy/blob/main/template/python/template.py)
 
-- 使用方法：nndeploy-app --port 8000 --plugin path/to/template/python/template.py
+- 使用方法：
+    - 命令行加载
+        ```bash
+        nndeploy-app --port 8000 --plugin path/to/template/python/template.py
+        ```
+    - 代码依赖
+        ```python
+        import custom_node # 导入用户自定以节点
+        import nndeploy.server.app as app
+
+        if __name__ == "__main__":
+            app.main()
+        ```
 
 ## 自定义节点开发简介
 

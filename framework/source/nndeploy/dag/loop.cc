@@ -37,7 +37,9 @@ base::Status Loop::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
   status = this->initStart();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -60,7 +62,9 @@ base::Status Loop::init() {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "Loop initEnd failed!");
     return status;
   }
-  setInitializedFlag(true);
+  if (!is_inner_) {
+    setInitializedFlag(true);
+  }
 
   return status;
 }
@@ -78,14 +82,18 @@ base::Status Loop::deinit() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
   return status;
 }
 
 base::Status Loop::run() {
   base::Status status = base::kStatusCodeOk;
 
-  setRunningFlag(true);
+  if (!is_inner_) {
+    setRunningFlag(true);
+  }
 
   /**
    * LoopGraph + Executor 属于一个线程
@@ -104,8 +112,10 @@ base::Status Loop::run() {
     status = this->iterAfter();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "iterAfter failed!");
   }
-
-  setRunningFlag(false);
+  
+  if (!is_inner_) {
+    setRunningFlag(false);
+  }
   return status;
 }
 

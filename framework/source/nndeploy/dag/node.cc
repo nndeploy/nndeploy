@@ -892,12 +892,12 @@ base::Status Node::init() {
     stream_ = device::createStream(device_type_);
   }
   stop_ = false;
-  setInitializedFlag(true);
+  // setInitializedFlag(true);
   return base::kStatusCodeOk;
 }
 base::Status Node::deinit() {
   stop_ = false;
-  setInitializedFlag(false);
+  // setInitializedFlag(false);
   return base::kStatusCodeOk;
 }
 

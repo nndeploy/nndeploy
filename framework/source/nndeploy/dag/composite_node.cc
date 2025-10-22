@@ -7,7 +7,6 @@ namespace dag {
 CompositeNode::~CompositeNode() {
   if (this->getInitialized()) {
     this->deinit();
-    this->setInitializedFlag(false);
   }
 
   for (auto node_wrapper : node_repository_) {

@@ -53,7 +53,6 @@ Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
 Graph::~Graph() {
   if (this->getInitialized()) {
     this->deinit();
-    this->setInitializedFlag(false);
   }
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
@@ -1309,7 +1308,9 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
 
   // NNDEPLOY_LOGE("###########################\n");
   // NNDEPLOY_LOGE("construct!\n");
@@ -1327,7 +1328,9 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(true);
+  if (!is_inner_) {
+    setInitializedFlag(true);
+  }
 
   return status;
 }
@@ -1360,7 +1363,9 @@ base::Status Graph::deinit() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
 
   return status;
 }
@@ -1371,7 +1376,9 @@ base::Status Graph::run() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setRunningFlag(true);
+  if (!is_inner_) {
+    setRunningFlag(true);
+  }
 
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node run Phase!\n");
@@ -1382,7 +1389,9 @@ base::Status Graph::run() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setRunningFlag(false);
+  if (!is_inner_) {
+    setRunningFlag(false);
+  }
 
   return status;
 }
@@ -1873,8 +1882,8 @@ base::Status Graph::addResourceWithoutState(const std::string &key,
 base::Any &Graph::getResourceWithoutState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_without_state_.find(key) == resource_without_state_.end()) {
-      NNDEPLOY_LOGI("global resource without state[%s] not found!\n",
-                    key.c_str());
+      // NNDEPLOY_LOGI("global resource without state[%s] not found!\n",
+      //               key.c_str());
       static base::Any any;
       return any;
     }
@@ -1901,7 +1910,7 @@ base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
 Edge *Graph::getResourceWithState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) == resource_with_state_.end()) {
-      NNDEPLOY_LOGI("global resource with state[%s] not found!\n", key.c_str());
+      // NNDEPLOY_LOGI("global resource with state[%s] not found!\n", key.c_str());
       return nullptr;
     }
     return resource_with_state_[key];

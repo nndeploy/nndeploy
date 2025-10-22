@@ -44,7 +44,7 @@ class AppVM: ViewModel() {
 fun App() {
     val nav = rememberNavController()
     val vm: AppVM = viewModel()
-    val sharedAIViewModel: AIViewModel = viewModel() // 创建共享的AI ViewModel
+    val sharedAIViewModel: AIViewModel = viewModel() // Create shared AI ViewModel
     
     Log.w("App", "App composable initialized")
     Scaffold(
@@ -55,48 +55,48 @@ fun App() {
             startDestination = "ai",
             modifier = Modifier.padding(inner)
         ) {
-            // AI算法页面 - 传递共享ViewModel
+            // AI algorithm page - pass shared ViewModel
             composable("ai") { 
                 AIScreen(nav, sharedAIViewModel) 
             }
-            // // AI算法处理页面路由 - 接收算法ID参数
-            // // 路径格式: "ai_process/{algorithmId}" 其中algorithmId是动态参数
+            // // AI algorithm processing page route - receive algorithm ID parameter
+            // // Path format: "ai_process/{algorithmId}" where algorithmId is dynamic parameter
             // composable("ai_process/{algorithmId}") { backStackEntry ->
-            //     // 从导航参数中提取算法ID，如果获取失败则使用空字符串作为默认值
+            //     // Extract algorithm ID from navigation parameters, use empty string as default if failed
             //     val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
-            //     // 调用CV处理页面，传入导航控制器、算法ID和共享的AI ViewModel
+            //     // Call CV processing page, pass navigation controller, algorithm ID and shared AI ViewModel
             //     CVProcessScreen(nav, algorithmId, sharedAIViewModel)
             // }
-            // 在 MainActivity.kt 的 NavHost 中修改路由
+            // Modify route in NavHost in MainActivity.kt
             composable("ai_process/{algorithmId}") { backStackEntry ->
                 val algorithmId = backStackEntry.arguments?.getString("algorithmId") ?: ""
                 val algorithm = AlgorithmFactory.getAlgorithmsById(sharedAIViewModel.availableAlgorithms, algorithmId)
                 
-                // 根据算法的processFunction选择不同的处理页面
+                // Choose different processing pages based on algorithm's processFunction
                 when (algorithm?.processFunction) {
                     "processPromptInPromptOut" -> {
-                        // 智能对话类算法使用LlmChatProcessScreen
+                        // Intelligent chat algorithms use LlmChatProcessScreen
                         LlmChatProcessScreen(nav, algorithmId, sharedAIViewModel)
                     }
                     "processImageInImageOut" -> {
-                        // 图像处理类算法使用CVProcessScreen
+                        // Image processing algorithms use CVProcessScreen
                         CVProcessScreen(nav, algorithmId, sharedAIViewModel)
                     }
                     else -> {
-                        // 默认使用CVProcessScreen
+                        // Default to CVProcessScreen
                         CVProcessScreen(nav, algorithmId, sharedAIViewModel)
                     }
                 }
             }
             
-            // AI算法结果展示页面路由
-            // 用于显示算法处理完成后的结果
+            // AI algorithm result display page route
+            // Used to display results after algorithm processing is complete
             composable("ai_result") { 
-                // 调用CV结果页面，传入导航控制器和共享的AI ViewModel
+                // Call CV result page, pass navigation controller and shared AI ViewModel
                 CVResultScreen(nav, sharedAIViewModel) 
             }
             
-            // 我的页面
+            // Mine page
             composable("mine") { MineScreen(nav) }
         }
     }
@@ -110,19 +110,18 @@ fun BottomBar(nav: NavHostController) {
                 Log.w("BottomBar", "Navigate to AI")
                 nav.navigate("ai") 
             },
-            icon = { Icon(Icons.Default.SmartToy, contentDescription = "AI工具") }, 
-            label = { Text("AI工具") }
+            icon = { Icon(Icons.Default.SmartToy, contentDescription = "AI Tools") }, 
+            label = { Text("AI Tools") }
         )
         NavigationBarItem(
             selected = false, onClick = { 
                 Log.w("BottomBar", "Navigate to mine")
                 nav.navigate("mine") 
             },
-            icon = { Icon(Icons.Default.Person, contentDescription = "我的") }, 
-            label = { Text("我的") }
+            icon = { Icon(Icons.Default.Person, contentDescription = "Mine") }, 
+            label = { Text("Mine") }
         )
     }
 }
-
 
 
