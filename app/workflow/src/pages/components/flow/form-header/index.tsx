@@ -185,7 +185,7 @@ export function FormHeader() {
     prefillNode = getNodeByName('Prefill_2', clientContext)
     prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
-    let inputs = allInputLines.map(item => {
+    let inputs = lodash.uniqBy(allInputLines, ['from',  'fromPort']).map(item => {
       return {
         //id: "new_port_" + Math.random().toString(36).substr(2, 9),
         id: item.toPort,
@@ -296,7 +296,7 @@ export function FormHeader() {
 
     setTimeout(() => {
 
-      //node.getData(WorkflowNodePortsData).updateDynamicPorts()
+      node.getData(WorkflowNodePortsData).updateDynamicPorts()
 
       expandInfo.inputLines.map(inputLine => {
 

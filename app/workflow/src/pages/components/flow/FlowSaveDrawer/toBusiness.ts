@@ -5,6 +5,7 @@ import {
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON } from "../../../../typings";
+import lodash from 'lodash'
 import {
   IBusinessNode,
   Inndeploy_ui_layout,
@@ -544,7 +545,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     if (isContainerNode(node.id, clientContext)) {
       const inputLines = getSubcavasInputLines(getNodeById(node.id, clientContext)!, clientContext)
-      inputArray_ = inputLines.map(item => {
+      inputArray_ = lodash.uniqBy(inputLines, ['from',  'fromPort']).map(item => {
 
         const name_ = edgeToNameMap[item.oldTo + "@" + item.oldToPort]
         return {
@@ -580,7 +581,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     if (isContainerNode(node.id, clientContext)) {
       const outputLines = getSubcavasOutputLines(getNodeById(node.id, clientContext)!, clientContext)
-      outputArray_ = outputLines.map(item => {
+      outputArray_ =  lodash.uniqBy(outputLines, ['oldFrom',  'oldFromPort']).map(item => {
 
         const name_ = edgeToNameMap[item.oldFrom + "@" + item.oldFromPort]
         return {

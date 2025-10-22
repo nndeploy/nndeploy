@@ -52,6 +52,8 @@ export function FormContent(props: { children?: React.ReactNode }) {
   //   form?.getValueIn('inputs_'),
   //   form?.getValueIn('outputs_')
   // ])
+
+ 
   return (
     <FormWrapper className='form-content'>
 
@@ -62,6 +64,14 @@ export function FormContent(props: { children?: React.ReactNode }) {
               <div className="input-area">
                 <FieldArray name="inputs_">
                   {({ field }) => {
+
+                      let temp = field.map
+                      if(!temp){
+                        debugger
+                         let  name_ = form?.getValueIn('name_')
+                         let j = 0 
+
+                      }
 
                     return <>
                       {field.map((child, index) => {
@@ -206,7 +216,7 @@ export function FormContent(props: { children?: React.ReactNode }) {
 
       </div>
       }
-      {expanded ? (
+      {expanded  || isSidebar? (
         <>
           {/* {isSidebar && <FormTitleDescription>{registry.info?.description}</FormTitleDescription>} */}
           {props.children}

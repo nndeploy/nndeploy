@@ -5,6 +5,8 @@ import { getAllInnerNodes, getNodeById, getNodeExpandInfo, getNodeNameByNodeId, 
 /** lines from  outsize this node's inner node */
 export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
 
+  const newPortMap: { [fromNodeAndPort: string]: string } = {}
+
   const allInnerNodes = getAllInnerNodes(node)
   const allInnerNodeIds = allInnerNodes.map((node) => node.id)
   const allInputLines = allInnerNodes.map((innerNode) => {
@@ -20,6 +22,23 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
         return input.id == line.toPort?.portID
 
       })
+
+      function getNewToPort() {
+        let newToPort = ''
+
+        const alreadyPort = newPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
+
+
+        if (alreadyPort) {
+          newToPort = alreadyPort
+        } else {
+          newToPort = "new_port_" + Math.random().toString(36).substr(2, 9)
+          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newToPort
+        }
+        return newToPort
+      }
+
+      const newToPort = getNewToPort()
 
 
       let old_to_name = getNodeNameByNodeId(line.to!.id, clientContext)
@@ -39,7 +58,7 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
         to_name: getNodeNameByNodeId(node.id, clientContext),
         //toPort: line.toPort!.portID,
 
-        toPort: "new_port_" + Math.random().toString(36).substr(2, 9),
+        toPort:  newToPort,   //"new_port_" + Math.random().toString(36).substr(2, 9),
 
         // toPort: "new_port_" + Math.random().toString(36).substr(2, 9),
         type_: port?.type_,
@@ -140,7 +159,7 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
 export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
 
 
-  const fromNodePortToNewPortMap: { [fromNodeAndPort: string]: string } = {}
+  const newPortMap: { [fromNodeAndPort: string]: string } = {}
 
   const allInnerNodes = getAllInnerNodes(node)
   const allInnerNodeIds = allInnerNodes.map((node) => node.id)
@@ -166,14 +185,14 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
       function getNewFromPort() {
         let newFromPort = ''
 
-        const alreadyPort = fromNodePortToNewPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
+        const alreadyPort = newPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
 
 
         if (alreadyPort) {
           newFromPort = alreadyPort
         } else {
           newFromPort = "new_port_" + Math.random().toString(36).substr(2, 9)
-          fromNodePortToNewPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newFromPort
+          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newFromPort
         }
         return newFromPort
       }

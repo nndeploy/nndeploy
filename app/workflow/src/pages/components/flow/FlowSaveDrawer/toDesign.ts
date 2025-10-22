@@ -235,7 +235,8 @@ export function transferBusinessNodeToDesignNodeIterate(
       //...nodeExtra[businessNode.name_], 
       //expandInfo: nodeExtra[businessNode.name_],
       defaultExpanded: true,
-      needInitShrip,
+      //needInitShrip,
+      needInitShrip: false, 
 
       iShrimpDelayIndex: needInitShrip ? iShrimpDelayIndex : 0,
       //defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true
