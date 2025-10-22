@@ -74,17 +74,9 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
     const subcavasEdges: WorkflowEdgeJSON[] = []
 
 
-    function isContainerNode(nodeId: string) {
-      let node = clientContext.document.getNode(nodeId)
-      let form = node?.form
-      let isContainer = form?.getValueIn('is_graph_') ?? false
-      return isContainer
-    }
-
-
     lines.map(line => {
 
-      let isSourceNodeContainer = isContainerNode(line.sourceNodeID)
+      let isSourceNodeContainer = isContainerNode(line.sourceNodeID, clientContext)
 
       if (isSourceNodeContainer) {
 

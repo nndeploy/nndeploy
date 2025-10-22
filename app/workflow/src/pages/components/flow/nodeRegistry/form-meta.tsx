@@ -4,6 +4,7 @@ import {
   ValidateTrigger,
   Field,
   FieldArray,
+  useClientContext,
 } from "@flowgram.ai/free-layout-editor";
 
 import { SubCanvasRender } from '@flowgram.ai/free-container-plugin';
@@ -27,6 +28,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { PropertyEdit } from "./propertyEdit";
 import IoType, { EnumIODataType } from "./ioType";
+import { isContainerNode } from "../functions";
 
 const { Text } = Typography;
 
@@ -35,7 +37,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const { nodeList = [], paramTypes, element: flowElementRef, runInfo } = useFlowEnviromentContext()
 
-  const { expanded } = useNodeRenderContext();
+  const { expanded, node } = useNodeRenderContext();
+
+  const clientContext = useClientContext()
 
 
   //const key_ = form.getValueIn("key_");
@@ -46,7 +50,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const ioType: EnumIODataType = form.getValueIn('io_type_')
 
-  const isContainer = form.getValueIn('is_graph_')
+  const isContainer = isContainerNode(node.id, clientContext)
 
   function getIoTypeFieldName() {
 
@@ -70,6 +74,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const excludeFields = [
     "id",
+    "name_", 
     "key_",
     // "param_",
     // "inputs_",
@@ -78,6 +83,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_input_',
     'is_dynamic_output_',
     "is_graph_",
+    "is_composite_node_", 
+    "is_loop_", 
     "is_inner_",
     "node_type_",
 
@@ -91,6 +98,11 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'required_params_',
     'size',
     'blocks',
+    "image_url_", 
+    "video_url_", 
+    "audio_url_", 
+    "model_url_", 
+    "other_url_",
 
 
   ];
@@ -145,10 +157,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
 
   return (
-
+    
+     
+    
     <div className="drawer-render-form" ref={renderFormRef}>
+    
       <FormHeader />
-
       <FormContent>
         {!isSidebar && (
           <>
@@ -245,6 +259,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
       </FormContent>
 
 
+
       {/* <SideSheet
         width={"60%"}
         mask={true}
@@ -263,6 +278,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
       </SideSheet> */}
     </div >
+    
   );
 };
 

@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 
-import { Field, FieldArray, FlowNodeRegistry, useWatchFormValueIn, WorkflowNodePortsData, WorkflowPorts } from '@flowgram.ai/free-layout-editor';
+import { Field, FieldArray, FlowNodeRegistry, useClientContext, useWatchFormValueIn, WorkflowNodePortsData, WorkflowPorts } from '@flowgram.ai/free-layout-editor';
 
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormTitleDescription, FormWrapper } from './styles';
 import { Tooltip } from '@douyinfe/semi-ui';
+import { isContainerNode } from '../../pages/components/flow/functions';
 
 /**
  * @param props
@@ -14,8 +15,10 @@ export function FormContent(props: { children?: React.ReactNode }) {
   const { node, expanded, form } = useNodeRenderContext();
   const isSidebar = useIsSidebar();
   const registry = node.getNodeRegistry<FlowNodeRegistry>();
+  const clientContext = useClientContext()
 
-  const isContainer = form?.getValueIn('is_graph_')
+  const isContainer = isContainerNode(node.id, clientContext)
+  
 
   // useEffect(() => {
 
@@ -59,7 +62,7 @@ export function FormContent(props: { children?: React.ReactNode }) {
 
       {!isSidebar && <div className="connection-area" >
         {
-          isContainer && expanded ? <></> :
+          isContainer && expanded  ? <></> :
             <>
               <div className="input-area">
                 <FieldArray name="inputs_">
@@ -218,8 +221,8 @@ export function FormContent(props: { children?: React.ReactNode }) {
       }
       {expanded  || isSidebar? (
         <>
-          {/* {isSidebar && <FormTitleDescription>{registry.info?.description}</FormTitleDescription>} */}
-          {props.children}
+         
+          {  props.children}
         </>
       ) : undefined}
     </FormWrapper>

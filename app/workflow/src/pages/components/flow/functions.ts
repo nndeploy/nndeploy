@@ -200,7 +200,12 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
 export function isContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
   let node = clientContext.document.getNode(nodeId)
   let form = node?.form
-  let isContainer = form?.getValueIn('is_graph_') ?? false
+  let isContainer = (
+    form?.getValueIn('is_graph_')
+    || form?.getValueIn('is_composite_node_')
+    || form?.getValueIn('is_loop_')
+  )
+    ?? false
   return isContainer
 }
 

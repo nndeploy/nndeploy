@@ -3,6 +3,7 @@ import styled from 'styled-components';
 export const Header = styled.div`
   box-sizing: border-box;
   display: flex;
+ // display: none;
   justify-content: flex-start;
   align-items: center;
   width: 100%;
