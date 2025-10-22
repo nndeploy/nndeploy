@@ -145,10 +145,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
 
   return (
-
+    
+     
+    
     <div className="drawer-render-form" ref={renderFormRef}>
+    
       <FormHeader />
-
       <FormContent>
         {!isSidebar && (
           <>
@@ -245,6 +247,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
       </FormContent>
 
 
+
       {/* <SideSheet
         width={"60%"}
         mask={true}
@@ -263,6 +266,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
       </SideSheet> */}
     </div >
+    
   );
 };
 

@@ -59,7 +59,7 @@ export function FormContent(props: { children?: React.ReactNode }) {
 
       {!isSidebar && <div className="connection-area" >
         {
-          isContainer && expanded ? <></> :
+          isContainer && expanded  ? <></> :
             <>
               <div className="input-area">
                 <FieldArray name="inputs_">
@@ -218,8 +218,8 @@ export function FormContent(props: { children?: React.ReactNode }) {
       }
       {expanded  || isSidebar? (
         <>
-          {/* {isSidebar && <FormTitleDescription>{registry.info?.description}</FormTitleDescription>} */}
-          {props.children}
+         
+          {  props.children}
         </>
       ) : undefined}
     </FormWrapper>

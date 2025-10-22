@@ -24,12 +24,13 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       isContainer: !!nodeEntity.is_graph_ ,
       useDynamicPort: true,
       dynamicPort: true,
+      //disableSideBar: true,
       //disableSideBar: !!nodeEntity.is_graph_,
       expandable: !!nodeEntity.is_graph_, // disable expanded
 
       padding: () => ({
-        top: 25,
-        bottom: 5,
+        top: 45, //25
+        bottom: 25, //5
         left: 15,
         right: 15,
       }),

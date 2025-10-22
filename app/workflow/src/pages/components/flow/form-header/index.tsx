@@ -59,13 +59,18 @@ export function FormHeader() {
   useEffect(() => {
     // 折叠 loop 子节点
     //if (node.flowNodeType === 'loop') {
-    toggleLoopExpanded(node, expanded);
+
+    if ( node.form?.getValueIn('is_graph_') ) {
+
+
+      toggleLoopExpanded(node, expanded);
+    }
 
     // node.updateExtInfo({ expanded });
 
     // node.updateExtInfo({ hoby: 'pingpang' });
     //}
-  }, [expanded]);
+  }, [expanded, isSidebar]);
 
 
   // useEffect(() => {
@@ -185,7 +190,7 @@ export function FormHeader() {
     prefillNode = getNodeByName('Prefill_2', clientContext)
     prefillNodeExpandInfo = prefillNode?.getNodeMeta().expandInfo
 
-    let inputs = lodash.uniqBy(allInputLines, ['from',  'fromPort']).map(item => {
+    let inputs = lodash.uniqBy(allInputLines, ['from', 'fromPort']).map(item => {
       return {
         //id: "new_port_" + Math.random().toString(36).substr(2, 9),
         id: item.toPort,
@@ -195,9 +200,9 @@ export function FormHeader() {
     })
 
 
-    let temp =  lodash.uniqBy(allOutputLines, ['oldFrom',  'oldFromPort'])
+    let temp = lodash.uniqBy(allOutputLines, ['oldFrom', 'oldFromPort'])
 
-    let outputs = lodash.uniqBy(allOutputLines, ['oldFrom',  'oldFromPort']).map(item => {
+    let outputs = lodash.uniqBy(allOutputLines, ['oldFrom', 'oldFromPort']).map(item => {
       return {
         //id: "new_port_" + Math.random().toString(36).substr(2, 9),
         id: item.fromPort,
