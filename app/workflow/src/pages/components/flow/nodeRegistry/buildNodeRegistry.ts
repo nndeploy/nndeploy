@@ -11,6 +11,9 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
   //let formMetaTemp =  ['nndeploy::detect::YoloGraph', ''].includes( nodeEntity.key_) ? groupFormMeta: formMeta
 
   //let type = ['nndeploy::detect::YoloGraph'].includes( nodeEntity.key_) ? 'group': nodeEntity.key_
+
+  const isContainer = nodeEntity.is_composite_node_ || nodeEntity.is_loop_ || nodeEntity.is_graph_
+
   const nodeRegistry: FlowNodeRegistry = {
     type: nodeEntity.key_,
     info: {
@@ -21,12 +24,12 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
     meta: {
       //defaultPorts: [{ type: "input" }],
       // Condition Outputs use dynamic port
-      isContainer: !!nodeEntity.is_graph_ ,
+      isContainer: isContainer,
       useDynamicPort: true,
       dynamicPort: true,
       //disableSideBar: true,
       //disableSideBar: !!nodeEntity.is_graph_,
-      expandable: !!nodeEntity.is_graph_, // disable expanded
+      expandable: isContainer, // disable expanded
 
       padding: () => ({
         top: 45, //25

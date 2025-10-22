@@ -9,6 +9,7 @@ import { scrollToView } from './utils';
 import { NodeWrapperStyle } from './styles';
 import { BorderArea } from './border-area';
 import { useSize } from '../comment/hooks';
+import { isContainerNode } from '../../pages/components/flow/functions';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
@@ -28,7 +29,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   const form = nodeRender.form;
   const ctx = useClientContext();
 
-  const isContainer = form?.getValueIn('is_graph_');
+  const isContainer = isContainerNode(node.id, ctx);
 
   const { width, height, onResize } = useSize();
 

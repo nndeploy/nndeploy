@@ -60,8 +60,7 @@ export function FormHeader() {
     // 折叠 loop 子节点
     //if (node.flowNodeType === 'loop') {
 
-    if ( node.form?.getValueIn('is_graph_') ) {
-
+    if(isContainerNode(node.id, clientContext)){
 
       toggleLoopExpanded(node, expanded);
     }
