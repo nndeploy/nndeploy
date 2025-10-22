@@ -175,12 +175,12 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
   More example code: [Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python Object Detection](demo/detect/demo.py) | [C++ Object Detection](demo/detect/demo.cc) | 
 
 
-**Recommended Process**
+**Recommended Development Workflow**
 
-- Development Phase: Design and debug through the visual workflow, verifying the algorithm's effect and performance in the visual interface. **Develop custom nodes if necessary**.
-- Deployment Phase: Export the verified workflow as a JSON configuration file with one click, and load and run it directly in the production environment via Python/C++ API.
+- Development Phase: Design and debug workflows using the visual interface. **Develop custom nodes when necessary**
+- Deployment Phase: Export JSON configuration and load via API
 
-Whether through the visual frontend interface or API calls, they ultimately execute in the underlying unified high-performance C++ computation engine. This architectural design ensures that the workflow has completely consistent execution behavior and performance in both development/debugging and production deployment environments, realizing the "write once, run anywhere" philosophy.
+Whether through visual interface or API calls, all workflows execute in the unified high-performance C++ compute engine, ensuring consistency between development and deployment environments.
 
 > Requires Python 3.10+, includes PyTorch and ONNXRuntime by default. For more inference backends, please use the developer mode.
 
