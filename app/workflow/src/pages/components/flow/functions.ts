@@ -293,3 +293,18 @@ export function getNodeExpandInfo(nodeId: string, clientContext: FreeLayoutPlugi
   return expandInfo
 }
 
+export function nodeIterate<Node>(
+  node: Node,
+  childFieldName: string, 
+  process: (node: Node,  parents: Node[] ) => void, 
+
+  parents: Node[] = []
+) {
+  process(node, parents);
+  if (node[childFieldName as keyof Node] && (node[childFieldName as keyof Node] as Node[])?.length > 0) {
+    (node[childFieldName as keyof Node] as Node[]).forEach((child) => {
+      nodeIterate(child, childFieldName, process,  [...parents, child]);
+    });
+  }
+}
+

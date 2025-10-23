@@ -223,7 +223,7 @@ export function transferBusinessNodeToDesignNodeIterate(
     iShrimpDelayIndex++
   }
 
-  function getNodeUiExtraInfo() {
+  function getNodeUiExtraInfo(businessNode: IBusinessNode) {
 
     let nodeUiExtraInfo: INodeUiExtraInfo = { position: { x: 0, y: 0 }, size: { width: 200, height: 80 } }
 
@@ -251,7 +251,7 @@ export function transferBusinessNodeToDesignNodeIterate(
     return nodeUiExtraInfo
   }
 
-  const nodeUiExtraInfo = getNodeUiExtraInfo()
+  const nodeUiExtraInfo = getNodeUiExtraInfo(businessNode)
 
   const designNode: FlowNodeJSON = {
     id: `${businessNode.id}`,

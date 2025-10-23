@@ -1,4 +1,4 @@
-import { Field, FieldRenderProps, useClientContext, WorkflowLinePortInfo, WorkflowNodePortsData } from '@flowgram.ai/free-layout-editor';
+import { Field, FieldRenderProps, useClientContext, usePlaygroundTools, WorkflowLinePortInfo, WorkflowNodePortsData } from '@flowgram.ai/free-layout-editor';
 import { Typography, Button } from '@douyinfe/semi-ui';
 import { IconSmallTriangleDown, IconSmallTriangleLeft } from '@douyinfe/semi-icons';
 import { Header, Operators, Title } from './styles';
@@ -23,6 +23,21 @@ export function FormHeader() {
   const linesManager = clientContext.document.linesManager
 
   const [diposedPort, setDiposedPort] = useState<any[]>([])
+
+
+  const tools = usePlaygroundTools();
+
+
+  useEffect(() => {
+    if (node?.getNodeMeta?.()?.needInitAutoLayout) {
+      tools.autoLayout({
+        containerNode: node, //ref?.current?.document.getNode(node.id),
+        enableAnimation: true,
+        animationDuration: 1000,
+        disableFitView: true,
+      })
+    }
+  }, [])
 
 
   useEffect(() => {
@@ -50,7 +65,7 @@ export function FormHeader() {
   const handleExpand = (e: React.MouseEvent) => {
     toggleExpand();
 
-    if(isCompositeNode(node.id, clientContext)){ //composite node don't need to build dynamic ports and lines
+    if (isCompositeNode(node.id, clientContext)) { //composite node don't need to build dynamic ports and lines
       return
     }
     if (expanded == true) {
@@ -67,7 +82,7 @@ export function FormHeader() {
 
     //if(isContainerNode(node.id, clientContext)){
 
-      toggleLoopExpanded(node, expanded);
+    toggleLoopExpanded(node, expanded);
     //}
 
     // node.updateExtInfo({ expanded });
@@ -301,7 +316,7 @@ export function FormHeader() {
     form?.setValueIn('inputs_', [])
     form?.setValueIn('outputs_', [])
 
-    
+
 
     setTimeout(() => {
 

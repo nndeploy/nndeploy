@@ -264,7 +264,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   let allEdges = getAllEdges(designData, clientContext);
 
 
-  function getNodesLayout() {
+  function buildNodesLayout() {
 
     let nodesExtraInfo: { [nodeName: string]: INodeUiExtraInfo } = {}
 
@@ -317,7 +317,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     return nodesExtraInfo
   }
 
-  const nodesLayout = getNodesLayout()
+  const nodesLayout = buildNodesLayout()
 
   function getGroupInfos() {
     let groups = designData.nodes.filter(node => node.type == 'group')
