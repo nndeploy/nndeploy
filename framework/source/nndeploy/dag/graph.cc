@@ -1070,10 +1070,10 @@ Graph::getNodesRunStatusRecursive() {
         run_status_map.insert(graph_run_status_map.begin(),
                               graph_run_status_map.end());
       }
-    } else {
-      run_status_map[node_wrapper->node_->getName()] =
-          node_wrapper->node_->getRunStatus();
     }
+
+    run_status_map[node_wrapper->node_->getName()] =
+        node_wrapper->node_->getRunStatus();
   }
   return run_status_map;
 }
@@ -1910,7 +1910,8 @@ base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
 Edge *Graph::getResourceWithState(const std::string &key) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) == resource_with_state_.end()) {
-      // NNDEPLOY_LOGI("global resource with state[%s] not found!\n", key.c_str());
+      // NNDEPLOY_LOGI("global resource with state[%s] not found!\n",
+      // key.c_str());
       return nullptr;
     }
     return resource_with_state_[key];
@@ -2780,7 +2781,10 @@ base::Status Graph::deserialize(const std::string &json_str) {
         Node *node = nullptr;
         // TODO
         if (node_repository_.size() > i) {
-          node = node_repository_[i]->node_;
+          node = this->getNode(node_desc.getName());
+          if (node == nullptr) {
+            node = node_repository_[i]->node_;
+          }
           base::Status status = this->setNodeDesc(node, node_desc);
           if (status != base::kStatusCodeOk) {
             NNDEPLOY_LOGE(
