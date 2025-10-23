@@ -38,8 +38,9 @@ export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
         <NodeWrapper>
           {form?.state.invalid && <ErrorIcon />}
           {form?.render()}
+           <NodeStatusBar />
         </NodeWrapper>
-        <NodeStatusBar />
+       
       </NodeRenderContext.Provider>
     </ConfigProvider>
   );
