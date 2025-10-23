@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { IExpandInfo } from '../entity';
 import lodash from 'lodash'
 import { adjustInputLinesReleventContainerNodeExpandInfo, adjustOutputLinesReleventContainerNodeExpandInfo, destroySubcavasInputLines, destroySubcavasOutputLines, getSubcavasInputLines, getSubcavasOutputLines } from './function';
-import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode } from '../functions';
+import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isCompositeNode, isContainerNode, isDynamicContainerNode } from '../functions';
 import { getIcon } from './utils';
 
 const { Text } = Typography;
@@ -49,6 +49,10 @@ export function FormHeader() {
 
   const handleExpand = (e: React.MouseEvent) => {
     toggleExpand();
+
+    if(isCompositeNode(node.id, clientContext)){ //composite node don't need to build dynamic ports and lines
+      return
+    }
     if (expanded == true) {
       shrimpNode()
     } else {
@@ -318,7 +322,7 @@ export function FormHeader() {
 
         linesManager.createLine(line)
 
-        const isFromNodeContainer = isContainerNode(inputLine.from, clientContext)
+        const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext)
         if (!isFromNodeContainer) {
           return
         }
@@ -377,7 +381,7 @@ export function FormHeader() {
         }
 
 
-        const isToNodeContainer = isContainerNode(outputLine.to, clientContext)
+        const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
         if (!isToNodeContainer) {
           return
         }

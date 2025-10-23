@@ -200,14 +200,61 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
 export function isContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
   let node = clientContext.document.getNode(nodeId)
   let form = node?.form
-  let isContainer = (
+  let result = (
     form?.getValueIn('is_graph_')
-   
+
     || form?.getValueIn('is_loop_')
-     || form?.getValueIn('is_composite_node_')
+    || form?.getValueIn('is_composite_node_')
   )
     ?? false
-  return isContainer
+  return result
+}
+
+export function isDynamicContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_graph_')
+
+    || form?.getValueIn('is_loop_')
+
+  )
+    ?? false
+  return result
+}
+
+
+export function isLoopNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_loop_')
+
+  )
+    ?? false
+  return result
+}
+
+export function isCompositeNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_composite_node_')
+
+  )
+    ?? false
+  return result
+}
+
+export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_graph_')
+
+  )
+    ?? false
+  return result
 }
 
 export function getNodeById(nodeId: string, clientContext: FreeLayoutPluginContext) {
