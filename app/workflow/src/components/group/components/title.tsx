@@ -10,6 +10,7 @@ import { } from '../../../pages/components/flow/FlowSaveDrawer/functions';
 import { useFlowEnviromentContext } from '../../../context/flow-enviroment-context';
 import { apiWorkFlowSave } from '../../../pages/Layout/Design/WorkFlow/api';
 import { designDataToBusinessData, getAllEdges, getEdgeToNameMaps } from '../../../pages/components/flow/FlowSaveDrawer/toBusiness';
+import { getNodeById } from '../../../pages/components/flow/functions';
 
 export const GroupTitle: FC = () => {
   const [inputting, setInputting] = useState(false);
@@ -56,9 +57,14 @@ export const GroupTitle: FC = () => {
     let allEdges = getAllEdges(workFlowJson , ctx);
 
 
-    let selectedNodes = allNodes.find(item => item.type == 'group' && item.data.name_ == groupName)?.blocks! as FlowNodeJSON[]
+    let selectedNodeIds:string[] = allNodes.find(item => item.type == 'group' && item.data.name_ == groupName)!.data.blockIDs
 
-    var j = 0
+    const selectedNodes = selectedNodeIds.map(nodeId=>{
+      let node = getNodeById(nodeId, ctx)
+      return node!.toJSON()
+    })
+
+    //var j = 0
 
     let designContent: FlowDocumentJSON = buildDesignData(selectedNodes, allEdges)
 
@@ -68,17 +74,18 @@ export const GroupTitle: FC = () => {
 
     let edgeMaps = getEdgeToNameMaps(allNodes, allEdges)
 
-    let selectedNodeIds = selectedNodes.map(node => {
-      return node.id
-    })
+    // let selectedNodeIds = selectedNodes.map(node => {
+    //   return node.id
+    // })
 
     let subFlowInputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.sourceNodeID))
 
     let inputs_: any[] = lodash.uniqBy(subFlowInputEdges, item => item.sourceNodeID).map(edge => {
 
-      let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
+     //let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
+     let soureNode = getNodeById(edge.sourceNodeID, ctx)!
 
-      let outputs = soureNode.data.outputs_ ?? []
+      let outputs = soureNode.form?.getValueIn('outputs_') ?? []
       let output = outputs.find( (item :  any)  => item.id == edge.sourcePortID)
 
       let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
@@ -94,9 +101,10 @@ export const GroupTitle: FC = () => {
 
     let outputs_ : any[] = lodash.uniqBy(subFlowOutputEdges, item => item.targetNodeID).map(edge => {
 
-      let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
+     // let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
+     let outputNode = getNodeById( edge.targetNodeID, ctx)!
 
-      let inputs = outputNode.data.inputs_ ?? []
+      let inputs = outputNode.form?.getValueIn('inputs_') ?? []
       let input = inputs.find((item : any) => item.id == edge.targetPortID)
 
       let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]

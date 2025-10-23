@@ -4,6 +4,7 @@ import { IDagGraphInfo, INodeEntity, INodeTreeNodeEntity, NodeTreeNodeData } fro
 import { FlowNodeRegistry } from '../../../../typings';
 import { buildNodeRegistry } from '../../../components/flow/nodeRegistry/buildNodeRegistry';
 import { CommentNodeRegistry } from '../../../../nodes/comment';
+import { GroupNodeRegistry } from '../../../../nodes/group';
 
 interface state {
   dagGraphInfo: IDagGraphInfo,
@@ -19,6 +20,7 @@ export const initialState: state = {
     graph: {
       key_: "",
       name_: "",
+      desc_: "", 
       device_type_: "",
       inputs_: [],
       outputs_: [],
@@ -94,6 +96,8 @@ export function reducer(state: state, action: any): state {
       })
 
       nodeRegistries.push(CommentNodeRegistry)
+       nodeRegistries.push(GroupNodeRegistry)
+       
 
 
       const treeData = buildTreeFromArray(dagGraphInfo.nodes)
