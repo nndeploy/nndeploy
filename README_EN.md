@@ -193,6 +193,7 @@ Whether through visual interface or API calls, all workflows execute in the unif
 - [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)
+- [Production Environment Deployment](docs/zh_cn/quick_start/deploy.md)
 
 ## Performance Testing
 

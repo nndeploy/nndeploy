@@ -193,6 +193,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 - [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
 
 ## 性能测试
 

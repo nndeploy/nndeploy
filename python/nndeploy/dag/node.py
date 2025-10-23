@@ -12,14 +12,20 @@ import nndeploy.device
 
 from .base import EdgeTypeInfo
 from .edge import Edge
-
 class NodeDesc(_C.dag.NodeDesc):
     """Node description class that wraps the C++ NodeDesc.
     
-    This class provides a Python interface for node descriptions,
-    including name, inputs, outputs, and optional key.
+    This class provides a Python interface for node descriptions, including name, inputs, outputs, and optional key.
     """
     def __init__(self, name: str = "", inputs: list[str] = None, outputs: list[str] = None, key: str = None):
+        """Initialize the node description.
+        
+        Args:
+            name: Node name
+            inputs: List of input names
+            outputs: List of output names
+            key: Optional node key
+        """
         if inputs is None:
             inputs = []
         if outputs is None:
@@ -35,7 +41,7 @@ class NodeDesc(_C.dag.NodeDesc):
         return super().get_key()
         
     def get_name(self) -> str:
-        """Get the name of the node."""
+        """Get the node name."""
         return super().get_name()
         
     def get_inputs(self) -> list[str]:
@@ -57,10 +63,17 @@ class NodeDesc(_C.dag.NodeDesc):
 class Node(_C.dag.Node):
     """Main Node class that wraps the C++ Node implementation.
     
-    This class provides a Python interface for graph nodes, including
-    initialization, execution, parameter management, and I/O handling.
+    This class provides a Python interface for graph nodes, including initialization,
+    execution, parameter management, and I/O handling.
     """
     def __init__(self, name: str, inputs=None, outputs=None):
+        """Initialize the node.
+        
+        Args:
+            name: The name of the node
+            inputs: List of input edges or None
+            outputs: List of output edges or None
+        """
         if inputs is None and outputs is None:
             super().__init__(name)
         elif isinstance(inputs, list) and isinstance(outputs, list):
@@ -100,11 +113,11 @@ class Node(_C.dag.Node):
         return super().get_developer()
     
     def set_source(self, source: str):
-        """Set the Source repository information for the node."""
+        """Set the source code repository information for the node."""
         return super().set_source(source)
     
     def get_source(self) -> str:
-        """Get the Source repository information of the node."""
+        """Get the source code repository information of the node."""
         return super().get_source()
     
     def set_desc(self, desc: str):
@@ -140,100 +153,124 @@ class Node(_C.dag.Node):
         return super().get_param()
         
     def set_external_param(self, key: str, external_param):
-        """Set external parameters using a key-value pair."""
+        """Set external parameters using key-value pairs."""
         return super().set_external_param(key, external_param)
         
     def get_external_param(self, key: str):
-        """Get external parameter by key."""
+        """Get external parameters by key."""
         return super().get_external_param(key)
     
+    def add_resource_without_state(self, key: str, value):
+        """Add stateless resources using key-value pairs."""
+        return super().add_resource_without_state(key, value)
+    
+    def get_resource_without_state(self, key: str):
+        """Get stateless resources by key."""
+        return super().get_resource_without_state(key)
+    
+    def create_resource_with_state(self, key: str) -> _C.dag.Edge:
+        """Create stateful resources and return an edge pointer."""
+        return super().create_resource_with_state(key)
+    
+    def add_resource_with_state(self, key: str, edge: _C.dag.Edge):
+        """Add stateful resources using key and edge."""
+        return super().add_resource_with_state(key, edge)
+    
+    def get_resource_with_state(self, key: str) -> _C.dag.Edge:
+        """Get stateful resource edge by key."""
+        return super().get_resource_with_state(key)
+    
     def set_version(self, version: str):
-        """设置节点版本。"""
+        """Set the version of the node."""
         return super().set_version(version)
     
     def get_version(self) -> str:
-        """获取节点版本。"""
+        """Get the version of the node."""
         return super().get_version()
     
     def set_required_params(self, required_params: list):
-        """设置必需参数列表。"""
+        """Set the list of required parameters."""
         return super().set_required_params(required_params)
     
     def add_required_param(self, required_param: str):
-        """添加必需参数。"""
+        """Add a required parameter."""
         return super().add_required_param(required_param)
     
     def remove_required_param(self, required_param: str):
-        """移除必需参数。"""
+        """Remove a required parameter."""
         return super().remove_required_param(required_param)
     
     def clear_required_params(self):
-        """清空必需参数列表。"""
+        """Clear the list of required parameters."""
         return super().clear_required_params()
     
     def get_required_params(self) -> list:
-        """获取必需参数列表。"""
+        """Get the list of required parameters."""
         return super().get_required_params()
     
     def set_ui_params(self, ui_params: list):
-        """设置UI参数列表。"""
+        """Set the list of UI parameters."""
         return super().set_ui_params(ui_params)
     
     def add_ui_param(self, ui_param: str):
-        """添加UI参数。"""
+        """Add a UI parameter."""
         return super().add_ui_param(ui_param)
     
     def remove_ui_param(self, ui_param: str):
-        """移除UI参数。"""
+        """Remove a UI parameter."""
         return super().remove_ui_param(ui_param)
     
     def clear_ui_params(self):
-        """清空UI参数列表。"""
+        """Clear the list of UI parameters."""
         return super().clear_ui_params()
     
     def get_ui_params(self) -> list:
-        """获取UI参数列表。"""
+        """Get the list of UI parameters."""
         return super().get_ui_params()
     
     def set_io_params(self, io_params: list):
-        """设置IO参数列表。"""
+        """Set the list of IO parameters."""
         return super().set_io_params(io_params)
     
     def add_io_param(self, io_param: str):
-        """添加IO参数。"""
+        """Add an IO parameter."""
         return super().add_io_param(io_param)
     
     def remove_io_param(self, io_param: str):
-        """移除IO参数。"""
+        """Remove an IO parameter."""
         return super().remove_io_param(io_param)
     
     def clear_io_params(self):
-        """清空IO参数列表。"""
+        """Clear the list of IO parameters."""
         return super().clear_io_params()
     
     def get_io_params(self) -> list:
-        """获取IO参数列表。"""
+        """Get the list of IO parameters."""
         return super().get_io_params()
     
     def set_dropdown_params(self, dropdown_params: dict):
-        """设置下拉参数列表。"""
+        """Set the list of dropdown parameters."""
         return super().set_dropdown_params(dropdown_params)
     
     def add_dropdown_param(self, dropdown_param: str, dropdown_values: list):
-        """添加下拉参数。"""
+        """Add a dropdown parameter."""
         return super().add_dropdown_param(dropdown_param, dropdown_values)
     
     def remove_dropdown_param(self, dropdown_param: str):
-        """移除下拉参数。"""
+        """Remove a dropdown parameter."""
         return super().remove_dropdown_param(dropdown_param)
     
     def clear_dropdown_params(self):
-        """清空下拉参数列表。"""
+        """Clear the list of dropdown parameters."""
         return super().clear_dropdown_params()
         
     def set_input(self, input, index: int = -1):
         """Set input at the specified index."""
         return super().set_input(input, index)
+    
+    def set_iter_input(self, input, index: int = -1):
+        """Set iterative input at the specified index."""
+        return super().set_iter_input(input, index)
         
     def set_output(self, output, index: int = -1):
         """Set output at the specified index."""
@@ -330,6 +367,18 @@ class Node(_C.dag.Node):
     def is_running(self) -> bool:
         """Check if the node is currently running."""
         return super().is_running()
+    
+    def get_run_size(self) -> int:
+        """Get the run size of the node."""
+        return super().get_run_size()
+    
+    def get_completed_size(self) -> int:
+        """Get the completed size of the node."""
+        return super().get_completed_size()
+    
+    def get_run_status(self) -> _C.dag.RunStatus:
+        """Get the run status of the node."""
+        return super().get_run_status()
         
     def set_trace_flag(self, flag: bool):
         """Enable or disable tracing for the node."""
@@ -338,6 +387,38 @@ class Node(_C.dag.Node):
     def get_trace_flag(self) -> bool:
         """Check if tracing is enabled."""
         return super().get_trace_flag()
+    
+    def set_graph_flag(self, flag: bool):
+        """Set the graph flag for the node."""
+        return super().set_graph_flag(flag)
+        
+    def get_graph_flag(self) -> bool:
+        """Check if the graph flag is set."""
+        return super().get_graph_flag()
+        
+    def set_node_type(self, node_type):
+        """Set the node type."""
+        return super().set_node_type(node_type)
+        
+    def get_node_type(self):
+        """Get the node type."""
+        return super().get_node_type()
+        
+    def set_io_type(self, io_type):
+        """Set the I/O type for the node."""
+        return super().set_io_type(io_type)
+        
+    def get_io_type(self):
+        """Get the I/O type of the node."""
+        return super().get_io_type()
+        
+    def set_loop_count(self, loop_count: int):
+        """Set the loop count for the node."""
+        return super().set_loop_count(loop_count)
+        
+    def get_loop_count(self) -> int:
+        """Get the loop count of the node."""
+        return super().get_loop_count()
         
     def set_stream(self, stream):
         """Set the execution stream for the node."""

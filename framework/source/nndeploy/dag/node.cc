@@ -371,7 +371,6 @@ base::Status Node::setParam(base::Param *param) {
 }
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
-    NNDEPLOY_LOGI("Node [%s]::setParamSharedPtr param\n", name_.c_str());
     return param->copyTo(param_.get());
   } else {
     param_ = param;
