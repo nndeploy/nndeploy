@@ -53,6 +53,9 @@ if __name__ == "__main__":
 # githuh(nndeploy-workflow) -> resources/workflow
 ## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/workflow
 
+# resources/workflow -> githuh(nndeploy-workflow) 
+## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy/resources/workflow --dst_dir /home/always/github/public/nndeploy-workflow
+
 # githuh(nndeploy-workflow) -> resources/template/nndeploy-workflow
 ## python3 workflow_copy.py --src_dir /home/always/github/public/nndeploy-workflow --dst_dir /home/always/github/public/nndeploy/resources/template/nndeploy-workflow
 
