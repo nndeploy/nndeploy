@@ -1,6 +1,6 @@
 import { FlowNodeEntity, FreeLayoutPluginContext, WorkflowNodeLinesData } from "@flowgram.ai/free-layout-editor";
 import { ILineEntity } from "../entity";
-import { getAllInnerNodes, getNodeById, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode } from "../functions";
+import { getAllInnerNodes, getNodeById, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode, isDynamicContainerNode } from "../functions";
 
 /** lines from  outsize this node's inner node */
 export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
@@ -66,7 +66,7 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
       }
 
 
-      const isFromNodeContainer = isContainerNode(line.from!.id, clientContext)
+      const isFromNodeContainer = isDynamicContainerNode(line.from!.id, clientContext)
       if (isFromNodeContainer) {
         const formNodeExandInfo = getNodeExpandInfo(line.from!.id, clientContext)
         formNodeExandInfo?.outputLines.map(outputLine => {
@@ -106,7 +106,7 @@ export function destroySubcavasInputLines(node: FlowNodeEntity, clientContext: F
 
 export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {
   allInputLines.map(inputLine => {
-    const isFromNodeContainer = isContainerNode(inputLine.from, clientContext)
+    const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext)
     if (!isFromNodeContainer) {
       return
     }
@@ -226,7 +226,7 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
         desc_: `${port?.desc_}`,
       }
 
-      const isToNodeContainer = isContainerNode(line.to!.id, clientContext)
+      const isToNodeContainer = isDynamicContainerNode(line.to!.id, clientContext)
       if (isToNodeContainer) {
         const toNodeExandInfo = getNodeExpandInfo(line.to!.id, clientContext)
         toNodeExandInfo?.inputLines.map(inputLine => {
@@ -279,7 +279,7 @@ export function destroySubcavasOutputLines(node: FlowNodeEntity, clientContext: 
 
 export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {
   allOutputLines.map(outputLine => {
-    const isToNodeContainer = isContainerNode(outputLine.to, clientContext)
+    const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
     if (!isToNodeContainer) {
       return
     }

@@ -6,7 +6,7 @@ import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import { createFreeSnapPlugin } from "@flowgram.ai/free-snap-plugin";
 import { createFreeNodePanelPlugin } from "@flowgram.ai/free-node-panel-plugin";
 import { createFreeLinesPlugin } from "@flowgram.ai/free-lines-plugin";
-import { FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
 import { createFreeGroupPlugin } from "@flowgram.ai/free-group-plugin";
 import { createContainerNodePlugin } from "@flowgram.ai/free-container-plugin";
 
@@ -25,8 +25,9 @@ import {
 } from "../components";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
-import { getNodeById, isContainerNode } from "../pages/components/flow/functions";
+import { getNodeById, isCompositeNode, isContainerNode, isDynamicContainerNode } from "../pages/components/flow/functions";
 import { IExpandInfo } from "../pages/components/flow/entity";
+import lodash from 'lodash'
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
@@ -91,6 +92,19 @@ export function useEditorProps(
           return false
         }
 
+        function isNodeInComposite(node: FlowNodeEntity){
+          const parents: FlowNodeEntity[] = []  
+          while(node.parent){
+            parents.push(node.parent)
+            node = node.parent
+          }
+          return lodash.some(parents, (parent) => isCompositeNode(parent.id, ctx))
+        }
+
+        if(isNodeInComposite(fromPort.node) || isNodeInComposite(toPort.node)){
+          return false
+        }
+
       //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
       //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
       //   !succesorNodes && fromPort.type
@@ -110,7 +124,7 @@ export function useEditorProps(
        */
       canDeleteLine(ctx, line, newLineInfo, silent) {
 
-        if(isContainerNode(line.from!.id, ctx)){
+        if(isDynamicContainerNode(line.from!.id, ctx)){
           const fromNode  = getNodeById(line.from!.id, ctx)
           const expandInfo : IExpandInfo= fromNode?.getNodeMeta().expandInfo 
           let  {outputLines = [] } = expandInfo
@@ -131,7 +145,7 @@ export function useEditorProps(
 
         }
 
-        if(isContainerNode(line.to!.id, ctx)){
+        if(isDynamicContainerNode(line.to!.id, ctx)){
           const toNode  = getNodeById(line.to!.id, ctx)
           const expandInfo : IExpandInfo= toNode?.getNodeMeta().expandInfo 
           let  {inputLines = [] } = expandInfo

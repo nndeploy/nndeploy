@@ -14,14 +14,31 @@ import { ILineEntity, INodeUiExtraInfo } from "../entity";
 
 let iShrimpDelayIndex = 0
 
+function isInCompositeNode(parents: IBusinessNode[]) {
+  return parents.some((parent) => parent.is_composite_node_)
+}
+
+
 function getAllOutputPortNameToNodePortIdMap(businessContent: IBusinessNode, layout: Inndeploy_ui_layout['layout']) {
   const outputMap: { [key: string]: { nodeId: string; portId: string } } = {};
 
-  function processNode(businessNode: IBusinessNode) {
+  function processNode(businessNode: IBusinessNode, parents: IBusinessNode[]) {
 
-    if (businessNode.is_graph_) {  // subcavas dont't make line when loaded 
+
+    if (businessNode.is_graph_ || businessNode.is_loop_) { // subcavas dont't make line when loaded,, relevent lines connectd to or from it's children  
       return
     }
+
+    const isInComposite = isInCompositeNode(parents)
+
+    if (isInComposite) {
+      return
+    }
+
+
+    // if (businessNode.is_graph_) { 
+    //   return
+    // }
     if (businessNode.outputs_) {
       businessNode.outputs_?.map((output) => {
         if (output.name_) {
@@ -44,11 +61,13 @@ function getAllOutputPortNameToNodePortIdMap(businessContent: IBusinessNode, lay
         }
       });
     }
-    // const children = businessNode.node_repository_ ?? [];
-    // children.map((childNode) => {
-    //   processNode(childNode, [...parentNodePath, businessNode.name_]);
-    // });
+
   }
+
+  // const children = businessContent.node_repository_ ?? [];
+  // children.map((childNode) => {
+  //   businessNodeIterate(childNode, processNode, [businessContent])
+  // });
   businessNodeIterate(businessContent, processNode)
 
   // businessContent.node_repository_?.map((businessNode) => {
@@ -62,11 +81,17 @@ function getAllInputPortNameToNodePortIdMap(businessContent: IBusinessNode) {
   const inputMap: { [key: string]: { nodeId: string; portId: string }[] } = {};
 
 
-  function processNode(businessNode: IBusinessNode
-    //, parentNodePath: string[]
+  function processNode(businessNode: IBusinessNode,
+    parents: IBusinessNode[]
   ) {
 
-    if (businessNode.is_graph_) {  // subcavas dont't make line when loaded 
+    if (businessNode.is_graph_ || businessNode.is_loop_) {// subcavas dont't make line when loaded,, relevent lines connectd to or from it's children  
+      return
+    }
+
+    const isInComposite = isInCompositeNode(parents)
+
+    if (isInComposite) {
       return
     }
 
@@ -105,7 +130,12 @@ function getAllInputPortNameToNodePortIdMap(businessContent: IBusinessNode) {
     }
 
   }
-  businessNodeIterate(businessContent, processNode)
+
+  const children = businessContent.node_repository_ ?? [];
+  children.map((childNode) => {
+    businessNodeIterate(childNode, processNode, [])
+  });
+
 
   return inputMap;
 }
@@ -193,13 +223,13 @@ export function transferBusinessNodeToDesignNodeIterate(
     iShrimpDelayIndex++
   }
 
-  function getNodeUiExtraInfo() {
+  function getNodeUiExtraInfo(businessNode: IBusinessNode) {
 
-    let nodeUiExtraInfo : INodeUiExtraInfo = {position: {x: 0, y: 0}, size: { width: 200, height: 80 }}
-   
+    let nodeUiExtraInfo: INodeUiExtraInfo = { position: { x: 0, y: 0 }, size: { width: 200, height: 80 } }
+
     if (parentNodes.length > 0) {
 
-       let current: INodeUiExtraInfo
+      let current: INodeUiExtraInfo
 
       for (let i = 0; i < parentNodes.length; i++) {
         if (i == 0) {
@@ -215,13 +245,13 @@ export function transferBusinessNodeToDesignNodeIterate(
       nodeUiExtraInfo = current?.children?.[businessNode.name_] ?? nodeUiExtraInfo
 
 
-    }else{
-       nodeUiExtraInfo = layout?.[businessNode.name_] ?? nodeUiExtraInfo
+    } else {
+      nodeUiExtraInfo = layout?.[businessNode.name_] ?? nodeUiExtraInfo
     }
     return nodeUiExtraInfo
   }
 
-  const nodeUiExtraInfo = getNodeUiExtraInfo()
+  const nodeUiExtraInfo = getNodeUiExtraInfo(businessNode)
 
   const designNode: FlowNodeJSON = {
     id: `${businessNode.id}`,
@@ -230,13 +260,13 @@ export function transferBusinessNodeToDesignNodeIterate(
 
     meta: {
       //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
-      position:  nodeUiExtraInfo.position,    //layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
-      size:  nodeUiExtraInfo.size,     //layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
+      position: nodeUiExtraInfo.position,    //layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
+      size: nodeUiExtraInfo.size,     //layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
       //...nodeExtra[businessNode.name_], 
       //expandInfo: nodeExtra[businessNode.name_],
       defaultExpanded: true,
       //needInitShrip,
-      needInitShrip: false, 
+      needInitShrip: false,
 
       iShrimpDelayIndex: needInitShrip ? iShrimpDelayIndex : 0,
       //defaultExpanded: layout?.[businessNode.name_]?.expanded === undefined || layout?.[businessNode.name_]?.expanded === true

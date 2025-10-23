@@ -11,7 +11,7 @@ import {
   Inndeploy_ui_layout,
 } from "../../../Layout/Design/WorkFlow/entity";
 import { IExpandInfo, ILineEntity, INodeUiExtraInfo } from "../entity";
-import { getNodeById, isContainerNode } from "../functions";
+import { getNodeById, isContainerNode, isDynamicContainerNode, isGraphNode, isLoopNode } from "../functions";
 import { getSubcavasInputLines, getSubcavasOutputLines } from "../form-header/function";
 
 function designNodeIterate(
@@ -76,7 +76,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
 
     lines.map(line => {
 
-      let isSourceNodeContainer = isContainerNode(line.sourceNodeID, clientContext)
+      let isSourceNodeContainer = isDynamicContainerNode(line.sourceNodeID, clientContext) 
 
       if (isSourceNodeContainer) {
 
@@ -92,7 +92,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetNodeID: outputLine.to,
             targetPortID: outputLine.toPort,
           }
-          const isToNodeContainer = isContainerNode(outputLine.to)
+          const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
           if (isToNodeContainer) {
             // const toNodeExpandInfo = getNodeExpandInfo(subcavasEdge.targetNodeID)
             // const find = toNodeExpandInfo.inputLines.find(inputLine => {
@@ -118,7 +118,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
         })
       }
 
-      let isTargetNodeContainer = isContainerNode(line.targetNodeID)
+      let isTargetNodeContainer = isDynamicContainerNode(line.targetNodeID, clientContext) 
 
       if (isTargetNodeContainer) {
 
@@ -136,7 +136,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetPortID: inputLine.oldToPort,
           }
 
-          const isFromNodeContainer = isContainerNode(inputLine.from)
+          const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext) 
           if (isFromNodeContainer) {
             // const fromNodeExpandInfo = getNodeExpandInfo(subcavasEdge.sourceNodeID)
             // const find = fromNodeExpandInfo.outputLines.find(outputLine => {
@@ -170,26 +170,28 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
 
   const subcavasEdges = buildSubCavasEdges(results)
 
-  function substractContainerLines(lines: WorkflowEdgeJSON[]) {
+  function substractDynamicContainerLines(lines: WorkflowEdgeJSON[]) {
     const result = lines.filter(item => {
 
 
-      let sourceNode = clientContext.document.getNode(item.sourceNodeID)
-      let sourceForm = sourceNode?.form
-      let isSourceNodeContainer = sourceForm?.getValueIn('is_graph') ?? false
+      //let sourceNode = clientContext.document.getNode(item.sourceNodeID)
+      // let sourceForm = sourceNode?.form
+      // let isSourceNodeContainer =  sourceForm?.getValueIn('is_graph') ?? false
+       let isSourceDynamicNode = isDynamicContainerNode(item.sourceNodeID, clientContext)
 
-      let targetNode = clientContext.document.getNode(item.targetNodeID)
-      let targetForm = targetNode?.form
-      let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
+      //let targetNode = clientContext.document.getNode(item.targetNodeID)
+      // let targetForm = targetNode?.form
+      // let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
+      let isTargetDynamicNode = isDynamicContainerNode(item.targetNodeID, clientContext)
 
 
-      return !isTargetNodeContainer && !isSourceNodeContainer
+      return !isTargetDynamicNode && !isSourceDynamicNode
 
     })
     return result
   }
 
-  results = substractContainerLines(results)
+  results = substractDynamicContainerLines(results)
 
   return [...results, ...subcavasEdges];
 }
@@ -262,7 +264,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   let allEdges = getAllEdges(designData, clientContext);
 
 
-  function getNodesLayout() {
+  function buildNodesLayout() {
 
     let nodesExtraInfo: { [nodeName: string]: INodeUiExtraInfo } = {}
 
@@ -276,7 +278,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
       const nodeExpandInfo: INodeUiExtraInfo = {
         position: node.meta?.position || { x: 0, y: 0 },
-        size: nodeMeta?.size || { width: 180, height: 48 },
+        size: nodeMeta?.size || { width: 200, height: 60 },
         expanded: expanded,
 
       }
@@ -315,7 +317,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     return nodesExtraInfo
   }
 
-  const nodesLayout = getNodesLayout()
+  const nodesLayout = buildNodesLayout()
 
   function getGroupInfos() {
     let groups = designData.nodes.filter(node => node.type == 'group')
@@ -535,7 +537,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     let inputArray_: any[] = []
 
 
-    if (isContainerNode(node.id, clientContext)) {
+    if (isDynamicContainerNode(node.id, clientContext)) {
       const inputLines = getSubcavasInputLines(getNodeById(node.id, clientContext)!, clientContext)
       inputArray_ = lodash.uniqBy(inputLines, ['from',  'fromPort']).map(item => {
 
@@ -571,7 +573,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     let outputArray_: any[] = []
 
-    if (isContainerNode(node.id, clientContext)) {
+    if (isDynamicContainerNode(node.id, clientContext)) {
       const outputLines = getSubcavasOutputLines(getNodeById(node.id, clientContext)!, clientContext)
       outputArray_ =  lodash.uniqBy(outputLines, ['oldFrom',  'oldFromPort']).map(item => {
 

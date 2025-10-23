@@ -2,6 +2,7 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  IPoint,
   usePlaygroundTools,
   WorkflowLinePortInfo,
 } from "@flowgram.ai/free-layout-editor";
@@ -26,11 +27,11 @@ import {
   useGetParamTypes,
   //useGetRegistry
 } from "./effect";
-import {  businessNodeNormalize } from "./FlowSaveDrawer/functions";
+import { businessNodeNormalize } from "./FlowSaveDrawer/functions";
 import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
-import { getNextNameNumberSuffix } from "./functions";
+import { getNextNameNumberSuffix, nodeIterate } from "./functions";
 import store, { } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree, initFreshResourceTree } from "../../Layout/Design/store/actionType";
@@ -56,7 +57,6 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [downloadModalVisible, setDownloadModalVisible] = useState(false)
   const [downloadModalList, setDownloadModalList] = useState<string[]>([])
 
- //  const tools = usePlaygroundTools();
 
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
@@ -300,9 +300,9 @@ const Flow: React.FC<FlowProps> = (props) => {
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
-        flowJson.nodes, 
+        flowJson.nodes,
         ref?.current!
-        
+
       );
 
       const response = await apiModelsRunDownload(businessContent);
@@ -608,15 +608,19 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       entity.name_ = `${entity.name_}_${numberSuffix}`
 
-      const nndeploy_ui_layout: Inndeploy_ui_layout =  entity?.nndeploy_ui_layout ?? {
-        layout: {
+      function buildLayout(position: IPoint, entity: IBusinessNode) {
+
+        const layout: Inndeploy_ui_layout['layout'] = entity.nndeploy_ui_layout?.layout ?? {
+
           "tokenizer_encode": {
+
             position: { x: 20, y: 10 },
             size: { width: 200, height: 80 }
+
           },
           "prefill_infer": {
             position: { x: 250, y: 10 },
-           // size: { width: 200, height: 80 }
+            size: { width: 200, height: 80 }
           },
           "prefill_sampler": {
             position: { x: 20, y: 120 },
@@ -624,39 +628,40 @@ const Flow: React.FC<FlowProps> = (props) => {
           },
 
 
-        },
-        groups: []
-      }
-
-      for (let nodeName in nndeploy_ui_layout.layout) {
-        const nodeLayout = nndeploy_ui_layout.layout[nodeName]
-        nodeLayout.position = {
-          x: nodeLayout?.position?.x! + position.x,
-          y: nodeLayout.position?.y! + position.y
         }
 
+        // for (let nodeName in layout) {
+
+        //   const nodeLayout = layout[nodeName]
+
+        //   nodeIterate(nodeLayout, 'children', (node, parents) => {
+        //     node.position = {
+        //       x: node?.position?.x! , //+ position.x
+        //       y: node.position?.y!  //+ position.y
+        //     }
+        //   })
+        // }
+
+        const result: Inndeploy_ui_layout['layout'] = {
+          [entity.name_]: {
+            position: position,
+            size: { width: 200, height: 80 }, 
+            children: layout
+          },
+         
+        }
+
+        return result
       }
 
-      const layout = {
-        [entity.name_]: {
-          position: position,
-          size: { width: 200, height: 80 }
-        },
-        ...nndeploy_ui_layout.layout
-      }
-
-  
+      const layout: Inndeploy_ui_layout['layout'] = buildLayout(position, entity)
 
       let node = transferBusinessNodeToDesignNodeIterate(entity, layout)
+      node.meta!.needInitAutoLayout = true
 
       ref?.current?.document.createWorkflowNode(node);
 
-      // tools.autoLayout({
-      //   containerNode: ref?.current?.document.getNode(node.id),
-      //   enableAnimation: true,
-      //   animationDuration: 1000,
-      //   disableFitView: true,
-      // })
+      
 
       const linesManager = ref?.current?.document.linesManager
 

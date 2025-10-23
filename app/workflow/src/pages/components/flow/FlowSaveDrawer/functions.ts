@@ -5,12 +5,13 @@ import {
 
 export function businessNodeIterate(
   node: IBusinessNode,
-  process: (node: IBusinessNode) => void
+  process: (node: IBusinessNode,  parents: IBusinessNode[] ) => void, 
+  parents: IBusinessNode[] = []
 ) {
-  process(node);
+  process(node, parents);
   if (node.node_repository_ && node.node_repository_.length > 0) {
     node.node_repository_.forEach((respoitory) => {
-      businessNodeIterate(respoitory, process);
+      businessNodeIterate(respoitory, process, [...parents, node]);
     });
   }
 }
