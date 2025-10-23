@@ -31,7 +31,7 @@ export function FormHeader() {
   useEffect(() => {
     if (node?.getNodeMeta?.()?.needInitAutoLayout) {
       tools.autoLayout({
-        layoutConfig: {rankdir: 'TB'}, 
+        layoutConfig: { rankdir: 'TB' },
         containerNode: node, //ref?.current?.document.getNode(node.id),
         enableAnimation: true,
         animationDuration: 1000,
@@ -317,12 +317,14 @@ export function FormHeader() {
     form?.setValueIn('inputs_', [])
     form?.setValueIn('outputs_', [])
 
+   // node.getData(WorkflowNodePortsData).updateAllPorts([])
+    node.getData(WorkflowNodePortsData).updateDynamicPorts()
+
 
 
     setTimeout(() => {
 
-      node.getData(WorkflowNodePortsData).updateAllPorts([])
-      node.getData(WorkflowNodePortsData).updateDynamicPorts()
+
 
       expandInfo.inputLines.map(inputLine => {
 
@@ -443,7 +445,7 @@ export function FormHeader() {
 
       //node.updateExtInfo({ expandInfo })
       node.getNodeMeta().expandInfo = expandInfo
-    }, 10)
+    }, 100)
 
 
   }
