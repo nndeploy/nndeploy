@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import store from "../store/store";
 import lodash, { toNumber, trim } from 'lodash'
 import IoType from "./ioType";
 import { initJson } from "../store/actionType";
 import styles from './index.module.scss'
-import { Button, Toast } from "@douyinfe/semi-ui";
+import { Button, Modal, Toast } from "@douyinfe/semi-ui";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 import { useClientContext } from "@flowgram.ai/free-layout-editor";
 import { apiWorkFlowRunStop } from "../../../../pages/Layout/Design/WorkFlow/api";
 import classNames from "classnames";
 import UiParams from "./uiParams";
+import CodeBlock from "../../../../pages/components/CodeBlock";
+//import deployMarkDown from '../../../../assets/deploy.md'
+//import deployMarkDown from '../../../../assets/deploy.md';
+//import deployMarkDown from './deplolyContent'
+
 
 
 interface IWebUIComponentsProps {
@@ -30,6 +35,20 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
   const { downloading, runInfo, setRunInfo } = flowEnviroment
 
   const { runningTaskId, isRunning } = runInfo
+
+  const [deployVisible, setDeployVisible] = useState(false);
+
+
+  const showDeloyDialog = async function () {
+
+    //const markdownContent = await import('../../../../assets/deploy.md?raw');
+    setDeployVisible(true);
+  };
+  const handleDeployClose = () => {
+    setDeployVisible(false);
+    console.log('Cancel button clicked');
+  };
+
 
   const onRunOrStop = async () => {
 
@@ -298,7 +317,27 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
           </div>
         </div>
       </div >
+      <Modal
+        title="Requirements"
+        visible={deployVisible}
+        onOk={handleDeployClose}
+        afterClose={handleDeployClose} //>=1.16.0
+        onCancel={handleDeployClose}
+        closeOnEsc={true}
+        width={600}
+      >
+        <div className={'tip-content'}>
+
+          <CodeBlock
+            code={'content.......'}
+            language={'markdown'}
+          />
+
+        </div>
+
+      </Modal>
       <div className="semi-sidesheet-footer">
+        {/* <Button type="tertiary" onClick={() => showDeloyDialog()}>deploy</Button> */}
         <Button type="tertiary" onClick={() => props.onSure()}>confirm</Button>
         <Button type="tertiary" onClick={() => props.onClose()}>
           close

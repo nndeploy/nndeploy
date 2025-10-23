@@ -5,9 +5,10 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import styles from './index.module.scss'
 import classNames from 'classnames'
 import 'github-markdown-css';
+import { ReactNode } from 'react'
 
 interface CodeBlockProps {
-  code: string;
+  code: ReactNode;
   language?: string;
 }
 

@@ -189,6 +189,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     } else {
       response = await apiGetWorkFlow(flowId);
+
+      const modals = getdownloadModals(response.result)
+      setDownloadModalList(modals)
       if (response.flag == "error") {
         return;
       }
@@ -645,10 +648,10 @@ const Flow: React.FC<FlowProps> = (props) => {
         const result: Inndeploy_ui_layout['layout'] = {
           [entity.name_]: {
             position: position,
-            size: { width: 200, height: 80 }, 
+            size: { width: 200, height: 80 },
             children: layout
           },
-         
+
         }
 
         return result
@@ -661,7 +664,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       ref?.current?.document.createWorkflowNode(node);
 
-      
+
 
       const linesManager = ref?.current?.document.linesManager
 
