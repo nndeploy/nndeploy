@@ -14,6 +14,7 @@ INPUT                  = ../../framework/include/nndeploy/base \
                         ../../framework/include/nndeploy/op \
                         ../../framework/include/nndeploy/net \
                         ../../framework/include/nndeploy/inference \
+                        ../../framework/include/nndeploy/dag \
                         ../../plugin/include/nndeploy/template \
                         ../../plugin/include/nndeploy/infer \
                         ../../plugin/include/nndeploy/preprocess \
