@@ -17,7 +17,7 @@
     "resolveJsonModule": true,
     "types": ["node"],
     "jsx": "react-jsx",
-    "lib": ["es6", "dom", "es2020", "es2019.Array"]
+    "lib": ["es6", "dom", "es2020", "es2019.Array"], 
   },
   "include": ["./src"],
 }

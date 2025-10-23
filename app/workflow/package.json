@@ -29,9 +29,8 @@
   },
   "dependencies": {
     "@douyinfe/semi-icons": "^2.80.0",
-    "@douyinfe/semi-ui": "^2.80.0",
     "@douyinfe/semi-icons-lab": "^2.80.0",
-    "@flowgram.ai/runtime-interface": "0.5.5",
+    "@douyinfe/semi-ui": "^2.80.0",
     "@flowgram.ai/form-materials": "0.5.5",
     "@flowgram.ai/free-container-plugin": "0.5.5",
     "@flowgram.ai/free-group-plugin": "0.5.5",
@@ -39,8 +38,9 @@
     "@flowgram.ai/free-lines-plugin": "0.5.5",
     "@flowgram.ai/free-node-panel-plugin": "0.5.5",
     "@flowgram.ai/free-snap-plugin": "0.5.5",
-    "@flowgram.ai/minimap-plugin": "0.5.5",
     "@flowgram.ai/free-stack-plugin": "0.5.5",
+    "@flowgram.ai/minimap-plugin": "0.5.5",
+    "@flowgram.ai/runtime-interface": "0.5.5",
     "@flowgram.ai/runtime-js": "0.5.5",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
@@ -78,9 +78,9 @@
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/styled-components": "^5",
-    "typescript": "^5.8.3",
     "cross-env": "~7.0.3",
-    "eslint": "^8.54.0"
+    "eslint": "^8.54.0",
+    "typescript": "^5.8.3"
   },
   "publishConfig": {
     "access": "public",

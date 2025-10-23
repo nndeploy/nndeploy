@@ -31,6 +31,7 @@ export function FormHeader() {
   useEffect(() => {
     if (node?.getNodeMeta?.()?.needInitAutoLayout) {
       tools.autoLayout({
+        layoutConfig: {rankdir: 'TB'}, 
         containerNode: node, //ref?.current?.document.getNode(node.id),
         enableAnimation: true,
         animationDuration: 1000,
