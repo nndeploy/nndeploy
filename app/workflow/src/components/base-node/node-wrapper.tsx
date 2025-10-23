@@ -33,7 +33,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
 
   const { width, height, onResize } = useSize();
 
-  if (form?.getValueIn('name_') === 'Prefill_1') {
+  if (form?.getValueIn('name_') === 'decode_infer') {
     let i = 0;
 
   }

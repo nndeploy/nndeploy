@@ -253,6 +253,10 @@ export function transferBusinessNodeToDesignNodeIterate(
 
   const nodeUiExtraInfo = getNodeUiExtraInfo(businessNode)
 
+  function isContainerNode(businessNode: IBusinessNode) {
+      return businessNode.is_graph_ || businessNode.is_loop_ || businessNode.is_composite_node_
+  }
+
   const designNode: FlowNodeJSON = {
     id: `${businessNode.id}`,
     //type: businessNode.key_.split("::").pop() + "",
@@ -261,7 +265,7 @@ export function transferBusinessNodeToDesignNodeIterate(
     meta: {
       //position: layout[businessNode.name_] ?? { x: 0, y: 0 },
       position: nodeUiExtraInfo.position,    //layout?.[businessNode.name_]?.position ?? { x: 0, y: 0 },
-      size: nodeUiExtraInfo.size,     //layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
+      size:   isContainerNode(businessNode) && false ? undefined : nodeUiExtraInfo.size,     //layout?.[businessNode.name_]?.size ?? { width: 200, height: 80 },
       //...nodeExtra[businessNode.name_], 
       //expandInfo: nodeExtra[businessNode.name_],
       defaultExpanded: true,
