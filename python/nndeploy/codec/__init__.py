@@ -20,6 +20,6 @@ from nndeploy.codec.codec import BatchOpenCvDecode
 from nndeploy.codec.codec import BatchOpenCvEncode
 
 try:
-    from nndeploy.codec.pil import PILImageEncodec, PILImageDecodec, MakeImageGrid
+    from nndeploy.codec.pil import PILImageEncodec, PILImageDecodec, MakeImageGrid, MakeNumpyGrid
 except ImportError:
     pass
