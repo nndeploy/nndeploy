@@ -20,9 +20,9 @@ nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS" style="height: 16px;">
 </a>
- <a href="https://pepy.tech/projects/nndeploy">
+ <!-- <a href="https://pepy.tech/projects/nndeploy">
   <img src="https://static.pepy.tech/personalized-badge/nndeploy?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads" style="height: 16px;">
-</a>
+</a> -->
 </p>
 
 <p align="center">
@@ -175,12 +175,12 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
   More example code: [Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python Object Detection](demo/detect/demo.py) | [C++ Object Detection](demo/detect/demo.cc) | 
 
 
-**Recommended Process**
+**Recommended Development Workflow**
 
-- Development Phase: Design and debug through the visual workflow, verifying the algorithm's effect and performance in the visual interface. **Develop custom nodes if necessary**.
-- Deployment Phase: Export the verified workflow as a JSON configuration file with one click, and load and run it directly in the production environment via Python/C++ API.
+- Development Phase: Design and debug workflows using the visual interface. **Develop custom nodes when necessary**
+- Deployment Phase: Export JSON configuration and load via API
 
-Whether through the visual frontend interface or API calls, they ultimately execute in the underlying unified high-performance C++ computation engine. This architectural design ensures that the workflow has completely consistent execution behavior and performance in both development/debugging and production deployment environments, realizing the "write once, run anywhere" philosophy.
+Whether through visual interface or API calls, all workflows execute in the unified high-performance C++ compute engine, ensuring consistency between development and deployment environments.
 
 > Requires Python 3.10+, includes PyTorch and ONNXRuntime by default. For more inference backends, please use the developer mode.
 
@@ -193,6 +193,7 @@ Whether through the visual frontend interface or API calls, they ultimately exec
 - [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)
+- [Production Environment Deployment](docs/zh_cn/quick_start/deploy.md)
 
 ## Performance Testing
 
@@ -218,9 +219,9 @@ Test Environment: Ubuntu 22.04, i7-12700, RTX3060
   | Task Parallel                     | 602.104 ms  | 435.181 ms  | 51.883 ms|
   | Performance Improvement           | 7.98%       | 11.2%       | 12.2%    |
 
-## Stay Updated
+## Follow the Project
 
-Star nndeploy on GitHub and get notified immediately about new releases.
+If you find nndeploy helpful, we welcome you to give us a Star on GitHub, which will help us continuously improve the project.
 
 <img src="docs/image/star.gif">
 
@@ -235,7 +236,7 @@ Star nndeploy on GitHub and get notified immediately about new releases.
 
 - nndeploy is currently in the development stage. If you love open source, enjoy tinkering, whether for learning purposes or have better ideas, you are welcome to join us.
 
-- WeChat: Always031856 (Feel free to add as a friend to join our active AI inference deployment discussion group. Please note: nndeploy\_name)
+- WeChat: Always031856 (Feel free to add as a friend to join the group discussion. Please note: nndeploy\_name)
 
   <img src="docs/image/wechat.jpg" width="225px">
 

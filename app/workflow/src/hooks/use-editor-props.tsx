@@ -1,16 +1,15 @@
 /* eslint-disable no-console */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
 import { debounce } from "lodash-es";
 import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import { createFreeSnapPlugin } from "@flowgram.ai/free-snap-plugin";
 import { createFreeNodePanelPlugin } from "@flowgram.ai/free-node-panel-plugin";
 import { createFreeLinesPlugin } from "@flowgram.ai/free-lines-plugin";
-import { FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
 import { createFreeGroupPlugin } from "@flowgram.ai/free-group-plugin";
 import { createContainerNodePlugin } from "@flowgram.ai/free-container-plugin";
 
-import { onDragLineEnd } from "../utils";
 import { FlowNodeRegistry, FlowDocumentJSON } from "../typings";
 import { shortcuts } from "../shortcuts";
 import { CustomService, RunningService } from "../services";
@@ -22,20 +21,21 @@ import {
   BaseNode,
   CommentRender,
   GroupNodeRender,
-  LineAddButton,
   NodePanel,
 } from "../components";
-import { useFlowEnviromentContext } from "../context/flow-enviroment-context";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
+import { getNodeById, isCompositeNode, isContainerNode, isDynamicContainerNode } from "../pages/components/flow/functions";
+import { IExpandInfo } from "../pages/components/flow/entity";
+import lodash from 'lodash'
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
 
-   const { state } = React.useContext(store);
-   const {dagGraphInfo } = state
+   //const { state } = React.useContext(store);
+
   return useMemo<FreeLayoutProps>(() => {
     return {
       /**
@@ -76,6 +76,7 @@ export function useEditorProps(
         hovered: "#37d0ff",
         selected: "#37d0ff",
         error: "red",
+        flowing: "#5DD6E3",
       },
       /*
        * Check whether the line can be added
@@ -88,6 +89,19 @@ export function useEditorProps(
         }
 
         if (toPort.availableLines.length >= 1) {
+          return false
+        }
+
+        function isNodeInComposite(node: FlowNodeEntity){
+          const parents: FlowNodeEntity[] = []  
+          while(node.parent){
+            parents.push(node.parent)
+            node = node.parent
+          }
+          return lodash.some(parents, (parent) => isCompositeNode(parent.id, ctx))
+        }
+
+        if(isNodeInComposite(fromPort.node) || isNodeInComposite(toPort.node)){
           return false
         }
 
@@ -109,6 +123,46 @@ export function useEditorProps(
        * 判断是否能删除连线, 这个会在默认快捷键 (Backspace or Delete) 触发
        */
       canDeleteLine(ctx, line, newLineInfo, silent) {
+
+        if(isDynamicContainerNode(line.from!.id, ctx)){
+          const fromNode  = getNodeById(line.from!.id, ctx)
+          const expandInfo : IExpandInfo= fromNode?.getNodeMeta().expandInfo 
+          let  {outputLines = [] } = expandInfo
+
+          outputLines = outputLines.filter(outputLine=>{
+            if( outputLine.from == line.from!.id &&  outputLine.fromPort == line.fromPort?.portID 
+              && outputLine.to == line.to!.id &&  outputLine.toPort == line.toPort?.portID
+              
+            ){
+              return false
+            }
+            return true
+          })
+
+          fromNode!.getNodeMeta().expandInfo = {...expandInfo, outputLines}
+
+
+
+        }
+
+        if(isDynamicContainerNode(line.to!.id, ctx)){
+          const toNode  = getNodeById(line.to!.id, ctx)
+          const expandInfo : IExpandInfo= toNode?.getNodeMeta().expandInfo 
+          let  {inputLines = [] } = expandInfo
+
+          inputLines = inputLines.filter(inputLine=>{
+            if( inputLine.from == line.from!.id &&  inputLine.fromPort == line.fromPort?.portID 
+              && inputLine.to == line.to!.id &&  inputLine.toPort == line.toPort?.portID
+              
+            ){
+              return false
+            }
+            return true
+          })
+
+          toNode!.getNodeMeta().expandInfo = {...expandInfo, inputLines}
+
+        }
         return true;
       },
       /**
@@ -182,7 +236,7 @@ export function useEditorProps(
        * Playground init
        */
       onInit() {
-        //console.log("--- Playground init ---");
+        console.log("--- Playground init ---");
       },
       /**
        * Playground render
@@ -190,7 +244,7 @@ export function useEditorProps(
       onAllLayersRendered(ctx) {
         //  Fitview
         ctx.document.fitView(false);
-        //console.log("--- Playground rendered ---");
+        console.log("--- Playground rendered ---");
       },
       /**
        * Playground dispose
@@ -229,7 +283,7 @@ export function useEditorProps(
             nodeBorderColor: "rgba(6, 7, 9, 0.10)",
             overlayColor: "rgba(255, 255, 255, 0.55)",
           },
-          inactiveDebounceTime: 1,
+          //inactiveDebounceTime: 1,
         }),
         /**
          * Variable plugin

@@ -7,7 +7,6 @@ namespace dag {
 CompositeNode::~CompositeNode() {
   if (this->getInitialized()) {
     this->deinit();
-    this->setInitializedFlag(false);
   }
 
   for (auto node_wrapper : node_repository_) {
@@ -1036,7 +1035,10 @@ base::Status CompositeNode::deserialize(const std::string &json_str) {
         Node *node = nullptr;
         // TODO
         if (node_repository_.size() > i) {
-          node = node_repository_[i]->node_;
+          node = this->getNode(node_desc.getName());
+          if (node == nullptr) {
+            node = node_repository_[i]->node_;
+          }
           base::Status status = this->setNodeDesc(node, node_desc);
           if (status != base::kStatusCodeOk) {
             NNDEPLOY_LOGE("set node desc failed\n");

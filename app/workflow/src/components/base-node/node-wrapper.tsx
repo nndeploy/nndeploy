@@ -9,6 +9,7 @@ import { scrollToView } from './utils';
 import { NodeWrapperStyle } from './styles';
 import { BorderArea } from './border-area';
 import { useSize } from '../comment/hooks';
+import { isContainerNode } from '../../pages/components/flow/functions';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
@@ -22,13 +23,20 @@ export interface NodeWrapperProps {
 export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   const { children, isScrollToView = false } = props;
   const nodeRender = useNodeRenderContext();
-  const { selected, startDrag, ports, selectNode, nodeRef, onFocus, onBlur } = nodeRender;
+  const { selected, startDrag, ports, selectNode, nodeRef, onFocus, onBlur, node } = nodeRender;
   const [isDragging, setIsDragging] = useState(false);
   const sidebar = useContext(SidebarContext);
   const form = nodeRender.form;
   const ctx = useClientContext();
 
+  const isContainer = isContainerNode(node.id, ctx);
+
   const { width, height, onResize } = useSize();
+
+  if (form?.getValueIn('name_') === 'decode_infer') {
+    let i = 0;
+
+  }
 
 
 
@@ -37,7 +45,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   return (
     <>
       <NodeWrapperStyle
-        className={selected ? 'selected' : ''}
+        className={'my-node-wrapper ' + (selected ? 'selected' : '')}
         ref={nodeRef}
         draggable
         onDragStart={(e) => {
@@ -65,14 +73,21 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
         data-node-selected={String(selected)}
         style={{
           outline: form?.state.invalid ? '1px solid red' : 'none',
-          width,
-          height: height <= 80 ? 'auto' : height
+
+          width: isContainer ? 'auto' : width,
+          height: isContainer ? 'auto' : (height <= 80 ? 'auto' : height)
+
         }}
+
       >
         {children}
       </NodeWrapperStyle>
-      <BorderArea onResize={onResize} />
-      {portsRender}
+
+      {!isContainer && <BorderArea onResize={onResize} />}
+      <div className='my-port-parent'>
+        {portsRender}
+      </div>
+
     </>
   );
 };

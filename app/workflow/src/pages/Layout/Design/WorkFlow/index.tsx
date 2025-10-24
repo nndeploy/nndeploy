@@ -1,25 +1,21 @@
 import {
-  Button,
   Dropdown,
   Popconfirm,
   SideSheet,
   Toast,
-  Tooltip,
   Tree,
   Typography,
 } from "@douyinfe/semi-ui";
 import { useGetWorkflowTree } from "./effect";
 import { IconMore, IconPlus } from "@douyinfe/semi-icons";
-import { forwardRef, ReactNode, useContext, useEffect, useImperativeHandle, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 
 import "./index.scss";
 import BranchEditDrawer from "./BranchEditDrawer";
-import { IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "./entity";
+import { IWorkFlowTreeNodeEntity } from "./entity";
 import { apiWorkFlowDelete } from "./api";
-import WorkFlowEditDrawer from "./WorkFlowEditDrawer";
-import { PopconfirmWithInput } from "../../../components/PopconfirmWithInput";
+//import WorkFlowEditDrawer from "./WorkFlowEditDrawer";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
-import { IResourceTreeNodeEntity } from "../Resource/entity";
 import request from "../../../../request";
 import store from "../store/store";
 
@@ -41,8 +37,8 @@ function WorkFlow(props: WorkFlowProps) {
   const { onFlowDeleteCallBack } = props
   const { treeData, setTreeData, getWorkFlowTree } = useGetWorkflowTree();
 
-  const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
-  const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
+  // const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
+  // const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
 
   // useImperativeHandle(ref, () => ({
   //   refresh: getWorkFlowTree,
@@ -52,9 +48,9 @@ function WorkFlow(props: WorkFlowProps) {
     getWorkFlowTree()
   }, [freshFlowTreeCnt])
 
-  function handleResoureDrawerClose() {
-    setWorkFlowEditVisible(false);
-  }
+  // function handleResoureDrawerClose() {
+  //   setWorkFlowEditVisible(false);
+  // }
 
   const [branchVisible, setBranchVisible] = useState(false);
   const [branchEdit, setBranchEdit] = useState<IWorkFlowTreeNodeEntity>();
@@ -115,14 +111,14 @@ function WorkFlow(props: WorkFlowProps) {
   //   setWorkFlowEditVisible(true);
   // }
 
-  function onWorkFlowEditDrawerSure(workFlow: IWorkFlowTreeNodeEntity) {
-    addNode(workFlow);
-    setWorkFlowEditVisible(false);
-  }
+  // function onWorkFlowEditDrawerSure(workFlow: IWorkFlowTreeNodeEntity) {
+  //   addNode(workFlow);
+  //   setWorkFlowEditVisible(false);
+  // }
 
-  function onWorkFlowEditDrawerClose() {
-    setWorkFlowEditVisible(false);
-  }
+  // function onWorkFlowEditDrawerClose() {
+  //   setWorkFlowEditVisible(false);
+  // }
 
   function onUploadFlow() {
     const input = document.createElement("input");
@@ -321,7 +317,7 @@ function WorkFlow(props: WorkFlowProps) {
         className="tree-node"
       //draggable
       />
-      <SideSheet
+      {/* <SideSheet
         width={"30%"}
         visible={workFlowEditVisible}
         onCancel={handleResoureDrawerClose}
@@ -332,7 +328,7 @@ function WorkFlow(props: WorkFlowProps) {
           onSure={onWorkFlowEditDrawerSure}
           onClose={onWorkFlowEditDrawerClose}
         />
-      </SideSheet>
+      </SideSheet> */}
 
       <SideSheet
         width={"30%"}

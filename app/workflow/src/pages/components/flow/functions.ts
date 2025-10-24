@@ -1,8 +1,10 @@
 
-import { FlowDocumentJSON } from "../../../typings";
+import { FlowNodeEntity, FreeLayoutPluginContext } from "@flowgram.ai/free-layout-editor";
+import { FlowDocumentJSON, FlowNodeJSON } from "../../../typings";
 import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import lodash from 'lodash'
+import { IExpandInfo } from "./entity";
 
 function getNodeRegistry(registryKey: any, nodeList: INodeEntity[]) {
   //const registryKey = form.values['key_']
@@ -25,11 +27,11 @@ export function getFieldType(fieldNames: string[], registryKey: any, nodeList: I
     componentType: 'string',
     primateType: 'string',
     selectOptions: [],
-    selectKey: '', 
+    selectKey: '',
     originValue: ''
   }
 
-  if(fieldNames[fieldNames.length -1] == 'color_mode_'){
+  if (fieldNames[fieldNames.length - 1] == 'color_mode_') {
     let j = 0;
   }
 
@@ -38,7 +40,7 @@ export function getFieldType(fieldNames: string[], registryKey: any, nodeList: I
   let fieldValue: any = nodeRegistry
   let fieldName = ''
   for (let i = 0; i < fieldNames.length; i++) {
-     fieldName = fieldNames[i]
+    fieldName = fieldNames[i]
     if (fieldValue == null) {
       let i = 0
     }
@@ -51,24 +53,24 @@ export function getFieldType(fieldNames: string[], registryKey: any, nodeList: I
 
       fieldValue = fieldValue[0]
     } else {
-      if(fieldName  in fieldValue ){
-         fieldValue = fieldValue[fieldName]
-      }else{
-          // let parts = fieldName.split("_") 
-          //  if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
-            
-          //   let firstField = parts[0] + "_0" ; 
-          //   if(firstField  in fieldValue ){ 
-          //     fieldValue = fieldValue[firstField]
-          //   }else{
-              
-          //   }
-          // }
-          const [firstKey] = Object.keys(fieldValue);
-          fieldValue = fieldValue[firstKey]
+      if (fieldName in fieldValue) {
+        fieldValue = fieldValue[fieldName]
+      } else {
+        // let parts = fieldName.split("_") 
+        //  if (parts.length > 1 && lodash.isNumber(new Number(parts[parts.length - 1]))) {
+
+        //   let firstField = parts[0] + "_0" ; 
+        //   if(firstField  in fieldValue ){ 
+        //     fieldValue = fieldValue[firstField]
+        //   }else{
+
+        //   }
+        // }
+        const [firstKey] = Object.keys(fieldValue);
+        fieldValue = fieldValue[firstKey]
 
       }
-     
+
     }
 
 
@@ -80,7 +82,7 @@ export function getFieldType(fieldNames: string[], registryKey: any, nodeList: I
       primateType: 'number',
       componentType: 'number',
       selectOptions: [],
-      selectKey: '', 
+      selectKey: '',
       originValue: fieldValue
     }
   }
@@ -128,27 +130,27 @@ export function getFieldType(fieldNames: string[], registryKey: any, nodeList: I
   //   return fieldNames.length == 2 && fieldNames[1] == 'params_'
   // }
 
-  function getSelectOptions(){
-    if (!lodash.isString(fieldName)){
+  function getSelectOptions() {
+    if (!lodash.isString(fieldName)) {
       return undefined
     }
 
-    let parents :string[] = ['', 'param_', 'param']
+    let parents: string[] = ['', 'param_', 'param']
 
-    let options : any[] = []
-    for(let parent of parents){
+    let options: any[] = []
+    for (let parent of parents) {
 
 
-      options = parent ? nodeRegistry[parent]?.['dropdown_params_']?.[fieldName] 
-      : nodeRegistry['dropdown_params_']?.[fieldName]
+      options = parent ? nodeRegistry[parent]?.['dropdown_params_']?.[fieldName]
+        : nodeRegistry['dropdown_params_']?.[fieldName]
 
-      if(options){
+      if (options) {
         return options
       }
 
     }
 
-    if(paramTypes.hasOwnProperty(fieldValue)){
+    if (paramTypes.hasOwnProperty(fieldValue)) {
       options = paramTypes[fieldValue]
       return options
     }
@@ -174,10 +176,10 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
   //const allNode = ref?.current?.document.toJSON() as FlowDocumentJSON;
   documentJSON.nodes.map(item => {
 
-    if(!item.data.name_){
+    if (!item.data.name_) {
       let j = 0;
     }
-    if(item.type == 'group'){
+    if (item.type == 'group') {
       return
     }
     var nameParts = item.data.name_.split('_')
@@ -190,3 +192,119 @@ export function getNextNameNumberSuffix(documentJSON: FlowDocumentJSON) {
   })
   return result + 1;
 }
+
+// function buildContainerNodeInnerLines(node: FlowNodeJSON){
+
+// }
+
+export function isContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_graph_')
+
+    || form?.getValueIn('is_loop_')
+    || form?.getValueIn('is_composite_node_')
+  )
+    ?? false
+  return result
+}
+
+export function isDynamicContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_graph_')
+
+    || form?.getValueIn('is_loop_')
+
+  )
+    ?? false
+  return result
+}
+
+
+export function isLoopNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_loop_')
+
+  )
+    ?? false
+  return result
+}
+
+export function isCompositeNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_composite_node_')
+
+  )
+    ?? false
+  return result
+}
+
+export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let form = node?.form
+  let result = (
+    form?.getValueIn('is_graph_')
+
+  )
+    ?? false
+  return result
+}
+
+export function getNodeById(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  return node
+}
+export function getNodeByName(name: string, clientContext: FreeLayoutPluginContext) {
+  const allNodes = clientContext.document.getAllNodes()
+  const find = allNodes.find(node => {
+    return node.form?.getValueIn('name_') == name
+  })
+
+  return find
+}
+
+export function getAllInnerNodes(node: FlowNodeEntity) {
+  let allChildren: FlowNodeEntity[] = []
+  if (node.blocks && node.blocks.length > 0) {
+    node.blocks.forEach((child) => {
+      allChildren.push(child);
+      allChildren = allChildren.concat(...getAllInnerNodes(child));
+    });
+  }
+  return allChildren;
+}
+
+export function getNodeNameByNodeId(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let name = node?.form?.getValueIn('name_')
+  return name
+}
+
+export function getNodeExpandInfo(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let expandInfo: IExpandInfo | undefined = node?.getNodeMeta().expandInfo
+  return expandInfo
+}
+
+export function nodeIterate<Node>(
+  node: Node,
+  childFieldName: string, 
+  process: (node: Node,  parents: Node[] ) => void, 
+
+  parents: Node[] = []
+) {
+  process(node, parents);
+  if (node[childFieldName as keyof Node] && (node[childFieldName as keyof Node] as Node[])?.length > 0) {
+    (node[childFieldName as keyof Node] as Node[]).forEach((child) => {
+      nodeIterate(child, childFieldName, process,  [...parents, child]);
+    });
+  }
+}
+

@@ -20,9 +20,9 @@ nndeploy：一款简单易用且高性能的AI部署框架
  <a href="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml">
   <img src="https://github.com/nndeploy/nndeploy/actions/workflows/ios.yml/badge.svg" alt="iOS" style="height: 16px;">
 </a>
- <a href="https://pepy.tech/projects/nndeploy">
+ <!-- <a href="https://pepy.tech/projects/nndeploy">
   <img src="https://static.pepy.tech/personalized-badge/nndeploy?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads" style="height: 16px;">
-</a>
+</a> -->
 </p>
 
 <p align="center">
@@ -172,15 +172,15 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
     status = graph->deinit();
     ```
 
-  更多加载并运行工作流，示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
+  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
 
 
-**推荐流程**
+**推荐开发流程**
 
-- 开发阶段：通过可视化工作流进行设计和调试，在可视化界面中验证算法的效果和性能。**必要时需开发自定义节点**
-- 部署阶段：将验证通过的工作流一键导出为 JSON 配置文件，通过 Python/C++ API 在生产环境中直接加载运行
+- 开发阶段：可视化界面设计和调试工作流。**必要时需开发自定义节点**
+- 部署阶段：导出 JSON 配置，API 加载运行
 
-无论是通过可视化前端界面还是 API 调用，最终都会在底层统一的高性能 C++ 计算引擎中执行。这种架构设计确保了工作流在开发调试和生产部署环境中具有完全一致的执行行为和性能表现，实现了"一次开发，处处运行"的理念。
+无论通过可视化界面还是 API 调用，所有工作流都在底层统一的高性能 C++ 计算引擎中执行，确保开发和部署环境的一致性。
 
 > 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
 
@@ -193,6 +193,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 - [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
 
 ## 性能测试
 
@@ -218,9 +219,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   | 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
   | 性能提升          | 7.98%       | 11.2%      | 12.2%     |
 
-## 保持领先
+## 关注项目
 
-在 GitHub 上给 nndeploy Star，并立即收到新版本的通知。
+如果您觉得 nndeploy 对您有帮助，欢迎在 GitHub 上给我们 Star，这将帮助我们持续改进项目。
 
 <img src="docs/image/star.gif">
 
@@ -235,7 +236,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 - 当前 nndeploy 正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
 
-- 微信：Always031856（欢迎加好友，进活跃的 AI 推理部署交流群，备注：nndeploy\_姓名）
+- 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
 
   <img src="docs/image/wechat.jpg" width="225px">
 

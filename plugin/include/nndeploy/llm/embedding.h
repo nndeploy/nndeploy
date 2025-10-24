@@ -96,6 +96,7 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
     key += std::to_string(a_offset_);
     key += std::to_string(alpha_size_);
     key += std::to_string(quant_bit_);
+    return key;
   }
   using base::Param::serialize;
   virtual base::Status serialize(

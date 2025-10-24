@@ -37,152 +37,152 @@ class Graph(_C.dag.Graph):
         # super().__del__()
         
     def add_image_url(self, url: str):
-        """添加图像URL
+        """Add image URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().add_image_url(url)
         
     def remove_image_url(self, url: str):
-        """移除图像URL
+        """Remove image URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().remove_image_url(url)
         
     def add_video_url(self, url: str):
-        """添加视频URL
+        """Add video URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().add_video_url(url)
         
     def remove_video_url(self, url: str):
-        """移除视频URL
+        """Remove video URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().remove_video_url(url)
         
     def add_audio_url(self, url: str):
-        """添加音频URL
+        """Add audio URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().add_audio_url(url)
         
     def remove_audio_url(self, url: str):
-        """移除音频URL
+        """Remove audio URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().remove_audio_url(url)
         
     def add_model_url(self, url: str):
-        """添加模型URL
+        """Add model URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().add_model_url(url)
         
     def remove_model_url(self, url: str):
-        """移除模型URL
+        """Remove model URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().remove_model_url(url)
         
     def add_other_url(self, url: str):
-        """添加其他URL
+        """Add other URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().add_other_url(url)
         
     def remove_other_url(self, url: str):
-        """移除其他URL
+        """Remove other URL
         
         Args:
-            url: URL地址
+            url: URL address
             
         Returns:
-            状态码
+            Status code
         """
         return super().remove_other_url(url)
         
     def get_image_url(self):
-        """获取图像URL列表
+        """Get image URL list
         
         Returns:
-            URL地址列表
+            URL address list
         """
         return super().get_image_url()
         
     def get_video_url(self):
-        """获取视频URL列表
+        """Get video URL list
         
         Returns:
-            URL地址列表
+            URL address list
         """
         return super().get_video_url()
         
     def get_audio_url(self):
-        """获取音频URL列表
+        """Get audio URL list
         
         Returns:
-            URL地址列表
+            URL address list
         """
         return super().get_audio_url()
         
     def get_model_url(self):
-        """获取模型URL列表
+        """Get model URL list
         
         Returns:
-            URL地址列表
+            URL address list
         """
         return super().get_model_url()
         
     def get_other_url(self):
-        """获取其他URL列表
+        """Get other URL list
         
         Returns:
-            URL地址列表
+            URL address list
         """
         return super().get_other_url()
         
@@ -281,6 +281,15 @@ class Graph(_C.dag.Graph):
             edge: Edge object
         """
         return super().add_edge(edge)
+    
+    def delete_edge(self, edge: Edge):
+        """
+        Delete an edge
+        
+        Args:
+            edge: Edge object
+        """
+        return super().delete_edge(edge)
 
     def update_edge(self, edge_wrapper: Edge, edge: Edge, is_external: bool = True):
         """
@@ -340,6 +349,15 @@ class Graph(_C.dag.Graph):
             node: Node object
         """
         return super().add_node(node)
+    
+    def delete_node(self, node: Node):
+        """
+        Delete node
+        
+        Args:
+            node: Node object
+        """
+        return super().delete_node(node)
     
     def get_node(self, name_or_index: Union[str, int]) -> Node:
         """
@@ -507,6 +525,10 @@ class Graph(_C.dag.Graph):
     def synchronize(self):
         """Synchronize graph execution"""
         return super().synchronize()
+    
+    def interrupt(self):
+        """Interrupt graph execution"""
+        return super().interrupt()
 
     # def __call__(self, inputs):
     #     """
@@ -613,7 +635,9 @@ class Graph(_C.dag.Graph):
                 node = None
                 # Update description if node already exists
                 if node_count > i:
-                    node = self.get_node(i)
+                    node = self.get_node(node_json["name_"])
+                    if (node is None):
+                        node = self.get_node(i)
                     # self.set_node_desc(node, node_desc)
                 elif len(self.nodes) > i:
                     node = self.nodes[i]
@@ -641,44 +665,44 @@ class Graph(_C.dag.Graph):
             self.deserialize(json_str)
             
     def set_node_value(self, *args):
-        """设置节点值
+        """Set node value
         
-        支持多种调用方式：
-        1. set_node_value(node_value_str) - 通过JSON字符串设置
-        2. set_node_value(node_name, key, value) - 设置单个节点的键值对
-        3. set_node_value(node_value_map) - 通过字典设置多个节点值
+        Supports multiple calling methods:
+        1. set_node_value(node_value_str) - Set through JSON string
+        2. set_node_value(node_name, key, value) - Set single node key-value pair
+        3. set_node_value(node_value_map) - Set multiple node values through dictionary
         """
         return super().set_node_value(*args)
     
     def get_node_value(self):
-        """获取所有节点的值
+        """Get all node values
         
         Returns:
-            dict: 节点值的嵌套字典，格式为 {node_name: {key: value}}
+            dict: Nested dictionary of node values, format: {node_name: {key: value}}
         """
         return super().get_node_value()
     
     def set_unused_node_names(self, *args):
-        """设置未使用的节点名称
+        """Set unused node names
         
         Args:
-            node_name: 节点名称
+            node_name: Node name
         """
         return super().set_unused_node_names(*args)
     
     def remove_unused_node_names(self, *args):
-        """移除未使用的节点名称
+        """Remove unused node names
         
         Args:
-            node_name: 节点名称
+            node_name: Node name
         """
         return super().remove_unused_node_names(*args)
     
     def get_unused_node_names(self):
-        """获取未使用的节点名称
+        """Get unused node names
         
         Returns:
-            list: 未使用的节点名称列表
+            list: List of unused node names
         """
         return super().get_unused_node_names()
     

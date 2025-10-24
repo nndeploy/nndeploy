@@ -7,24 +7,24 @@ import com.nndeploy.base.FileUtils
 import java.io.File
 
 /**
- * AI算法处理器 - 支持提示词输入和文本输出
+ * AI Algorithm Processor - Supports prompt input and text output
  */
 object PromptInPromptOut {
     
-    // 存储对话历史的Map，key为会话ID，value为对话历史
+    // Store conversation history Map, key is session ID, value is conversation history
     private val conversationHistory = mutableMapOf<String, MutableList<ConversationMessage>>()
     
     /**
-     * 对话消息数据类
+     * Conversation message data class
      */
     data class ConversationMessage(
-        val role: String, // "user" 或 "assistant"
+        val role: String, // "user" or "assistant"
         val content: String,
         val timestamp: Long = System.currentTimeMillis()
     )
     
     /**
-     * 处理结果封装
+     * Processing result wrapper
      */
     sealed class PromptProcessResult {
         data class Success(val response: String, val conversationId: String) : PromptProcessResult()
@@ -32,7 +32,7 @@ object PromptInPromptOut {
     }
     
     /**
-     * 智能对话处理 - 支持多轮对话
+     * Intelligent conversation processing - Supports multi-turn dialogue
      */
     suspend fun processPromptInPromptOut(
         context: Context, 
@@ -43,37 +43,37 @@ object PromptInPromptOut {
         return try {
             Log.w("PromptInPromptOut", "Starting processing for ${alg.name}")
             
-            // 1) 确保外部资源就绪
+            // 1) Ensure external resources are ready
             val extResDir = FileUtils.ensureExternalResourcesReady(context)
             val extRoot = FileUtils.getExternalRoot(context)
             val extWorkflowDir = File(extResDir, "workflow").apply { mkdirs() }
             
-            // 打印三个变量
+            // Print three variables
             Log.d("PromptInPromptOut", "extResDir: ${extResDir.absolutePath}")
             Log.d("PromptInPromptOut", "extRoot: ${extRoot.absolutePath}")
             Log.d("PromptInPromptOut", "extWorkflowDir: ${extWorkflowDir.absolutePath}")
 
             val workflowAsset = alg.workflowAsset
             
-            // 2) 获取或创建对话历史
+            // 2) Get or create conversation history
             val history = conversationHistory.getOrPut(conversationId) { mutableListOf() }
             
-            // 3) 构建包含历史的完整提示词
+            // 3) Build complete prompt including history
             // val fullPrompt = buildFullPrompt(prompt, history)
             // Log.d("PromptInPromptOut", "Full prompt with history: $fullPrompt")
             
-            // 4) 读取 assets 的 workflow，并把相对路径替换为外部绝对路径
+            // 4) Read workflow from assets and replace relative paths with external absolute paths
             val rawJson = context.assets.open(workflowAsset).bufferedReader().use { it.readText() }
             val resolvedJson = rawJson.replace("resources/", "${extResDir.absolutePath}/".replace("\\", "/"))
-            // 打印解析后的JSON内容
+            // Print resolved JSON content
             Log.d("PromptInPromptOut", "Resolved JSON content: $resolvedJson")
             
-            // 5) 写到外部私有目录，得到真实文件路径
+            // 5) Write to external private directory, get real file path
             val workflowOut = File(extWorkflowDir, alg.id + "_resolved.json").apply {
                 writeText(resolvedJson)
             }
 
-            // 6) 以文件路径运行底层
+            // 6) Run underlying system with file path
             val runner = GraphRunner()
             runner.setJsonFile(true)
             runner.setTimeProfile(true)
@@ -82,11 +82,11 @@ object PromptInPromptOut {
             val input_node_param = alg.parameters["input_node"] as Map<String, String>
             val output_node_param = alg.parameters["output_node"] as Map<String, String>
             
-            // 设置输入提示词
+            // Set input prompt
             // Log.d("PromptInPromptOut", "prompt: $prompt")
             runner.setNodeValue(input_node_param.keys.first(), input_node_param.values.first(), prompt)
             
-            // 设置输出路径
+            // Set output path
             val resultPath = File(extResDir, "text/result.${alg.id}.${System.currentTimeMillis()}.txt")
             resultPath.parentFile?.mkdirs()
             runner.setNodeValue(output_node_param.keys.first(), output_node_param.values.first(), resultPath.absolutePath)
@@ -99,12 +99,12 @@ object PromptInPromptOut {
                 Log.d("PromptInPromptOut", "resultPath exists")
                 val response = resultPath.readText().trim()
                 
-                // 7) 更新对话历史
+                // 7) Update conversation history
                 history.add(ConversationMessage("user", prompt))
                 history.add(ConversationMessage("assistant", response))
                 
-                // 8) 限制历史长度，避免内存过大
-                if (history.size > 20) { // 保留最近10轮对话
+                // 8) Limit history length to avoid excessive memory usage
+                if (history.size > 20) { // Keep recent 10 rounds of conversation
                     history.removeAt(0)
                     history.removeAt(0)
                 }
@@ -112,17 +112,17 @@ object PromptInPromptOut {
                 PromptProcessResult.Success(response, conversationId)
             } else {
                 Log.d("PromptInPromptOut", "resultPath not exists")
-                PromptProcessResult.Error("结果文件未找到: ${resultPath.absolutePath}")
+                PromptProcessResult.Error("Result file not found: ${resultPath.absolutePath}")
             }
             
         } catch (e: Exception) {
             Log.e("PromptInPromptOut", "Prompt processing failed", e)
-            PromptProcessResult.Error("处理失败: ${e.message}")
+            PromptProcessResult.Error("Processing failed: ${e.message}")
         }
     }
     
     /**
-     * 构建包含历史的完整提示词
+     * Build complete prompt including history
      */
     private fun buildFullPrompt(currentPrompt: String, history: List<ConversationMessage>): String {
         if (history.isEmpty()) {
@@ -130,24 +130,24 @@ object PromptInPromptOut {
         }
         
         val contextBuilder = StringBuilder()
-        contextBuilder.append("以下是对话历史:\n")
+        contextBuilder.append("The following is conversation history:\n")
         
-        // 添加历史对话
-        history.takeLast(10).forEach { message -> // 只取最近5轮对话
+        // Add conversation history
+        history.takeLast(10).forEach { message -> // Only take recent 5 rounds of conversation
             when (message.role) {
-                "user" -> contextBuilder.append("用户: ${message.content}\n")
-                "assistant" -> contextBuilder.append("助手: ${message.content}\n")
+                "user" -> contextBuilder.append("User: ${message.content}\n")
+                "assistant" -> contextBuilder.append("Assistant: ${message.content}\n")
             }
         }
         
-        contextBuilder.append("\n当前用户问题: $currentPrompt")
-        contextBuilder.append("\n请基于对话历史回答当前问题:")
+        contextBuilder.append("\nCurrent user question: $currentPrompt")
+        contextBuilder.append("\nPlease answer the current question based on conversation history:")
         
         return contextBuilder.toString()
     }
     
     /**
-     * 清除指定会话的对话历史
+     * Clear conversation history for specified session
      */
     fun clearConversationHistory(conversationId: String = "default") {
         conversationHistory.remove(conversationId)
@@ -155,14 +155,14 @@ object PromptInPromptOut {
     }
     
     /**
-     * 获取指定会话的对话历史
+     * Get conversation history for specified session
      */
     fun getConversationHistory(conversationId: String = "default"): List<ConversationMessage> {
         return conversationHistory[conversationId]?.toList() ?: emptyList()
     }
     
     /**
-     * 获取所有会话ID
+     * Get all conversation IDs
      */
     fun getAllConversationIds(): Set<String> {
         return conversationHistory.keys.toSet()

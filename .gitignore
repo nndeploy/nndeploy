@@ -263,7 +263,6 @@ ref_repo
 # app/
 # translation
 *.mo
-/app/workflow/package-lock.json
 
 # server/resources rule
 server/resources/**
@@ -288,3 +287,5 @@ gfpgan/
 tool/script/third_party/
 tool/script/download/
 tool/script/nndeploy_build_env/
+
+app/workflow/package-lock.json

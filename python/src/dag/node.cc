@@ -87,6 +87,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_output_names", &Node::setOutputNames, py::arg("names"))
       .def("set_graph", &Node::setGraph, py::arg("graph"))
       .def("get_graph", &Node::getGraph, py::return_value_policy::reference)
+      .def("set_composite_node", &Node::setCompositeNode,
+           py::arg("composite_node"))
+      .def("get_composite_node", &Node::getCompositeNode,
+           py::return_value_policy::reference)
       .def("set_device_type", &Node::setDeviceType, py::arg("device_type"))
       .def("get_device_type", &Node::getDeviceType)
       .def("set_param",
@@ -101,6 +105,34 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_external_param", &Node::setExternalParam, py::arg("key"),
            py::arg("external_param"))
       .def("get_external_param", &Node::getExternalParam, py::arg("key"))
+      .def(
+          "add_resource_without_state",
+          [](Node &self, const std::string &key, py::object value) {
+            base::Any any_value = base::Any(value);
+            return self.addResourceWithoutState(key, any_value);
+          },
+          py::arg("key"), py::arg("value"))
+      .def(
+          "get_resource_without_state",
+          [](Node &self, const std::string &key) -> py::object {
+            base::Any &any_ref = self.getResourceWithoutState(key);
+            if (any_ref.empty()) {
+              return py::object(py::none());
+            }
+            return (base::get<py::object>(any_ref));
+          },
+          py::arg("key"))  // TODO,返回值
+      .def("create_resource_with_state", &Node::createResourceWithState,
+           py::arg("key"), py::return_value_policy::reference)
+      .def("add_resource_with_state", &Node::addResourceWithState,
+           py::arg("key"), py::arg("edge"))
+      .def(
+          "get_resource_with_state",
+          [](Node &self, const std::string &key) -> Edge * {
+            Edge *edge = self.getResourceWithState(key);
+            return edge;
+          },
+          py::arg("key"), py::return_value_policy::reference)
       .def("set_version", &Node::setVersion, py::arg("version"))
       .def("get_version", &Node::getVersion)
       .def("set_required_params", &Node::setRequiredParams,
@@ -135,6 +167,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("index") = -1)
       .def("set_inputs", &Node::setInputs, py::arg("inputs"))
       .def("set_outputs", &Node::setOutputs, py::arg("outputs"))
+      .def("set_iter_input", &Node::setIterInput, py::arg("input"),
+           py::arg("index") = -1)
       .def("set_input_shared_ptr", &Node::setInputSharedPtr, py::arg("input"),
            py::arg("index") = -1)
       .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
@@ -595,11 +629,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
-      .def("set_edge_queue_overflow_policy",
-           &Graph::setEdgeQueueOverflowPolicy, py::arg("policy"),
-           py::arg("drop_count") = 1)
-      .def("get_edge_queue_overflow_policy",
-           &Graph::getEdgeQueueOverflowPolicy)
+      .def("set_edge_queue_overflow_policy", &Graph::setEdgeQueueOverflowPolicy,
+           py::arg("policy"), py::arg("drop_count") = 1)
+      .def("get_edge_queue_overflow_policy", &Graph::getEdgeQueueOverflowPolicy)
       .def("get_edge_queue_drop_count", &Graph::getEdgeQueueDropCount)
       .def("set_input", &Graph::setInput, py::arg("input"),
            py::arg("index") = -1)
@@ -625,10 +657,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addEdge(edge, is_external);
           },
           py::arg("edge"), py::keep_alive<1, 2>())
-      .def("update_edge", &Graph::updteEdge, py::arg("edge_wrapper"),
-           py::arg("edge"), py::arg("is_external") = true)
+      .def("delete_edge", &Graph::deleteEdge, py::arg("edge"))
       .def("get_edge", &Graph::getEdge, py::arg("name"),
            py::return_value_policy::reference)
+      .def("update_edge", &Graph::updteEdge, py::arg("edge_wrapper"),
+           py::arg("edge"), py::arg("is_external") = true)
       .def("create_node",
            py::overload_cast<const std::string &, const std::string &>(
                &Graph::createNode4Py),
@@ -652,6 +685,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addNode(node, is_external);
           },
           py::keep_alive<1, 2>(), py::arg("node"))
+      .def("delete_node", &Graph::deleteNode, py::arg("node"))
       .def("get_node", py::overload_cast<const std::string &>(&Graph::getNode),
            py::arg("name"), py::return_value_policy::reference)
       .def("get_node", py::overload_cast<int>(&Graph::getNode),
@@ -675,6 +709,12 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("get_infer_node", &Graph::getInferNode, py::arg("index"),
            py::return_value_policy::reference)
+      .def("connect", &Graph::connect, py::arg("predecessor"),
+           py::arg("successor"), py::arg("predecessor_port") = 0,
+           py::arg("successor_port") = 0)
+      .def("disconnect", &Graph::disconnect, py::arg("predecessor"),
+           py::arg("successor"), py::arg("predecessor_port") = 0,
+           py::arg("successor_port") = 0)
       .def("get_nodes_run_status", &Graph::getNodesRunStatus,
            py::call_guard<py::gil_scoped_release>())
       .def("get_nodes_run_status_recursive", &Graph::getNodesRunStatusRecursive,
@@ -755,6 +795,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("to_static_graph", &Graph::toStaticGraph,
            py::return_value_policy::reference)
+      .def("add_resource_without_state", &Graph::addResourceWithoutState,
+           py::arg("key"), py::arg("value"))
+      .def("get_resource_without_state", &Graph::getResourceWithoutState,
+           py::arg("key"))
+      .def("add_resource_with_state", &Graph::addResourceWithState,
+           py::arg("key"), py::arg("edge"))
+      .def("get_resource_with_state", &Graph::getResourceWithState,
+           py::arg("key"))
+      .def("add_node_input_and_output", &Graph::addNodeInputAndOutput,
+           py::arg("node_wrapper"), py::arg("inputs"), py::arg("outputs"))
       .def("get_edge_wrapper",
            py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
            py::return_value_policy::reference)

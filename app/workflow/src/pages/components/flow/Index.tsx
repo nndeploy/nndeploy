@@ -2,6 +2,9 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  IPoint,
+  usePlaygroundTools,
+  WorkflowLinePortInfo,
 } from "@flowgram.ai/free-layout-editor";
 
 import "@flowgram.ai/free-layout-editor/index.css";
@@ -18,17 +21,17 @@ import { apiGetTemeplateWorkFlow, apiGetWorkFlow, setupWebSocket } from "./api";
 import { FlowDocumentJSON } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
-import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { IBusinessNode, Inndeploy_ui_layout, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import {
   //useGetNodeList, 
   useGetParamTypes,
   //useGetRegistry
 } from "./effect";
-import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
+import { businessNodeNormalize } from "./FlowSaveDrawer/functions";
 import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
-import { getNextNameNumberSuffix } from "./functions";
+import { getNextNameNumberSuffix, nodeIterate } from "./functions";
 import store, { } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree, initFreshResourceTree } from "../../Layout/Design/store/actionType";
@@ -36,6 +39,8 @@ import { IDownloadProgress, IRunInfo } from "./entity";
 import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
 import { EnumFlowType } from "../../../enum";
+import { designDataToBusinessData } from "./FlowSaveDrawer/toBusiness";
+import { buildEdges, transferBusinessContentToDesignContent, transferBusinessNodeToDesignNodeIterate } from "./FlowSaveDrawer/toDesign";
 
 interface FlowProps {
   id: string;
@@ -51,6 +56,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   const { nodeRegistries, nodeList } = state
   const [downloadModalVisible, setDownloadModalVisible] = useState(false)
   const [downloadModalList, setDownloadModalList] = useState<string[]>([])
+
 
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
@@ -91,6 +97,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
     // name: '',
+    name: '',
     parentId: "",
     designContent: {
       nodes: [],
@@ -99,12 +106,14 @@ const Flow: React.FC<FlowProps> = (props) => {
     businessContent: {
       key_: "nndeploy::dag::Graph",
       name_: "demo",
+      desc_: "",
       device_type_: "kDeviceTypeCodeX86:0",
       inputs_: [],
       outputs_: [
         {
           name_: "detect_out",
           type_: "kNotSet",
+          desc_: ""
         },
       ],
       is_external_stream_: false,
@@ -153,6 +162,8 @@ const Flow: React.FC<FlowProps> = (props) => {
       const modals: string[] = []
       const fields = lodash.pick(businessNode, ['image_url_', 'video_url_', 'audio_url_', 'model_url_', 'other_url_'])
       for (let field in fields) {
+
+        ///@ts-ignore
         const urlArray: string[] = fields[field]
         urlArray.map(url => {
           if (url.startsWith('modelscope')) {
@@ -178,6 +189,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     } else {
       response = await apiGetWorkFlow(flowId);
+
+      const modals = getdownloadModals(response.result)
+      setDownloadModalList(modals)
       if (response.flag == "error") {
         return;
       }
@@ -205,7 +219,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         autoLayOutRef.current?.autoLayout()
       }
 
-    }, 100);
+    }, 10);
 
 
     setLoading(false);
@@ -289,7 +303,9 @@ const Flow: React.FC<FlowProps> = (props) => {
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
-        flowJson.nodes
+        flowJson.nodes,
+        ref?.current!
+
       );
 
       const response = await apiModelsRunDownload(businessContent);
@@ -332,14 +348,14 @@ const Flow: React.FC<FlowProps> = (props) => {
             setRunInfo((oldRunInfo) => {
 
 
-              const downloadProgress: IRunInfo['downloadProgress'] = {} 
+              const downloadProgress: IRunInfo['downloadProgress'] = {}
 
-              for(const item of downloadModalList){
+              for (const item of downloadModalList) {
 
-                 let nameParts = item.split(':')
+                let nameParts = item.split(':')
                 let name = nameParts[nameParts.length - 1]
 
-                
+
                 downloadProgress[name] = {
                   filename: name,
                   percent: 100,
@@ -348,7 +364,7 @@ const Flow: React.FC<FlowProps> = (props) => {
                   total: 0
                 }
               }
-              
+
 
               return {
                 ...oldRunInfo,
@@ -370,17 +386,6 @@ const Flow: React.FC<FlowProps> = (props) => {
           }
 
           else if (response.result.type == 'log') {
-
-
-            // setLog((oldLog) => {
-            //   var newLog = {
-            //     ...oldLog,
-            //     items: [...oldLog.items, response.result.log],
-
-            //   }
-            //   return newLog
-            // })
-
             setRunInfo((oldRunInfo) => {
               return {
                 ...oldRunInfo,
@@ -402,8 +407,6 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       })
 
-
-      //Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
       setDownloading(false)
@@ -413,16 +416,11 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   }
 
-
-
-
   async function onRun(flowJson: FlowDocumentJSON) {
     try {
 
       setRunInfo(oldRunInfo => {
         return {
-
-
           ...oldRunInfo,
           isRunning: true,
           result: '',
@@ -439,7 +437,8 @@ const Flow: React.FC<FlowProps> = (props) => {
       const businessContent = designDataToBusinessData(
         flowJson,
         graphTopNode,
-        flowJson.nodes
+        flowJson.nodes,
+        ref?.current!
       );
 
 
@@ -465,7 +464,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
 
       socket!.onclose = () => {
-        let j = 0
+        //let j = 0
       };
 
       socket!.onmessage = (event) => {
@@ -579,7 +578,6 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   useEffect(() => {
-    let handleDrop: any = null;
 
     function dragover(e: any) {
       e.preventDefault();
@@ -593,46 +591,87 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       const nodeString = e?.dataTransfer?.getData("text")!;
 
-      const entity = JSON.parse(nodeString)
+      let entity: IBusinessNode = JSON.parse(nodeString)
 
-      var type = entity.key_
+      businessNodeNormalize(entity)
+
+
+      const edges = buildEdges(entity, {})
+
+      const lines: WorkflowLinePortInfo[] = edges.map(item => {
+        return {
+          from: item.sourceNodeID,
+          fromPort: item.sourcePortID,
+          to: item.targetNodeID,
+          toPort: item.targetPortID
+        }
+      })
 
       let numberSuffix = getNextNameNumberSuffix(ref?.current?.document.toJSON() as FlowDocumentJSON)
 
-      let node = {
-        // ...response.result,
-        id: Math.random().toString(36).substr(2, 9),
-        type,
-        meta: {
-          position: {
-            x: position?.x,
-            y: position?.y,
+      entity.name_ = `${entity.name_}_${numberSuffix}`
+
+      function buildLayout(position: IPoint, entity: IBusinessNode) {
+
+        const layout: Inndeploy_ui_layout['layout'] = entity.nndeploy_ui_layout?.layout ?? {
+
+          "tokenizer_encode": {
+
+            position: { x: 20, y: 10 },
+            size: { width: 200, height: 80 }
+
           },
-        },
-        data: {
-          //title: response.result.key_,
-          ...entity,
-          name_: `${entity.name_}_${numberSuffix}`,
-        },
+          "prefill_infer": {
+            position: { x: 250, y: 10 },
+            size: { width: 200, height: 80 }
+          },
+          "prefill_sampler": {
+            position: { x: 20, y: 120 },
+            size: { width: 200, height: 80 }
+          },
+
+
+        }
+
+        // for (let nodeName in layout) {
+
+        //   const nodeLayout = layout[nodeName]
+
+        //   nodeIterate(nodeLayout, 'children', (node, parents) => {
+        //     node.position = {
+        //       x: node?.position?.x! , //+ position.x
+        //       y: node.position?.y!  //+ position.y
+        //     }
+        //   })
+        // }
+
+        const result: Inndeploy_ui_layout['layout'] = {
+          [entity.name_]: {
+            position: position,
+            size: { width: 200, height: 80 },
+            children: layout
+          },
+
+        }
+
+        return result
       }
 
-      node.data.inputs_ = node.data.inputs_.map((item: any) => {
-        return {
-          ...item,
-          id: 'port' + Math.random().toString(36).substr(2, 9),
-        }
-      })
+      const layout: Inndeploy_ui_layout['layout'] = buildLayout(position, entity)
 
-      node.data.outputs_ = node.data.outputs_.map((item: any) => {
-        return {
-          ...item,
-          id: 'port' + Math.random().toString(36).substr(2, 9),
-        }
-      })
-
-
+      let node = transferBusinessNodeToDesignNodeIterate(entity, layout)
+      node.meta!.needInitAutoLayout = true
 
       ref?.current?.document.createWorkflowNode(node);
+
+
+
+      const linesManager = ref?.current?.document.linesManager
+
+      lines.map(line => {
+        linesManager?.createLine(line)
+      })
+
     }
     if (dropzone.current) {
 
@@ -641,8 +680,6 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
       dropzone.current.removeEventListener("drop", dropFunction);
-
-
 
       dropzone.current.addEventListener("drop", dropFunction);
     }
@@ -656,8 +693,9 @@ const Flow: React.FC<FlowProps> = (props) => {
     };
   }, [dropzone]);
 
-
-  //const nodeRegistries = useGetRegistry()
+  function getPopupContainer() {
+    return demoContainerRef?.current!!
+  }
 
   const editorProps = useEditorProps(entity.designContent, nodeRegistries);
   return (
@@ -708,22 +746,24 @@ const Flow: React.FC<FlowProps> = (props) => {
               nodeList={nodeList!}
               paramTypes={paramTypes}
             />
+            <SideSheet
+              width={"80%"}
+              visible={saveDrawerVisible}
+              onCancel={handleSaveDrawerClose}
+              title={"save flow"}
+              getPopupContainer={getPopupContainer}
+            >
+              <FlowSaveDrawer
+                entity={entity!}
+                onSure={onflowSaveDrawrSure}
+                onClose={onFlowSaveDrawerClose}
+                flowType={flowType}
+
+              />
+            </SideSheet>
           </FreeLayoutEditorProvider>
 
-          <SideSheet
-            width={"80%"}
-            visible={saveDrawerVisible}
-            onCancel={handleSaveDrawerClose}
-            title={"save flow"}
-          >
-            <FlowSaveDrawer
-              entity={entity!}
-              onSure={onflowSaveDrawrSure}
-              onClose={onFlowSaveDrawerClose}
-              flowType={flowType}
 
-            />
-          </SideSheet>
 
         </FlowEnviromentContext.Provider>
       )}

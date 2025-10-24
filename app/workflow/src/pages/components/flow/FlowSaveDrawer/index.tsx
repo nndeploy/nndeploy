@@ -3,12 +3,13 @@ const { Input, TreeSelect } = Form;
 
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import {  useGetWorkflowTree } from "../../../Layout/Design/WorkFlow/effect";
-import { IBusinessNode, IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
+import { IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
-import { designDataToBusinessData } from "./functions";
+
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 import { EnumFlowType } from "../../../../enum";
+import { useClientContext } from "@flowgram.ai/free-layout-editor";
+import { designDataToBusinessData } from "./toBusiness";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
@@ -22,6 +23,15 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   const formRef = useRef<FormApi<any>>();
   const flowEnviroment = useFlowEnviromentContext();
 
+  const clientContext = useClientContext();
+
+  // let find = props.entity.designContent.nodes.find(item=>item.data.name_ == 'Prefill_1')
+
+ // let node = clientContext.document.getNode(find!.id)
+  //const extraInfo = node?.getExtInfo()
+
+  
+
   // const { treeData } = useGetWorkflowBranch()
 
   async function onSure() {
@@ -33,7 +43,8 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
         const businessContent = designDataToBusinessData(
               props.entity.designContent, 
               flowEnviroment.graphTopNode, 
-              props.entity.designContent.nodes
+              props.entity.designContent.nodes, 
+              clientContext
             );
 
       const data: IWorkFlowEntity = {
@@ -47,6 +58,8 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
 
       //return
       const id = props.flowType == EnumFlowType.template ? '':  props.entity.id ?? ""
+
+      //return
 
       const response = await apiWorkFlowSave(id,   businessContent );
       if (response.flag == "success") {

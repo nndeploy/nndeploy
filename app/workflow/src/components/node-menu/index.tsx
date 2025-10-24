@@ -115,6 +115,8 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
           >
             Delete
           </Dropdown.Item>
+         
+          
         </Dropdown.Menu>
       }
     >

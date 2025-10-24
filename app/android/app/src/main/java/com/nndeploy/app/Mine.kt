@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 /**
- * 我的页面 - 暂时为空页面
+ * Mine page - temporarily empty page
  */
 @Composable
 fun MineScreen(nav: NavHostController) {
@@ -23,7 +23,7 @@ fun MineScreen(nav: NavHostController) {
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
     ) {
-        // 标题栏
+        // Title bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -31,14 +31,14 @@ fun MineScreen(nav: NavHostController) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "我的",
+                text = "Mine",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E3A8A)
             )
         }
         
-        // 空状态内容
+        // Empty state content
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -52,14 +52,14 @@ fun MineScreen(nav: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "功能开发中",
+                    text = "Feature in Development",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF374151)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "敬请期待更多精彩功能",
+                    text = "Stay tuned for more exciting features",
                     fontSize = 14.sp,
                     color = Color(0xFF6B7280),
                     textAlign = TextAlign.Center
