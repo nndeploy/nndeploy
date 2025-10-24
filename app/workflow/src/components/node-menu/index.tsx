@@ -15,7 +15,7 @@ import { IconMore } from '@douyinfe/semi-icons';
 import { FlowNodeRegistry } from '../../typings';
 import { PasteShortcut } from '../../shortcuts/paste';
 import { CopyShortcut } from '../../shortcuts/copy';
-import { getNextNameNumberSuffix } from '../../pages/components/flow/functions';
+import { getNextNameNumberSuffix, isNodeOffspringOfCompositeNode, isNodeOffSpringOfFixedGraph } from '../../pages/components/flow/functions';
 
 interface NodeMenuProps {
   node: WorkflowNodeEntity;
@@ -29,7 +29,16 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
   const nodeIntoContainerService = useService(NodeIntoContainerService);
   const selectService = useService(WorkflowSelectService);
   const dragService = useService(WorkflowDragService);
-  const canMoveOut = nodeIntoContainerService.canMoveOutContainer(node);
+  isNodeOffSpringOfFixedGraph(node, clientContext) || isNodeOffspringOfCompositeNode(node, clientContext)
+  let canMoveOut = nodeIntoContainerService.canMoveOutContainer(node);
+
+  let canCreateCopy = !((isNodeOffSpringOfFixedGraph(node, clientContext)
+    || isNodeOffspringOfCompositeNode(node, clientContext)))
+
+  if (isNodeOffSpringOfFixedGraph(node, clientContext)
+    || isNodeOffspringOfCompositeNode(node, clientContext)) {
+    canMoveOut = false
+  }
 
   const rerenderMenu = useCallback(() => {
     // force destroy component - 强制销毁组件触发重新渲染
@@ -68,12 +77,12 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
 
       const nextNameNumberPart = getNextNameNumberSuffix(clientContext.document.toJSON() as any);
 
-      data.json.nodes.map(node=>{
+      data.json.nodes.map(node => {
         let name = ''
         ///@ts-ignore
-        var parts = node.type.split('::') 
-        if(parts.length > 0){
-          name = parts[parts.length  -1]
+        var parts = node.type.split('::')
+        if (parts.length > 0) {
+          name = parts[parts.length - 1]
         }
 
         name = name + '_' + nextNameNumberPart
@@ -106,17 +115,18 @@ export const NodeMenu: FC<NodeMenuProps> = ({ node, deleteNode }) => {
       render={
         <Dropdown.Menu>
           {canMoveOut && <Dropdown.Item onClick={handleMoveOut}>Move out</Dropdown.Item>}
-          <Dropdown.Item onClick={handleCopy} disabled={registry.meta!.copyDisable === true}>
+          {canCreateCopy && <Dropdown.Item onClick={handleCopy} disabled={registry.meta!.copyDisable === true}>
             Create Copy
           </Dropdown.Item>
+          }
           <Dropdown.Item
             onClick={handleDelete}
-            disabled={!!(registry.canDelete?.(clientContext, node) || registry.meta!.deleteDisable)}
+            disabled={!!(!registry.canDelete?.(clientContext, node) || registry.meta!.deleteDisable)}
           >
             Delete
           </Dropdown.Item>
-         
-          
+
+
         </Dropdown.Menu>
       }
     >

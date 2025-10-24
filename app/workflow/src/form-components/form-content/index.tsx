@@ -5,7 +5,7 @@ import { Field, FieldArray, FlowNodeRegistry, useClientContext, useWatchFormValu
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormTitleDescription, FormWrapper } from './styles';
 import { Tooltip } from '@douyinfe/semi-ui';
-import { isContainerNode, isDynamicContainerNode } from '../../pages/components/flow/functions';
+import { isContainerNode, isGraphNode } from '../../pages/components/flow/functions';
 
 /**
  * @param props
@@ -17,7 +17,7 @@ export function FormContent(props: { children?: React.ReactNode }) {
   const registry = node.getNodeRegistry<FlowNodeRegistry>();
   const clientContext = useClientContext()
 
-  const isDynamicContainer = isDynamicContainerNode(node.id, clientContext)
+  const isDynamicContainer = isGraphNode(node.id, clientContext)
   
 
   // useEffect(() => {

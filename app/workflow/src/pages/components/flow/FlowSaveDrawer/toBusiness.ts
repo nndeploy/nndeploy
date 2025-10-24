@@ -8,10 +8,9 @@ import { FlowDocumentJSON, FlowNodeJSON } from "../../../../typings";
 import lodash from 'lodash'
 import {
   IBusinessNode,
-  Inndeploy_ui_layout,
 } from "../../../Layout/Design/WorkFlow/entity";
-import { IExpandInfo, ILineEntity, INodeUiExtraInfo } from "../entity";
-import { getNodeById, isContainerNode, isDynamicContainerNode, isGraphNode, isLoopNode } from "../functions";
+import { IExpandInfo, INodeUiExtraInfo } from "../entity";
+import { getNodeById, isGraphNode } from "../functions";
 import { getSubcavasInputLines, getSubcavasOutputLines } from "../form-header/function";
 
 function designNodeIterate(
@@ -76,7 +75,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
 
     lines.map(line => {
 
-      let isSourceNodeContainer = isDynamicContainerNode(line.sourceNodeID, clientContext) 
+      let isSourceNodeContainer = isGraphNode(line.sourceNodeID, clientContext) 
 
       if (isSourceNodeContainer) {
 
@@ -92,7 +91,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetNodeID: outputLine.to,
             targetPortID: outputLine.toPort,
           }
-          const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
+          const isToNodeContainer = isGraphNode(outputLine.to, clientContext)
           if (isToNodeContainer) {
             // const toNodeExpandInfo = getNodeExpandInfo(subcavasEdge.targetNodeID)
             // const find = toNodeExpandInfo.inputLines.find(inputLine => {
@@ -118,7 +117,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
         })
       }
 
-      let isTargetNodeContainer = isDynamicContainerNode(line.targetNodeID, clientContext) 
+      let isTargetNodeContainer = isGraphNode(line.targetNodeID, clientContext) 
 
       if (isTargetNodeContainer) {
 
@@ -136,7 +135,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetPortID: inputLine.oldToPort,
           }
 
-          const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext) 
+          const isFromNodeContainer = isGraphNode(inputLine.from, clientContext) 
           if (isFromNodeContainer) {
             // const fromNodeExpandInfo = getNodeExpandInfo(subcavasEdge.sourceNodeID)
             // const find = fromNodeExpandInfo.outputLines.find(outputLine => {
@@ -177,12 +176,12 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
       //let sourceNode = clientContext.document.getNode(item.sourceNodeID)
       // let sourceForm = sourceNode?.form
       // let isSourceNodeContainer =  sourceForm?.getValueIn('is_graph') ?? false
-       let isSourceDynamicNode = isDynamicContainerNode(item.sourceNodeID, clientContext)
+       let isSourceDynamicNode = isGraphNode(item.sourceNodeID, clientContext)
 
       //let targetNode = clientContext.document.getNode(item.targetNodeID)
       // let targetForm = targetNode?.form
       // let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
-      let isTargetDynamicNode = isDynamicContainerNode(item.targetNodeID, clientContext)
+      let isTargetDynamicNode = isGraphNode(item.targetNodeID, clientContext)
 
 
       return !isTargetDynamicNode && !isSourceDynamicNode
@@ -537,7 +536,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
     let inputArray_: any[] = []
 
 
-    if (isDynamicContainerNode(node.id, clientContext)) {
+    if (isGraphNode(node.id, clientContext)) {
       const inputLines = getSubcavasInputLines(getNodeById(node.id, clientContext)!, clientContext)
       inputArray_ = lodash.uniqBy(inputLines, ['from',  'fromPort']).map(item => {
 
@@ -573,7 +572,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     let outputArray_: any[] = []
 
-    if (isDynamicContainerNode(node.id, clientContext)) {
+    if (isGraphNode(node.id, clientContext)) {
       const outputLines = getSubcavasOutputLines(getNodeById(node.id, clientContext)!, clientContext)
       outputArray_ =  lodash.uniqBy(outputLines, ['oldFrom',  'oldFromPort']).map(item => {
 
