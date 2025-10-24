@@ -25,7 +25,7 @@ import {
 } from "../components";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
-import { getNodeById, isCompositeNode, isContainerNode, isDynamicContainerNode } from "../pages/components/flow/functions";
+import { getNodeById, isbothNodeOffSpringOftheSameFixedGraph, isCompositeNode, isContainerNode, isFxiedGraphNode, isGraphNode, isNodeOffspringOfCompositeNode, isNodeOffSpringOfFixedGraph } from "../pages/components/flow/functions";
 import { IExpandInfo } from "../pages/components/flow/entity";
 import lodash from 'lodash'
 
@@ -34,7 +34,7 @@ export function useEditorProps(
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
 
-   //const { state } = React.useContext(store);
+  //const { state } = React.useContext(store);
 
   return useMemo<FreeLayoutProps>(() => {
     return {
@@ -92,27 +92,24 @@ export function useEditorProps(
           return false
         }
 
-        function isNodeInComposite(node: FlowNodeEntity){
-          const parents: FlowNodeEntity[] = []  
-          while(node.parent){
-            parents.push(node.parent)
-            node = node.parent
-          }
-          return lodash.some(parents, (parent) => isCompositeNode(parent.id, ctx))
-        }
 
-        if(isNodeInComposite(fromPort.node) || isNodeInComposite(toPort.node)){
+
+        if (isNodeOffspringOfCompositeNode(fromPort.node, ctx) || isNodeOffspringOfCompositeNode(toPort.node, ctx)) {
           return false
         }
 
-      //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
-      //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
-      //   !succesorNodes && fromPort.type
-      
-      // ){
-      //     return false
-      //   }
-       // dagGraphInfo.accepted_edge_types[fromPort.node.]
+        if (isbothNodeOffSpringOftheSameFixedGraph(fromPort.node, toPort.node, ctx)) {
+          return false
+        }
+
+        //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
+        //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
+        //   !succesorNodes && fromPort.type
+
+        // ){
+        //     return false
+        //   }
+        // dagGraphInfo.accepted_edge_types[fromPort.node.]
 
 
 
@@ -124,43 +121,48 @@ export function useEditorProps(
        */
       canDeleteLine(ctx, line, newLineInfo, silent) {
 
-        if(isDynamicContainerNode(line.from!.id, ctx)){
-          const fromNode  = getNodeById(line.from!.id, ctx)
-          const expandInfo : IExpandInfo= fromNode?.getNodeMeta().expandInfo 
-          let  {outputLines = [] } = expandInfo
 
-          outputLines = outputLines.filter(outputLine=>{
-            if( outputLine.from == line.from!.id &&  outputLine.fromPort == line.fromPort?.portID 
-              && outputLine.to == line.to!.id &&  outputLine.toPort == line.toPort?.portID
-              
-            ){
+
+        if (isbothNodeOffSpringOftheSameFixedGraph(line.from, line.to, ctx)) {
+          return false
+        }
+        if (isGraphNode(line.from!.id, ctx)) {
+          const fromNode = getNodeById(line.from!.id, ctx)
+          const expandInfo: IExpandInfo = fromNode?.getNodeMeta().expandInfo
+          let { outputLines = [] } = expandInfo
+
+          outputLines = outputLines.filter(outputLine => {
+            if (outputLine.from == line.from!.id && outputLine.fromPort == line.fromPort?.portID
+              && outputLine.to == line.to!.id && outputLine.toPort == line.toPort?.portID
+
+            ) {
               return false
             }
             return true
           })
 
-          fromNode!.getNodeMeta().expandInfo = {...expandInfo, outputLines}
+          fromNode!.getNodeMeta().expandInfo = { ...expandInfo, outputLines }
 
 
 
         }
 
-        if(isDynamicContainerNode(line.to!.id, ctx)){
-          const toNode  = getNodeById(line.to!.id, ctx)
-          const expandInfo : IExpandInfo= toNode?.getNodeMeta().expandInfo 
-          let  {inputLines = [] } = expandInfo
+        if (isGraphNode(line.to!.id, ctx)) {
+          const toNode = getNodeById(line.to!.id, ctx)
+          const expandInfo: IExpandInfo = toNode?.getNodeMeta().expandInfo
+          let { inputLines = [] } = expandInfo
 
-          inputLines = inputLines.filter(inputLine=>{
-            if( inputLine.from == line.from!.id &&  inputLine.fromPort == line.fromPort?.portID 
-              && inputLine.to == line.to!.id &&  inputLine.toPort == line.toPort?.portID
-              
-            ){
+          inputLines = inputLines.filter(inputLine => {
+            if (inputLine.from == line.from!.id && inputLine.fromPort == line.fromPort?.portID
+              && inputLine.to == line.to!.id && inputLine.toPort == line.toPort?.portID
+
+            ) {
               return false
             }
             return true
           })
 
-          toNode!.getNodeMeta().expandInfo = {...expandInfo, inputLines}
+          toNode!.getNodeMeta().expandInfo = { ...expandInfo, inputLines }
 
         }
         return true;
@@ -170,13 +172,29 @@ export function useEditorProps(
        * 判断是否能删除节点, 这个会在默认快捷键 (Backspace or Delete) 触发
        */
       canDeleteNode(ctx, node) {
+
+        if (isNodeOffSpringOfFixedGraph(node, ctx)) {
+          return false
+        }
+
+        if (isNodeOffspringOfCompositeNode(node, ctx)) {
+          return false
+        }
+
+        return true;
+      },
+      canDropToNode(ctx, params) {
+        const { dropNode } = params;
+        if (isFxiedGraphNode(dropNode?.id, ctx) || isCompositeNode(dropNode?.id, ctx)) {
+          return false;
+        }
         return true;
       },
       /**
        * Drag the end of the line to create an add panel (feature optional)
        * 拖拽线条结束需要创建一个添加面板 （功能可选）
        */
-      onDragLineEnd: undefined, 
+      onDragLineEnd: undefined,
       /**
        * SelectBox config
        */
@@ -215,7 +233,7 @@ export function useEditorProps(
        * Content change
        */
       onContentChange: debounce((ctx, event) => {
-             //console.log("Auto Save: ", event, ctx.document.toJSON());
+        //console.log("Auto Save: ", event, ctx.document.toJSON());
       }, 1000),
       /**
        * Running line
