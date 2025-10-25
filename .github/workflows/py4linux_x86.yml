@@ -79,11 +79,12 @@ jobs:
             cd {project}/tool/script
             python install_opencv.py
             python install_onnxruntime.py
+            python build_mnn.py
             
             # 构建 C++ 库
             cd {project}
             mkdir -p build
-            cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
+            cp cmake/config_opencv_ort_mnn_tokenizer.cmake build/config.cmake
             cd build
             
             # 设置编译器
