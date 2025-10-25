@@ -346,14 +346,14 @@ def get_package_data():
 install_requires = [
     'cython',  # Cython compilation
     'packaging',  # Package management
-    # 'setuptools<=68.0.0',  # Setup tools
+    'setuptools==68.0.0',  # Setup tools
     'gitpython>=3.1.30',  # Git operations
     'aiofiles>=24.1.0',  # Asynchronous file operations
     'pytest',  # Testing framework
     'jsonschema',  # JSON Schema validation
     'multiprocess',  # Multiprocessing support
     'numpy',  # Numerical computation
-    # 'opencv-python>=4.8.0',  # Image processing
+    'opencv-python>=4.8.0',  # Image processing
     'modelscope',
 ]
 
@@ -445,6 +445,7 @@ server_requires = [
     'websockets>=11.0',  # WebSocket support
     'python-multipart>=0.0.6',  # File upload support
     'pydantic>=2.0.0',  # Data validation
+    'chardet>=5.2.0',  # Character encoding detection
 ]
 
 install_requires.extend(server_requires)
