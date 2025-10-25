@@ -89,7 +89,7 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
 
 | Application Scenario   | Available Models                                                                              | Remarks                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| **Large Language Model** | **QWen-0.5B**                                                                                 |                                                     |
+| **Large Language Model** |**QWen-2.5**, **QWen-3**                                                                     |                                                     |
 | **Image Generation**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc.               | Supports text-to-image, image-to-image, inpainting; based on **diffusers** |
 | **Face Swap**          | **deep-live-cam**                                                                             |                                                     |
 | **OCR**                | **Paddle OCR**                                                                                |                                                     |

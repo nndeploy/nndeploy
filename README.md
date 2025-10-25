@@ -45,13 +45,13 @@ nndeploy：一款简单易用且高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/01/29] 🔥 与昇腾官方合作推出推理框架免费课程！课程基于nndeploy内部推理框架讲解，帮助开发者快速掌握AI推理部署技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+- [2025/01/29] 🔥 与昇腾官方合作推出推理框架免费课程！课程基于 nndeploy 内部推理框架讲解，帮助开发者快速掌握 AI 推理部署技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## 介绍
 
-nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括LLM、AIGC生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
+nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等众多 AI 模型，开箱即用。
 
 ### **简单易用**
 
@@ -89,7 +89,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 | 应用场景       | 可用模型                                                                         | 备注                                                |
 | -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| **大语言模型** | **QWen-0.5B**                                                                    |                                                     |
+| **大语言模型** | **QWen-2.5**, **QWen-3**                                                         | 支持小 B 模型                                       |
 | **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
 | **换脸**       | **deep-live-cam**                                                                |                                                     |
 | **OCR**        | **Paddle OCR**                                                                   |                                                     |
@@ -97,19 +97,19 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 | **目标追踪**   | FairMot                                                                          |                                                     |
 | **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                     |
 | **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
-| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                              |
+| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                               |
 
 > 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
 ## 快速开始
 
-+ **安装**
+- **安装**
 
   ```bash
   pip install --upgrade nndeploy
   ```
 
-+ **启动可视化界面**
+- **启动可视化界面**
 
   ```bash
   nndeploy-app --port 8000
@@ -122,9 +122,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
       <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
       <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
     </picture>
-  </p>  
+  </p>
 
-+ **导出工作流并命令行执行**
+- **导出工作流并命令行执行**
 
   完成工作流搭建后，保存为 JSON 文件并通过命令行执行：
 
@@ -135,26 +135,26 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   nndeploy_demo_run_json --json_file path/to/workflow.json
   ```
 
-- **导出工作流并API加载运行**  
+* **导出工作流并 API 加载运行**
 
   在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行
 
-  - Python API加载运行LLM工作流
+  - Python API 加载运行 LLM 工作流
     ```Python
     graph = nndeploy.dag.Graph("")
     graph.remove_in_out_node()
     graph.load_file("path/to/llm_workflow.json")
     graph.init()
-    input = graph.get_input(0)    
+    input = graph.get_input(0)
     text = nndeploy.tokenizer.TokenizerText()
     text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
     input.set(text)
     status = graph.run()
     output = graph.get_output(0)
-    result = output.get_graph_output()  
+    result = output.get_graph_output()
     graph.deinit()
     ```
-  - C++ API加载运行LLM工作流
+  - C++ API 加载运行 LLM 工作流
     ```C++
     std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
     base::Status status = graph->loadFile("path/to/llm_workflow.json");
@@ -172,8 +172,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
     status = graph->deinit();
     ```
 
-  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
-
+  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
 
 **推荐开发流程**
 
@@ -190,7 +189,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-- [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
 - [生产环境部署](docs/zh_cn/quick_start/deploy.md)

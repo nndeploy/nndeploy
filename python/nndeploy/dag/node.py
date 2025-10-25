@@ -547,6 +547,9 @@ class NodeCreator(_C.dag.NodeCreator):
         """
         print("Must be implemented!!!")
         return None
+    
+    def create_node_shared_ptr(self, name: str, inputs: list[Edge], outputs: list[Edge]):
+        return None
             
         
 def get_node_keys():
