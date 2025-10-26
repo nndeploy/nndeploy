@@ -349,7 +349,6 @@ if is_ci:
     install_requires = [
         'cython',  # Cython compilation
         'packaging',  # Package management
-        'setuptools==68.0.0',  # Setup tools
         'gitpython>=3.1.30',  # Git operations
         'aiofiles>=24.1.0',  # Asynchronous file operations
         'pytest',  # Testing framework
@@ -363,7 +362,6 @@ else:
     install_requires = [
         'cython',  # Cython compilation
         'packaging',  # Package management
-        'setuptools==68.0.0',  # Setup tools
         'gitpython>=3.1.30',  # Git operations
         'aiofiles>=24.1.0',  # Asynchronous file operations
         'pytest',  # Testing framework
