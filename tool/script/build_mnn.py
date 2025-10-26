@@ -130,7 +130,7 @@ cmake_args = [
 # 根据目标平台添加特定的CMake参数
 if system == "Windows":
     cmake_args.extend([
-        "-G", "Visual Studio 16 2019" if shutil.which("cmake") else "MinGW Makefiles",
+        "-G", "Visual Studio 17 2022" if shutil.which("cmake") else "MinGW Makefiles",
         "-A", "x64" if machine in ["AMD64", "x86_64"] else "Win32",
         "-DMNN_AVX512=true"
     ])
@@ -212,8 +212,8 @@ if llm_dir.exists():
     
 # 拷贝 build_dir / libllm.so 到 MNN_INSTALL_DIR / "lib" ，区分平台
 if system == "Windows":
-    shutil.copy(build_dir / "llm.dll", bin_dir)
-    shutil.copy(build_dir / "llm.lib", lib_dir)
+    (bin_dir).mkdir(parents=True, exist_ok=True)
+    shutil.copy(build_dir / args.build_type / "MNN.dll", bin_dir)
 elif system == "Linux":
     shutil.copy(build_dir / "libllm.so", lib_dir)
 elif system == "Darwin":
