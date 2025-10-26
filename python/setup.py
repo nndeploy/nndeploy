@@ -434,8 +434,8 @@ def get_cuda_version():
 if is_ci:
     print("CI environment detected, using CPU-only dependencies")
     install_requires.extend([
-        'torch>=2.0.0+cpu',  # Force CPU version
-        'torchvision>=0.15.0+cpu',  # Force CPU version
+        'torch>=2.0.0',  # Force CPU version
+        'torchvision>=0.15.0',  # Force CPU version
     ])
 else:
     cuda_version = get_cuda_version()
