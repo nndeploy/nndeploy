@@ -353,7 +353,7 @@ install_requires = [
     'jsonschema',  # JSON Schema validation
     'multiprocess',  # Multiprocessing support
     'numpy',  # Numerical computation
-    'opencv-python>=4.8.0',  # Image processing
+    # 'opencv-python>=4.8.0',  # Image processing
     'modelscope',
 ]
 
