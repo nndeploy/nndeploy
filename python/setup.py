@@ -17,6 +17,7 @@ from packaging.tags import sys_tags
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.install import install as InstallCommandBase
 
+is_ci = os.environ.get('CI') == 'true' or os.environ.get('GITHUB_ACTIONS') == 'true'
 
 manylinux_tags = [
     "manylinux1_x86_64",
@@ -343,19 +344,35 @@ def get_package_data():
     return package_data
 
 # Basic dependency packages
-install_requires = [
-    'cython',  # Cython compilation
-    'packaging',  # Package management
-    'setuptools==68.0.0',  # Setup tools
-    'gitpython>=3.1.30',  # Git operations
-    'aiofiles>=24.1.0',  # Asynchronous file operations
-    'pytest',  # Testing framework
-    'jsonschema',  # JSON Schema validation
-    'multiprocess',  # Multiprocessing support
-    'numpy',  # Numerical computation
-    # 'opencv-python>=4.8.0',  # Image processing
-    'modelscope',
-]
+install_requires = []
+if is_ci:
+    install_requires = [
+        'cython',  # Cython compilation
+        'packaging',  # Package management
+        'setuptools==68.0.0',  # Setup tools
+        'gitpython>=3.1.30',  # Git operations
+        'aiofiles>=24.1.0',  # Asynchronous file operations
+        'pytest',  # Testing framework
+        'jsonschema',  # JSON Schema validation
+        'multiprocess',  # Multiprocessing support
+        'numpy',  # Numerical computation
+        # 'opencv-python>=4.8.0',  # Image processing
+        'modelscope',
+    ]
+else:
+    install_requires = [
+        'cython',  # Cython compilation
+        'packaging',  # Package management
+        'setuptools==68.0.0',  # Setup tools
+        'gitpython>=3.1.30',  # Git operations
+        'aiofiles>=24.1.0',  # Asynchronous file operations
+        'pytest',  # Testing framework
+        'jsonschema',  # JSON Schema validation
+        'multiprocess',  # Multiprocessing support
+        'numpy',  # Numerical computation
+        'opencv-python>=4.8.0',  # Image processing
+        'modelscope',
+    ]
 
 # Detect if CUDA is available and its version
 def get_cuda_version():
@@ -413,28 +430,21 @@ def get_cuda_version():
     
     return None
 
-cuda_version = get_cuda_version()
-
 # Add corresponding dependency packages based on CUDA version
-if cuda_version:
-    print(f"Detected CUDA version: {cuda_version}")
+if is_ci:
+    print("CI environment detected, using CPU-only dependencies")
     install_requires.extend([
-        'torch>=2.0.0',  # PyTorch (GPU version)
-        'torchvision>=0.15.0',  # torchvision (GPU version)
-        # 'onnxruntime-gpu>=1.18.0',  # ONNX Runtime GPU version
-        'diffusers',
-        # 'accelerate',
-        # 'transformers',
+        'torch>=2.0.0+cpu',  # Force CPU version
+        'torchvision>=0.15.0+cpu',  # Force CPU version
     ])
 else:
-    print("CUDA not detected, using CPU version dependencies")
+    cuda_version = get_cuda_version()
     install_requires.extend([
-        'torch>=2.0.0',  # PyTorch (CPU version)
-        'torchvision>=0.15.0',  # torchvision (CPU version)
-        # 'onnxruntime>=1.18.0',  # ONNX Runtime CPU version
+        'torch>=2.0.0', 
+        'torchvision>=0.15.0', 
         'diffusers',
-        # 'accelerate',
-        # 'transformers',
+        'accelerate',
+        'transformers',
     ])
 
 # Add server-related dependencies
