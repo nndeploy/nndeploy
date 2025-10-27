@@ -209,14 +209,17 @@ const Flow: React.FC<FlowProps> = (props) => {
     setGraphTopNode(lodash.omit(response.result, ['nndeploy_ui_layout', 'node_repository_']) as any)
 
 
-    ref?.current?.document.reload(designContent);
+   // ref?.current?.document.reload(designContent);
+    ref?.current?.operation.fromJSON(designContent)
 
     setTimeout(() => {
       //加载后触发画布的 fitview 让节点自动居中
-      ref?.current?.document.fitView();
+      ref?.current?.tools.fitView(false)
+      //ref?.current?.document.fitView();
 
       if (!response.result.nndeploy_ui_layout) {
-        autoLayOutRef.current?.autoLayout()
+        //autoLayOutRef.current?.autoLayout()
+         ref?.current?.tools.autoLayout({enableAnimation: false, disableFitView: true})
       }
 
     }, 10);

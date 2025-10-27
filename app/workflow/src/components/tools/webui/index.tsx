@@ -24,11 +24,12 @@ export function WebUI() {
   function onSure() {
     setVisible(false)
 
-    clientContext.document.reload(state.json);
+    //clientContext.document.reload(state.json);
+    clientContext.operation.fromJSON(state.json)
 
     setTimeout(() => {
       // 加载后触发画布的 fitview 让节点自动居中
-      clientContext?.document.fitView();
+      //clientContext?.document.fitView();
     }, 100);
   }
 
