@@ -46,10 +46,16 @@ nndeploy：一款简单易用且高性能的AI部署框架
 ## 最新动态
 
 
-- [2025/10/27] 🔥 工作流的部署：桌面端搭建AI工作流，移动端通过API加载运行，实现从开发到部署。
-  | 可视化工作流开发 | 部署 |
-  |:---:|:---:|
-  | <img src="docs/image/workflow/worflow_llm.gif" width="40%"> | <img src="docs/image/android_app/app-chat.jpg" width="20%"> |
+- [2025/10/27] 🔥 工作流在移动端的部署。桌面端搭建AI工作流，[移动端APP](app/android)通过API加载运行工作流。
+  <tr>
+    <td>桌面端搭建AI工作流</td>
+    <td>移动端部署</td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/workflow/worflow_llm.gif" width="500px"></td>
+    <td><img src="docs/image/android_app/app-chat.jpg" width="100px"></td>
+  </tr>
+  </table>
 - [2025/05/29] 🔥 与昇腾官方联合推出推理框架免费课程！基于 nndeploy 内部推理框架，快速掌握 AI 推理部署技术。[昇腾平台](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
