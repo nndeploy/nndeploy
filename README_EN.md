@@ -46,6 +46,7 @@ nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
 ## Latest News
 
 - [2025/10/27] 🔥 Workflow deployment on mobile devices. Build AI workflows on desktop, and [mobile APP](app/android) loads and runs workflows through API.
+  <table cellpadding="5" cellspacing="0" border="1">
   <tr>
     <td>Build AI workflows on desktop</td>
     <td>Mobile deployment</td>
@@ -55,6 +56,7 @@ nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
     <td><img src="docs/image/android_app/app-chat.jpg" width="100px"></td>
   </tr>
   </table>
+  
 - [2025/01/29] 🔥 Collaborated with Ascend officially to launch a free inference framework course! The course provides in-depth explanations based on nndeploy's internal inference framework, helping developers quickly master core AI inference deployment technologies. [Ascend Platform Learning](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Bilibili Learning](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
