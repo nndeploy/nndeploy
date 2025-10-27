@@ -145,6 +145,10 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             //   subcavasEdge.sourceNodeID = find.from
             //   subcavasEdge.targetPortID = find.oldFromPort
             // }
+            let lineTemp = line
+            if(!inputLine.oldFrom){
+              let j = 0 
+            }
             subcavasEdge.sourceNodeID = inputLine.oldFrom!
             subcavasEdge.sourcePortID = inputLine.oldFromPort
 
@@ -184,7 +188,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
       let isTargetDynamicNode = isGraphNode(item.targetNodeID, clientContext)
 
 
-      return !isTargetDynamicNode && !isSourceDynamicNode
+      return (isTargetDynamicNode || isSourceDynamicNode) ?  false : true
 
     })
     return result

@@ -296,7 +296,7 @@ export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines:
       ) {
         return {
           ...inputLine,
-
+          oldFrom: inputLine.from, 
           oldFrom_name: getNodeNameByNodeId(inputLine.from, clientContext),
           oldFromPort: inputLine.fromPort,
 

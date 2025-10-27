@@ -49,6 +49,10 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       //disableSideBar: true,
       //disableSideBar: !!nodeEntity.is_graph_,
       expandable: isContainer, // disable expanded
+      size: {
+        width:isContainer ? 400: 200,
+        height:  isContainer ? 160: 80,
+      },
 
       padding: () => ({
         top: 45, //25

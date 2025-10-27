@@ -212,7 +212,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     ref?.current?.document.reload(designContent);
 
     setTimeout(() => {
-      // 加载后触发画布的 fitview 让节点自动居中
+      //加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
 
       if (!response.result.nndeploy_ui_layout) {
@@ -645,10 +645,12 @@ const Flow: React.FC<FlowProps> = (props) => {
         //   })
         // }
 
+        const isContainer = entity.is_graph_  ||  entity.is_loop_|| entity.is_composite_node_
+
         const result: Inndeploy_ui_layout['layout'] = {
           [entity.name_]: {
             position: position,
-            size: { width: 200, height: 80 },
+            size: { width: isContainer ? 400 : 200,  height: isContainer ? 160: 80 },
             children: layout
           },
 
