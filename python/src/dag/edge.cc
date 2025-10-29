@@ -53,6 +53,14 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             // }
             // return status;
             // 检查输入对象类型
+            auto handle_status = [&](const base::Status& status,
+                                     const char* error_msg) {
+              if (status != base::StatusCode::kStatusCodeOk) {
+                delete wrapper;
+                throw std::runtime_error(error_msg);
+              }
+              return status;
+            };
             if (py::isinstance<py::array>(obj)) {
               // numpy array类型
               auto buffer = obj.cast<py::array>();
@@ -92,13 +100,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
               int type = CV_MAKETYPE(cv_depth, channels);
               cv::Mat* mat =
                   new cv::Mat(info.shape[0], info.shape[1], type, info.ptr);
-              base::Status status = edge.set4py(wrapper, mat, false);
-              if (status != base::StatusCode::kStatusCodeOk) {
-                throw std::runtime_error("Failed to set cv::Mat");
+              base::Status status;
+              {
+                py::gil_scoped_release release;
+                status = edge.set4py(wrapper, mat, false);
               }
-              return status;
+              return handle_status(status, "Failed to set cv::Mat");
 #else
               NNDEPLOY_LOGE("set cv::Mat is not supported");
+              delete wrapper;
               base::Status status =
                   base::StatusCode::kStatusCodeErrorNotSupport;
               return status;
@@ -106,33 +116,37 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             } else if (py::isinstance<device::Tensor>(obj)) {
               // Tensor类型
               auto* tensor = obj.cast<device::Tensor*>();
-              base::Status status = edge.set4py(wrapper, tensor);
-              if (status != base::StatusCode::kStatusCodeOk) {
-                throw std::runtime_error("Failed to set device::Tensor");
+              base::Status status;
+              {
+                py::gil_scoped_release release;
+                status = edge.set4py(wrapper, tensor);
               }
-              return status;
+              return handle_status(status, "Failed to set device::Tensor");
             } else if (py::isinstance<device::Buffer>(obj)) {
               // Buffer类型
               auto* buffer = obj.cast<device::Buffer*>();
-              base::Status status = edge.set4py(wrapper, buffer);
-              if (status != base::StatusCode::kStatusCodeOk) {
-                throw std::runtime_error("Failed to set device::Buffer");
+              base::Status status;
+              {
+                py::gil_scoped_release release;
+                status = edge.set4py(wrapper, buffer);
               }
-              return status;
+              return handle_status(status, "Failed to set device::Buffer");
             } else if (py::isinstance<base::Param>(obj)) {
               // Param类型
               auto param = obj.cast<std::shared_ptr<base::Param>>();
-              base::Status status = edge.set4py(wrapper, param.get());
-              if (status != base::StatusCode::kStatusCodeOk) {
-                throw std::runtime_error("Failed to set base::Param");
+              base::Status status;
+              {
+                py::gil_scoped_release release;
+                status = edge.set4py(wrapper, param.get());
               }
-              return status;
+              return handle_status(status, "Failed to set base::Param");
             } else {
-              base::Status status = edge.set4py(wrapper, obj.ptr());
-              if (status != base::StatusCode::kStatusCodeOk) {
-                throw std::runtime_error("Failed to set base::Param");
+              base::Status status;
+              {
+                py::gil_scoped_release release;
+                status = edge.set4py(wrapper, obj.ptr());
               }
-              return status;
+              return handle_status(status, "Failed to set PyObject");
             }
           },
           py::arg("obj"))

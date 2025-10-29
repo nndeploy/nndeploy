@@ -1,46 +1,56 @@
 
 <h3 align="center">
-nndeploy: Your Local AI Workflow
+nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
 </h3>
 
-## Features
+## Introduction
 
-Write algorithm node logic in Python/C++ without frontend skills to quickly build your visual AI workflow.
+nndeploy is an easy-to-use, and high-performance AI deployment framework. Based on the design concepts of visual workflows and multi-backend inference, developers can quickly develop SDKs for specified platforms and hardware from algorithm repositories, significantly saving development time. Furthermore, the framework has already deployed numerous AI models including LLM, AIGC generation, face swap, object detection, image segmentation, etc., ready to use out-of-the-box.
 
-Provides out-of-the-box algorithm nodes for non-AI programmers, including large language models, Stable Diffusion, object detection, image segmentation, etc. Build AI applications quickly through drag-and-drop.
+### **Simple and Easy to Use**
 
-Workflows can be exported as JSON configuration files, supporting direct loading and execution via Python/C++ APIs, deployable to cloud servers, desktop, mobile, and edge devices across multiple platforms.
+- **Visual Workflow**: Deploy AI algorithms through drag-and-drop operations. Visually adjust all node parameters of the AI algorithm in the frontend and quickly preview the effect after parameter tuning.
+- **Custom Nodes**: Support Python/C++ custom nodes, seamlessly integrated into the visual interface without frontend code.
+- **Algorithm Combination**: Flexibly combine different algorithms to quickly build innovative AI applications.
+- **One-Click Deployment**: The completed workflow can be exported as a JSON configuration file with one click, supporting direct calls via Python/C++ API, achieving seamless transition from development to production environments, and fully supporting platforms like Linux, Windows, macOS, Android, iOS, etc.
 
-The framework features built-in mainstream high-performance inference engines and deep optimization strategies to help you transform workflows into enterprise-grade production applications.
+### **High Performance**
 
-### **Efficiency**
-- **Visual Workflow**: Build professional AI workflows quickly through drag-and-drop operations, supporting real-time parameter adjustment on the frontend and instant backend response, view execution time for each node
-- **Custom Nodes**: You only need to write algorithm node logic using familiar Python/C++, no frontend technology required, the framework automatically converts code into workflow nodes
-- **Algorithm Composition**: Flexibly combine different algorithms to rapidly build innovative AI applications
-- **One-Click Deployment**: Built workflows can be exported as JSON, directly callable by Python/C++, seamless transition from development to production environment
+- **Parallel Optimization**: Supports execution modes like serial, pipeline parallel, task parallel, etc.
+- **Memory Optimization**: Optimization strategies like zero-copy, memory pool, memory reuse, etc.
+- **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD, etc.
+- **Multi-Backend Inference**: One workflow, multiple backend inference. Integrates 13 mainstream inference frameworks with zero abstraction cost, covering all platforms including cloud, desktop, mobile, edge, etc.
 
-### **Performance**
-- **13 Inference Engines Seamlessly Integrated**: One workflow, multi-platform deployment. Zero-abstraction cost integration with 13 mainstream inference frameworks, covering cloud, desktop, mobile, and edge platforms
+  | Inference Framework                                                                         | Application Scenario              | Status |
+  | :----------------------------------------------------------------------------------------- | :-------------------------------- | :----- |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                                    | Cross-platform inference          | ✅     |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                             | NVIDIA GPU high-performance inference | ✅     |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                                    | Intel CPU/GPU optimization        | ✅     |
+  | [MNN](https://github.com/alibaba/MNN)                                                      | Mobile inference engine by Alibaba| ✅     |
+  | [TNN](https://github.com/Tencent/TNN)                                                      | Mobile inference engine by Tencent| ✅     |
+  | [ncnn](https://github.com/Tencent/ncnn)                                                    | Mobile inference engine by Tencent| ✅     |
+  | [CoreML](https://github.com/apple/coremltools)                                             | iOS/macOS native acceleration     | ✅     |
+  | [AscendCL](https://www.hiascend.com/zh/)                                                   | Huawei Ascend AI chip inference framework | ✅     |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html)           | Rockchip NPU inference framework  | ✅     |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)             | Qualcomm Snapdragon NPU inference framework | ✅     |
+  | [TVM](https://github.com/apache/tvm)                                                       | Deep learning compiler stack      | ✅     |
+  | [PyTorch](https://pytorch.org/)                                                            | Rapid prototyping / Cloud deployment | ✅     |
+  | [Self-developed Inference Framework](docs/zh_cn/inference/README_INFERENCE.md)             | Default inference framework       | ✅     |
 
-  | Inference Framework | Use Case | Status |
-  | :------- | :------ | :--- |
-  | [PyTorch](https://pytorch.org/) | R&D debugging, rapid prototyping | ✅ |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | Cross-platform inference | ✅ |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT) | NVIDIA GPU high-performance inference | ✅ |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino) | Intel CPU/GPU optimization | ✅ |
-  | [MNN](https://github.com/alibaba/MNN) | Alibaba's mobile inference engine | ✅ |
-  | [TNN](https://github.com/Tencent/TNN) | Tencent's mobile inference engine | ✅ |
-  | [ncnn](https://github.com/Tencent/ncnn) | Tencent's mobile inference engine | ✅ |
-  | [CoreML](https://github.com/apple/coremltools) | iOS/macOS native acceleration | ✅ |
-  | [AscendCL](https://www.hiascend.com/zh/) | Huawei Ascend AI chip inference framework | ✅ |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | Rockchip NPU inference framework | ✅ |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) | Qualcomm Snapdragon NPU inference framework | ✅ |
-  | [TVM](https://github.com/apache/tvm) | Deep learning compilation stack | ✅ |
-  | [Custom Inference Framework](docs/zh_cn/inference/README_INFERENCE.md) | Custom inference requirements | ✅ |
+### **Out-of-the-Box Algorithms**
 
-- **Parallel Optimization**: Support for serial, pipeline parallel, and task parallel execution modes
-- **Memory Optimization**: Zero-copy, memory pools, memory reuse optimization strategies
-- **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD implementations
+List of deployed models, with **100+ nodes** created. We will continue to deploy more high-value AI algorithms. If you have algorithms you need deployed, please let us know via [issue](https://github.com/nndeploy/nndeploy/issues).
 
-## More infomation
-You can get everything in nndeploy github main page : [nndeploy](https://github.com/nndeploy/nndeploy)
+| Application Scenario   | Available Models                                                                              | Remarks                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Large Language Model** |**QWen-2.5**, **QWen-3**                                                                     |                                                     |
+| **Image Generation**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc.               | Supports text-to-image, image-to-image, inpainting; based on **diffusers** |
+| **Face Swap**          | **deep-live-cam**                                                                             |                                                     |
+| **OCR**                | **Paddle OCR**                                                                                |                                                     |
+| **Object Detection**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                                           |                                                     |
+| **Object Tracking**    | FairMot                                                                                       |                                                     |
+| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything**                                                     |                                                     |
+| **Classification**     | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet                    |                                                     |
+| **API Service**        | OPENAI, DeepSeek, Moonshot                                                                    | Supports LLM and AIGC services                      |
+
+> See more details in the [Deployed Model List Details](docs/zh_cn/quick_start/model_list.md)

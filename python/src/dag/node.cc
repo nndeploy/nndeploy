@@ -571,6 +571,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
              std::shared_ptr<NodeCreator>>(m, "NodeCreator")
       .def(py::init<>())
       .def("create_node", &NodeCreator::createNode,
+           py::return_value_policy::take_ownership)
+      .def("create_node_shared_ptr", &NodeCreator::createNodeSharedPtr,
            py::return_value_policy::take_ownership);
 
   m.def("get_node_keys", &getNodeKeys);

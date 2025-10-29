@@ -24,7 +24,6 @@
 namespace nndeploy {
 namespace dag {
 
-// Forward declarations
 class Node;
 class Graph;
 class CompositeNode;

@@ -635,7 +635,9 @@ class Graph(_C.dag.Graph):
                 node = None
                 # Update description if node already exists
                 if node_count > i:
-                    node = self.get_node(i)
+                    node = self.get_node(node_json["name_"])
+                    if (node is None):
+                        node = self.get_node(i)
                     # self.set_node_desc(node, node_desc)
                 elif len(self.nodes) > i:
                     node = self.nodes[i]

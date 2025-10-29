@@ -365,6 +365,8 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   {
     std::unique_lock<std::mutex> lock(mutex_);
     waitForSpaceLocked(lock);
+    this->increaseIndex();
+    dp->setIndex(index_);
     pushBackUnlocked(dp);
   }
 

@@ -37,7 +37,7 @@ nndeploy：一款简单易用且高性能的AI部署框架
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
+    <img alt="nndeploy" src="docs/image/workflow/worflow_swapface.gif" width=100%>
   </picture>
 </p>
 
@@ -45,13 +45,26 @@ nndeploy：一款简单易用且高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/01/29] 🔥 与昇腾官方合作推出推理框架免费课程！课程基于nndeploy内部推理框架讲解，帮助开发者快速掌握AI推理部署技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+
+- [2025/10/27] 🔥 工作流在移动端的部署。桌面端搭建AI工作流，[移动端APP](app/android)通过API加载运行工作流。
+  <table cellpadding="5" cellspacing="0" border="1">
+  <tr>
+    <td>桌面端搭建AI工作流</td>
+    <td>移动端部署</td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/workflow/worflow_llm.gif" width="500px"></td>
+    <td><img src="docs/image/android_app/app-chat.jpg" width="100px"></td>
+  </tr>
+  </table>
+
+- [2025/05/29] 🔥 与昇腾官方联合推出推理框架免费课程！基于 nndeploy 内部推理框架，快速掌握 AI 推理部署技术。[昇腾平台](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## 介绍
 
-nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的SDK，大幅节省开发时间。此外，框架已部署包括LLM、AIGC生成、换脸、目标检测、图像分割等众多AI模型，开箱即用。
+nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化工作流和多端推理，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等众多 AI 模型，开箱即用。
 
 ### **简单易用**
 
@@ -65,7 +78,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
-- **多端推理**：一套工作流，多端推理。通过零抽象成本接入了 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台
+- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。如果您有自定义推理框架，可完全独立使用，无需依赖任何第三方框架。
 
   | 推理框架                                                                         | 适用场景                 | 状态 |
   | :------------------------------------------------------------------------------- | :----------------------- | :--- |
@@ -89,7 +102,7 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 
 | 应用场景       | 可用模型                                                                         | 备注                                                |
 | -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| **大语言模型** | **QWen-0.5B**                                                                    |                                                     |
+| **大语言模型** | **QWen-2.5**, **QWen-3**                                                         | 支持小 B 模型                                       |
 | **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
 | **换脸**       | **deep-live-cam**                                                                |                                                     |
 | **OCR**        | **Paddle OCR**                                                                   |                                                     |
@@ -97,19 +110,19 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
 | **目标追踪**   | FairMot                                                                          |                                                     |
 | **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                     |
 | **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
-| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                              |
+| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                               |
 
 > 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
 ## 快速开始
 
-+ **安装**
+- **安装**
 
   ```bash
   pip install --upgrade nndeploy
   ```
 
-+ **启动可视化界面**
+- **启动可视化界面**
 
   ```bash
   nndeploy-app --port 8000
@@ -122,9 +135,9 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
       <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
       <img alt="nndeploy" src="docs/image/quick_start.gif" width=100%>
     </picture>
-  </p>  
+  </p>
 
-+ **导出工作流并命令行执行**
+- **导出工作流并命令行执行**
 
   完成工作流搭建后，保存为 JSON 文件并通过命令行执行：
 
@@ -135,26 +148,26 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
   nndeploy_demo_run_json --json_file path/to/workflow.json
   ```
 
-- **导出工作流并API加载运行**  
+* **导出工作流并 API 加载运行**
 
   在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行
 
-  - Python API加载运行LLM工作流
+  - Python API 加载运行 LLM 工作流
     ```Python
     graph = nndeploy.dag.Graph("")
     graph.remove_in_out_node()
     graph.load_file("path/to/llm_workflow.json")
     graph.init()
-    input = graph.get_input(0)    
+    input = graph.get_input(0)
     text = nndeploy.tokenizer.TokenizerText()
     text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
     input.set(text)
     status = graph.run()
     output = graph.get_output(0)
-    result = output.get_graph_output()  
+    result = output.get_graph_output()
     graph.deinit()
     ```
-  - C++ API加载运行LLM工作流
+  - C++ API 加载运行 LLM 工作流
     ```C++
     std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
     base::Status status = graph->loadFile("path/to/llm_workflow.json");
@@ -172,28 +185,20 @@ nndeploy是一款简单易用且高性能的AI部署框架。基于可视化工�
     status = graph->deinit();
     ```
 
-  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) | 
+  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
 
+> 要求 Python 3.10+，默认包含 PyTorch、ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
-**推荐开发流程**
-
-- 开发阶段：可视化界面设计和调试工作流。**必要时需开发自定义节点**
-- 部署阶段：导出 JSON 配置，API 加载运行
-
-无论通过可视化界面还是 API 调用，所有工作流都在底层统一的高性能 C++ 计算引擎中执行，确保开发和部署环境的一致性。
-
-> 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
-
-### 文档
+## 文档
 
 - [如何构建](docs/zh_cn/quick_start/build.md)
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
-- [Python自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
+- [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
-- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
 
 ## 性能测试
 

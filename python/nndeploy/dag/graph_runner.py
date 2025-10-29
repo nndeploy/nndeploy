@@ -52,6 +52,7 @@ class GraphRunner:
         if self.graph is None:
             return "{}"
         run_status_map = self.graph.get_nodes_run_status_recursive()
+        # print(f"run_status_map: {run_status_map}")
         json_obj = {}
         for node_name, run_status in run_status_map.items():
             status = run_status.get_status()

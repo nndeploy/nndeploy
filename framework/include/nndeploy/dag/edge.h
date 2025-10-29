@@ -151,8 +151,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   base::Status construct();
 
-  // ==================== Buffer Related Interfaces ====================
-
   /**
    * @brief Set Buffer data to Edge
    *
@@ -205,8 +203,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   device::Buffer *getGraphOutputBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  // ==================== OpenCV Mat Related Interfaces ====================
-
   /**
    * @brief Set OpenCV Mat data to Edge
    *
@@ -259,8 +255,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   cv::Mat *getGraphOutputCvMat();
 #endif
 
-  // ==================== Tensor Related Interfaces ====================
-
   /**
    * @brief Set Tensor data to Edge
    *
@@ -311,8 +305,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @return device::Tensor* Tensor pointer, returns nullptr if no data
    */
   device::Tensor *getGraphOutputTensor();
-
-  // ==================== Param Related Interfaces ====================
 
   /**
    * @brief Set Param data to Edge
@@ -376,8 +368,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @return void* Raw data pointer, type conversion is user's responsibility
    */
   void *getGraphOutputPtr();
-
-  // ==================== Generic Template Interfaces ====================
 
   /**
    * @brief Set arbitrary type data to Edge (template version)
@@ -493,8 +483,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
   }
 
-  // ==================== Index and Position Management ====================
-
   /**
    * @brief Get data index for specified node
    *
@@ -546,8 +534,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   bool markGraphOutput();
 
-  // ==================== Producer-Consumer Management ====================
-
   /**
    * @brief Add producer nodes
    *
@@ -584,8 +570,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @return bool Whether request was successful
    */
   bool requestTerminate();
-
-  // ==================== Type Information Management ====================
 
   /**
    * @brief Set type information of Edge (template version)
