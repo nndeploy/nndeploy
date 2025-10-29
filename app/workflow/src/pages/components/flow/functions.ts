@@ -1,5 +1,5 @@
 
-import { FlowNodeEntity, FreeLayoutPluginContext } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FlowNodeRenderData, FreeLayoutPluginContext, NodeRender } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON } from "../../../typings";
 import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
@@ -344,6 +344,13 @@ export function getNodeByName(name: string, clientContext: FreeLayoutPluginConte
   return find
 }
 
+export function isNodeExpanded(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let nodeRender = node?.getData(FlowNodeRenderData)
+
+  return nodeRender?.expanded ? true: false
+}
+
 export function getAllInnerNodes(node: FlowNodeEntity) {
   let allChildren: FlowNodeEntity[] = []
   if (node.blocks && node.blocks.length > 0) {
@@ -353,6 +360,11 @@ export function getAllInnerNodes(node: FlowNodeEntity) {
     });
   }
   return allChildren;
+}
+
+export function getAllInnerNodeIds(node: FlowNodeEntity) {
+ let allChildren = getAllInnerNodes(node)
+ return allChildren.map(child=>child.id)
 }
 
 export function getNodeNameByNodeId(nodeId: string, clientContext: FreeLayoutPluginContext) {

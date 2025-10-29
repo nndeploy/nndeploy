@@ -15,7 +15,7 @@ export const NodeWrapperStyle = styled.div`
   min-width: 200px;
   //max-width: 1000px;
   width: 100%;
-  height: auto;
+  height: auto!important;
  
 
   &.selected {

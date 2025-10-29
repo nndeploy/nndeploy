@@ -183,13 +183,6 @@ export function useEditorProps(
 
         return true;
       },
-      canDropToNode(ctx, params) {
-        const { dropNode } = params;
-        if (isFxiedGraphNode(dropNode?.id, ctx) || isCompositeNode(dropNode?.id, ctx)) {
-          return false;
-        }
-        return true;
-      },
       /**
        * Whether allow dragging into the container node
        * 是否允许拖入容器节点
@@ -198,6 +191,10 @@ export function useEditorProps(
         const { dragNode, dropNode } = params;
         // Nested container parent nodes cannot be dragged into child nodes
         if (dropNode?.parent?.id === dragNode?.id) {
+          return false;
+        }
+
+        if (isFxiedGraphNode(dropNode?.id, ctx) || isCompositeNode(dropNode?.id, ctx)) {
           return false;
         }
         return true;
