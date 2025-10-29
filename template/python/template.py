@@ -13,12 +13,9 @@ class TemplatePy(nndeploy.dag.Node):
         self.frontend_show_param = 0.0 # Parameters to be displayed in the frontend, such as arrays, bool values, strings, lists, dicts, etc. The frontend will choose appropriate UI components based on data types
                 
     def run(self):
-        input_edge = self.get_input(0) # Get the input edge
-        input_numpy = input_edge.get(self) # Get the input numpy array
-        gray = np.dot(input_numpy[...,:3], [0.114, 0.587, 0.299])# bgr->gray
-        gray = gray.astype(np.uint8)
-        output_edge = self.get_output(0) # Get the output edge
-        output_edge.set(gray) # Write the output to the output edge
+        input_numpy = self.get_input_data(0) # Get the input numpy array
+        gray = np.dot(input_numpy[...,:3], [0.114, 0.587, 0.299]).astype(np.uint8)# bgr->gray
+        self.set_output_data(gray, 0) # Write the output to the output edge
         return nndeploy.base.Status.ok()
     
     def serialize(self):
