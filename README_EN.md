@@ -56,7 +56,7 @@ nndeploy: An Easy-to-Use, and High-Performance AI Deployment Framework
     <td><img src="docs/image/android_app/app-chat.jpg" width="100px"></td>
   </tr>
   </table>
-  
+
 - [2025/01/29] 🔥 Collaborated with Ascend officially to launch a free inference framework course! The course provides in-depth explanations based on nndeploy's internal inference framework, helping developers quickly master core AI inference deployment technologies. [Ascend Platform Learning](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Bilibili Learning](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
@@ -77,7 +77,7 @@ nndeploy is an easy-to-use, and high-performance AI deployment framework. Based 
 - **Parallel Optimization**: Supports execution modes like serial, pipeline parallel, task parallel, etc.
 - **Memory Optimization**: Optimization strategies like zero-copy, memory pool, memory reuse, etc.
 - **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD, etc.
-- **Multi-Backend Inference**: One workflow, multiple backend inference. Integrates 13 mainstream inference frameworks with zero abstraction cost, covering all platforms including cloud, desktop, mobile, edge, etc.
+- **Multi-Backend Inference**: One workflow, multi-platform inference. Integrates 13 mainstream inference frameworks, covering full-platform deployment scenarios including cloud, desktop, mobile, and edge. If you have a custom inference framework, it can be used completely independently without relying on any third-party frameworks.
 
   | Inference Framework                                                                         | Application Scenario              | Status |
   | :----------------------------------------------------------------------------------------- | :-------------------------------- | :----- |
