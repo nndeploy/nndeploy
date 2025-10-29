@@ -173,6 +173,18 @@ export function useEditorProps(
         return true;
       },
       /**
+       * Whether allow dragging into the container node
+       * 是否允许拖入容器节点
+       */
+      canDropToNode: (ctx, params) => {
+        const { dragNode, dropNode } = params;
+        // Nested container parent nodes cannot be dragged into child nodes
+        if (dropNode?.parent?.id === dragNode?.id) {
+          return false;
+        }
+        return true;
+      },
+      /**
        * Drag the end of the line to create an add panel (feature optional)
        * 拖拽线条结束需要创建一个添加面板 （功能可选）
        */
