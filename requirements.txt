@@ -3,7 +3,7 @@
 # base
 cython
 packaging
-setuptools<=68.0.0
+setuptools>=68.0.0
 gitpython>=3.1.30
 aiofiles>=24.1.0
 PyYAML>=5.3.1
@@ -28,6 +28,7 @@ uvicorn>=0.24.0
 websockets>=11.0
 python-multipart>=0.0.6
 pydantic>=2.0.0
+chardet>=5.2.0
 
 # diffusers
 accelerate

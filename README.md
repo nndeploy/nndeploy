@@ -37,7 +37,7 @@ nndeploy：一款简单易用且高性能的AI部署框架
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
-    <img alt="nndeploy" src="docs/image/workflow.gif" width=100%>
+    <img alt="nndeploy" src="docs/image/workflow/worflow_swapface.gif" width=100%>
   </picture>
 </p>
 
@@ -45,13 +45,26 @@ nndeploy：一款简单易用且高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/01/29] 🔥 与昇腾官方合作推出推理框架免费课程！课程基于 nndeploy 内部推理框架讲解，帮助开发者快速掌握 AI 推理部署技术。[昇腾平台学习](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站学习](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+
+- [2025/10/27] 🔥 工作流在移动端的部署。桌面端搭建AI工作流，[移动端APP](app/android)通过API加载运行工作流。
+  <table cellpadding="5" cellspacing="0" border="1">
+  <tr>
+    <td>桌面端搭建AI工作流</td>
+    <td>移动端部署</td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/workflow/worflow_llm.gif" width="500px"></td>
+    <td><img src="docs/image/android_app/app-chat.jpg" width="100px"></td>
+  </tr>
+  </table>
+
+- [2025/05/29] 🔥 与昇腾官方联合推出推理框架免费课程！基于 nndeploy 内部推理框架，快速掌握 AI 推理部署技术。[昇腾平台](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
 
 ---
 
 ## 介绍
 
-nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化工作流和多端推理的设计理念，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等众多 AI 模型，开箱即用。
+nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化工作流和多端推理，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等众多 AI 模型，开箱即用。
 
 ### **简单易用**
 
@@ -188,11 +201,11 @@ nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化�
 - [如何构建](docs/zh_cn/quick_start/build.md)
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
+- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
 - [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
-- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
 
 ## 性能测试
 

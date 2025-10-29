@@ -44,10 +44,9 @@ set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSOR
 set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF) # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
-# set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/github/public/MNN/project/android/build_64") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "tool/script/third_party/mnn3.2.4") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # Whether to enable INFERENCE TVM, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # Whether to enable INFERENCE PADDLELITE, default is OFF
@@ -63,22 +62,12 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
-# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
+# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # Link OpenCV by specifying the path
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0_Android") # Whether to link the third-party OpenCV library, default is ON
-set(NNDEPLOY_OPENCV_LIBS opencv_java4) # Link all OpenCV libraries by default
-
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF) # Whether to enable IR, default is OFF
-
-set(ENABLE_NNDEPLOY_INFERENCE_DEFAULT ON) # 
-
-set(ENABLE_NNDEPLOY_PLUGIN ON) # Whether to enable plugin, default is OFF
-
-set(ENABLE_NNDEPLOY_DEMO ON) # Whether to enable language model plugin, default is OFF
-
-set(ENABLE_NNDEPLOY_PYTHON OFF) # Whether to enable text-to-image plugin, default is OFF
-
-set(ENABLE_NNDEPLOY_FFI_JAVA ON) # Whether to enable FFI Java, default is OFF
+set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0") # Whether to link the third-party OpenCV library, default is ON
+# Includes complete functional modules such as image display, camera calibration, feature detection, and KalmanFilter tracking functionality
+set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann)
+set(NNDEPLOY_OPENCV_VERSION 480)
 
 ## Tokenizer-cpp
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF

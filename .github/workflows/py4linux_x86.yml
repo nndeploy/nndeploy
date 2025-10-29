@@ -34,6 +34,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake ninja-build pkg-config
 
+      - name: Free up disk space
+        run: |
+          # 清理不必要的软件和缓存
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/share/swift
+          
+          # 清理Docker镜像
+          sudo docker system prune -af
+          
+          # 清理APT缓存
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          
+          # 显示磁盘空间
+          df -h
+
       # 步骤 3: 使用 cibuildwheel 构建 wheels
       - name: 构建 wheels
         uses: pypa/cibuildwheel@v2.16.5
@@ -79,11 +100,12 @@ jobs:
             cd {project}/tool/script
             python install_opencv.py
             python install_onnxruntime.py
+            python build_mnn.py
             
             # 构建 C++ 库
             cd {project}
             mkdir -p build
-            cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake
+            cp cmake/config_opencv_ort_mnn_tokenizer.cmake build/config.cmake
             cd build
             
             # 设置编译器
