@@ -187,7 +187,7 @@ nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化�
 
   更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
 
-> 要求 Python 3.10+，默认包含 PyTorch 和 ONNXRuntime。更多推理后端请采用开发者模式。
+> 要求 Python 3.10+，默认包含 PyTorch、ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
 ## 文档
 

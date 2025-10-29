@@ -186,7 +186,7 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
 
   More example code: [Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python Object Detection](demo/detect/demo.py) | [C++ Object Detection](demo/detect/demo.cc) | 
 
-> Requires Python 3.10+, includes PyTorch and ONNXRuntime by default. For more inference backends, please use the developer mode.
+> Requires Python 3.10+, includes PyTorch、ONNXRuntime、MNN by default, For more inference backends, please use the developer mode.
 
 ## Documentation
 
