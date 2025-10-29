@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_BASE_FFMPEG_INCLUDE_H_
 #define _NNDEPLOY_BASE_FFMPEG_INCLUDE_H_
 
+#define ENABLE_NNDEPLOY_FFMPEG
+
 #ifdef ENABLE_NNDEPLOY_FFMPEG
 extern "C" {
 #include <libavcodec/avcodec.h>
