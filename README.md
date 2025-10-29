@@ -202,7 +202,7 @@ nndeploy 是一款简单易用且高性能的 AI 部署框架。基于可视化�
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
 - [生产环境部署](docs/zh_cn/quick_start/deploy.md)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)

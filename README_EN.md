@@ -201,7 +201,7 @@ Whether through visual interface or API calls, all workflows execute in the unif
 - [How to Build](docs/zh_cn/quick_start/build.md)
 - [How to Get Models](docs/zh_cn/quick_start/model.md)
 - [Visual Workflow](docs/zh_cn/quick_start/workflow.md)
-- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)

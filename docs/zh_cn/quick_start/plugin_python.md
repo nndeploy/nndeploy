@@ -5,12 +5,14 @@
 
 - [template/python/template.py](https://github.com/nndeploy/nndeploy/blob/main/template/python/template.py)
 
-- 使用方法：
+- 前端工作流加载自定义节点：
     - 命令行加载
         ```bash
         nndeploy-app --port 8000 --plugin path/to/template/python/template.py
         ```
-    - 代码依赖
+    - 代码启动
+        
+        app.py
         ```python
         import custom_node # 导入用户自定以节点
         import nndeploy.server.app as app
@@ -18,6 +20,12 @@
         if __name__ == "__main__":
             app.main()
         ```
+        ```bash
+        python app.py --port 8000
+        ```
+    
+    > 推荐使用代码启动
+
 
 ## 自定义节点开发简介
 
