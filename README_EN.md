@@ -186,26 +186,18 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
 
   More example code: [Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python Object Detection](demo/detect/demo.py) | [C++ Object Detection](demo/detect/demo.cc) | 
 
-
-**Recommended Development Workflow**
-
-- Development Phase: Design and debug workflows using the visual interface. **Develop custom nodes when necessary**
-- Deployment Phase: Export JSON configuration and load via API
-
-Whether through visual interface or API calls, all workflows execute in the unified high-performance C++ compute engine, ensuring consistency between development and deployment environments.
-
 > Requires Python 3.10+, includes PyTorch and ONNXRuntime by default. For more inference backends, please use the developer mode.
 
-### Documentation
+## Documentation
 
 - [How to Build](docs/zh_cn/quick_start/build.md)
 - [How to Get Models](docs/zh_cn/quick_start/model.md)
 - [Visual Workflow](docs/zh_cn/quick_start/workflow.md)
+- [Production Environment Deployment](docs/zh_cn/quick_start/deploy.md)
 - [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)
-- [Production Environment Deployment](docs/zh_cn/quick_start/deploy.md)
 
 ## Performance Testing
 
