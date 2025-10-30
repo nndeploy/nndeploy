@@ -230,7 +230,9 @@ export default function Home() {
         afterClose={handleAfterClose} //>=1.16.0
         onCancel={handleCancel}
         closeOnEsc={true}
-        width={600}
+        width={'50vw'}
+        height={'80vh'}
+        className="requirements-modal"
       >
         <div className={'tip-content'}>
 

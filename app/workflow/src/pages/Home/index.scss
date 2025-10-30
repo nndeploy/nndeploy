@@ -218,11 +218,12 @@
 
   }
 
-  .template-tabs{
-    .semi-tabs-tab{
-     // font-size: 16px;
+  .template-tabs {
+    .semi-tabs-tab {
+      // font-size: 16px;
     }
   }
+
 
 }
 
@@ -236,4 +237,11 @@
 .desc-popover {
   width: 300px;
   padding: 16px;
+}
+
+.requirements-modal {
+  .semi-modal-body {
+    min-height: 0;
+    overflow: auto;
+  }
 }
