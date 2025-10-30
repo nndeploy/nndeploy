@@ -86,7 +86,7 @@ nndeploy is an easy-to-use, and high-performance edge AI deployment framework. B
 
 ### **Out-of-the-Box Algorithms**
 
-List of deployed models, with **100+ nodes** created. We will continue to deploy more high-value AI algorithms. If you have algorithms you need deployed, please let us know via [issue](https://github.com/nndeploy/nndeploy/issues).
+List of deployed models, with **100+ nodes** created. We will continue to deploy more high-value AI algorithms.
 
 | Application Scenario   | Available Models                                                                              | Remarks                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -101,6 +101,8 @@ List of deployed models, with **100+ nodes** created. We will continue to deploy
 | **API Service**        | OPENAI, DeepSeek, Moonshot                                                                    | Supports LLM and AIGC services                      |
 
 > See more details in the [Deployed Model List Details](docs/zh_cn/quick_start/model_list.md)
+
+> If you have specific algorithm deployment optimization needs, we strongly recommend that you: create a dedicated acceleration repository focused on optimized implementations of a specific class of algorithms. We will provide support for your project and look forward to seeing better solutions you can create based on nndeploy. [Specific Algorithm Inference Deployment Acceleration](docs/zh_cn/quick_start/ai_deploy.md)
 
 ## Quick Start
 
