@@ -50,20 +50,37 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       //disableSideBar: !!nodeEntity.is_graph_,
       expandable: isContainer, // disable expanded
       size: {
-        width:isContainer ? 400: 200,
-        height:  isContainer ? 160: 80,
+        width: isContainer ? 400 : 200,
+        height: isContainer ? 160 : 80,
       },
 
+      // padding: (transform) => {
+      //   // if (!transform.isContainer) {
+      //   //   return {
+      //   //     top: 0,
+      //   //     bottom: 0,
+      //   //     left: 0,
+      //   //     right: 0,
+      //   //   };
+      //   // }
+      //   return {
+      //     top: 55, //25
+      //     bottom: 45, //5
+      //     left: 35,
+      //     right: 35,
+      //   };
+      // },
+
       padding: () => ({
-        top: 45, //25
-        bottom: 25, //5
-        left: 15,
-        right: 15,
+        top: 55, //25
+        bottom: 45, //5
+        left: 35,
+        right: 35,
       }),
     },
     formMeta: formMeta,
     canDelete(ctx, node) {
-      return  isNodeOffspringOfCompositeNode(node, ctx) || isNodeOffSpringOfFixedGraph(node, ctx) ? false: true
+      return isNodeOffspringOfCompositeNode(node, ctx) || isNodeOffSpringOfFixedGraph(node, ctx) ? false : true
     },
     onAdd() {
       return {

@@ -59,7 +59,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
           startDrag(e);
           setIsDragging(true);
         }}
-        onClick={debounce((e) => {
+        onClick={(e) => {
           selectNode(e);
           ///@ts-ignore
           if (e?.nativeEvent?.currentTarget?.classList?.contains('semi-portal')) {
@@ -73,7 +73,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
               scrollToView(ctx, nodeRender.node);
             }
           }
-        }, 2000)}
+        }}
         onMouseUp={() => setIsDragging(false)}
         onFocus={onFocus}
         onBlur={onBlur}
