@@ -83,8 +83,41 @@ export function getParentInputLineToInnerNodes(node: FlowNodeEntity, clientConte
 
   })
 
+  result.map(inputLine=>{
+    return {
+      ...inputLine, 
+    }
+  })
+
   return result
 }
+
+export function getParentInputLineToNode(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
+
+  let result: ILineEntity[] = []
+  
+  const parents = getNodeParents(getNodeById(node.id, clientContext)!)
+
+  parents.map(parent => {
+
+    const parentExpandInfo = getNodeExpandInfo(parent.id, clientContext)
+    const parentInputLinesToInnerNodes = parentExpandInfo?.inputLines.filter(parentInputLIne => {
+      return node.id == parentInputLIne.to || node.id == parentInputLIne.oldTo 
+    }) ?? []
+
+    result = [...result, ...parentInputLinesToInnerNodes]
+
+  })
+
+  result.map(inputLine=>{
+    return {
+      ...inputLine, 
+    }
+  })
+
+  return result
+}
+
 
 export function getParentOutputlineFromInnerNodes(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
 
