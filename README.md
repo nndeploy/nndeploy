@@ -45,8 +45,7 @@ nndeploy：一款简单易用且高性能的端侧AI部署框架
 
 ## 最新动态
 
-- [2025/10/27] 🔥 工作流在移动端的部署。桌面端搭建AI工作流，[移动端APP](app/android/README.md)通过API加载运行工作流
-- [2025/05/29] 🔥 与昇腾官方联合推出推理框架免费课程！基于 nndeploy 内部推理框架，快速掌握 AI 推理部署技术。[昇腾平台](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)
+- [2025/01/29] 🔥 与昇腾官方联合推出推理框架免费课程[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站视频](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)！基于 nndeploy 自研推理框架，助您快速掌握 AI 推理部署核心技术。
 
 ---
 
@@ -56,10 +55,21 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 ### **简单易用**
 
-- **可视化工作流**：通过拖拉拽操作就能部署 AI 算法，前端可视化调节 AI 算法的所有节点参数，快速预览算法调参后的效果
-- **自定义节点**：支持 Python/C++自定义节点，无需前端代码，无缝集成到可视化界面
-- **算法组合**：灵活组合不同算法，快速构建创新 AI 应用
-- **一键部署**：搭建完成的工作流可一键导出为 JSON 配置文件，支持 Python/C++ API 直接调用，实现从开发环境到生产环境的无缝衔接，全面支持 Linux、Windows、macOS、Android、iOS 等平台。
+- **可视化工作流**：拖拽节点即可部署 AI 算法，参数实时可调，效果⼀⽬了然。
+- **自定义节点**：支持 Python/C++自定义节点，⽆论是⽤ Python 实现预处理，还是⽤ C++/CUDA 编写⾼性能节点，均可无缝集成到与可视化工作流。
+- **算法组合**：灵活组合不同算法，快速构建创新 AI 应用。
+- **一键部署**：⼯作流⽀持导出为 JSON，可通过 C++/Python API 调⽤，适⽤于 Linux、Windows、macOS、Android、iOS 等平台
+
+  <table cellpadding="5" cellspacing="0" border="1">
+  <tr>
+    <td>桌面端搭建AI工作流</td>
+    <td>移动端部署</td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
+    <td><img src="docs/image/android_app/app-seg-result.jpg" width="100px"></td>
+  </tr>
+  </table>
 
 ### **高性能**
 
@@ -86,7 +96,7 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 ### **开箱即用的算法**
 
-已部署模型列表，并制作了100+可视化节点，我们将持续部署更多高价值的 AI 算法
+已部署模型列表，并制作了100+可视化节点，覆盖主流 AI 应⽤场景。⽆需反复造轮⼦，⾼频需求⼀键满足。我们将持续部署更多高价值的 AI 算法
 
 | 应用场景       | 可用模型                                                                         | 备注                                                |
 | -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -102,23 +112,21 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 > 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
-> 如果您有特定的算法部署优化需求，我们强烈建议您：创建专门的加速仓库，专注于某一类算法的优化实现，我们将为您的项目提供支持，期待你基于nndeploy能做出更好的方案。[特定算法的推理部署加速](docs/zh_cn/quick_start/ai_deploy.md)
-
 ## 快速开始
 
-- **安装**
+- **步骤一：安装**
 
   ```bash
   pip install --upgrade nndeploy
   ```
 
-- **启动可视化界面**
+- **步骤二：启动可视化界面**
 
   ```bash
   nndeploy-app --port 8000
   ```
 
-  启动成功后，打开 http://localhost:8000 即可访问工作流界面
+  启动成功后，打开 http://localhost:8000 即可访问工作流编辑器。在这⾥，你可以拖拽节点、调整参数、实时预览效果，所见即所得。
 
   <p align="left">
     <picture>
@@ -127,55 +135,62 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
     </picture>
   </p>
 
-- **导出工作流并命令行执行**
 
-  完成工作流搭建后，保存为 JSON 文件并通过命令行执行：
+- **步骤三：保存并执⾏：从“原型”到“⽣产”**
 
-  ```bash
-  # Python CLI
-  nndeploy-run-json --json_file path/to/workflow.json
-  # C++ CLI
-  nndeploy_demo_run_json --json_file path/to/workflow.json
-  ```
+  在可视化界⾯中搭建、调试完成后，点击保存，⼯作流就会导出为⼀个 JSON ⽂件。
 
-- * **导出工作流并 API 加载运行**
+  这个 JSON ⽂件就是你的“AI 应⽤”，它封装了你所有的流程和逻辑。你可以⽤以下两种⽅式在“⽣产环境”中运⾏它：
 
-  在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行
+  - ⽅式 1：命令⾏⼀键执⾏
 
-  - Python API 加载运行 LLM 工作流
-    ```Python
-    graph = nndeploy.dag.Graph("")
-    graph.remove_in_out_node()
-    graph.load_file("path/to/llm_workflow.json")
-    graph.init()
-    input = graph.get_input(0)
-    text = nndeploy.tokenizer.TokenizerText()
-    text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
-    input.set(text)
-    status = graph.run()
-    output = graph.get_output(0)
-    result = output.get_graph_output()
-    graph.deinit()
-    ```
-  - C++ API 加载运行 LLM 工作流
-    ```C++
-    std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
-    base::Status status = graph->loadFile("path/to/llm_workflow.json");
-    graph->removeInOutNode();
-    status = graph->init();
-    dag::Edge* input = graph->getInput(0);
-    tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
-    text->texts_ = {
-        "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
-    input->set(text, false);
-    status = graph->run();
-    dag::Edge* output = graph->getOutput(0);
-    tokenizer::TokenizerText* result =
-        output->getGraphOutput<tokenizer::TokenizerText>();
-    status = graph->deinit();
+    ⽤于快速测试和验证
+
+    ```bash
+    # Python CLI
+    nndeploy-run-json --json_file path/to/workflow.json
+    # C++ CLI
+    nndeploy_demo_run_json --json_file path/to/workflow.json
     ```
 
-  更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
+  - ⽅式 2：在 C++/Python 代码中加载
+
+    你可以将这个 JSON ⽂件⽆缝集成到你现有的 C++ 或 Python 项⽬中，以下是⼀个加载LLM ⼯作流的示例代码：
+
+    - Python API 加载运行 LLM 工作流
+      ```Python
+      graph = nndeploy.dag.Graph("")
+      graph.remove_in_out_node()
+      graph.load_file("path/to/llm_workflow.json")
+      graph.init()
+      input = graph.get_input(0)
+      text = nndeploy.tokenizer.TokenizerText()
+      text.texts_ = [ "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n" ]
+      input.set(text)
+      status = graph.run()
+      output = graph.get_output(0)
+      result = output.get_graph_output()
+      graph.deinit()
+      ```
+    - C++ API 加载运行 LLM 工作流
+      ```C++
+      std::shared_ptr<dag::Graph> graph = std::make_shared<dag::Graph>("");
+      base::Status status = graph->loadFile("path/to/llm_workflow.json");
+      graph->removeInOutNode();
+      status = graph->init();
+      dag::Edge* input = graph->getInput(0);
+      tokenizer::TokenizerText* text = new tokenizer::TokenizerText();
+      text->texts_ = {
+          "<|im_start|>user\nPlease introduce NBA superstar Michael Jordan<|im_end|>\n<|im_start|>assistant\n"};
+      input->set(text, false);
+      status = graph->run();
+      dag::Edge* output = graph->getOutput(0);
+      tokenizer::TokenizerText* result =
+          output->getGraphOutput<tokenizer::TokenizerText>();
+      status = graph->deinit();
+      ```
+
+    更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
 
 > 要求 Python 3.10+，默认包含 PyTorch、ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
