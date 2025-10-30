@@ -1,6 +1,6 @@
-import { FlowNodeEntity, FreeLayoutPluginContext, WorkflowNodeLinesData } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FreeLayoutPluginContext, WorkflowLineEntity, WorkflowNodeLinesData } from "@flowgram.ai/free-layout-editor";
 import { ILineEntity } from "../entity";
-import { getAllInnerNodes, getNodeById, getNodeExpandInfo, getNodeNameByNodeId, isContainerNode, isDynamicContainerNode } from "../functions";
+import { getAllInnerNodes, getNodeById, getNodeExpandInfo, getNodeNameByNodeId, getNodeNamFieldValue, isContainerNode, isGraphNode } from "../functions";
 
 /** lines from  outsize this node's inner node */
 export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
@@ -23,26 +23,39 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
 
       })
 
-      function getNewToPort() {
-        let newToPort = ''
+      function getToPortId() {
+        let toPortId = ''
 
         const alreadyPort = newPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
 
 
         if (alreadyPort) {
-          newToPort = alreadyPort
+          toPortId = alreadyPort
         } else {
-          newToPort = "new_port_" + Math.random().toString(36).substr(2, 9)
-          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newToPort
+          toPortId = "new_port_" + Math.random().toString(36).substr(2, 9)
+          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = toPortId
         }
-        return newToPort
+        return toPortId
       }
 
-      const newToPort = getNewToPort()
+      const toPortId = getToPortId()
+
+
+      const originFrom = getOriginFrom({
+        from: line.from!.id,  
+        fromPort: line.fromPort!.portID as string,
+        to: line.to!.id as string,      
+        toPort: line.toPort!.portID as string,
+    
+      }, clientContext)
 
 
       let old_to_name = getNodeNameByNodeId(line.to!.id, clientContext)
       let result: ILineEntity = {
+        originFrom: '',
+        originFrom_name: '',
+        originFromPort: '',
+
         oldFrom: '',
         oldFromPort: '',
 
@@ -58,7 +71,7 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
         to_name: getNodeNameByNodeId(node.id, clientContext),
         //toPort: line.toPort!.portID,
 
-        toPort:  newToPort,   //"new_port_" + Math.random().toString(36).substr(2, 9),
+        toPort: toPortId,   //"new_port_" + Math.random().toString(36).substr(2, 9),
 
         // toPort: "new_port_" + Math.random().toString(36).substr(2, 9),
         type_: port?.type_,
@@ -66,7 +79,14 @@ export function getSubcavasInputLines(node: FlowNodeEntity, clientContext: FreeL
       }
 
 
-      const isFromNodeContainer = isDynamicContainerNode(line.from!.id, clientContext)
+      // const originTo = getOriginTo(result, clientContext)
+      result = {
+        ...result, ...originFrom,
+        // ...originTo
+      }
+
+
+      const isFromNodeContainer = isGraphNode(line.from!.id, clientContext)
       if (isFromNodeContainer) {
         const formNodeExandInfo = getNodeExpandInfo(line.from!.id, clientContext)
         formNodeExandInfo?.outputLines.map(outputLine => {
@@ -106,7 +126,7 @@ export function destroySubcavasInputLines(node: FlowNodeEntity, clientContext: F
 
 export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {
   allInputLines.map(inputLine => {
-    const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext)
+    const isFromNodeContainer = isGraphNode(inputLine.from, clientContext)
     if (!isFromNodeContainer) {
       return
     }
@@ -122,7 +142,7 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
         outputLine.to == inputLine.oldTo && outputLine.toPort == inputLine.oldToPort
 
       ) {
-        return {
+        let line: ILineEntity = {
           ...outputLine,
           oldTo: outputLine.to,
           oldTo_name: getNodeNameByNodeId(outputLine.to!, clientContext),
@@ -136,6 +156,11 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
           // oldToPort: inputLine.oldToPort
 
         }
+
+        //const originTo = getOriginTo(line, clientContext)
+
+        //line = {...line, ...originTo}
+        return line
       } else {
         return outputLine
       }
@@ -153,6 +178,52 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
 
   })
 }
+
+export function getOriginFrom(line: Partial<ILineEntity>, clientContext: FreeLayoutPluginContext) {
+
+  const isFromNodeContainer = isContainerNode(line.from!, clientContext)
+  if (isFromNodeContainer) {
+
+    const fromNodeExpandInfo = getNodeExpandInfo(line.from!, clientContext)
+    const find = fromNodeExpandInfo?.outputLines.find(outputLine => {
+      return outputLine.to == line.to && outputLine.toPort == line.toPort
+    })
+
+    return getOriginFrom(find!, clientContext)
+
+  } else {
+
+    const name = getNodeNamFieldValue(line.from!, 'name_', clientContext)
+    return {
+      originFrom: line.from,
+      originFrom_name: name,
+      originFromPort: line.fromPort
+    }
+  }
+}
+
+// export function getOriginTo(line: ILineEntity, clientContext:  FreeLayoutPluginContext){
+
+//   const isToNodeContainer = isContainerNode(line.to, clientContext)
+//   if(isToNodeContainer){
+
+//     const toNodeExpandInfo = getNodeExpandInfo(line.to, clientContext)
+//     const find = toNodeExpandInfo?.inputLines.find(intputLine=>{
+//       return intputLine.from == line.from && intputLine.fromPort == line.fromPort
+//     })
+
+//     return getOriginTo(find!, clientContext)
+
+//   }else{
+//     const name = getNodeNamFieldValue(line.to, 'name_', clientContext)
+//     return {
+//       originTo: line.to,
+//       originTo_name: name, 
+//       originToPort: line.toPort
+
+//     }
+//   }
+// }
 
 
 /** lines from this this node's children to  outside */
@@ -182,26 +253,37 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
 
       const oldFrom_name = getNodeNameByNodeId(line.from!.id, clientContext)
 
-      function getNewFromPort() {
-        let newFromPort = ''
+      function getNewFromPortId() {
+        let newFromPortId = ''
 
         const alreadyPort = newPortMap[`${line.from!.id}_${line.fromPort!.portID}`]
 
 
         if (alreadyPort) {
-          newFromPort = alreadyPort
+          newFromPortId = alreadyPort
         } else {
-          newFromPort = "new_port_" + Math.random().toString(36).substr(2, 9)
-          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newFromPort
+          newFromPortId = "new_port_" + Math.random().toString(36).substr(2, 9)
+          newPortMap[`${line.from!.id}_${line.fromPort!.portID}`] = newFromPortId
         }
-        return newFromPort
+        return newFromPortId
       }
 
-      const newFromPort = getNewFromPort()
+      const newFromPortId = getNewFromPortId()
+
+      const originFrom = getOriginFrom(
+        {
+          from: line.from!.id,
+          fromPort: line.fromPort!.portID,
+          to: line.to?.id,
+          toPort: line.toPort!.portID
+        }, clientContext)
 
 
 
       let result: ILineEntity = {
+        originFrom: '',
+        originFrom_name: '',
+        originFromPort: '',
 
         oldFrom: line.from!.id,
         oldFrom_name: oldFrom_name,
@@ -211,7 +293,7 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
         from_name: getNodeNameByNodeId(node.id, clientContext),
         //from: node.id, 
 
-        fromPort: newFromPort,  //"new_port_" + Math.random().toString(36).substr(2, 9),
+        fromPort: newFromPortId,  //"new_port_" + Math.random().toString(36).substr(2, 9),
         //fromPort: "new_port_" + Math.random().toString(36).substr(2, 9),
         to: line.to!.id,
         to_name: getNodeNameByNodeId(line.to!.id, clientContext),
@@ -226,7 +308,14 @@ export function getSubcavasOutputLines(node: FlowNodeEntity, clientContext: Free
         desc_: `${port?.desc_}`,
       }
 
-      const isToNodeContainer = isDynamicContainerNode(line.to!.id, clientContext)
+
+      //const originTo = getOriginTo(result, clientContext)
+      result = {
+        ...result, ...originFrom,
+        //...originTo
+      }
+
+      const isToNodeContainer = isGraphNode(line.to!.id, clientContext)
       if (isToNodeContainer) {
         const toNodeExandInfo = getNodeExpandInfo(line.to!.id, clientContext)
         toNodeExandInfo?.inputLines.map(inputLine => {
@@ -279,7 +368,7 @@ export function destroySubcavasOutputLines(node: FlowNodeEntity, clientContext: 
 
 export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines: ILineEntity[], clientContext: FreeLayoutPluginContext) {
   allOutputLines.map(outputLine => {
-    const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
+    const isToNodeContainer = isGraphNode(outputLine.to, clientContext)
     if (!isToNodeContainer) {
       return
     }
@@ -294,9 +383,9 @@ export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines:
         &&
         inputLine.to == outputLine.to && inputLine.toPort == outputLine.toPort
       ) {
-        return {
+        let result: ILineEntity = {
           ...inputLine,
-
+          oldFrom: inputLine.from,
           oldFrom_name: getNodeNameByNodeId(inputLine.from, clientContext),
           oldFromPort: inputLine.fromPort,
 
@@ -310,6 +399,10 @@ export function adjustOutputLinesReleventContainerNodeExpandInfo(allOutputLines:
 
 
         }
+        const originFrom = getOriginFrom(result, clientContext)
+        result = { ...result, ...originFrom }
+        return result
+
       } else {
         return inputLine
       }

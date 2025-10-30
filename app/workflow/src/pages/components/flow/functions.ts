@@ -1,5 +1,5 @@
 
-import { FlowNodeEntity, FreeLayoutPluginContext } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FlowNodeRenderData, FreeLayoutPluginContext, NodeRender } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON } from "../../../typings";
 import { IFieldType, IParamTypes } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
@@ -210,7 +210,7 @@ export function isContainerNode(nodeId: string, clientContext: FreeLayoutPluginC
   return result
 }
 
-export function isDynamicContainerNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
   let node = clientContext.document.getNode(nodeId)
   let form = node?.form
   let result = (
@@ -221,6 +221,36 @@ export function isDynamicContainerNode(nodeId: string, clientContext: FreeLayout
   )
     ?? false
   return result
+}
+
+export const freeGraphContainerKeys = ['nndeploy::dag::FixedLoop', 'nndeploy::dag::Graph']
+
+export function isFxiedGraphNode(nodeId: string|undefined, clientContext: FreeLayoutPluginContext) {
+  if(!nodeId){
+    return false
+  }
+  let isDynamic = isGraphNode(nodeId, clientContext)
+
+  let key = getNodeNamFieldValue(nodeId, 'key_', clientContext)
+
+  if (isDynamic && !freeGraphContainerKeys.includes(key)) {
+    return true
+  }
+
+  return false
+
+}
+
+export function isFreeGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+
+  let key = getNodeNamFieldValue(nodeId, 'key_', clientContext)
+
+  if (freeGraphContainerKeys.includes(key)) {
+    return true
+  }
+
+  return false
+
 }
 
 
@@ -235,7 +265,11 @@ export function isLoopNode(nodeId: string, clientContext: FreeLayoutPluginContex
   return result
 }
 
-export function isCompositeNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+export function isCompositeNode(nodeId: string|undefined, clientContext: FreeLayoutPluginContext) {
+
+  if(!nodeId){
+    return false
+  }
   let node = clientContext.document.getNode(nodeId)
   let form = node?.form
   let result = (
@@ -246,15 +280,55 @@ export function isCompositeNode(nodeId: string, clientContext: FreeLayoutPluginC
   return result
 }
 
-export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
-  let node = clientContext.document.getNode(nodeId)
-  let form = node?.form
-  let result = (
-    form?.getValueIn('is_graph_')
+// export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginContext) {
+//   let node = clientContext.document.getNode(nodeId)
+//   let form = node?.form
+//   let result = (
+//     form?.getValueIn('is_graph_')
 
-  )
-    ?? false
-  return result
+//   )
+//     ?? false
+//   return result
+// }
+
+export function isNodeOffspringOfCompositeNode(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
+  const parents = getNodeParents(node)
+  return lodash.some(parents, (parent) => isCompositeNode(parent.id, clientContext))
+}
+
+export function getNodeParents(node: FlowNodeEntity) {
+  const parents: FlowNodeEntity[] = []
+  while (node.parent) {
+    parents.push(node.parent)
+    node = node.parent
+  }
+  return parents
+}
+
+
+export function isNodeOffSpringOfFixedGraph(node: FlowNodeEntity, clientContext: FreeLayoutPluginContext) {
+
+
+  let parents = getNodeParents(node)
+  return parents.some((parent) => isFxiedGraphNode(parent.id, clientContext))
+
+}
+
+
+
+export function isbothNodeOffSpringOftheSameFixedGraph(first: FlowNodeEntity | undefined, second: FlowNodeEntity | undefined, clientContext: FreeLayoutPluginContext) {
+
+  if (first == null || second == null) {
+    return false
+  }
+  let firstParents = getNodeParents(first)
+  firstParents = firstParents.filter((parent) => isFxiedGraphNode(parent.id, clientContext))
+
+
+  let secondParents = getNodeParents(second)
+  secondParents = secondParents.filter((parent) => isFxiedGraphNode(parent.id, clientContext))
+
+  return lodash.intersection(firstParents, secondParents).length > 0
 }
 
 export function getNodeById(nodeId: string, clientContext: FreeLayoutPluginContext) {
@@ -270,6 +344,13 @@ export function getNodeByName(name: string, clientContext: FreeLayoutPluginConte
   return find
 }
 
+export function isNodeExpanded(nodeId: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let nodeRender = node?.getData(FlowNodeRenderData)
+
+  return nodeRender?.expanded ? true: false
+}
+
 export function getAllInnerNodes(node: FlowNodeEntity) {
   let allChildren: FlowNodeEntity[] = []
   if (node.blocks && node.blocks.length > 0) {
@@ -281,10 +362,21 @@ export function getAllInnerNodes(node: FlowNodeEntity) {
   return allChildren;
 }
 
+export function getAllInnerNodeIds(node: FlowNodeEntity) {
+ let allChildren = getAllInnerNodes(node)
+ return allChildren.map(child=>child.id)
+}
+
 export function getNodeNameByNodeId(nodeId: string, clientContext: FreeLayoutPluginContext) {
   let node = clientContext.document.getNode(nodeId)
   let name = node?.form?.getValueIn('name_')
   return name
+}
+
+export function getNodeNamFieldValue(nodeId: string, fieldName: string, clientContext: FreeLayoutPluginContext) {
+  let node = clientContext.document.getNode(nodeId)
+  let result = node?.form?.getValueIn(fieldName)
+  return result
 }
 
 export function getNodeExpandInfo(nodeId: string, clientContext: FreeLayoutPluginContext) {
@@ -295,15 +387,15 @@ export function getNodeExpandInfo(nodeId: string, clientContext: FreeLayoutPlugi
 
 export function nodeIterate<Node>(
   node: Node,
-  childFieldName: string, 
-  process: (node: Node,  parents: Node[] ) => void, 
+  childFieldName: string,
+  process: (node: Node, parents: Node[]) => void,
 
   parents: Node[] = []
 ) {
   process(node, parents);
   if (node[childFieldName as keyof Node] && (node[childFieldName as keyof Node] as Node[])?.length > 0) {
     (node[childFieldName as keyof Node] as Node[]).forEach((child) => {
-      nodeIterate(child, childFieldName, process,  [...parents, child]);
+      nodeIterate(child, childFieldName, process, [...parents, child]);
     });
   }
 }

@@ -5,5 +5,11 @@ export interface IWorkFlowShortEntity {
   source_: string;
   desc_: string;
   cover_: string;
-  requirements_?: string
+  requirements_?: string; 
+  category_?: string;
+}
+
+export interface IWorkFlowDirInfo {
+  dirDame: string;
+  description: string; 
 }

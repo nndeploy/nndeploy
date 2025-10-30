@@ -1,18 +1,20 @@
 import {
+  Flow,
+  FlowNodeEntity,
   FlowNodeRenderData,
   FreeLayoutPluginContext,
   WorkflowEdgeJSON,
   WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 import { FlowDocumentJSON, FlowNodeJSON } from "../../../../typings";
-import lodash from 'lodash'
+import lodash, { get } from 'lodash'
 import {
   IBusinessNode,
-  Inndeploy_ui_layout,
 } from "../../../Layout/Design/WorkFlow/entity";
 import { IExpandInfo, ILineEntity, INodeUiExtraInfo } from "../entity";
-import { getNodeById, isContainerNode, isDynamicContainerNode, isGraphNode, isLoopNode } from "../functions";
+import { getAllInnerNodeIds, getNodeById, getNodeParents, isGraphNode, isNodeExpanded } from "../functions";
 import { getSubcavasInputLines, getSubcavasOutputLines } from "../form-header/function";
+import { getParentInputLineToInnerNodes, getParentInputLineToNode, getParentOutputlineFromInnerNodes } from "./functions";
 
 function designNodeIterate(
   node: WorkflowNodeJSON,
@@ -76,7 +78,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
 
     lines.map(line => {
 
-      let isSourceNodeContainer = isDynamicContainerNode(line.sourceNodeID, clientContext) 
+      let isSourceNodeContainer = isGraphNode(line.sourceNodeID, clientContext)
 
       if (isSourceNodeContainer) {
 
@@ -92,7 +94,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetNodeID: outputLine.to,
             targetPortID: outputLine.toPort,
           }
-          const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
+          const isToNodeContainer = isGraphNode(outputLine.to, clientContext)
           if (isToNodeContainer) {
             // const toNodeExpandInfo = getNodeExpandInfo(subcavasEdge.targetNodeID)
             // const find = toNodeExpandInfo.inputLines.find(inputLine => {
@@ -118,7 +120,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
         })
       }
 
-      let isTargetNodeContainer = isDynamicContainerNode(line.targetNodeID, clientContext) 
+      let isTargetNodeContainer = isGraphNode(line.targetNodeID, clientContext)
 
       if (isTargetNodeContainer) {
 
@@ -136,7 +138,7 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             targetPortID: inputLine.oldToPort,
           }
 
-          const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext) 
+          const isFromNodeContainer = isGraphNode(inputLine.from, clientContext)
           if (isFromNodeContainer) {
             // const fromNodeExpandInfo = getNodeExpandInfo(subcavasEdge.sourceNodeID)
             // const find = fromNodeExpandInfo.outputLines.find(outputLine => {
@@ -146,6 +148,10 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
             //   subcavasEdge.sourceNodeID = find.from
             //   subcavasEdge.targetPortID = find.oldFromPort
             // }
+            let lineTemp = line
+            if (!inputLine.oldFrom) {
+              let j = 0
+            }
             subcavasEdge.sourceNodeID = inputLine.oldFrom!
             subcavasEdge.sourcePortID = inputLine.oldFromPort
 
@@ -177,15 +183,15 @@ export function getAllEdges(designData: FlowDocumentJSON, clientContext: FreeLay
       //let sourceNode = clientContext.document.getNode(item.sourceNodeID)
       // let sourceForm = sourceNode?.form
       // let isSourceNodeContainer =  sourceForm?.getValueIn('is_graph') ?? false
-       let isSourceDynamicNode = isDynamicContainerNode(item.sourceNodeID, clientContext)
+      let isSourceDynamicNode = isGraphNode(item.sourceNodeID, clientContext)
 
       //let targetNode = clientContext.document.getNode(item.targetNodeID)
       // let targetForm = targetNode?.form
       // let isTargetNodeContainer = targetForm?.getValueIn('is_graph') ?? false
-      let isTargetDynamicNode = isDynamicContainerNode(item.targetNodeID, clientContext)
+      let isTargetDynamicNode = isGraphNode(item.targetNodeID, clientContext)
 
 
-      return !isTargetDynamicNode && !isSourceDynamicNode
+      return (isTargetDynamicNode || isSourceDynamicNode) ? false : true
 
     })
     return result
@@ -358,19 +364,19 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   //     return containerNodes
   //   }
 
-  //   function getPortNameByPortId(portId: string) {
-  //     let portName = ''
-  //     designData.nodes.map(node=>{
-  //       designNodeIterate(node, (node, parentNodes) => {
-  //         const find = node.data.outputs_?.find( ( (port:any) => port.id === portId))
-  //         if(find) {
-  //           portName = [...parentNodes.map(item=>item.data.name_), node.data.name_, find.desc_].join('@')
-  //         }
-  //       })
-  //     })
-  //     return portName
+  function getPortNameByPortId(portId: string) {
+    let portName = ''
+    designData.nodes.map(node => {
+      designNodeIterate(node, (node, parentNodes) => {
+        const find = node.data.outputs_?.find(((port: any) => port.id === portId))
+        if (find) {
+          portName = [...parentNodes.map(item => item.data.name_), node.data.name_, find.desc_].join('@')
+        }
+      })
+    })
+    return portName
 
-  //   }
+  }
 
   //   const containerNodes = getAllContainerNodes(designData)
 
@@ -535,35 +541,69 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
 
     let inputArray_: any[] = []
+    const flowNode = getNodeById(node.id, clientContext)!
+    const parentInputLineToInnerNodes = getParentInputLineToInnerNodes(flowNode, clientContext)
+
+    if (isGraphNode(node.id, clientContext)) {
 
 
-    if (isDynamicContainerNode(node.id, clientContext)) {
-      const inputLines = getSubcavasInputLines(getNodeById(node.id, clientContext)!, clientContext)
-      inputArray_ = lodash.uniqBy(inputLines, ['from',  'fromPort']).map(item => {
+      let inputLines: ILineEntity[] = []
 
-        const name_ = edgeToNameMap[item.oldTo + "@" + item.oldToPort]
+      if (isNodeExpanded(node.id, clientContext)) {
+
+        inputLines = getSubcavasInputLines(flowNode, clientContext)
+
+        inputLines = [...inputLines, ...parentInputLineToInnerNodes]
+
+      } else {
+
+        const expandInfo = getNodeExpandInfo(node.id, clientContext)
+
+        inputLines = expandInfo.inputLines ?? []
+
+        inputLines = [...inputLines, ...parentInputLineToInnerNodes]
+
+      }
+
+      inputArray_ = inputLines.map(item => {
+
+
+        const name_ = getPortNameByPortId(item.originFromPort as string)
+
+        //changeNodeDescendConnecitonName(node, originName, name_)
+
+        //const name_ = edgeToNameMap[item.oldTo + "@" + item.oldToPort]
         return {
           type_: item.type_,
           name_: name_,
           desc_: item.desc_
         }
+
       })
+
+      inputArray_ = lodash.uniqBy(inputArray_, 'name_')
     } else {
       inputArray_ = (node.data.inputs_ ?? []).map((input: any) => {
 
-        const originName = input.name_
-        const name_ = edgeToNameMap[node.id + "@" + input.id]
+        // const originName = input.name_
+        let name_ = edgeToNameMap[node.id + "@" + input.id]
 
         if (!name_) {
-          //debugger
-        }
 
-        changeNodeDescendConnecitonName(node, originName, name_)
+          const parentInputLines = getParentInputLineToNode(flowNode, clientContext)
+          if (parentInputLines.length > 0) {
+            const originFromPort = parentInputLines[0].originFromPort
+            name_ = getPortNameByPortId(originFromPort as string)
+          }
+
+        }
         return {
           ...input,
           name_,
         };
       });
+
+      inputArray_ = lodash.uniqBy(inputArray_, 'name_')
     }
 
 
@@ -573,25 +613,65 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
     let outputArray_: any[] = []
 
-    if (isDynamicContainerNode(node.id, clientContext)) {
-      const outputLines = getSubcavasOutputLines(getNodeById(node.id, clientContext)!, clientContext)
-      outputArray_ =  lodash.uniqBy(outputLines, ['oldFrom',  'oldFromPort']).map(item => {
+    if (isGraphNode(node.id, clientContext)) {
 
-        const name_ = edgeToNameMap[item.oldFrom + "@" + item.oldFromPort]
+      let outputLines: ILineEntity[] = []
+      const flowNode = getNodeById(node.id, clientContext)!
+      const parentOutputLineFromInnerNodes = getParentOutputlineFromInnerNodes(flowNode, clientContext)
+
+
+      if (isNodeExpanded(node.id, clientContext)) {
+
+        outputLines = getSubcavasOutputLines(getNodeById(node.id, clientContext)!, clientContext)
+        outputLines = [...outputLines, ...parentOutputLineFromInnerNodes]
+
+        // outputArray_ = outputLines.map(item => {
+
+        //   let name_ = edgeToNameMap[item.oldFrom + "@" + item.oldFromPort]
+        //   if (!name_) {
+        //     name_ = getPortNameByPortId(item.originFromPort as string)
+        //   }
+
+        //   return {
+        //     type_: item.type_,
+        //     name_: name_,
+        //     desc_: item.desc_
+        //   }
+        // })
+
+        // outputArray_ = lodash.uniqBy(outputLines, ['oldFrom', 'oldFromPort'])
+
+      } else {
+
+        const expandInfo = getNodeExpandInfo(node.id, clientContext)
+        outputLines = expandInfo.outputLines ?? []
+        outputLines = [...outputLines, ...parentOutputLineFromInnerNodes]
+
+      }
+
+      outputArray_ = outputLines.map(outputLine => {
+
+
+        let name_ = getPortNameByPortId(outputLine.originFromPort as string)
+
         return {
-          type_: item.type_,
+          type_: outputLine.type_,
           name_: name_,
-          desc_: item.desc_
+          desc_: outputLine.desc_
         }
       })
+
+      outputArray_ = lodash.uniqBy(outputArray_, 'name_')
+
     } else {
 
       outputArray_ = (node.data.outputs_ ?? []).map((output: any) => {
 
 
-        const originName = output.name_
-        const name_ = edgeToNameMap[node.id + "@" + output.id]
-        changeNodeDescendConnecitonName(node, originName, name_)
+        //const originName = output.name_
+        //const name_ = edgeToNameMap[node.id + "@" + output.id]
+        let name_ = getPortNameByPortId(output.id)
+        //changeNodeDescendConnecitonName(node, originName, name_)
 
         return {
           ...output,

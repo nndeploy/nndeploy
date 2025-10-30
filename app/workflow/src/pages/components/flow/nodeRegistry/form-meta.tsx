@@ -29,6 +29,7 @@ import { useEffect, useRef, useState } from "react";
 import { PropertyEdit } from "./propertyEdit";
 import IoType, { EnumIODataType } from "./ioType";
 import { isContainerNode } from "../functions";
+import classNames from "classnames";
 
 const { Text } = Typography;
 
@@ -74,7 +75,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const excludeFields = [
     "id",
-    "name_", 
+    "name_",
     "key_",
     // "param_",
     // "inputs_",
@@ -83,8 +84,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_input_',
     'is_dynamic_output_',
     "is_graph_",
-    "is_composite_node_", 
-    "is_loop_", 
+    "is_composite_node_",
+    "is_loop_",
     "is_inner_",
     "node_type_",
 
@@ -92,16 +93,16 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'source_',
     'version_',
 
-     'io_type_',
+    'io_type_',
     'io_params_',
     'dropdown_params',
     'required_params_',
     'size',
     'blocks',
-    "image_url_", 
-    "video_url_", 
-    "audio_url_", 
-    "model_url_", 
+    "image_url_",
+    "video_url_",
+    "audio_url_",
+    "model_url_",
     "other_url_",
 
 
@@ -157,11 +158,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   }
 
   return (
-    
-     
-    
-    <div className="drawer-render-form" ref={renderFormRef}>
-    
+
+
+
+    <div className={classNames({
+      "drawer-render-form": true,
+      isSidebar
+    })} ref={renderFormRef}>
+
       <FormHeader />
       <FormContent>
         {!isSidebar && (
@@ -193,9 +197,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </Field>
             }
             {
-              isContainer && 
-                <SubCanvasRender style={{visibility:'hidden'}} offsetY={-50}/>
-             
+              isContainer &&
+              <SubCanvasRender style={{ visibility: 'hidden' }} offsetY={-50} />
+
             }
 
 
@@ -278,7 +282,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
       </SideSheet> */}
     </div >
-    
+
   );
 };
 

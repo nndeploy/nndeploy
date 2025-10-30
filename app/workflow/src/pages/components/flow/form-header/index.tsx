@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { IExpandInfo } from '../entity';
 import lodash from 'lodash'
 import { adjustInputLinesReleventContainerNodeExpandInfo, adjustOutputLinesReleventContainerNodeExpandInfo, destroySubcavasInputLines, destroySubcavasOutputLines, getSubcavasInputLines, getSubcavasOutputLines } from './function';
-import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isCompositeNode, isContainerNode, isDynamicContainerNode } from '../functions';
+import { getNodeById, getNodeByName, getNodeExpandInfo, getNodeNameByNodeId, isCompositeNode, isContainerNode, isGraphNode } from '../functions';
 import { getIcon } from './utils';
 
 const { Text } = Typography;
@@ -82,6 +82,10 @@ export function FormHeader() {
     //if (node.flowNodeType === 'loop') {
 
     //if(isContainerNode(node.id, clientContext)){
+
+    if (isSidebar ) { //|| !isContainerNode(node.id, clientContext)
+      return
+    }
 
     toggleLoopExpanded(node, expanded);
     //}
@@ -317,7 +321,7 @@ export function FormHeader() {
     form?.setValueIn('inputs_', [])
     form?.setValueIn('outputs_', [])
 
-   // node.getData(WorkflowNodePortsData).updateAllPorts([])
+    // node.getData(WorkflowNodePortsData).updateAllPorts([])
     node.getData(WorkflowNodePortsData).updateDynamicPorts()
 
 
@@ -340,7 +344,7 @@ export function FormHeader() {
 
         linesManager.createLine(line)
 
-        const isFromNodeContainer = isDynamicContainerNode(inputLine.from, clientContext)
+        const isFromNodeContainer = isGraphNode(inputLine.from, clientContext)
         if (!isFromNodeContainer) {
           return
         }
@@ -399,7 +403,7 @@ export function FormHeader() {
         }
 
 
-        const isToNodeContainer = isDynamicContainerNode(outputLine.to, clientContext)
+        const isToNodeContainer = isGraphNode(outputLine.to, clientContext)
         if (!isToNodeContainer) {
           return
         }
