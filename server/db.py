@@ -26,6 +26,7 @@ class TemplateMeta:
     size: Optional[int]
     cover: Optional[str]
     requirements: Optional[str]
+    category: Optional[str]
 
 class DB:
     """
@@ -65,6 +66,7 @@ class DB:
             size INTEGER,
             cover TEXT,
             requirements TEXT,
+            category TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -174,6 +176,7 @@ class DB:
     # ---------- templates ----------
     def insert_or_ignore_template(self, file_path: Path,
                                   cover: Optional[str] = None,
+                                  category: Optional[str] = None,
                                   requirements: Optional[str] = None) -> None:
         tid = str(uuid.uuid4())
         name, ext, size = self._stat(file_path)
@@ -182,10 +185,10 @@ class DB:
         cur = self.conn.cursor()
         cur.execute(
             """
-            INSERT OR IGNORE INTO templates (id, path, name, ext, size, cover, requirements)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR IGNORE INTO templates (id, path, name, ext, size, cover, requirements, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (tid, abs_path, name, ext, size, cover, requirements)
+            (tid, abs_path, name, ext, size, cover, requirements, category)
         )
         self.conn.commit()
 
@@ -196,16 +199,16 @@ class DB:
 
     def get_template_meta_by_path(self, file_path: Path) -> Optional[Tuple[str, Optional[str], Optional[str]]]:
         """
-        Returns (id, cover, requirements) for a template path.
+        Returns (id, cover, requirements, category) for a template path.
         """
         abs_path = str(file_path.resolve())
         cur = self.conn.cursor()
         row = cur.execute(
-            "SELECT id, cover, requirements FROM templates WHERE path = ?",
+            "SELECT id, cover, requirements, category FROM templates WHERE path = ?",
             (abs_path,)
         ).fetchone()
         if row:
-            return row["id"], row["cover"], row["requirements"]
+            return row["id"], row["cover"], row["requirements"], row["category"]
         return None
 
     # ---------- raw access (only if really needed) ----------
