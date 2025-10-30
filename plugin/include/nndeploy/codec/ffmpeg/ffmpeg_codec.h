@@ -12,22 +12,25 @@ class NNDEPLOY_CC_API FFmpegImageDecode : public Decode {
   FFmpegImageDecode(const std::string &name)
       : Decode(name, base::CodecFlag::kCodecFlagImage) {
     key_ = "nndeploy::codec::FFmpegImageDecode";
-    desc_ = "Decode image using FFmpeg, from image path to AVFrame";
-    this->setOutputTypeInfo<AVFrame>();
+    desc_ = "Decode image using FFmpeg, from image path to cvMat";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
   }
   FFmpegImageDecode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
       : Decode(name, inputs, outputs) {
     key_ = "nndeploy::codec::FFmpegImageDecode";
-    desc_ = "Decode image using FFmpeg, from image path to AVFrame";
-    this->setOutputTypeInfo<AVFrame>();
+    desc_ = "Decode image using FFmpeg, from image path to cvMat";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
   }
   FFmpegImageDecode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Decode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::FFmpegImageDecode";
-    desc_ = "Decode image using FFmpeg, from image path to AVFrame";
-    this->setOutputTypeInfo<AVFrame>();
+    desc_ = "Decode image using FFmpeg, from image path to cvMat";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeImage);
   }
 
   virtual ~FFmpegImageDecode() override = default;
@@ -54,28 +57,28 @@ class NNDEPLOY_CC_API FFmpegImageEncode : public Encode {
   FFmpegImageEncode(const std::string &name)
       : Encode(name, base::kCodecFlagImage) {
     key_ = "nndeploy::codec::FFmpegImageEncode";
-    desc_ = "Encode image using FFmpeg, from AVFrame to image file";
-    this->setInputTypeInfo<AVFrame>();
+    desc_ = "Encode image using FFmpeg, from cvMat to image file";
+    this->setInputTypeInfo<cv::Mat>();
   }
   FFmpegImageEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
       : Encode(name, inputs, outputs, base::kCodecFlagImage) {
     key_ = "nndeploy::codec::FFmpegImageEncode";
-    desc_ = "Encode image using FFmpeg, from AVFrame to image file";
-    this->setInputTypeInfo<AVFrame>();
+    desc_ = "Encode image using FFmpeg, from cvMat to image file";
+    this->setInputTypeInfo<cv::Mat>();
   }
   FFmpegImageEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
     key_ = "nndeploy::codec::FFmpegImageEncode";
-    desc_ = "Encode image using FFmpeg, from AVFrame to image file";
-    this->setInputTypeInfo<AVFrame>();
+    desc_ = "Encode image using FFmpeg, from cvMat to image file";
+    this->setInputTypeInfo<cv::Mat>();
   }
   FFmpegImageEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Encode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::FFmpegImageEncode";
-    desc_ = "Encode image using FFmpeg, from AVFrame to image file";
-    this->setInputTypeInfo<AVFrame>();
+    desc_ = "Encode image using FFmpeg, from cvMat to image file";
+    this->setInputTypeInfo<cv::Mat>();
   }
 
   ~FFmpegImageEncode() override = default;
