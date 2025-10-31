@@ -181,7 +181,7 @@ export function adjustInputLinesReleventContainerNodeExpandInfo(allInputLines: I
 
 export function getOriginFrom(line: Partial<ILineEntity>, clientContext: FreeLayoutPluginContext) {
 
-  const isFromNodeContainer = isContainerNode(line.from!, clientContext)
+  const isFromNodeContainer = isGraphNode(line.from!, clientContext)
   if (isFromNodeContainer) {
 
     const fromNodeExpandInfo = getNodeExpandInfo(line.from!, clientContext)
@@ -189,7 +189,7 @@ export function getOriginFrom(line: Partial<ILineEntity>, clientContext: FreeLay
       return outputLine.to == line.to && outputLine.toPort == line.toPort
     })
 
-    return getOriginFrom(find!, clientContext)
+    return getOriginFrom({...find, from: find?.oldFrom, fromPort: find?.oldFromPort, from_name: find?.oldFrom_name}, clientContext)
 
   } else {
 

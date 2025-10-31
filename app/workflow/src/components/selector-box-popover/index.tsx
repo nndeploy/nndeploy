@@ -86,165 +86,165 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
   }
 
 
-  function buildDesignData(selectedNodes: FlowNodeEntity[]) {
+  // function buildDesignData(selectedNodes: FlowNodeEntity[]) {
 
-    function buildSelectedNodes() {
-      const nodes = selectedNodes.map(node => {
-        return node.toJSON()
-      })
+  //   function buildSelectedNodes() {
+  //     const nodes = selectedNodes.map(node => {
+  //       return node.toJSON()
+  //     })
 
-      return nodes
-    }
+  //     return nodes
+  //   }
 
-    function buildEdges() {
+  //   function buildEdges() {
 
-      let edges: WorkflowEdgeJSON[] = []
-
-
-      selectedNodes.map(node => {
-        let inputLines = node.getData(WorkflowNodeLinesData).inputLines
-
-        inputLines.map(line => {
-          // if (!nodeIds.includes(line.from.id)) {
-          //   return
-          // }
-
-          let edge = {
-            sourceNodeID: line.from!.id,
-            targetNodeID: line.to!.id,
-            sourcePortID: line.fromPort!.portID,
-            targetPortID: line.toPort!.portID
-          }
-
-          if (edges.find(item => {
-            return item.sourceNodeID == edge.sourceNodeID &&
-              item.targetNodeID == edge.targetNodeID &&
-              item.sourcePortID == edge.sourcePortID &&
-              item.targetPortID == edge.targetPortID
-          })) {
-            return
-          }
-          edges.push(edge)
-        })
-
-        // 输出线条
-        let outputLines = node.getData(WorkflowNodeLinesData).outputLines
-        outputLines.map(line => {
-          // if (!nodeIds.includes(line.to!.id)) {
-          //   return
-          // }
-
-          let edge = {
-            sourceNodeID: line.from!.id,
-            targetNodeID: line.to!.id,
-            sourcePortID: line.fromPort!.portID,
-            targetPortID: line.toPort!.portID
-          }
-
-          if (edges.find(item => {
-            return item.sourceNodeID == edge.sourceNodeID &&
-              item.targetNodeID == edge.targetNodeID &&
-              item.sourcePortID == edge.sourcePortID &&
-              item.targetPortID == edge.targetPortID
-          })) {
-            return
-          }
-          edges.push(edge)
-        })
-
-      })
-
-      return edges
-    }
-
-    ///@ts-ignore
-    let nodes: FlowNodeJSON[] = buildSelectedNodes()
+  //     let edges: WorkflowEdgeJSON[] = []
 
 
-    let edges = buildEdges()
+  //     selectedNodes.map(node => {
+  //       let inputLines = node.getData(WorkflowNodeLinesData).inputLines
 
-    return {
-      nodes,
-      edges
-    }
+  //       inputLines.map(line => {
+  //         // if (!nodeIds.includes(line.from.id)) {
+  //         //   return
+  //         // }
 
-  }
+  //         let edge = {
+  //           sourceNodeID: line.from!.id,
+  //           targetNodeID: line.to!.id,
+  //           sourcePortID: line.fromPort!.portID,
+  //           targetPortID: line.toPort!.portID
+  //         }
 
-  async function onSubGraphSave() {
-    var selectedNodes = flowSelectConfig.selectedNodes
-    // selectedNodes.map(node => {
-    //   let inputLines = node.getData(WorkflowNodeLinesData).inputLines
-    //   // 输出线条
-    //   let outputLines = node.getData(WorkflowNodeLinesData).outputLines
+  //         if (edges.find(item => {
+  //           return item.sourceNodeID == edge.sourceNodeID &&
+  //             item.targetNodeID == edge.targetNodeID &&
+  //             item.sourcePortID == edge.sourcePortID &&
+  //             item.targetPortID == edge.targetPortID
+  //         })) {
+  //           return
+  //         }
+  //         edges.push(edge)
+  //       })
+
+  //       // 输出线条
+  //       let outputLines = node.getData(WorkflowNodeLinesData).outputLines
+  //       outputLines.map(line => {
+  //         // if (!nodeIds.includes(line.to!.id)) {
+  //         //   return
+  //         // }
+
+  //         let edge = {
+  //           sourceNodeID: line.from!.id,
+  //           targetNodeID: line.to!.id,
+  //           sourcePortID: line.fromPort!.portID,
+  //           targetPortID: line.toPort!.portID
+  //         }
+
+  //         if (edges.find(item => {
+  //           return item.sourceNodeID == edge.sourceNodeID &&
+  //             item.targetNodeID == edge.targetNodeID &&
+  //             item.sourcePortID == edge.sourcePortID &&
+  //             item.targetPortID == edge.targetPortID
+  //         })) {
+  //           return
+  //         }
+  //         edges.push(edge)
+  //       })
+
+  //     })
+
+  //     return edges
+  //   }
+
+  //   ///@ts-ignore
+  //   let nodes: FlowNodeJSON[] = buildSelectedNodes()
 
 
-    //   let json1 = node.toJSON()
+  //   let edges = buildEdges()
 
-    //   let jsonData = node.getJSONData()
-    //   let j = 0;
-    // })
+  //   return {
+  //     nodes,
+  //     edges
+  //   }
 
-    // var json = flowSelectConfig.toJSON()
-    // var i = 0;
+  // }
 
-    let designContent: FlowDocumentJSON = buildDesignData(selectedNodes)
-
-    let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes as any,  ctx)
-
-    let edgeMaps = getEdgeToNameMaps(allNodes as any, designContent.edges)
-
-    let selectedNodeIds = selectedNodes.map(node => {
-      return node.id
-    })
-
-    let subFlowInputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.sourceNodeID))
-
-    let inputs_ = subFlowInputEdges.map(edge => {
-
-      let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
-
-      let outputs = soureNode.data.outputs_ ?? []
-      let output = outputs.find((item : any) => item.id == edge.sourcePortID)
-
-      let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
-      return {
-        ...output,
-        name_
-      }
-
-    })
+  // async function onSubGraphSave() {
+  //   var selectedNodes = flowSelectConfig.selectedNodes
+  //   // selectedNodes.map(node => {
+  //   //   let inputLines = node.getData(WorkflowNodeLinesData).inputLines
+  //   //   // 输出线条
+  //   //   let outputLines = node.getData(WorkflowNodeLinesData).outputLines
 
 
-    let subFlowOutputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.targetNodeID))
+  //   //   let json1 = node.toJSON()
 
-    let outputs_ = subFlowOutputEdges.map(edge => {
+  //   //   let jsonData = node.getJSONData()
+  //   //   let j = 0;
+  //   // })
 
-      let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
+  //   // var json = flowSelectConfig.toJSON()
+  //   // var i = 0;
 
-      let inputs = outputNode.data.inputs_ ?? []
-      let input = inputs.find((item : any) => item.id == edge.targetPortID)
+  //   let designContent: FlowDocumentJSON = buildDesignData(selectedNodes)
 
-      let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
-      return {
-        ...input,
-        name_
-      }
+  //   let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes as any,  ctx)
 
-    })
+  //   let edgeMaps = getEdgeToNameMaps(allNodes as any, designContent.edges)
 
-    businessContent.inputs_ = inputs_
-    businessContent.outputs_ = outputs_
+  //   let selectedNodeIds = selectedNodes.map(node => {
+  //     return node.id
+  //   })
 
-    let temp = businessContent
-    let i = 0;
+  //   let subFlowInputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.sourceNodeID))
 
-    const response = await apiWorkFlowSave("", businessContent);
-    if (response.flag == "success") {
-      Toast.success('save subflow successed')
-    }else{
-      Toast.error('save subflow failed')
-    }
-  }
+  //   let inputs_ = subFlowInputEdges.map(edge => {
+
+  //     let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
+
+  //     let outputs = soureNode.data.outputs_ ?? []
+  //     let output = outputs.find((item : any) => item.id == edge.sourcePortID)
+
+  //     let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+  //     return {
+  //       ...output,
+  //       name_
+  //     }
+
+  //   })
+
+
+  //   let subFlowOutputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.targetNodeID))
+
+  //   let outputs_ = subFlowOutputEdges.map(edge => {
+
+  //     let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
+
+  //     let inputs = outputNode.data.inputs_ ?? []
+  //     let input = inputs.find((item : any) => item.id == edge.targetPortID)
+
+  //     let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+  //     return {
+  //       ...input,
+  //       name_
+  //     }
+
+  //   })
+
+  //   businessContent.inputs_ = inputs_
+  //   businessContent.outputs_ = outputs_
+
+  //   let temp = businessContent
+  //   let i = 0;
+
+  //   const response = await apiWorkFlowSave("", businessContent);
+  //   if (response.flag == "success") {
+  //     Toast.success('save subflow successed')
+  //   }else{
+  //     Toast.error('save subflow failed')
+  //   }
+  // }
 
   return <>
     <div
