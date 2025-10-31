@@ -261,7 +261,7 @@ def _handle_urls(graph_json: Dict, work_dir: str) -> Dict[str, str]:
                 expected_dest: Optional[Path] = None
                 try:
                     model_id, file_path = uri.split(":", 1)
-                    rel_path = Path(file_path)
+                    rel_path = file_path
                     expected_dest = (save_dir / rel_path).resolve()
                     if not _ensure_under(save_dir, expected_dest):
                         logging.error(f"Path traversal detected for {field}.{idx}: {expected_dest}")
