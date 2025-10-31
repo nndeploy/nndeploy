@@ -24,14 +24,14 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::infer::Infer);
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_CODEC
 #pragma comment(lib, "nndeploy_plugin_codec.lib")
-#include "nndeploy/codec/codec.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::codec::Encode);
+#include "nndeploy/codec/opencv/opencv_codec.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::codec::OpenCvImageDecode);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_TOKENIZER
 #pragma comment(lib, "nndeploy_plugin_tokenizer.lib")
 #include "nndeploy/tokenizer/tokenizer.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerPraram);
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::tokenizer::TokenizerEncode);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION
@@ -47,7 +47,7 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(
 #include "nndeploy/llm/llm_infer.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::llm::LlmInfer);
 #include "nndeploy/qwen/qwen.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::qwen::QwenConfig);
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::qwen::PromptParam);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_DETECT
@@ -66,11 +66,8 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::segment::DrawMask);
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION
 #pragma comment(lib, "nndeploy_plugin_stable_diffusion.lib")
-#include "nndeploy/stable_diffusion/clip.h"
-#include "nndeploy/stable_diffusion/denoise.h"
 #include "nndeploy/stable_diffusion/scheduler.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::stable_diffusion::Scheduler);
-#include "nndeploy/stable_diffusion/scheduler.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::stable_diffusion::SchedulerParam);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION
@@ -82,14 +79,14 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_TRACK
 #pragma comment(lib, "nndeploy_plugin_track.lib")
-#include "nndeploy/track/result.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::track::MOTResult);
+#include "nndeploy/track/fairmot/fairmot.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::track::FairMotPreParam);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_MATTING
 #pragma comment(lib, "nndeploy_plugin_matting.lib")
-#include "nndeploy/matting/result.h"
-NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::matting::MattingResult);
+#include "nndeploy/matting/pp_matting/pp_matting.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::matting::PPMattingPostParam);
 #endif
 
 #ifdef ENABLE_NNDEPLOY_PLUGIN_OCR

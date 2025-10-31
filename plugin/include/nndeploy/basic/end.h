@@ -27,9 +27,7 @@ class NNDEPLOY_CC_API End : public dag::Node {
 
   virtual ~End() {}
 
-  virtual base::Status run() {
-    return base::Status::Ok();
-  }
+  virtual base::Status run();
 };
 
 }  // namespace basic

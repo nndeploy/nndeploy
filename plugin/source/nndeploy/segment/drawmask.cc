@@ -10,6 +10,69 @@
 namespace nndeploy {
 namespace segment {
 
+base::Status DrawMask::run() {
+  // 从第一个输入边缘获取输入图像矩阵
+  cv::Mat *input_mat = inputs_[0]->getCvMat(this);
+  // 从第二个输入边缘获取分割结果
+  segment::SegmentResult *result =
+      (segment::SegmentResult *)inputs_[1]->getParam(this);
+  // 获取掩码张量
+  device::Tensor *mask = result->mask_;
+  // 如果掩码数据类型为浮点型
+  if (mask->getDataType() == base::dataTypeOf<float>()) {
+    // 创建一个与掩码张量尺寸相同的单通道浮点矩阵
+    cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
+                        mask->getData());
+    // 将掩码矩阵二值化
+    cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
+    // 将浮点矩阵转换为8位无符号整数矩阵
+    mask_output.convertTo(mask_output, CV_8U);
+    // 创建输出图像矩阵
+    cv::Mat *output_mat = new cv::Mat(mask_output);
+    // 设置输出边缘的数据
+    outputs_[0]->set(output_mat, false);
+  } else if (mask->getDataType() == base::dataTypeOf<uint8_t>()) {
+    // 创建与掩码张量尺寸相同的8位无符号整数矩阵
+    cv::Mat mask_mat(mask->getHeight(), mask->getWidth(), CV_8UC1,
+                     mask->getData());
+    cv::Mat mask_result;
+    // 调整掩码矩阵的尺寸以匹配输入图像的尺寸
+    cv::resize(mask_mat, mask_result, input_mat->size(), 0.0, 0.0,
+               cv::INTER_LINEAR);
+    // 创建输出图像矩阵，与输入图像具有相同的通道数
+    cv::Mat *output_mat = nullptr;
+    int channels = input_mat->channels();
+    if (channels == 1) {
+      output_mat = new cv::Mat(input_mat->size(), CV_8UC1, cv::Scalar(0));
+    } else if (channels == 3) {
+      output_mat = new cv::Mat(input_mat->size(), CV_8UC3, cv::Scalar(0, 0, 0));
+    } else if (channels == 4) {
+      output_mat =
+          new cv::Mat(input_mat->size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+    }
+
+    // 遍历每个像素，将掩码大于50的像素复制到输出图像上
+    for (int y = 0; y < input_mat->rows; ++y) {
+      for (int x = 0; x < input_mat->cols; ++x) {
+        if (mask_result.at<uchar>(y, x) > 50) {
+          if (channels == 1) {
+            output_mat->at<uchar>(y, x) = input_mat->at<uchar>(y, x);
+          } else if (channels == 3) {
+            output_mat->at<cv::Vec3b>(y, x) = input_mat->at<cv::Vec3b>(y, x);
+          } else if (channels == 4) {
+            output_mat->at<cv::Vec4b>(y, x) = input_mat->at<cv::Vec4b>(y, x);
+          }
+        }
+      }
+    }
+
+    // 设置输出边缘的数据
+    outputs_[0]->set(output_mat, false);
+  }
+  // 返回操作成功状态
+  return base::kStatusCodeOk;
+}
+
 REGISTER_NODE("nndeploy::segment::DrawMask", DrawMask);
 
 }  // namespace segment
