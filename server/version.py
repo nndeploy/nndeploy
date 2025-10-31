@@ -22,6 +22,10 @@ CONFIG = {
         "3.0.1": {
             "frontend":  {"tag": "v1.5.0", "asset": "dist.zip"},
             "templates": {"tag": "v1.1.0", "asset": "nndeploy-workflow.zip"}
+        },
+        "3.0.2": {
+            "frontend":  {"tag": "v1.5.1", "asset": "dist.zip"},
+            "templates": {"tag": "v1.1.0", "asset": "nndeploy-workflow.zip"}
         }
     },
 
