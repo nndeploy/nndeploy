@@ -298,7 +298,7 @@ class WorkflowTemplateManager:
 
     @classmethod
     def init_templates(cls, version_string: str = DEFAULT_VERSION_STRING) -> Optional[str]:
-        # TEMPLATE_ROOT.mkdir(parents=True, exist_ok=True)
+        TEMPLATE_ROOT.mkdir(parents=True, exist_ok=True)
         try:
             return cls._impl(version_string)
         except Exception as exc:
@@ -344,7 +344,7 @@ class WorkflowTemplateManager:
         provider = TemplateProvider(owner, repo)
         rel = provider.latest if tag == "latest" else provider.by_tag(tag)
         semver = rel["tag_name"].lstrip("v")
-        dest = TEMPLATE_ROOT
+        dest = TEMPLATE_ROOT / repo
         if not dest.exists():
             logging.info(f"Downloading templates via API: {owner}/{repo}@{semver} → {dest}")
             dest.mkdir(parents=True, exist_ok=True)
