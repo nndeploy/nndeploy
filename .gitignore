@@ -290,7 +290,10 @@ tool/script/nndeploy_build_env/
 
 app/workflow/package-lock.json
 
-
 template/python/frontend/
 template/python/logs/
 template/python/resources/
+
+python/frontend/
+python/logs/
+python/resources/
