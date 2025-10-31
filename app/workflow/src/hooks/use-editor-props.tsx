@@ -340,9 +340,9 @@ export function useEditorProps(
          * 这个用于 loop 节点子画布的渲染
          */
         createContainerNodePlugin({}),
-        createFreeGroupPlugin({
-          groupNodeRender: GroupNodeRender,
-        }),
+        // createFreeGroupPlugin({
+        //   groupNodeRender: GroupNodeRender,
+        // }),
       ],
     };
   }, [initialData, nodeRegistries]);
