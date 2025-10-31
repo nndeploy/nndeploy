@@ -20,67 +20,80 @@ include(${PLUGIN_ROOT_PATH}/source/nndeploy/basic/config.cmake)
 
 # # preprocess
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/preprocess/config.cmake)
 endif()
 
 # # infer
 if(ENABLE_NNDEPLOY_PLUGIN_INFER)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_INFER)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/infer/config.cmake)
 endif()
 
 # # codec
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CODEC)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/codec/config.cmake)
 endif()
 
 # # tokenizer
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/config.cmake)
 endif()
 
 # # classification
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/classification/config.cmake)
 endif()
 
 # # llm 
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/llm/config.cmake)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/qwen/config.cmake)
 endif()
 
 # # detect
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DETECT)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_DETECT)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/detect/config.cmake)
 endif()
 
 # # segment
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/segment/config.cmake)
 endif()
 
 # # stable_diffusion
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/stable_diffusion/config.cmake)
 endif()
 
 # # super_resolution
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/super_resolution/config.cmake)
 endif()
 
 # # track
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_TRACK)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_TRACK)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/track/config.cmake)
 endif()
 
 # # matting
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_MATTING)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_MATTING)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/matting/config.cmake)
 endif()
 
 ## ocr
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_OCR)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_OCR)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/ocr/config.cmake)
 endif()
 

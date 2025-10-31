@@ -28,7 +28,7 @@ nndeploy：一款简单易用且高性能的端侧AI部署框架
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a> 
+<!-- | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a>  -->
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 <!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
@@ -45,7 +45,7 @@ nndeploy：一款简单易用且高性能的端侧AI部署框架
 
 ## 最新动态
 
-- [2025/01/29] 🔥 与昇腾官方联合推出推理框架免费课程[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站视频](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)！基于 nndeploy 自研推理框架，助您快速掌握 AI 推理部署核心技术。
+- [2025/01/29] 🔥 与昇腾官方联合推出推理框架免费课程[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B站视频](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)！基于nndeploy内部推理子模块，助您快速掌握 AI 推理部署核心技术。
 
 ---
 
@@ -55,10 +55,10 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 ### **简单易用**
 
-- **可视化工作流**：拖拽节点即可部署 AI 算法，参数实时可调，效果⼀⽬了然。
-- **自定义节点**：支持 Python/C++自定义节点，⽆论是⽤ Python 实现预处理，还是⽤ C++/CUDA 编写⾼性能节点，均可无缝集成到与可视化工作流。
+- **可视化工作流**：拖拽节点即可部署 AI 算法，参数实时可调，效果一目了然。
+- **自定义节点**：支持 Python/C++自定义节点，无论是用 Python 实现预处理，还是用 C++/CUDA 编写⾼性能节点，均可无缝集成到与可视化工作流。
 - **算法组合**：灵活组合不同算法，快速构建创新 AI 应用。
-- **一键部署**：⼯作流⽀持导出为 JSON，可通过 C++/Python API 调⽤，适⽤于 Linux、Windows、macOS、Android、iOS 等平台
+- **一键部署**：工作流支持导出为 JSON，可通过 C++/Python API 调⽤，适用于 Linux、Windows、macOS、Android、iOS 等平台
 
   <table cellpadding="5" cellspacing="0" border="1">
   <tr>
@@ -76,7 +76,7 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
-- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。如果您有自定义推理框架，可完全独立使用，无需依赖任何第三方框架。
+- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。如果有自定义推理框架，可完全独立使用，无需依赖任何第三方框架。
 
   | 推理框架                                                                         | 适用场景                 | 状态 |
   | :------------------------------------------------------------------------------- | :----------------------- | :--- |
@@ -92,11 +92,11 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
   | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | 高通骁龙 NPU 推理框架    | ✅   |
   | [TVM](https://github.com/apache/tvm)                                             | 深度学习编译栈           | ✅   |
   | [PyTorch](https://pytorch.org/)                                                  | 快速原型/云端落地        | ✅   |
-  | [自研推理框架](docs/zh_cn/inference/README_INFERENCE.md)                         | 缺省推理框架             | ✅   |
+  | [内部推理子模块](docs/zh_cn/inference/README_INFERENCE.md)                        | 缺省推理框架             | ✅   |
 
 ### **开箱即用的算法**
 
-已部署模型列表，并制作了100+可视化节点，覆盖主流 AI 应⽤场景。⽆需反复造轮⼦，⾼频需求⼀键满足。我们将持续部署更多高价值的 AI 算法
+已部署模型列表，并制作了100+可视化节点，我们将持续部署更多高价值的 AI 算法。
 
 | 应用场景       | 可用模型                                                                         | 备注                                                |
 | -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -136,15 +136,13 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
   </p>
 
 
-- **步骤三：保存并执⾏：从“原型”到“⽣产”**
+- **步骤三：保存并执⾏：从原型到生产**
 
-  在可视化界⾯中搭建、调试完成后，点击保存，⼯作流就会导出为⼀个 JSON ⽂件。
+  在可视化界面中搭建、调试完成后，点击保存，工作流就会导出为一个JSON文件。这个 JSON 文件封装了所有的流程。你可以用以下两种方式在**生产环境**中运行：
 
-  这个 JSON ⽂件就是你的“AI 应⽤”，它封装了你所有的流程和逻辑。你可以⽤以下两种⽅式在“⽣产环境”中运⾏它：
+  - 方式一：命令行运行
 
-  - ⽅式 1：命令⾏⼀键执⾏
-
-    ⽤于快速测试和验证
+    用于调试
 
     ```bash
     # Python CLI
@@ -153,9 +151,9 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
     nndeploy_demo_run_json --json_file path/to/workflow.json
     ```
 
-  - ⽅式 2：在 C++/Python 代码中加载
+  - 方式2：在 Python/C++ 代码中加载运行
 
-    你可以将这个 JSON ⽂件⽆缝集成到你现有的 C++ 或 Python 项⽬中，以下是⼀个加载LLM ⼯作流的示例代码：
+    可以将这个 JSON 文件低成本集成到你现有的 Python 或 C++ 项目中，以下是⼀个加载和运行LLM工作流的示例代码：
 
     - Python API 加载运行 LLM 工作流
       ```Python
@@ -189,8 +187,6 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
           output->getGraphOutput<tokenizer::TokenizerText>();
       status = graph->deinit();
       ```
-
-    更多示例代码：[Python LLM](demo/llm/demo.py) | [C++ LLM](demo/llm/demo.cc) | [Python 目标检测](demo/detect/demo.py) | [C++ 目标检测](demo/detect/demo.cc) |
 
 > 要求 Python 3.10+，默认包含 PyTorch、ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
@@ -229,11 +225,7 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
   | 任务并行          | 602.104 ms  | 435.181 ms | 51.883 ms |
   | 性能提升          | 7.98%       | 11.2%      | 12.2%     |
 
-## 关注项目
 
-如果您觉得 nndeploy 对您有帮助，欢迎在 GitHub 上给我们 Star，这将帮助我们持续改进项目。
-
-<img src="docs/image/star.gif">
 
 ## 下一步计划
 
@@ -247,8 +239,6 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 - 当前 nndeploy 正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
 
 - 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
-
-  <img src="docs/image/wechat.jpg" width="225px">
 
 ## 致谢
 
