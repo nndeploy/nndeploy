@@ -8,6 +8,7 @@ import { FlowDocumentJSON, FlowNodeJSON } from "../../../../typings";
 import lodash from 'lodash'
 import {
   IBusinessNode,
+  Inndeploy_ui_layout,
 } from "../../../Layout/Design/WorkFlow/entity";
 import { IExpandInfo, ILineEntity, INodeUiExtraInfo } from "../entity";
 import { getNodeById, getNodeNamFieldValue, isCompositeNode, isGraphNode, isNodeExpanded, isNodeOffspringOfCompositeNode } from "../functions";
@@ -361,15 +362,12 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
 
   const nodesLayout = buildNodesLayout()
 
-  function getGroupInfos() {
+  function getGroupInfos(): Inndeploy_ui_layout['groups'] {
     let groups = designData.nodes.filter(node => node.type == 'group')
     let groupInfos = groups.map(group => {
-      let groupName = group.data.name_
-      let childrenNodes: string[] = group.blocks?.map(blockNode => {
-        return blockNode.data.name_
-      }) ?? []
+      
 
-      return { name: groupName, children: childrenNodes }
+      return lodash.pick(group.data, ['name_', 'parentID', 'blockIDs'])
 
     })
 
@@ -685,9 +683,12 @@ export function designDataToBusinessData(designData: FlowDocumentJSON, graphTopN
   designData.nodes.map((node) => {
     if (node.type == 'group') {
 
-      for (let i = 0; i < node.blocks!.length; i++) {
-        let blockNode = node.blocks![i]
-        let nodeItem = transferDesignNodeToBusinessNode(blockNode)
+      for (let i = 0; i < node.data.blockIDs!.length; i++) {
+        let blockNode = getNodeById(node.data.blockIDs![i], clientContext)!.toJSON()
+        let nodeItem = transferDesignNodeToBusinessNode(
+          ///@ts-ignore
+          blockNode
+        )
         node_repository_.push(nodeItem)
       }
 
