@@ -298,7 +298,7 @@ class WorkflowTemplateManager:
 
     @classmethod
     def init_templates(cls, version_string: str = DEFAULT_VERSION_STRING) -> Optional[str]:
-        TEMPLATE_ROOT.mkdir(parents=True, exist_ok=True)
+        # TEMPLATE_ROOT.mkdir(parents=True, exist_ok=True)
         try:
             return cls._impl(version_string)
         except Exception as exc:
