@@ -55,12 +55,14 @@ nndeploy-app --port 8000
 
 在浏览器中访问 `http://localhost:8000` 开始使用。
 
-<p align="center">
+<!-- <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
     <img alt="nndeploy" src="../../image/workflow.png" width=100%>
   </picture>
-</p>
+</p> -->
+
+![../../image/quick_start.gif](../../image/quick_start.gif)
 
 ### 启动参数说明
 
@@ -73,7 +75,6 @@ nndeploy-app --port 8000
 | `--resources`          | `./resources`                | 指定资源文件目录路径                                                |
 | `--log`                | `./logs/nndeploy_server.log` | 指定日志输出文件路径                                                |
 | `--front-end-version`  | `!`                          | 指定前端版本，格式为 `owner/repo@tag`，如 `nndeploy/nndeploy-ui@v1.0.0` |
-<!-- | `--debug / --no-debug` | `False`                      | 是否启用调试模式，启用后将禁用前端静态文件挂载                           | -->
 | `--plugin`             | `[]`                         | 支持传入多个python文件路径或者动态库路径，用于加载用户写好的自定义插件，默认为空 |
 
 ### 常见问题
@@ -96,5 +97,9 @@ python app.py --front-end-version nndeploy/nndeploy-ui@v1.1.0
 Q4: 前端资源下载完成了，还是无法打开前端界面？
 
 A4: 检查服务端IP以及端口是否正确，如果`localhost`以及`127.0.0.1`都无法访问，替换成局域网IP（如`192.168.x.x`）重试。
+
+Q5: 前端、模板、log、数据资源过期
+
+A5: 执行 nndeploy-clean / python clean.py，清理过期的资源
 
 

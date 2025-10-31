@@ -34,12 +34,13 @@ nndeploy：一款简单易用且高性能的端侧AI部署框架
 | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
 </p>
 
-<p align="center">
+<!-- <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
     <img alt="nndeploy" src="../../image/workflow/worflow_llm.gif" width=100%>
   </picture>
-</p>
+</p> -->
+![../../image/workflow/worflow_llm.gif](../../image/workflow/worflow_llm.gif)
 
 ---
 
@@ -59,17 +60,6 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 - **自定义节点**：支持 Python/C++自定义节点，无论是用 Python 实现预处理，还是用 C++/CUDA 编写⾼性能节点，均可无缝集成到与可视化工作流。
 - **算法组合**：灵活组合不同算法，快速构建创新 AI 应用。
 - **一键部署**：工作流支持导出为 JSON，可通过 C++/Python API 调⽤，适用于 Linux、Windows、macOS、Android、iOS 等平台
-
-  <table cellpadding="5" cellspacing="0" border="1">
-  <tr>
-    <td>桌面端搭建AI工作流</td>
-    <td>移动端部署</td>
-  </tr>
-  <tr>
-    <td><img src="../../image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
-    <td><img src="../../image/android_app/app-seg-result.jpg" width="100px"></td>
-  </tr>
-  </table>
 
 ### **高性能**
 
@@ -128,12 +118,14 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
   启动成功后，打开 http://localhost:8000 即可访问工作流编辑器。在这里，你可以拖拽节点、调整参数、实时预览效果，所见即所得。
 
-  <p align="left">
+  <!-- <p align="left">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="quick_start.gif">
       <img alt="nndeploy" src="../../image/quick_start.gif" width=100%>
     </picture>
-  </p>
+  </p> -->
+
+  ![../../image/quick_start.gif](../../image/quick_start.gif)
 
 
 - **步骤三：保存并加载运行**
@@ -207,7 +199,9 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 - **流水线并行加速**。以 YOLOv11s 端到端工作流总耗时，串行 vs 流水线并行
 
-  <img src="../../image/workflow/yolo_performance.png" width="60%">
+  <!-- <img src="../../image/workflow/yolo_performance.png" width="60%"> -->
+
+  ![../../image/workflow/yolo_performance.png](../../image/workflow/yolo_performance.png)
 
   | 运行方式\推理引擎 | ONNXRuntime | OpenVINO  | TensorRT  |
   | ----------------- | ----------- | --------- | --------- |
@@ -217,7 +211,8 @@ nndeploy 是一款简单易用且高性能的端侧AI部署框架。基于可视
 
 - **任务并行加速**。组合任务(分割 RMBGv1.4+检测 YOLOv11s+分类 ResNet50)的端到端总耗时，串行 vs 任务并行
 
-  <img src="../../image/workflow/rmbg_yolo_resnet.png" width="60%">
+  <!-- <img src="../../image/workflow/rmbg_yolo_resnet.png" width="60%"> -->
+  ![../../image/workflow/rmbg_yolo_resnet.png](../../image/workflow/rmbg_yolo_resnet.png)
 
   | 运行方式\推理引擎 | ONNXRuntime | OpenVINO   | TensorRT  |
   | ----------------- | ----------- | ---------- | --------- |
