@@ -238,7 +238,7 @@ Test environment: Ubuntu 22.04, i7-12700, RTX3060
 
 - If you love open source and enjoy tinkering, whether for learning purposes or to share better ideas, you are welcome to join us.
 
-- If you are interested in combining nndeploy with specific fields to develop open source projects, we can provide you with technical support (nndeploy can offer: visual workflow, directed acyclic graph, multi-end inference deployment, general performance optimization, heterogeneous device management, abundant basic components, etc.)
+<!-- - If you are interested in combining nndeploy with specific fields to develop open source projects, we can provide you with technical support (nndeploy can offer: visual workflow, directed acyclic graph, multi-end inference deployment, general performance optimization, heterogeneous device management, abundant basic components, etc.) -->
 
 - WeChat: Always031856 (Feel free to add as a friend to join the group discussion. Please note: nndeploy_name)
 
