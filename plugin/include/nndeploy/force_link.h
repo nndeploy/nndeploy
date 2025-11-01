@@ -46,6 +46,8 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(
 #pragma comment(lib, "nndeploy_plugin_qwen.lib")
 #include "nndeploy/llm/llm_infer.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::llm::LlmInfer);
+#include "nndeploy/llm/decode.h"
+NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::llm::Decode);
 #include "nndeploy/qwen/qwen.h"
 NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::qwen::PromptParam);
 #endif
