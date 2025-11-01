@@ -15,14 +15,14 @@ nndeploy 提供了直观的 Web 界面用于模型部署：
 # pip
 pip install --upgrade nndeploy
 
-# 启动 Workflow 的 Web 服务
-cd /path/nndeploy
-python app.py --port 8000
-
-# 或 使用简化命令 启动 Workflow 的 Web 服务
+# 方式一：命令行
 nndeploy-app --port 8000
 
-# 当更新了nndeploy时，建议清理过期的前后端资源
+# 方式二：代码启动
+cd path/to/nndeploy
+python app.py --port 8000
+
+# 当更新了nndeploy时，建议清理过期前后端资源
 nndeploy-clean
 ```
 

@@ -123,7 +123,11 @@ A list of deployed models with over 100+ visual nodes.
 - **Step 2: Launch the Visual Interface**
 
   ```bash
+  # Method 1: Command line
   nndeploy-app --port 8000
+  # Method 2: Code startup
+  cd path/to/nndeploy
+  python app.py --port 8000
   ```
 
   After successful launch, open http://localhost:8000 to access the workflow editor. Here, you can drag nodes, adjust parameters, and preview effects in real-time, with a what-you-see-is-what-you-get experience.

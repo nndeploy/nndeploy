@@ -123,7 +123,11 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
 - **步骤二：启动可视化界面**
 
   ```bash
+  # 方式一：命令行
   nndeploy-app --port 8000
+  # 方式二：代码启动
+  cd path/to/nndeploy
+  python app.py --port 8000
   ```
 
   启动成功后，打开 http://localhost:8000 即可访问工作流编辑器。在这里，你可以拖拽节点、调整参数、实时预览效果，所见即所得。
