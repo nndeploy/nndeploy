@@ -22,7 +22,7 @@ jobs:
       fail-fast: false  # Don't terminate other jobs due to single job failure
       matrix:
         platform: [ubuntu-22.04]  # Running platform
-        python-version: ["3.13",]
+        python-version: ["3.13", "3.14"]
 
     runs-on: ${{ matrix.platform }}  # Specify runtime environment
 
