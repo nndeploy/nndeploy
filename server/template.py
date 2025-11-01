@@ -344,12 +344,9 @@ class WorkflowTemplateManager:
         provider = TemplateProvider(owner, repo)
         rel = provider.latest if tag == "latest" else provider.by_tag(tag)
         semver = rel["tag_name"].lstrip("v")
-        import platform
-        if platform.system() == "Windows":
-            dest = TEMPLATE_ROOT 
-        else:
-            dest = TEMPLATE_ROOT / repo
-        dest_inner = dest / "nndeploy-workflow" 
+        # dest = TEMPLATE_ROOT / repo
+        dest = TEMPLATE_ROOT
+        dest_inner = dest / "nndeploy-workflow"
         if not dest_inner.exists():
             logging.info(f"Downloading templates via API: {owner}/{repo}@{semver} → {dest}")
             dest.mkdir(parents=True, exist_ok=True)
