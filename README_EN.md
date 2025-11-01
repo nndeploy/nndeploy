@@ -192,7 +192,7 @@ A list of deployed models with over 100+ visual nodes.
       status = graph->deinit();
       ```
 
-> Requires Python 3.10+. By default, it includes PyTorch, ONNXRuntime, and MNN. For more inference backends, please use developer mode.
+> Requires Python 3.10+. By default, it includes ONNXRuntime, and MNN. For more inference backends, please use developer mode.
 
 ## Documentation
 

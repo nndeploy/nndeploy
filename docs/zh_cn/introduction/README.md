@@ -180,7 +180,7 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
       status = graph->deinit();
       ```
 
-> 要求 Python 3.10+，默认包含 PyTorch、ONNXRuntime、MNN，更多推理后端请采用开发者模式。
+> 要求 Python 3.10+，默认包含ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
 ## 文档
 

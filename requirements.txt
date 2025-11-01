@@ -1,27 +1,16 @@
 # Usage: pip install -r requirements.txt
 
-# base
+# required
+## base
 cython
 packaging
-setuptools>=68.0.0
-gitpython>=3.1.30
-aiofiles>=24.1.0
-PyYAML>=5.3.1
-pytest
-jsonschema
-multiprocess
+Pillow
 numpy
-
-# opencv
 opencv-python>=4.8.0
 
-# onnxruntime
-onnxruntime>=1.18.0
-
-# torch
-torch>=2.0.0
-
-# server
+## server
+modelscope
+multiprocess
 requests>=2.31.0
 fastapi>=0.104.0
 uvicorn>=0.24.0
@@ -30,9 +19,21 @@ python-multipart>=0.0.6
 pydantic>=2.0.0
 chardet>=5.2.0
 
-# diffusers
+########################################################
+
+# optional
+## torch
+torch>=2.0.0
+torchvision>=0.15.0
+
+## diffusers
 accelerate
 diffusers
 transformers
+
+## onnx
+onnx>=1.16.0
+onnxruntime>=1.18.0
+
 
 
