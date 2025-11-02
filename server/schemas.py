@@ -63,6 +63,11 @@ class WorkFlowLoadResponse(BaseModel):
     message: str
     result: Dict[str, Any]
 
+class TemplateDirListResponse(BaseModel):
+    flag: str
+    message: str
+    result: list[str]
+
 class TemplateJsonListResponse(BaseModel):
     flag: str
     message: str

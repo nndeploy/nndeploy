@@ -19,13 +19,14 @@
    quick_start/build.md
    quick_start/model.md
    quick_start/model_list.md
-   quick_start/example.md
    quick_start/python.md
    quick_start/workflow.md
+   quick_start/deploy.md
    quick_start/plugin.md
    quick_start/plugin_python.md
    quick_start/model_list.md
    quick_start/ascend_env.md
+   quick_start/ai_deploy.md
 
 .. toctree::
    :maxdepth: 1

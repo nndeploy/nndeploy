@@ -83,6 +83,10 @@ export function FormHeader() {
 
     //if(isContainerNode(node.id, clientContext)){
 
+    if (isSidebar ) { //|| !isContainerNode(node.id, clientContext)
+      return
+    }
+
     toggleLoopExpanded(node, expanded);
     //}
 
@@ -317,7 +321,7 @@ export function FormHeader() {
     form?.setValueIn('inputs_', [])
     form?.setValueIn('outputs_', [])
 
-   // node.getData(WorkflowNodePortsData).updateAllPorts([])
+    // node.getData(WorkflowNodePortsData).updateAllPorts([])
     node.getData(WorkflowNodePortsData).updateDynamicPorts()
 
 

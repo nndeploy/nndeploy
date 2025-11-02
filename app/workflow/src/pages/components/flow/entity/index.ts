@@ -54,28 +54,38 @@ export interface IRunInfo {
 
 export interface ILineEntity {
 
+  originFrom?: string,
+  originFrom_name?: string,
+  originFromPort?: string | number,
+
   oldFrom?: string;
   oldFrom_name?: string;
 
   from: string,
-  from_name:string; 
+  from_name: string;
 
   oldFromPort?: string | number,
   fromPort: string | number,
 
 
   oldTo?: string;
-   oldTo_name?: string;
+  oldTo_name?: string;
+  
   to: string,
-  to_name:string; 
+  to_name: string;
 
   oldToPort?: string | number,
   toPort: string | number,
 
+
+  originTo?: string,
+  originTo_name?: string;
+  originToPort?: string | number,
+
   type_: string,
   desc_: string,
-  
- // [key:string]:any
+
+  // [key:string]:any
 }
 
 
@@ -90,7 +100,7 @@ export interface INodeUiExtraInfo {
   expanded?: boolean,
   position?: { x: number, y: number },
   size?: { width: number, height: number },
-  children?: {[nodeName:string]: INodeUiExtraInfo}
+  children?: { [nodeName: string]: INodeUiExtraInfo }
 
   // inputLines?: ILineEntity[],
   // outputLines?: ILineEntity[]

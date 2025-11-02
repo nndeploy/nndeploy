@@ -38,7 +38,7 @@ export interface Inndeploy_ui_layout {
     }
   },
   //nodeExtra: { [nodeName: string]: INodeUiExtraInfo }
-  groups: { name: string, children: string[] }[]
+  groups: { name_: string, blockIDs: string[], parentID: string,  }[]
 }
 
 export interface IConnectinPoint {

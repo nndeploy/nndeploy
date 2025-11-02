@@ -79,3 +79,12 @@ set(ENABLE_NNDEPLOY_DEMO ON) # Whether to enable language model plugin, default 
 set(ENABLE_NNDEPLOY_PYTHON OFF) # Whether to enable text-to-image plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_FFI_JAVA ON) # Whether to enable FFI Java, default is OFF
+
+## Tokenizer-cpp
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF
+
+## Language Model
+set(ENABLE_NNDEPLOY_PLUGIN_LLM ON) # Whether to enable language model plugin, default is OFF
+
+## Stable Diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # Whether to enable text-to-image plugin, default is OFF

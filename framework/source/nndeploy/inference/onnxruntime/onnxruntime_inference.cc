@@ -135,7 +135,7 @@ base::Status OnnxRuntimeInference::init() {
         type_info.GetTensorTypeAndShapeInfo().GetElementType();
     outputs_desc_.emplace_back(OrtValueInfo{output_name, shape, data_type});
 
-    if (!isDynamic(shape)) {
+    if (!isDynamic(shape) && batch_size_ != -1) {
       device::TensorDesc desc;
       desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
       desc.shape_[0] = batch_size_;

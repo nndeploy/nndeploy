@@ -47,6 +47,7 @@ from .schemas import (
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
     ParamTypeResponse,
+    TemplateDirListResponse,
     TemplateJsonListResponse,
     TemplateLoadResponse
 )
@@ -157,6 +158,28 @@ class NnDeployServer:
             except Exception as e:
                 logging.warning(f"Failed to read {json_file}: {e}")
         return result
+
+    def _get_top_level_dir_of_json(self, json_path: str) -> str | None:
+        """
+        根据 json 文件路径，返回它在 template_path 下所属的顶级目录名称。
+        """
+        # 规范化路径，防止相对路径问题
+        json_path = os.path.abspath(json_path)
+        template_root = os.path.abspath(self.template_path)
+
+        # 确保 json 文件在 template_path 下
+        if not json_path.startswith(template_root):
+            return None
+
+        # 去掉 template_path 部分，得到相对路径
+        rel_path = os.path.relpath(json_path, template_root)
+        # 获取第一级目录名
+        parts = rel_path.split(os.sep)
+        if len(parts) > 1:
+            return parts[0]
+        else:
+            # json 文件直接在 template_path 下，没有上级目录
+            return None
 
     def _find_cover_and_requirements(self, json_path: Path) -> tuple[Optional[str], Optional[str]]:
         d = json_path.parent
@@ -518,13 +541,14 @@ class NnDeployServer:
                 for jf in self.template_path.rglob("*.json"):
                     try:
                         cover, req = self._find_cover_and_requirements(jf)
-                        self.db.insert_or_ignore_template(jf, cover, req)
+                        category = self._get_top_level_dir_of_json(jf)
+                        self.db.insert_or_ignore_template(jf, cover, category, req)
 
                         meta = self.db.get_template_meta_by_path(jf)
                         if meta is None:
                             logging.warning(f"[template->db] missing id for {jf}")
                             continue
-                        tid, cover, requirements = meta
+                        tid, cover, requirements, category = meta
 
                         with jf.open("r", encoding="utf-8") as f:
                             content = json.load(f)
@@ -536,7 +560,8 @@ class NnDeployServer:
                             "source_": content.get("source_"),
                             "desc_": content.get("desc_"),
                             "cover_": cover,
-                            "requirements_": requirements
+                            "requirements_": requirements,
+                            "category_": category,
                         }
                         results.append(item)
                         new_count += 1
@@ -551,6 +576,31 @@ class NnDeployServer:
                 message=f"{len(results)} json files loaded",
                 result=results
             )
+
+        @api.get(
+            "/template/dir",
+            tags=["Template"],
+            response_model=TemplateDirListResponse,
+            summary="get template top-level dir list",
+        )
+        async def get_template_dir_json():
+            flag = "success"
+            message = "get template top-level dir list successfully"
+            result = []
+            try:
+                result =  [
+                    name for name in os.listdir(self.template_path)
+                    if os.path.isdir(os.path.join(self.template_path, name))
+                ]
+            except FileNotFoundError:
+                flag = "failed"
+                message = "template path is not existed"
+                result = []
+            except Exception as e:
+                flag = "failed"
+                message = f"Error reading template dir: {e}"
+                result = []
+            return TemplateDirListResponse(flag=flag, message=message, result=result)
 
         @api.get(
             "/template/{id}",

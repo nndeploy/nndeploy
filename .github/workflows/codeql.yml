@@ -9,9 +9,7 @@ on:
   # Trigger on push to specified branches
   push:
     branches: 
-      - main
-      - develop
-      - 'feature/**'
+      - codeql
       
   # Trigger on Pull Request to specified branches
   pull_request:

@@ -15,14 +15,14 @@ nndeploy 提供了直观的 Web 界面用于模型部署：
 # pip
 pip install --upgrade nndeploy
 
-# 启动 Workflow 的 Web 服务
-cd /path/nndeploy
-python app.py --port 8000
-
-# 或 使用简化命令 启动 Workflow 的 Web 服务
+# 方式一：命令行
 nndeploy-app --port 8000
 
-# 当更新了nndeploy时，建议清理过期的前后端资源
+# 方式二：代码启动
+cd path/to/nndeploy
+python app.py --port 8000
+
+# 当更新了nndeploy时，建议清理过期前后端资源
 nndeploy-clean
 ```
 
@@ -30,12 +30,14 @@ nndeploy-clean
 
 在浏览器中访问 `http://localhost:8000` 开始使用。
 
-<p align="center">
+<!-- <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../image/workflow.png">
     <img alt="nndeploy" src="../../image/workflow.png" width=100%>
   </picture>
-</p>
+</p> -->
+
+![../../image/quick_start.gif](../../image/quick_start.gif)
 
 ## 启动参数说明
 
@@ -77,8 +79,13 @@ A4: 检查服务端 IP 以及端口是否正确，如果`localhost`以及`127.0.
 随着nndeploy的更新，前端和模板资源也会同步更新，使用如下命令行可直接清除过期的后端资源。
 
 ```bash
-# 清理所有后端资源
+
+# 方式一：命令行清理所有后端资源
 nndeploy-clean
+
+# 方式二，执行python脚本
+cd path/nndeploy
+python clean.py
 ```
 
 `clean.py`启动脚本支持以下参数用于自定义行为：
@@ -100,31 +107,37 @@ nndeploy-clean
 
 可视化界面实时调整检测参数，无需修改代码即可观察效果变化，支持一键切换到 TensorRT 等推理引擎实现高性能部署。
 
-<p align="left">
+<!-- <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="yolo_edit_param.gif">
     <img alt="nndeploy" src="../../image/yolo_edit_deploy.gif" width=100%>
   </picture>
-</p>
+</p> -->
+
+![../../image/yolo_edit_deploy.gif](../../image/yolo_edit_deploy.gif)
 
 ### 多模型工作流演示
 
 可视化搭建检测+分割+分类工作流，支持多推理框架切换和并行模式，实现一次搭建、多端部署。
 
-<p align="left">
+<!-- <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="seg_detect_class.gif">
     <img alt="nndeploy" src="../../image/seg_detect_class.gif" width=100%>
   </picture>
-</p>
+</p> -->
+
+![../../image/seg_detect_class.gif](../../image/seg_detect_class.gif)
 
 ### 零代码搭建换脸+分割工作流
 
 通过拖拽操作组合人脸检测、换脸算法、人像分割等 AI 功能，无需编写代码，参数调整 1-2 秒看到效果。让**产品经理、设计师、非 AI 开发者**快速将创意变成原型。
 
-<p align="left">
+<!-- <p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="face_swap_seg.gif">
     <img alt="nndeploy" src="../../image/face_swap_seg.gif" width=100%>
   </picture>
-</p>
+</p> -->
+
+![../../image/face_swap_seg.gif](../../image/face_swap_seg.gif)

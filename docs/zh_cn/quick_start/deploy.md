@@ -1,16 +1,20 @@
 
 # 生产环境部署指南
 
-nndeploy框架提供了从拖拉拽开发到生产环境部署的完整解决方案，确保算法模型能够高效、稳定地在生产环境中运行。
+nndeploy提供了从拖拉拽开发到生产环境部署的完整解决方案。
 
 - 开发阶段：使用可视化界面设计和调试工作流。**必要时开发自定义节点**
 - 部署阶段：导出JSON配置文件并通过API加载运行
 
 无论是通过可视化界面还是API调用，所有工作流都在统一的高性能C++计算引擎中执行，确保开发和部署环境的一致性。
 
-## 自定义输入输出模式
+## 部署阶段
 
-**使用场景**：在代码中动态设置输入数据和自定义输出结果处理
+在可视化界面中完成工作流搭建后，可保存为 JSON 文件，然后通过 Python/C++ API 加载执行。
+
+### 自定义输入输出模式
+
+**使用场景**：与业务代码互相交互
 
 **Python大语言模型示例**：
 
@@ -70,7 +74,7 @@ tokenizer::TokenizerText* result = output->getGraphOutput<tokenizer::TokenizerTe
 status = graph->deinit();
 ```
 
-## 完整工作流模式
+### 完整工作流模式
 
 **使用场景**：工作流包含完整的输入输出处理逻辑，无需额外的数据设置
 
@@ -100,11 +104,34 @@ status = graph->deinit();
 
 ---
 
-## 示例代码
+### 更多示例代码
 
 | 算法类型 | Python示例 | C++示例 |
 | -------- | ---------- | ------- |
 | **大语言模型** | [Python LLM](https://github.com/nndeploy/nndeploy/blob/main/demo/llm/demo.py) | [C++ LLM](https://github.com/nndeploy/nndeploy/blob/main/demo/llm/demo.cc) |
 | **目标检测** | [Python Detection](https://github.com/nndeploy/nndeploy/blob/main/demo/detect/demo.py) | [C++ Detection](https://github.com/nndeploy/nndeploy/blob/main/demo/detect/demo.cc) |
+
+
+## 调试工作流
+
+完成工作流搭建后，保存为 JSON 文件并通过命令行执行，用于调试工作流
+
+```bash
+# Python CLI
+nndeploy-run-json --json_file path/to/workflow.json
+# C++ CLI
+cd path/to/nndeploy
+./build/nndeploy_demo_run_json --json_file path/to/workflow.json
+```
+
+![docs/image/workflow/nndeploy-run-json.gif](../../image/workflow/nndeploy-run-json.gif)
+
+## 文档
+
+- [Python++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
+- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
+- [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+
 
 

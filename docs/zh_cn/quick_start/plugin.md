@@ -4,7 +4,11 @@
 
 - [template/cpp/template.h](https://github.com/nndeploy/nndeploy/blob/main/template/cpp/template.h)
 
-- 使用方法：nndeploy-app --port 8000 --plugin path/to/libnndeploy_plugin_template.so
+- 前端工作流加载自定义节点：
+  - 命令行加载
+    ```bash
+    nndeploy-app --port 8000 --plugin path/to/libnndeploy_plugin_template.so
+    ```
 
 ## 自定义节点开发简介
 

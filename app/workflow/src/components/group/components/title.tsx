@@ -9,7 +9,7 @@ import { FlowDocumentJSON, FlowNodeJSON } from '../../../typings';
 import { } from '../../../pages/components/flow/FlowSaveDrawer/functions';
 import { useFlowEnviromentContext } from '../../../context/flow-enviroment-context';
 import { apiWorkFlowSave } from '../../../pages/Layout/Design/WorkFlow/api';
-import { designDataToBusinessData, getAllEdges, getEdgeToNameMaps } from '../../../pages/components/flow/FlowSaveDrawer/toBusiness';
+import { designDataToBusinessData, getAllEdges, getEdgeToNameMaps, getPortNameByPortId } from '../../../pages/components/flow/FlowSaveDrawer/toBusiness';
 import { getNodeById } from '../../../pages/components/flow/functions';
 
 export const GroupTitle: FC = () => {
@@ -54,25 +54,29 @@ export const GroupTitle: FC = () => {
     let workFlowJson = ctx.document.toJSON() as FlowDocumentJSON
     let allNodes = workFlowJson.nodes
 
-    let allEdges = getAllEdges(workFlowJson , ctx);
+    let allEdges = getAllEdges(workFlowJson, ctx);
 
 
-    let selectedNodeIds:string[] = allNodes.find(item => item.type == 'group' && item.data.name_ == groupName)!.data.blockIDs
+    let selectedNodeIds: string[] = allNodes.find(item => item.type == 'group' && item.data.name_ == groupName)!.data.blockIDs
 
-    const selectedNodes = selectedNodeIds.map(nodeId=>{
+    const selectedNodes = selectedNodeIds.map(nodeId => {
       let node = getNodeById(nodeId, ctx)
       return node!.toJSON()
     })
 
     //var j = 0
 
-    let designContent: FlowDocumentJSON = buildDesignData(selectedNodes, allEdges)
+    let designContent: FlowDocumentJSON = buildDesignData(
+      ///@ts-ignore
+      selectedNodes,
+
+      allEdges)
 
     //designContent.edges = allEdges
 
     let businessContent = designDataToBusinessData(designContent, flowEnviroment.graphTopNode, allNodes, ctx)
 
-    let edgeMaps = getEdgeToNameMaps(allNodes, allEdges)
+   // let edgeMaps = getEdgeToNameMaps(allNodes, allEdges, ctx)
 
     // let selectedNodeIds = selectedNodes.map(node => {
     //   return node.id
@@ -82,13 +86,15 @@ export const GroupTitle: FC = () => {
 
     let inputs_: any[] = lodash.uniqBy(subFlowInputEdges, item => item.sourceNodeID).map(edge => {
 
-     //let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
-     let soureNode = getNodeById(edge.sourceNodeID, ctx)!
+      //let soureNode = allNodes.find(item => item.id == edge.sourceNodeID)!
+      let soureNode = getNodeById(edge.sourceNodeID, ctx)!
 
       let outputs = soureNode.form?.getValueIn('outputs_') ?? []
-      let output = outputs.find( (item :  any)  => item.id == edge.sourcePortID)
+      let output = outputs.find((item: any) => item.id == edge.sourcePortID)
 
-      let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+      //let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+
+      let name_ = getPortNameByPortId(edge.sourcePortID! as string, allNodes)
       return {
         ...lodash.omit(output, ['id']),
         name_
@@ -99,15 +105,16 @@ export const GroupTitle: FC = () => {
 
     let subFlowOutputEdges = designContent.edges.filter(edge => !selectedNodeIds.includes(edge.targetNodeID))
 
-    let outputs_ : any[] = lodash.uniqBy(subFlowOutputEdges, item => item.targetNodeID).map(edge => {
+    let outputs_: any[] = lodash.uniqBy(subFlowOutputEdges, item => item.targetNodeID).map(edge => {
 
-     // let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
-     let outputNode = getNodeById( edge.targetNodeID, ctx)!
+      // let outputNode = allNodes.find(item => item.id == edge.targetNodeID)!
+      let outputNode = getNodeById(edge.targetNodeID, ctx)!
 
       let inputs = outputNode.form?.getValueIn('inputs_') ?? []
-      let input = inputs.find((item : any) => item.id == edge.targetPortID)
+      let input = inputs.find((item: any) => item.id == edge.targetPortID)
 
-      let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+      //let name_ = edgeMaps[edge.sourceNodeID + "@" + edge.sourcePortID]
+      let name_ = getPortNameByPortId(edge.sourcePortID! as string, allNodes)
       return {
         ...lodash.omit(input, ['id']),
         name_
@@ -159,3 +166,7 @@ export const GroupTitle: FC = () => {
     </Field>
   );
 };
+// function getPortNameByPortId(sourcePortID: string | number | undefined) {
+//   throw new Error('Function not implemented.');
+// }
+

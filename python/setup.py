@@ -17,6 +17,7 @@ from packaging.tags import sys_tags
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.install import install as InstallCommandBase
 
+is_ci = os.environ.get('CI') == 'true' or os.environ.get('GITHUB_ACTIONS') == 'true'
 
 manylinux_tags = [
     "manylinux1_x86_64",
@@ -344,107 +345,98 @@ def get_package_data():
 
 # Basic dependency packages
 install_requires = [
-    'cython',  # Cython compilation
-    'packaging',  # Package management
-    # 'setuptools<=68.0.0',  # Setup tools
-    'gitpython>=3.1.30',  # Git operations
-    'aiofiles>=24.1.0',  # Asynchronous file operations
-    'pytest',  # Testing framework
-    'jsonschema',  # JSON Schema validation
-    'multiprocess',  # Multiprocessing support
-    'numpy',  # Numerical computation
-    # 'opencv-python>=4.8.0',  # Image processing
-    'modelscope',
-]
-
-# Detect if CUDA is available and its version
-def get_cuda_version():
-    """Detect CUDA version in the system"""
-    try:
-        # Method 1: Try to get CUDA version through nvidia-smi
-        import subprocess
-        result = subprocess.run(['nvidia-smi'], capture_output=True, text=True)
-        if result.returncode == 0:
-            # Extract CUDA version from nvidia-smi output
-            lines = result.stdout.split('\n')
-            for line in lines:
-                if 'CUDA Version:' in line:
-                    version = line.split('CUDA Version:')[1].strip().split()[0]
-                    # Remove decimal point, e.g., "11.8" -> "118"
-                    version_str = version.replace('.','')
-                    return version_str
-    except:
-        pass
+        'cython',  # Cython compilation
+        'packaging',  # Package management
+        'Pillow',
+        'numpy',  # Numerical computation
+        'opencv-python>=4.8.0',  # Image processing
+    ]
     
-    try:
-        # Method 2: Try to import torch to detect CUDA
-        import torch
-        if torch.cuda.is_available():
-            # Get CUDA version, e.g., "11.8" 
-            version = torch.version.cuda
-            if version:
-                # Remove decimal point, e.g., "118"
-                version_str = version.replace('.','')
-                return version_str
-    except ImportError:
-        pass
-    except Exception:
-        pass
-    
-    try:
-        # Method 3: Check CUDA environment variables
-        import os
-        cuda_home = os.environ.get('CUDA_HOME') or os.environ.get('CUDA_PATH')
-        if cuda_home and os.path.exists(cuda_home):
-            # Try to extract version information from path
-            version_file = os.path.join(cuda_home, 'version.txt')
-            if os.path.exists(version_file):
-                with open(version_file, 'r') as f:
-                    content = f.read()
-                    # Search for version number pattern
-                    import re
-                    match = re.search(r'CUDA Version (\d+\.\d+)', content)
-                    if match:
-                        version = match.group(1)
-                        version_str = version.replace('.','')
-                        return version_str
-    except:
-        pass
-    
-    return None
 
-cuda_version = get_cuda_version()
+# # Detect if CUDA is available and its version
+# def get_cuda_version():
+#     """Detect CUDA version in the system"""
+#     try:
+#         # Method 1: Try to get CUDA version through nvidia-smi
+#         import subprocess
+#         result = subprocess.run(['nvidia-smi'], capture_output=True, text=True)
+#         if result.returncode == 0:
+#             # Extract CUDA version from nvidia-smi output
+#             lines = result.stdout.split('\n')
+#             for line in lines:
+#                 if 'CUDA Version:' in line:
+#                     version = line.split('CUDA Version:')[1].strip().split()[0]
+#                     # Remove decimal point, e.g., "11.8" -> "118"
+#                     version_str = version.replace('.','')
+#                     return version_str
+#     except:
+#         pass
+    
+#     try:
+#         # Method 2: Try to import torch to detect CUDA
+#         import torch
+#         if torch.cuda.is_available():
+#             # Get CUDA version, e.g., "11.8" 
+#             version = torch.version.cuda
+#             if version:
+#                 # Remove decimal point, e.g., "118"
+#                 version_str = version.replace('.','')
+#                 return version_str
+#     except ImportError:
+#         pass
+#     except Exception:
+#         pass
+    
+#     try:
+#         # Method 3: Check CUDA environment variables
+#         import os
+#         cuda_home = os.environ.get('CUDA_HOME') or os.environ.get('CUDA_PATH')
+#         if cuda_home and os.path.exists(cuda_home):
+#             # Try to extract version information from path
+#             version_file = os.path.join(cuda_home, 'version.txt')
+#             if os.path.exists(version_file):
+#                 with open(version_file, 'r') as f:
+#                     content = f.read()
+#                     # Search for version number pattern
+#                     import re
+#                     match = re.search(r'CUDA Version (\d+\.\d+)', content)
+#                     if match:
+#                         version = match.group(1)
+#                         version_str = version.replace('.','')
+#                         return version_str
+#     except:
+#         pass
+    
+#     return None
 
-# Add corresponding dependency packages based on CUDA version
-if cuda_version:
-    print(f"Detected CUDA version: {cuda_version}")
-    install_requires.extend([
-        'torch>=2.0.0',  # PyTorch (GPU version)
-        'torchvision>=0.15.0',  # torchvision (GPU version)
-        # 'onnxruntime-gpu>=1.18.0',  # ONNX Runtime GPU version
-        'diffusers',
-        'accelerate',
-        'transformers',
-    ])
-else:
-    print("CUDA not detected, using CPU version dependencies")
-    install_requires.extend([
-        'torch>=2.0.0',  # PyTorch (CPU version)
-        'torchvision>=0.15.0',  # torchvision (CPU version)
-        # 'onnxruntime>=1.18.0',  # ONNX Runtime CPU version
-        'diffusers',
-        'accelerate',
-        'transformers',
-    ])
+# # Add corresponding dependency packages based on CUDA version
+# if is_ci:
+#     print("CI environment detected, using CPU-only dependencies")
+#     install_requires.extend([
+#         'torch>=2.0.0',  # Force CPU version
+#         'torchvision>=0.15.0',  # Force CPU version
+#     ])
+# else:
+#     cuda_version = get_cuda_version()
+#     install_requires.extend([
+#         'torch>=2.0.0', 
+#         'torchvision>=0.15.0', 
+#         'diffusers',
+#         'accelerate',
+#         'transformers',
+#     ])
 
 # Add server-related dependencies
 server_requires = [
+    'modelscope',
+    'multiprocess',
     'requests>=2.31.0',  # Request library
     'fastapi>=0.104.0',  # Web framework
     'uvicorn>=0.24.0',  # ASGI server
     'websockets>=11.0',  # WebSocket support
     'python-multipart>=0.0.6',  # File upload support
     'pydantic>=2.0.0',  # Data validation
+    'chardet>=5.2.0',  # Character encoding detection
 ]
 
 install_requires.extend(server_requires)
@@ -509,10 +501,10 @@ cmd_classes["install"] = InstallCommand
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="3.0.0",  # Fix version number format
+    version="3.0.3",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
-    description="Your Local AI Workflow",  # Add short description
+    description="An Easy-to-Use and High-Performance Edge AI Deployment Framework",  # Add short description
     long_description=read_long_description(),  # Add long description
     long_description_content_type="text/markdown",  # Specify content type as Markdown
     url="https://github.com/nndeploy/nndeploy",  # Add project URL

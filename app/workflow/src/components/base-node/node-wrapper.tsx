@@ -10,6 +10,8 @@ import { NodeWrapperStyle } from './styles';
 import { BorderArea } from './border-area';
 import { useSize } from '../comment/hooks';
 import { isContainerNode } from '../../pages/components/flow/functions';
+import { debounce } from 'lodash';
+import classNames from 'classnames';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
@@ -45,7 +47,12 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   return (
     <>
       <NodeWrapperStyle
-        className={'my-node-wrapper ' + (selected ? 'selected' : '')}
+        className={
+          classNames({
+            'my-node-wrapper': true,
+            selected: selected ? 'selected' : '',
+            isContainer
+          })}
         ref={nodeRef}
         draggable
         onDragStart={(e) => {
@@ -75,7 +82,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
           outline: form?.state.invalid ? '1px solid red' : 'none',
 
           width: isContainer ? 'auto' : width,
-          height: isContainer ? 'auto' : (height <= 80 ? 'auto' : height)
+          height: isContainer ? 'auto!importent' : (height <= 80 ? 'auto' : height)
 
         }}
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { JsonSchemaEditor } from "../components/json-schema-editor";
 import { JsonSchema } from "../components/type-selector/types";
 import './index.scss'
-import { useGetTemplates, useGetWorkflows } from "./effect";
+import { useGetTemplateDirs, useGetTemplates, useGetWorkflows } from "./effect";
 import { Button, Modal, Popover, Tag } from "@douyinfe/semi-ui";
 import { IconPlus } from "@douyinfe/semi-icons";
 import classNames from "classnames";
@@ -13,6 +13,8 @@ import { IWorkFlowShortEntity } from "../../entity";
 import Header from "../Layout/Design/header";
 import CodeBlock from "../components/CodeBlock";
 const { Text, Paragraph } = Typography;
+import { Tabs } from '@douyinfe/semi-ui';
+import { PlainTab } from "@douyinfe/semi-ui/lib/es/tabs";
 
 export default function Home() {
 
@@ -20,6 +22,32 @@ export default function Home() {
   const navigate = useNavigate();
 
   const { templates, loading, error, getTemplates } = useGetTemplates();
+
+  const { dirInfos } = useGetTemplateDirs();
+
+  function getTemplateDirTabList() {
+
+    let result: PlainTab[] = [
+      {
+        itemKey: 'all',
+        tab: 'All'
+      }
+    ]
+
+    let templateDirTabList = dirInfos.map(dirInfo => {
+      return {
+        itemKey: dirInfo.dirDame,
+        tab: dirInfo.description,
+      }
+    })
+
+    result = [...result, ...templateDirTabList]
+    return result
+  }
+
+  const templateDirTabList = getTemplateDirTabList()
+
+  const [currentTemplateDir, setCurrentTemplateDir] = useState<string>('all');
 
   const { workFlows } = useGetWorkflows();
 
@@ -106,78 +134,93 @@ export default function Home() {
           <Title heading={1} style={{ margin: '8px 0' }} >Template</Title>
           <Paragraph
             //type="secondary" 
-            size="normal" style={{ fontSize: '16px' }} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
+            size="normal" style={{ fontSize: '16px', marginBottom: '1em' }} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
+
+          <Tabs
+            type="button"
+            tabList={templateDirTabList}
+            size="large"
+            className="template-tabs"
+
+            onChange={key => {
+              setCurrentTemplateDir(key);
+            }}
+            activeKey={currentTemplateDir}
+
+          >
+            <div className="items">
+
+              {
+                templates.filter(template => {
+                  return template.category_ == currentTemplateDir || currentTemplateDir == 'all'
+                }).map((item) => (
+                  <div className={classNames("item", { noCover: !item.cover_ })} key={item.id}>
+                    <div className="image-cover">
+                      <img src={`/api/preview?file_path=${item.cover_}`} alt="" width={320} height={180} />
+                    </div>
+
+                    <div className={classNames("item-content")}>
+
+                      <div className="title">{item.name_}</div>
+
+                      <div className="developer">{item.developer_ ?? 'unknown developer'}</div>
+
+                      <div className="desc">
+                        {item.desc_ ?
+
+                          <Popover content={item.desc_} className="desc-popover">
+
+                            {item.desc_}
+                          </Popover>
+
+                          : 'No description'
+                        }
 
 
-          <div className="items">
 
-            {
-              templates.map((item) => (
-                <div className={classNames("item", { noCover: !item.cover_ })} key={item.id}>
-                  <div className="image-cover">
-                    <img src={`/api/preview?file_path=${item.cover_}`} alt="" width={320} height={180} />
+                      </div>
+
+                      <div className="source">
+
+
+                        <a href={item.source_ ? item.source_.split(',')[0] : ''} target="_blank">
+                          <Tag
+                            color='light-blue'
+                            //prefixIcon={<IconGithubLogo />}
+                            size='large'
+                            //shape='circle'
+                            type='light'
+                            style={{ maxWidth: '100%' }}
+
+                          >
+
+                            {item.source_ ? item.source_.split(',')[0] : 'unknown source'}
+
+                          </Tag>
+                        </a>
+
+                      </div>
+
+                      <div className="bottom">
+
+                        <Button
+                          icon={<IconPlus />}
+                          size="small"
+                          style={{ borderRadius: '8px' }}
+                          block
+                          theme='solid' type="primary" onClick={() => onAddToWorkspace(item)}>Add to Workspace</Button>
+
+
+                      </div>
+                    </div>
                   </div>
+                ))
 
-                  <div className={classNames("item-content")}>
+              }
 
-                    <div className="title">{item.name_}</div>
+            </div>
+          </Tabs>
 
-                    <div className="developer">{item.developer_ ?? 'unknown developer'}</div>
-
-                    <div className="desc">
-                      {item.desc_ ?
-
-                        <Popover content={item.desc_} className="desc-popover">
-
-                          {item.desc_}
-                        </Popover>
-
-                        : 'No description'
-                      }
-
-
-
-                    </div>
-
-                    <div className="source">
-
-
-                      <a href={item.source_ ? item.source_.split(',')[0] : ''} target="_blank">
-                        <Tag
-                          color='light-blue'
-                          //prefixIcon={<IconGithubLogo />}
-                          size='large'
-                          //shape='circle'
-                          type='light'
-                          style={{ maxWidth: '100%' }}
-
-                        >
-
-                          {item.source_ ? item.source_.split(',')[0] : 'unknown source'}
-
-                        </Tag>
-                      </a>
-
-                    </div>
-
-                    <div className="bottom">
-
-                      <Button
-                        icon={<IconPlus />}
-                        size="small"
-                        style={{ borderRadius: '8px' }}
-                        block
-                        theme='solid' type="primary" onClick={() => onAddToWorkspace(item)}>Add to Workspace</Button>
-
-
-                    </div>
-                  </div>
-                </div>
-              ))
-
-            }
-
-          </div>
         </div>
       </div>
       <Modal
@@ -187,7 +230,9 @@ export default function Home() {
         afterClose={handleAfterClose} //>=1.16.0
         onCancel={handleCancel}
         closeOnEsc={true}
-        width={600}
+        width={'50vw'}
+        height={'80vh'}
+        className="requirements-modal"
       >
         <div className={'tip-content'}>
 

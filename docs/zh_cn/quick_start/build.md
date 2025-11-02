@@ -143,7 +143,37 @@ nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度
   python -c "import nndeploy; print(nndeploy.__version__)"
   ```
 
-  > 注：当与conda环境产生冲突，无法运行时，参考[解决方案脚本](https://github.com/nndeploy/nndeploy/blob/main/tool/script/fixed_sys_conda.sh)
+- 可能的问题描述
+
+  - **conda环境冲突问题**
+  
+    当与conda环境产生冲突，无法正常运行时，可参考[解决方案脚本](https://github.com/nndeploy/nndeploy/blob/main/tool/script/fixed_sys_conda.sh)进行修复。
+
+  - **系统环境保护问题**
+  
+    在某些系统中，为了保护系统Python环境的完整性，不允许直接在全局Python环境中安装第三方包。此时建议使用虚拟环境进行安装：
+    
+    ```bash
+    # 创建虚拟环境
+    python3 -m venv nndeploy_env
+    
+    # 激活虚拟环境
+    source nndeploy_env/bin/activate
+    
+    # 在虚拟环境中安装
+    pip install -e .
+    ```
+
+  - **动态库路径问题**
+  
+    如果运行时提示找不到相关动态库，需要将nndeploy的库路径添加到系统环境变量中：
+    
+    ```bash
+    export LD_LIBRARY_PATH=path/to/nndeploy/python/nndeploy:$LD_LIBRARY_PATH
+    ```
+    
+    其中`path/to/nndeploy`需要替换为实际的nndeploy安装路径。
+
 
 ## 7. 补充说明    
 
@@ -159,6 +189,9 @@ nndeploy 提供了完整的 Python API，支持快速部署和推理各种深度
 
 - 安装opencv
   - `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
+
+
+
       
       
       

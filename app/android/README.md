@@ -1,6 +1,21 @@
 
 ## app运行
 
+<table cellpadding="5" cellspacing="0" border="1">
+<tr>
+  <td>桌面端搭建AI工作流</td>
+  <td>移动端部署</td>
+</tr>
+<tr>
+  <td><img src="../../docs/image/workflow/worflow_llm.gif" width="500px"></td>
+  <td><img src="../../docs/image/android_app/app-chat.jpg" width="100px"></td>
+</tr>
+<tr>
+  <td><img src="../../docs/image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
+  <td><img src="../../docs/image/android_app/app-seg-result.jpg" width="100px"></td>
+</tr>
+</table>
+
 ### 配置NDK
 ```bash
 export ANDROID_NDK=/snap/android-ndk-r25c

@@ -183,8 +183,17 @@ export function useEditorProps(
 
         return true;
       },
-      canDropToNode(ctx, params) {
-        const { dropNode } = params;
+      /**
+       * Whether allow dragging into the container node
+       * 是否允许拖入容器节点
+       */
+      canDropToNode: (ctx, params) => {
+        const { dragNode, dropNode } = params;
+        // Nested container parent nodes cannot be dragged into child nodes
+        if (dropNode?.parent?.id === dragNode?.id) {
+          return false;
+        }
+
         if (isFxiedGraphNode(dropNode?.id, ctx) || isCompositeNode(dropNode?.id, ctx)) {
           return false;
         }
@@ -331,9 +340,9 @@ export function useEditorProps(
          * 这个用于 loop 节点子画布的渲染
          */
         createContainerNodePlugin({}),
-        createFreeGroupPlugin({
-          groupNodeRender: GroupNodeRender,
-        }),
+        // createFreeGroupPlugin({
+        //   groupNodeRender: GroupNodeRender,
+        // }),
       ],
     };
   }, [initialData, nodeRegistries]);

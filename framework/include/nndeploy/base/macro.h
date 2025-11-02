@@ -4,7 +4,6 @@
 
 #include "nndeploy/base/glic_stl_include.h"
 
-
 /**
  * @brief api
  *
@@ -45,12 +44,15 @@
 #define NNDEPLOY_PRAGMA(X) _Pragma(#X)
 #endif
 
-
 /**
  * @brief Force load library symbol
- * 
+ *
  */
-#define NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(TYPE)
+#define NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(TYPE) \
+  TYPE *forceLoad(TYPE *ptr) {               \
+    if (ptr == nullptr) return ptr;          \
+    return ptr;                              \
+  }
 
 /**
  * @brief deprecated

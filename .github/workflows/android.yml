@@ -98,7 +98,8 @@ jobs:
       - name: Download and setup Android OpenCV
         run: |
           cd tool/script
-          python install_mnn.py --system Android
+          # python install_mnn.py --system Android
+          python build_mnn.py --system Android
           python mobile_install_opencv.py --system Android
           
       # Configure CMake build environment

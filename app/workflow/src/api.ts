@@ -21,6 +21,15 @@ export async function apiGeTemplates() {
   return response;
 }
 
+export async function apiGeTemplateDirs() {
+  var response = await request.get<string[]>(
+    "/api/template/dir",
+    {}
+  );
+
+  return response;
+}
+
 
 export async function apiGetWorkflows() {
   var response = await request.get<IWorkFlowShortEntity[]>(
