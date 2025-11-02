@@ -501,7 +501,7 @@ cmd_classes["install"] = InstallCommand
 copy_server_directory()
 setup(
     name="nndeploy",
-    version="3.0.3",  # Fix version number format
+    version="3.0.4",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
     description="An Easy-to-Use and High-Performance Edge AI Deployment Framework",  # Add short description
@@ -519,6 +519,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     license='Apache License 2.0',
