@@ -5,6 +5,12 @@
 
 ---
 
+## 0. 安装python依赖 
+
+```bash
+pip install -r [requirements.txt](https://github.com/nndeploy/nndeploy/blob/main/requirements.txt)
+```
+
 ## 1. 模型下载与环境配置
 
 - **国内加速**：  
