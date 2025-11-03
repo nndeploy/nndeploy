@@ -73,7 +73,8 @@ nndeploy-app --port 8000
 | `--host`               | `0.0.0.0`                    | 指定监听地址                                                       |
 | `--port`               | `8888`                       | 指定监听端口                                                       |
 | `--resources`          | `./resources`                | 指定资源文件目录路径                                                |
-| `--log`                | `./logs/nndeploy_server.log` | 指定日志输出文件路径                                                |
+| `--log`                | `./logs/nndeploy_server.log` | 指定日志输出文件路径
+| `--json_file`          | `detect.json,track.json`     | 将指定工作流拷贝到工作区                                                |
 | `--front-end-version`  | `!`                          | 指定前端版本，格式为 `owner/repo@tag`，如 `nndeploy/nndeploy-ui@v1.0.0` |
 | `--plugin`             | `[]`                         | 支持传入多个python文件路径或者动态库路径，用于加载用户写好的自定义插件，默认为空 |
 

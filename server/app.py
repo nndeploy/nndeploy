@@ -34,6 +34,13 @@ def cli():
     ap.add_argument("--no-debug", dest="debug", action="store_false",
                     help="disable debug mode")
     ap.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
+    ap.add_argument(
+        "--json_file",
+        type=str,
+        nargs='*',
+        default=[],
+        help="Path(s) to one or more JSON files to copy into resources/workflow directory"
+    )
     ap.set_defaults(debug=False)
     return ap.parse_args()
 
@@ -172,6 +179,29 @@ def main() -> None:
     Path(args.log).parent.mkdir(parents=True, exist_ok=True)
 
     install_taskid_logrecord_factory()
+
+    # copy json file to workflow directory
+    json_files = []
+    for item in args.json_file:
+        for part in item.split(","):
+            part = part.strip()
+            if part:
+                json_files.append(part)
+
+    if json_files:
+        import shutil
+        workflow_dir = Path(args.resources) / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        for json_path in json_files:
+            try:
+                src = Path(json_path)
+                if not src.exists():
+                    logging.warning(f"JSON file not found: {src}")
+                    continue
+                shutil.copy(src, workflow_dir)
+                logging.info(f"Copied JSON file {src} to {workflow_dir}")
+            except Exception as e:
+                logging.error(f"Failed to copy JSON file {json_path}: {e}")
 
     # load plugin
     plugin_dir = Path(args.resources) / "plugin"
