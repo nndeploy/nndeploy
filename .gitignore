@@ -288,8 +288,6 @@ tool/script/third_party/
 tool/script/download/
 tool/script/nndeploy_build_env/
 
-app/workflow/package-lock.json
-
 template/python/frontend/
 template/python/logs/
 template/python/resources/
