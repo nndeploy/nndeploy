@@ -1,7 +1,7 @@
 
 # 生产环境部署指南
 
-nndeploy提供了从拖拉拽开发到生产环境部署的完整解决方案，确保算法模型能够高效、稳定地在生产环境中运行。
+nndeploy提供了从拖拉拽开发到生产环境部署的完整解决方案。
 
 - 开发阶段：使用可视化界面设计和调试工作流。**必要时开发自定义节点**
 - 部署阶段：导出JSON配置文件并通过API加载运行
@@ -14,7 +14,7 @@ nndeploy提供了从拖拉拽开发到生产环境部署的完整解决方案，
 
 ### 自定义输入输出模式
 
-**使用场景**：在代码中动态设置输入数据和自定义输出结果处理
+**使用场景**：与业务代码互相交互
 
 **Python大语言模型示例**：
 
@@ -123,6 +123,8 @@ nndeploy-run-json --json_file path/to/workflow.json
 cd path/to/nndeploy
 ./build/nndeploy_demo_run_json --json_file path/to/workflow.json
 ```
+
+![docs/image/workflow/nndeploy-run-json.gif](../../image/workflow/nndeploy-run-json.gif)
 
 ## 文档
 

@@ -25,22 +25,25 @@ namespace device {
  */
 class NNDEPLOY_CC_API Tensor {
  public:
-  Tensor();
-  Tensor(const std::string &name);
-  Tensor(const TensorDesc &desc, const std::string &name = "");
-  Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name = "");
+  explicit Tensor();
+  explicit Tensor(const std::string &name);
+  explicit Tensor(const TensorDesc &desc, const std::string &name = "");
+  explicit Tensor(const TensorDesc &desc, Buffer *buffer,
+                 const std::string &name = "");
 
-  Tensor(Device *device, const TensorDesc &desc, const std::string &name = "",
+  explicit Tensor(Device *device, const TensorDesc &desc,
+                 const std::string &name = "",
          const base::IntVector &config = base::IntVector());
-  Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
-         const std::string &name = "",
+  explicit Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
+                  const std::string &name,
          const base::IntVector &config = base::IntVector());
 
-  Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
+  explicit Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
          const std::string &name = "",
          const base::IntVector &config = base::IntVector());
-  Tensor(MemoryPool *memory_pool, const TensorDesc &desc, void *data_ptr,
-         const std::string &name = "",
+  explicit Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
+                 void *data_ptr,
+         const std::string &name,
          const base::IntVector &config = base::IntVector());
 
   Tensor(const Tensor &tensor);

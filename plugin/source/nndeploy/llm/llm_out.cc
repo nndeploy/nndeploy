@@ -40,7 +40,7 @@ base::Status LlmOut::run() {
   if (!path_.empty()) {
     std::ofstream ofs(path_.c_str());
     if (!ofs) {
-      NNDEPLOY_LOGE("[LlmOut] Failed to open file\n");
+      NNDEPLOY_LOGE("[LlmOut] Failed to open file[%s]\n", path_.c_str());
       return base::kStatusCodeErrorIO;
     }
     ofs << result->texts_[0];

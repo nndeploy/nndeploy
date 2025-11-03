@@ -190,6 +190,7 @@ base::Status Decode::serialize(rapidjson::Value& json,
                               allocator);
   }
   json.AddMember("stop_texts_", stop_texts_array, allocator);
+  json.AddMember("max_seq_len_", max_seq_len_, allocator);
   return status;
 }
 
@@ -207,6 +208,9 @@ base::Status Decode::deserialize(rapidjson::Value& json) {
     for (const auto& stop_text : stop_texts_array.GetArray()) {
       stop_texts_.push_back(stop_text.GetString());
     }
+  }
+  if (json.HasMember("max_seq_len_")) {
+    max_seq_len_ = json["tokenizer_txt_"].GetInt();
   }
   return status;
 }

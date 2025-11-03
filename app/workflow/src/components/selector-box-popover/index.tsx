@@ -262,7 +262,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
         size="small"
         style={{ display: 'flex', flexWrap: 'nowrap', height: BUTTON_HEIGHT }}
       >
-
+{/* 
         <Tooltip content={'Create Group'}>
           <Button
             icon={<IconGroup size={14} />}
@@ -273,7 +273,7 @@ export const SelectorBoxPopover: FunctionComponent<SelectorBoxPopoverProps> = ({
               commandRegistry.executeCommand(WorkflowGroupCommand.Group);
             }}
           />
-        </Tooltip>
+        </Tooltip> */}
 
         <Tooltip content={'Delete'}>
           <Button
