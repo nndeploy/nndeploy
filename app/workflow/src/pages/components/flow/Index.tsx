@@ -166,7 +166,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         ///@ts-ignore
         const urlArray: string[] = fields[field]
         urlArray.map(url => {
-          if (url.startsWith('modelscope')) {
+          if (!url.startsWith('template')) {
             modals.push(url)
           }
         })
@@ -185,7 +185,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       }
       const modals = getdownloadModals(response.result)
       setDownloadModalList(modals)
-      setDownloadModalVisible(true)
+      setDownloadModalVisible(modals.length > 0)
 
     } else {
       response = await apiGetWorkFlow(flowId);
