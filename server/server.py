@@ -1184,6 +1184,23 @@ class NnDeployServer:
             else:
                 logging.warning("[notify_task_done] Event loop not ready or not running")
 
+    def notify_system_event(self, event: str, data: dict | None = None) -> None:
+        """notify system event to all connected websocket clients"""
+        payload = {
+            "flag": "success",
+            "message": "system event",
+            "result": {
+                "type": "system",
+                "event": event,
+                "detail": data or {},
+                "ts": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+        if self.loop and self.loop.is_running():
+            asyncio.run_coroutine_threadsafe(self._broadcast(payload, None), self.loop)
+        else:
+            logging.warning("[notify_system_event] Event loop not ready or not running")
+
     async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
         targets = [ws] if ws else list(self.sockets)
         for w in targets:
