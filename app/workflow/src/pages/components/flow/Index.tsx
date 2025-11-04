@@ -554,6 +554,18 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           })
           dispatch(initFreshResourceTree({}))
+        }else if (response.result.type == 'system') {
+          if(response.result.event == 'worker_died'){
+            setRunInfo(oldRunInfo => {
+              return {
+                ...oldRunInfo,
+                isRunning: false,
+                result: 'error',
+                runningTaskId: '',
+                flowNodesRunningStatus: {},
+              }
+            })
+          }
         }
       }
 

@@ -33,6 +33,8 @@ export function Run() {
             return {
               ...oldRunInfo, 
               isRunning: false, 
+              flowNodesRunningStatus: {}, 
+              runningTaskId: '',
               result: '', 
             }
           })
