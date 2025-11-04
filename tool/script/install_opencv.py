@@ -118,6 +118,17 @@ elif platform.system() == "Darwin":
         -DBUILD_DOCS=OFF \
         -DWITH_PROTOBUF=OFF \
         -DBUILD_PROTOBUF=OFF \
+        -DWITH_OBSENSOR=OFF \
+        -DWITH_OBSENSOR_ORBBEC_SDK=OFF \
+        -DWITH_1394=OFF \
+        -DWITH_ARAVIS=OFF \
+        -DWITH_GPHOTO2=OFF \
+        -DWITH_V4L=OFF \
+        -DWITH_XIMEA=OFF \
+        -DWITH_PVAPI=OFF \
+        -DWITH_OPENNI=OFF \
+        -DWITH_OPENNI2=OFF \
+        -DWITH_LIBREALSENSE=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 else:
@@ -150,6 +161,17 @@ else:
         -DBUILD_DOCS=OFF \
         -DWITH_PROTOBUF=OFF \
         -DBUILD_PROTOBUF=OFF \
+        -DWITH_OBSENSOR=OFF \
+        -DWITH_OBSENSOR_ORBBEC_SDK=OFF \
+        -DWITH_1394=OFF \
+        -DWITH_ARAVIS=OFF \
+        -DWITH_GPHOTO2=OFF \
+        -DWITH_V4L=OFF \
+        -DWITH_XIMEA=OFF \
+        -DWITH_PVAPI=OFF \
+        -DWITH_OPENNI=OFF \
+        -DWITH_OPENNI2=OFF \
+        -DWITH_LIBREALSENSE=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 os.system(cmake_cmd)
