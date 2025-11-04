@@ -117,6 +117,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration l
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK "Enable XNNPACK acceleration library" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK "Enable QNNPACK acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS "Enable Ascend ACLops acceleration library" OFF)
 
 # 5. **Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)**: Such as TensorRT, OpenVINO, ONNX Runtime and other inference frameworks
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "Enable NVIDIA TensorRT backend" OFF)
