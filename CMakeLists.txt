@@ -815,11 +815,13 @@ if(ENABLE_NNDEPLOY_OP)
   endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-    file(GLOB OP_ASCEND_CL_SOURCE
+    if(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS)
+      file(GLOB OP_ASCEND_CL_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
-    )
-    set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+        "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
+      )
+      set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+    endif()
     if (ENABLE_NNDEPLOY_OP_ASCEND_C)
       add_definitions(-DENABLE_NNDEPLOY_OP_ASCEND_C)
       file(GLOB_RECURSE OP_ASCEND_C_SOURCE
