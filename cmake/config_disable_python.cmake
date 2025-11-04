@@ -63,7 +63,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # Link OpenCV through path
-# set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
+# set(NNDEPLOY_OPENCV_LIBS "opencv_world4100") # Specific OpenCV library names to link, such as opencv_world4100, opencv_java4, etc.
 set(ENABLE_NNDEPLOY_OPENCV ON) # Whether to link the third-party OpenCV library, default is ON
 set(NNDEPLOY_OPENCV_LIBS) # Link all OpenCV libraries by default
 

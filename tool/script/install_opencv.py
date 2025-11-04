@@ -10,7 +10,7 @@ import platform
 from pathlib import Path
 
 # OpenCV version
-OPENCV_VER = "4.8.0"
+OPENCV_VER = "4.10.0"
 
 # 
 WORKSPACE = Path(os.getcwd())

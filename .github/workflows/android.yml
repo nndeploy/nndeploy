@@ -40,7 +40,7 @@ on:
 env:
   ANDROID_API_LEVEL: 21
   ANDROID_NDK_VERSION: r25c
-  OPENCV_VERSION: 4.8.0
+  OPENCV_VERSION: 4.10.0
 
 # Job definition
 jobs:

@@ -349,7 +349,7 @@ install_requires = [
         'packaging',  # Package management
         'Pillow',
         'numpy',  # Numerical computation
-        'opencv-python>=4.8.0',  # Image processing
+        'opencv-python>=4.10.0',  # Image processing
     ]
     
 

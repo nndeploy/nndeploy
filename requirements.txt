@@ -6,7 +6,7 @@ cython
 packaging
 Pillow
 numpy
-opencv-python>=4.8.0
+opencv-python>=4.10.0
 
 ## server
 modelscope

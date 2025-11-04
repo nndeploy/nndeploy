@@ -90,8 +90,8 @@ jobs:
       - name: Verify third-party library installation
         run: |
           echo "Verifying OpenCV installation..."
-          if [ -d "tool/script/third_party/opencv4.8.0/lib" ]; then
-            ls -la tool/script/third_party/opencv4.8.0/lib
+          if [ -d "tool/script/third_party/opencv4.10.0/lib" ]; then
+            ls -la tool/script/third_party/opencv4.10.0/lib
           else
             echo "OpenCV library directory does not exist"
             exit 1

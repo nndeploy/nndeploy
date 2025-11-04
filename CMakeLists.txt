@@ -144,7 +144,7 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT "Enable MediaTek NeuroPilot
 ## OpenCV[Required options]
 ### method 1:
 # nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" "path/to/opencv") 
-# nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "opencv_world480") 
+# nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "opencv_world4100") 
 ### method 2:
 nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" ON)
 nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "") 
