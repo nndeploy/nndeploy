@@ -554,6 +554,22 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           })
           dispatch(initFreshResourceTree({}))
+        }else if (response.result.type == 'system') {
+          if(response.result.event == 'worker_died'){
+
+            Toast.error("worker process died,restarting..." );
+            setRunInfo(oldRunInfo => {
+              return {
+                ...oldRunInfo,
+                isRunning: false,
+                result: '',
+                runningTaskId: '',
+                flowNodesRunningStatus: {},
+              }
+            })
+          }else if(response.result.event == 'worker_restarted'){
+            Toast.success("worker process restarted success");
+          }
         }
       }
 
