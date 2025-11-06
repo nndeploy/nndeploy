@@ -63,7 +63,7 @@ nndeploy is an easy-to-use and high-performance edge AI deployment framework. Ba
   <table cellpadding="5" cellspacing="0" border="1">
   <tr>
     <td>Building AI Workflow on Desktop</td>
-    <td>Deployment on Mobile</td>
+    <td><a href="https://github.com/nndeploy/nndeploy/blob/main/app/android/README.md">Deployment on Mobile</a></td>
   </tr>
   <tr>
     <td><img src="docs/image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
@@ -204,6 +204,8 @@ A list of deployed models with over 100+ visual nodes.
 - [Python Custom Node Development Guide](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/en/latest/cpp_api/doxygen.html)
 - [C++ Custom Node Development Guide](docs/zh_cn/quick_start/plugin.md)
+- [Deploy New Algorithms](docs/zh_cn/quick_start/ai_deploy.md)
+- [Integrate New Inference Frameworks](docs/zh_cn/developer_guide/how_to_support_new_inference.md)
 
 ## Performance Testing
 
@@ -241,8 +243,6 @@ Test environment: Ubuntu 22.04, i7-12700, RTX3060
 ## Contact Us
 
 - If you love open source and enjoy tinkering, whether for learning purposes or to share better ideas, you are welcome to join us.
-
-<!-- - If you are interested in combining nndeploy with specific fields to develop open source projects, we can provide you with technical support (nndeploy can offer: visual workflow, directed acyclic graph, multi-end inference deployment, general performance optimization, heterogeneous device management, abundant basic components, etc.) -->
 
 - WeChat: Always031856 (Feel free to add as a friend to join the group discussion. Please note: nndeploy_name)
 

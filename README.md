@@ -63,7 +63,7 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
   <table cellpadding="5" cellspacing="0" border="1">
   <tr>
     <td>桌面端搭建AI工作流</td>
-    <td>移动端部署</td>
+    <td><a href="https://github.com/nndeploy/nndeploy/blob/main/app/android/README.md">移动端部署</a></td>
   </tr>
   <tr>
     <td><img src="docs/image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
@@ -76,7 +76,7 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
-- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。如果有自定义推理框架，可完全独立使用，无需依赖任何第三方框架。
+- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。支持灵活的框架选择，可根据需求选择性编译。如果有自定义推理框架，可完全不依赖其他推理框架独立运行
 
   | 推理框架                                                                         | 适用场景                 | 状态 |
   | :------------------------------------------------------------------------------- | :----------------------- | :--- |
@@ -204,6 +204,8 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
 - [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
+- [部署新算法](docs/zh_cn/quick_start/ai_deploy.md)
+- [接入新推理框架](docs/zh_cn/developer_guide/how_to_support_new_inference.md)
 
 ## 性能测试
 
@@ -241,8 +243,6 @@ nndeploy 是一款简单易用和高性能的端侧AI部署框架。基于可视
 ## 联系我们
 
 - 如果你热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们
-
-<!-- - 如果你有兴趣结合nndeploy和特定领域做开源项目，可为你提供技术支持（nndeploy可以提供：可视化工作流、有向无环图、多端推理部署、通用性能优化、异构设备管理、丰富基础组件等等） -->
 
 - 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
 
