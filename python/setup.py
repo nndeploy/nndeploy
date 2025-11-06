@@ -504,7 +504,7 @@ setup(
     version="3.0.6",  # Fix version number format
     author="nndeploy team",
     author_email="595961667@qq.com",  # Add email
-    description="An Easy-to-Use and High-Performance Edge AI Deployment Framework",  # Add short description
+    description="An Easy-to-Use and High-Performance AI deployment framework",  # Add short description
     long_description=read_long_description(),  # Add long description
     long_description_content_type="text/markdown",  # Specify content type as Markdown
     url="https://github.com/nndeploy/nndeploy",  # Add project URL

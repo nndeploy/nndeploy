@@ -1,7 +1,7 @@
 [简体](README.md) | English
 
 <h3 align="center">
-nndeploy: An Easy-to-Use and High-Performance Edge AI Deployment Framework
+nndeploy: An Easy-to-Use and High-Performance AI deployment framework
 </h3>
 
 <p align="center">
@@ -51,7 +51,7 @@ nndeploy: An Easy-to-Use and High-Performance Edge AI Deployment Framework
 
 ## Introduction
 
-nndeploy is an easy-to-use and high-performance edge AI deployment framework. Based on visual workflows and multi-end inference, developers can quickly develop SDKs for specified platforms and hardware from algorithm repositories, significantly saving development time. In addition, the framework has deployed numerous AI models including LLM, AIGC generation, face swapping, object detection, image segmentation, etc., which are ready to use out of the box.
+nndeploy is an easy-to-use and high-performance AI deployment framework. Based on visual workflows and multi-end inference, developers can quickly develop SDKs for specified platforms and hardware from algorithm repositories, significantly saving development time. In addition, the framework has deployed numerous AI models including LLM, AIGC generation, face swapping, object detection, image segmentation, etc., which are ready to use out of the box.
 
 ### **Easy to Use**
 
