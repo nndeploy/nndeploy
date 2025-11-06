@@ -1,5 +1,6 @@
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import styles from './index.module.scss'
@@ -17,6 +18,7 @@ export default function CodeBlock({ code, language }: CodeBlockProps) {
     <div className={classNames(styles['markdown-body'])}>
       <Markdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
 
         components={{
           code({ node,
@@ -28,7 +30,7 @@ export default function CodeBlock({ code, language }: CodeBlockProps) {
                 style={vscDarkPlus}
                 language={language}
 
-                PreTag="div"
+                PreTag="code"
                 wrapLines={true}
                 customStyle={{
                   // background: 'transparent',
@@ -37,9 +39,10 @@ export default function CodeBlock({ code, language }: CodeBlockProps) {
                   background: '#f6f8fa',
                   color: '#24292e',
                   borderRadius: '6px',
-                  padding: '16px',
+                  padding: '.2em .4em',
+                 // padding: '16px',
                   fontSize: '85%',
-                  lineHeight: 1.5
+                  //lineHeight: 1.5
                 }}
                 codeTagProps={{
                   style: {
@@ -56,7 +59,7 @@ export default function CodeBlock({ code, language }: CodeBlockProps) {
           }
         }}
       >
-        {code}
+        {code as string}
       </Markdown>
     </div>
   )
