@@ -104,7 +104,9 @@ export default function Home() {
             <div className="add-item" onClick={() => onCreateNewWorkFlow()}>
               <IconPlus size="extra-large" />
 
-              <Paragraph type="secondary" >Click me to create a blank workflow</Paragraph>
+              <Paragraph type="secondary" 
+                style={{ fontSize: '16px', marginTop: '1em' }} 
+              >Click me to create a blank workflow</Paragraph>
 
             </div>
             {
@@ -132,9 +134,10 @@ export default function Home() {
         </div>
         <div className="area-template">
           <Title heading={1} style={{ margin: '8px 0' }} >Template</Title>
-          <Paragraph
+          {/* <Paragraph
             //type="secondary" 
-            size="normal" style={{ fontSize: '16px', marginBottom: '1em' }} >Use the following template workflows, or customize your own workflows based on the templates.</Paragraph>
+            size="normal" style={{ fontSize: '16px', marginBottom: '1em' }} >Use the following template workflows, or customize your own workflows based on the templates.
+          </Paragraph> */}
 
           <Tabs
             type="button"
@@ -167,11 +170,12 @@ export default function Home() {
 
                       <div className="desc">
                         {item.desc_ ?
+                          item.desc_.length > 130 ?
+                            <Popover content={item.desc_} className="desc-popover">
 
-                          <Popover content={item.desc_} className="desc-popover">
-
-                            {item.desc_}
-                          </Popover>
+                              {item.desc_}
+                            </Popover>
+                            : item.desc_
 
                           : 'No description'
                         }
@@ -182,22 +186,24 @@ export default function Home() {
 
                       <div className="source">
 
+                        {
+                          item.source_ ?
+                            <a href={item.source_.split(',')[0] ? item.source_.split(',')[0] : ''} target="_blank">
+                              <Tag
+                                color='light-blue'
+                                //prefixIcon={<IconGithubLogo />}
+                                size='large'
+                                //shape='circle'
+                                type='light'
+                                style={{ maxWidth: '100%' }}
 
-                        <a href={item.source_ ? item.source_.split(',')[0] : ''} target="_blank">
-                          <Tag
-                            color='light-blue'
-                            //prefixIcon={<IconGithubLogo />}
-                            size='large'
-                            //shape='circle'
-                            type='light'
-                            style={{ maxWidth: '100%' }}
+                              >
 
-                          >
+                                {item.source_ ? item.source_.split(',')[0] : 'unknown source'}
 
-                            {item.source_ ? item.source_.split(',')[0] : 'unknown source'}
-
-                          </Tag>
-                        </a>
+                              </Tag>
+                            </a> : <></>
+                        }
 
                       </div>
 
