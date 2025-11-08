@@ -1,2 +1,4 @@
-
-from .infer import Infer
+try:
+    from .infer import Infer
+except:
+    pass

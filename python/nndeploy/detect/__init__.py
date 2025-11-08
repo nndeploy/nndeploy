@@ -1,7 +1,8 @@
-
-from .result import DetectResult, DetectBBoxResult
-
-from .drawbox import DrawBox, YoloMultiConvDrawBox
+try:
+    from .result import DetectResult, DetectBBoxResult
+    from .drawbox import DrawBox, YoloMultiConvDrawBox
+except:
+    pass 
 
 try:
     from .yolo import YoloPostParam, YoloPostProcess, YoloGraph

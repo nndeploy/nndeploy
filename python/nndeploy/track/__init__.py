@@ -1,6 +1,6 @@
 try:
-    from .result import ClassificationLableResult, ClassificationResult
-    from .classification import ClassificationPostParam, ClassificationPostProcess, ClassificationGraph
-    from .drawlabel import DrawLable
+    from .result import MOTResult
+    from .fairmot import FairMotPreParam, FairMotPostParam, FairMotPreProcess, FairMotPostProcess, FairMotGraph
+    from .vis_mot import VisMOT
 except:
     pass

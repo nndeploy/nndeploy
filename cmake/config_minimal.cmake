@@ -14,6 +14,10 @@
 # $ make -j
 # --------------------------------------------------------------------
 
+# Minimal compilation:
+## Only includes framework module
+## Does not include any plugin modules, inference frameworks, op backend, device backends
+
 # IR ONNX
 set(ENABLE_NNDEPLOY_IR_ONNX OFF) # Support generating IR directly from ONNX models, disabled by default
 
@@ -38,6 +42,10 @@ set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, defaul
 set(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN OFF) # Whether to enable operator X86_ONEDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK OFF) # Whether to enable operator ARM_XNNPACK, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNNPACK, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS OFF) # Whether to enable operator ASCEND_ACLOPS, default is OFF
+set(ENABLE_NNDEPLOY_OP_ASCEND_C OFF) # Whether to enable operator ASCEND_C, default is OFF
+set(ENABLE_NNDEPLOY_OP_CUDA OFF) # Whether to enable operator CUDA, default is OFF
+set(ENABLE_NNDEPLOY_OP_OPENCL OFF) # Whether to enable operator OPENCL, default is OFF
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF

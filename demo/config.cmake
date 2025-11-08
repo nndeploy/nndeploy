@@ -12,12 +12,10 @@ endif()
 if(ENABLE_NNDEPLOY_DEVICE)
   include(${ROOT_PATH}/demo/device/config.cmake)
 
-  if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-    include(${ROOT_PATH}/demo/ascend_cl/config.cmake)
-  endif()
-
-  if(ENABLE_NNDEPLOY_OP_ASCEND_C)
+  if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL AND ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS AND ENABLE_NNDEPLOY_OP_ASCEND_C)
+    include(${ROOT_PATH}/demo/ascendc_dev/config.cmake)
     include(${ROOT_PATH}/demo/ascendc/config.cmake)
+    include(${ROOT_PATH}/demo/ascend_cl/config.cmake)
   endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
@@ -36,10 +34,6 @@ endif()
 
 if(ENABLE_NNDEPLOY_OP)
   include(${ROOT_PATH}/demo/op/config.cmake)
-endif()
-
-if(ENABLE_NNDEPLOY_OP_ASCEND_C)
-  include(${ROOT_PATH}/demo/ascendc_dev/config.cmake)
 endif()
 
 if(ENABLE_NNDEPLOY_NET)

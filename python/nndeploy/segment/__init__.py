@@ -1,7 +1,6 @@
 try:
-    from .result import ClassificationLableResult, ClassificationResult
-    from .classification import ClassificationPostParam, ClassificationPostProcess, ClassificationGraph
-    from .drawlabel import DrawLable
+    from .result import SegmentResult
     from .sam import SAMGraph, SAMPointNode, SAMPostProcess, SAMMaskNode, SelectPointNode
+    from .rmbg import RMBGPostParam, RMBGPostProcess, SegmentRMBGGraph
 except:
     pass
