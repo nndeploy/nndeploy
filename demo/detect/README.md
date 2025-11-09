@@ -1,6 +1,6 @@
 # llm
 
-运行nndeploy前端拉出来的llm工作流
+运行nndeploy前端拉出来的检测工作流
 
 ## run_json (完整的运行整个工作流)
 
