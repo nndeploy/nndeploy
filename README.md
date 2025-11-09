@@ -91,7 +91,7 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化�
     <td><a href="https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk">SNPE</a></td>
     <td><a href="https://github.com/apache/tvm">TVM</a></td>
     <td><a href="https://pytorch.org/">PyTorch</a></td>
-    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">内部推理子模块</a></td>
+    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">nndeploy_inner</a></td>
   </tr>
   <tr>
     <td>✅</td>

@@ -91,7 +91,7 @@ nndeploy is an easy-to-use and high-performance AI deployment framework. Based o
     <td><a href="https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk">SNPE</a></td>
     <td><a href="https://github.com/apache/tvm">TVM</a></td>
     <td><a href="https://pytorch.org/">PyTorch</a></td>
-    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">Default inference framework</a></td>
+    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">nndeploy_inner</a></td>
   </tr>
   <tr>
     <td>✅</td>
