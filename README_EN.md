@@ -45,7 +45,7 @@ nndeploy: An Easy-to-Use and High-Performance AI deployment framework
 
 ## Latest Updates
 
-- [2025/01/29] 🔥 Jointly launched a free inference framework course with Huawei Ascend official [Ascend Official](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Bilibili Video](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)! Based on nndeploy's internal inference sub-module, helping you quickly master core AI inference deployment technologies.
+- [2025/05/29] 🔥 Jointly launched a free inference framework course with Huawei Ascend official [Ascend Official](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [Bilibili Video](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)! Based on nndeploy's internal inference sub-module, helping you quickly master core AI inference deployment technologies.
 
 ---
 
@@ -57,7 +57,6 @@ nndeploy is an easy-to-use and high-performance AI deployment framework. Based o
 
 - **Visual Workflow**: Deploy AI algorithms by dragging nodes, with real-time adjustable parameters and intuitive effects.
 - **Custom Nodes**: Support Python/C++ custom nodes. Whether implementing preprocessing in Python or writing high-performance nodes in C++/CUDA, they can be seamlessly integrated into the visual workflow.
-- **Algorithm Combination**: Flexibly combine different algorithms to quickly build innovative AI applications.
 - **One-Click Deployment**: Workflows can be exported as JSON and called through C++/Python APIs, applicable to platforms such as Linux, Windows, macOS, Android, and iOS.
 
   <table cellpadding="5" cellspacing="0" border="1">
@@ -76,23 +75,42 @@ nndeploy is an easy-to-use and high-performance AI deployment framework. Based o
 - **Parallel Optimization**: Support execution modes such as serial, pipeline parallelism, and task parallelism.
 - **Memory Optimization**: Zero-copy, memory pool, memory reuse and other optimization strategies.
 - **High-Performance Optimization**: Built-in nodes optimized with C++/CUDA/Ascend C/SIMD implementations.
-- **Multi-End Inference**: One workflow for multi-end inference, integrating 13 mainstream inference frameworks, covering full-platform deployment scenarios such as cloud, desktop, mobile, and edge. If there is a custom inference framework, it can be used completely independently without relying on any third-party frameworks.
+- **Multi-End Inference**: One workflow for multi-end inference, integrating 13 mainstream inference frameworks, covering full-platform deployment scenarios such as cloud, desktop, mobile, and edge. 
 
-  | Inference Framework                                                              | Application Scenarios        | Status |
-  | :-------------------------------------------------------------------------------- | :--------------------------- | :----- |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | Cross-platform inference     | ✅     |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | High-performance NVIDIA GPU inference | ✅     |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | Intel CPU/GPU optimization   | ✅     |
-  | [MNN](https://github.com/alibaba/MNN)                                            | Alibaba's mobile inference engine | ✅     |
-  | [TNN](https://github.com/Tencent/TNN)                                            | Tencent's mobile inference engine | ✅     |
-  | [ncnn](https://github.com/Tencent/ncnn)                                          | Tencent's mobile inference engine | ✅     |
-  | [CoreML](https://github.com/apple/coremltools)                                   | iOS/macOS native acceleration | ✅     |
-  | [AscendCL](https://www.hiascend.com/zh/)                                         | Huawei Ascend AI chip inference framework | ✅     |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | Rockchip NPU inference framework | ✅     |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | Qualcomm Snapdragon NPU inference framework | ✅     |
-  | [TVM](https://github.com/apache/tvm)                                             | Deep learning compilation stack | ✅     |
-  | [PyTorch](https://pytorch.org/)                                                  | Rapid prototyping/cloud deployment | ✅     |
-  | [Internal Inference Sub-module](docs/zh_cn/inference/README_INFERENCE.md)        | Default inference framework  | ✅     |
+  <table cellpadding="5" cellspacing="0" border="1">
+  <tr>
+    <td><a href="https://github.com/microsoft/onnxruntime">ONNXRuntime</a></td>
+    <td><a href="https://github.com/NVIDIA/TensorRT">TensorRT</a></td>
+    <td><a href="https://github.com/openvinotoolkit/openvino">OpenVINO</a></td>
+    <td><a href="https://github.com/alibaba/MNN">MNN</a></td>
+    <td><a href="https://github.com/Tencent/TNN">TNN</a></td>
+    <td><a href="https://github.com/Tencent/ncnn">ncnn</a></td>
+    <td><a href="https://github.com/apple/coremltools">CoreML</a></td>
+    <td><a href="https://www.hiascend.com/zh/">AscendCL</a></td>
+    <td><a href="https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html">RKNN</a></td>
+    <td><a href="https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk">SNPE</a></td>
+    <td><a href="https://github.com/apache/tvm">TVM</a></td>
+    <td><a href="https://pytorch.org/">PyTorch</a></td>
+    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">Default inference framework</a></td>
+  </tr>
+  <tr>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>✅</td>
+  </tr>
+  </table>
+
+  > If there is a custom inference framework, it can be used completely independently without relying on any third-party frameworks.
 
 ### **Out-of-the-Box Algorithms**
 
