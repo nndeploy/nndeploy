@@ -31,7 +31,7 @@ import { businessNodeNormalize } from "./FlowSaveDrawer/functions";
 import { apiModelsRunDownload, apiWorkFlowRun } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
 import lodash from "lodash";
-import { getNextNameNumberSuffix, nodeIterate } from "./functions";
+import { getNextNameNumberSuffix, isTemplateDownloadedBefore, nodeIterate, setTemplateDownloaded } from "./functions";
 import store, { } from "../../Layout/Design/store/store";
 import React from "react";
 import { initFreshFlowTree, initFreshResourceTree } from "../../Layout/Design/store/actionType";
@@ -159,6 +159,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     function getdownloadModals(businessNode: IBusinessNode) {
 
+
+
+
       const modals: string[] = []
       const fields = lodash.pick(businessNode, ['image_url_', 'video_url_', 'audio_url_', 'model_url_', 'other_url_'])
       for (let field in fields) {
@@ -176,6 +179,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     }
 
+
     let response: IResponse<IBusinessNode>
 
     if (flowType == EnumFlowType.template) {
@@ -183,9 +187,11 @@ const Flow: React.FC<FlowProps> = (props) => {
       if (response.flag == "error") {
         return;
       }
+
       const modals = getdownloadModals(response.result)
       setDownloadModalList(modals)
-      setDownloadModalVisible(modals.length > 0)
+
+      setDownloadModalVisible(modals.length > 0 && !isTemplateDownloadedBefore(flowId))
 
     } else {
       response = await apiGetWorkFlow(flowId);
@@ -209,7 +215,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     setGraphTopNode(lodash.omit(response.result, ['nndeploy_ui_layout', 'node_repository_']) as any)
 
 
-   // ref?.current?.document.reload(designContent);
+    // ref?.current?.document.reload(designContent);
     ref?.current?.operation.fromJSON(designContent)
 
     setTimeout(() => {
@@ -219,7 +225,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
       if (!response.result.nndeploy_ui_layout) {
         //autoLayOutRef.current?.autoLayout()
-         ref?.current?.tools.autoLayout({enableAnimation: false, disableFitView: true})
+        ref?.current?.tools.autoLayout({ enableAnimation: false, disableFitView: true })
       }
 
     }, 10);
@@ -345,6 +351,14 @@ const Flow: React.FC<FlowProps> = (props) => {
         } else {
 
           if (response.result.type == 'model_download_done') {
+
+
+            if (props.flowType == EnumFlowType.template) {
+              setTemplateDownloaded(props.id)
+            }
+
+
+
             downloadResolve()
             Toast.success(response.message)
             setDownloading(false)
@@ -554,10 +568,10 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           })
           dispatch(initFreshResourceTree({}))
-        }else if (response.result.type == 'system') {
-          if(response.result.event == 'worker_died'){
+        } else if (response.result.type == 'system') {
+          if (response.result.event == 'worker_died') {
 
-            Toast.error("worker process died,restarting..." );
+            Toast.error("worker process died,restarting...");
             setRunInfo(oldRunInfo => {
               return {
                 ...oldRunInfo,
@@ -567,7 +581,7 @@ const Flow: React.FC<FlowProps> = (props) => {
                 flowNodesRunningStatus: {},
               }
             })
-          }else if(response.result.event == 'worker_restarted'){
+          } else if (response.result.event == 'worker_restarted') {
             Toast.success("worker process restarted success");
           }
         }
@@ -664,12 +678,12 @@ const Flow: React.FC<FlowProps> = (props) => {
         //   })
         // }
 
-        const isContainer = entity.is_graph_  ||  entity.is_loop_|| entity.is_composite_node_
+        const isContainer = entity.is_graph_ || entity.is_loop_ || entity.is_composite_node_
 
         const result: Inndeploy_ui_layout['layout'] = {
           [entity.name_]: {
             position: position,
-            size: { width: isContainer ? 400 : 200,  height: isContainer ? 160: 80 },
+            size: { width: isContainer ? 400 : 200, height: isContainer ? 160 : 80 },
             children: layout
           },
 

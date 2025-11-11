@@ -225,8 +225,8 @@ export function isGraphNode(nodeId: string, clientContext: FreeLayoutPluginConte
 
 export const freeGraphContainerKeys = ['nndeploy::dag::FixedLoop', 'nndeploy::dag::Graph']
 
-export function isFxiedGraphNode(nodeId: string|undefined, clientContext: FreeLayoutPluginContext) {
-  if(!nodeId){
+export function isFxiedGraphNode(nodeId: string | undefined, clientContext: FreeLayoutPluginContext) {
+  if (!nodeId) {
     return false
   }
   let isDynamic = isGraphNode(nodeId, clientContext)
@@ -265,9 +265,9 @@ export function isLoopNode(nodeId: string, clientContext: FreeLayoutPluginContex
   return result
 }
 
-export function isCompositeNode(nodeId: string|undefined, clientContext: FreeLayoutPluginContext) {
+export function isCompositeNode(nodeId: string | undefined, clientContext: FreeLayoutPluginContext) {
 
-  if(!nodeId){
+  if (!nodeId) {
     return false
   }
   let node = clientContext.document.getNode(nodeId)
@@ -348,7 +348,7 @@ export function isNodeExpanded(nodeId: string, clientContext: FreeLayoutPluginCo
   let node = clientContext.document.getNode(nodeId)
   let nodeRender = node?.getData(FlowNodeRenderData)
 
-  return nodeRender?.expanded ? true: false
+  return nodeRender?.expanded ? true : false
 }
 
 export function getAllInnerNodes(node: FlowNodeEntity) {
@@ -363,8 +363,8 @@ export function getAllInnerNodes(node: FlowNodeEntity) {
 }
 
 export function getAllInnerNodeIds(node: FlowNodeEntity) {
- let allChildren = getAllInnerNodes(node)
- return allChildren.map(child=>child.id)
+  let allChildren = getAllInnerNodes(node)
+  return allChildren.map(child => child.id)
 }
 
 export function getNodeNameByNodeId(nodeId: string, clientContext: FreeLayoutPluginContext) {
@@ -398,5 +398,21 @@ export function nodeIterate<Node>(
       nodeIterate(child, childFieldName, process, [...parents, child]);
     });
   }
+}
+
+export function isTemplateDownloadedBefore(flowId: string) {
+
+  const downloadedTemplates = JSON.parse(localStorage.getItem('downloaded_templates') || '{}')
+  if (downloadedTemplates.hasOwnProperty(flowId)) {
+    return true
+  }
+  return false
+}
+
+export function setTemplateDownloaded(flowId: string) {
+
+  const downloadedTemplates = JSON.parse(localStorage.getItem('downloaded_templates') || '{}')
+  downloadedTemplates[flowId] = true
+  localStorage.setItem('downloaded_templates', JSON.stringify(downloadedTemplates))
 }
 
