@@ -23,7 +23,7 @@ python3 clone_submodule.py
 2. **核心模块选项（建议采用默认配置）**：更细粒度控制需要编译的文件
 3. **设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）**：如CUDA、OpenCL、各种NPU等硬件加速支持
 4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn、onednn、xnnpack、qnnpack
-5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持
+5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime、MNN等推理框架支持
 6. **算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）**：如检测、分割、llm、文生图等算法插件
 
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`

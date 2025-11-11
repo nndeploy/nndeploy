@@ -45,7 +45,7 @@ nndeploy：一款简单易用和高性能的AI部署框架
 
 ## 最新动态
 
-- [2025/01/29] 🔥 与昇腾联合推出 AI 推理框架免费课程！[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站视频](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0) 从零手搓推理框架，课程基于nndeploy内部推理子模块开发。
+- [2025/01/29] 🔥 与昇腾联合推出 AI 推理框架免费课程[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)！ 从零手搓推理框架，课程基于nndeploy内部推理子模块开发。
 
 ---
 
@@ -209,14 +209,18 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化�
       status = graph->deinit();
       ```
 
+- **推荐流程**
+  - 开发自定义节点
+  - 在可视化界面中，设计和调试工作流
+  - 导出工作流为JSON配置文件，通过API加载运行
+
 > 要求 Python 3.10+，默认包含 ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
 ## 文档
 
-- [如何构建](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [编译](docs/zh_cn/quick_start/build.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
-- [生产环境部署](docs/zh_cn/quick_start/deploy.md)
+- [生产环境中部署](docs/zh_cn/quick_start/deploy.md)
 - [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
 - [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
 - [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)

@@ -1,0 +1,11 @@
+# python build.py MacOS arm64
+# python build.py MacOS x86_64
+# python build.py Linux x86_64
+# python build.py Linux arm64
+# python build.py Windows x86_64
+# python build.py Windows arm64
+# python build.py Android arm64
+# python build.py Android x86_64
+# python build.py iOS arm64
+# python build.py iOS x86_64
+# python build.py iOS arm64
