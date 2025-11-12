@@ -1,7 +1,7 @@
-import { Form, Button, Toast } from "@douyinfe/semi-ui";
+import { Form, Button, Toast, Typography } from "@douyinfe/semi-ui";
 const { Input, TreeSelect } = Form;
 
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
@@ -10,6 +10,9 @@ import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-co
 import { EnumFlowType } from "../../../../enum";
 import { useClientContext } from "@flowgram.ai/free-layout-editor";
 import { designDataToBusinessData } from "./toBusiness";
+import store from "../../../Layout/Design/store/store";
+
+const { Text } = Typography
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
@@ -24,6 +27,10 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   const flowEnviroment = useFlowEnviromentContext();
 
   const clientContext = useClientContext();
+
+  const { state } = useContext(store)
+  const savePath = state.resourceDir + '/workflow'
+  
 
   // let find = props.entity.designContent.nodes.find(item=>item.data.name_ == 'Prefill_1')
 
@@ -82,8 +89,11 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   return (
     <>
       <div className="drawer-content">
-        <Form
-        initValues={initValues}
+          <div className="resource-path-banner">
+              save path: <Text type="secondary" mark > {savePath}</Text>
+            </div>
+        <Form layout="horizontal"
+        labelPosition ="left"
           //style={{ padding: 10, width: "100%" }}
           getFormApi={(formApi) => (formRef.current = formApi)}
           onValueChange={(v) => console.log(v)}

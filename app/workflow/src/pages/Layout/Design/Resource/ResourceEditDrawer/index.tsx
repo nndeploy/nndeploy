@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect, MouseEvent } from "react";
+import { useRef, useState, useEffect, MouseEvent, useContext } from "react";
 import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "../entity";
-import { Button, Form, Input, Toast, VideoPlayer, Descriptions, Tag, Tooltip, Typography } from "@douyinfe/semi-ui";
+import { Button, Form, Input, Toast, VideoPlayer, Descriptions, Tag, Tooltip, Typography, Banner } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { apiGetResource, apiResourceSave, apiResourceUpload } from "../api";
 import "./index.scss";
 import request from "../../../../../request";
+import store from "../../store/store";
 
 const { Text } = Typography
 
@@ -22,7 +23,12 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
   const [entity, setEntity] = useState<IResourceTreeNodeEntity>({ ...props.node });
 
+
   const [file, setFile] = useState<File | null>(null);
+
+
+  const { state } = useContext(store)
+  const savePath = state.resourceDir + (entity.parent_info.file_info?.saved_path ?? "").substring('resources'.length)
 
   const fileRef = useRef<any>()
 
@@ -259,19 +265,21 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
 
           </> : <>
-
+            <div className="resource-path-banner">
+              save path: <Text type="secondary" mark > {savePath}</Text>
+            </div>
             <Form
               getFormApi={(formApi) => (formRef.current = formApi)}
               onValueChange={(v) => console.log(v)}
             >
 
               <div style={{ display: "flex", alignItems: "center" }}>
-                Choose file: 
+                choose file:
                 <label ref={fileLabelRef} htmlFor="file-upload" style={{ cursor: 'pointer', marginLeft: 10 }} className="file-upload-label">
 
-                 select
+                  select
                 </label>
-                
+
                 <Input
                   id="file-upload"
                   type="file"
@@ -290,7 +298,17 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
                 {/* <Button onClick={handleFileUpload}>Upload File</Button> */}
               </div>
-            </Form>
+            </Form >
+
+
+            {/* <Banner
+              //onClose={changeVisible}
+              type="info"
+              className="resource-path-banner"
+              closeIcon = {<></>}
+              fullMode={false}
+              description={`resource save path: ${savePath}`}
+            /> */}
           </>
         }
 
