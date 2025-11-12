@@ -2,6 +2,7 @@
 #include "flag.h"
 
 #include "nndeploy/base/dlopen.h"
+#include "nndeploy/base/file.h"
 
 namespace nndeploy {
 namespace demo {
@@ -11,6 +12,7 @@ DEFINE_bool(usage, false, "usage");
 DEFINE_bool(remove_in_out_node, false, "remove_in_out_node");
 DEFINE_string(task_id, "", "task_id");
 DEFINE_string(json_file, "", "json_file");
+DEFINE_string(resources, "", "resources");
 DEFINE_string(plugin, "", "plugin");
 DEFINE_string(node_param, "", "node_param");
 DEFINE_bool(dump, false, "dump");
@@ -477,6 +479,96 @@ std::vector<std::string> getDetectorModelOutputs() {
   }
   model_outputs.emplace_back(model_outputs_str.substr(pos1));
   return model_outputs;
+}
+
+std::string getResources() { return FLAGS_resources; }
+
+bool copyResourcesToCurrentDirectory() {
+  std::string resources = FLAGS_resources;
+  if (resources.empty()) {
+    return true;
+  }
+
+  // Get source path and resolve it
+  std::string src = base::canonicalPath(resources);
+  
+  // Get destination path (current directory + source directory name)
+  std::string src_name = src.substr(src.find_last_of("/\\") + 1);
+  std::string dst = base::joinPath(base::getcwd(), src_name);
+
+  NNDEPLOY_LOGI("Preparing to copy resources from %s -> %s\n", src.c_str(), dst.c_str());
+
+  // Check if source exists and is a directory
+  if (!base::exists(src) || !base::isDirectory(src)) {
+    NNDEPLOY_LOGE("Resource directory not found or not a directory: %s\n", src.c_str());
+    return false;
+  }
+
+  // Check if destination already exists
+  if (base::exists(dst)) {
+    NNDEPLOY_LOGW("Target directory already exists: %s. "
+                  "Skipping copy. Please remove or rename it manually if you want to overwrite.\n",
+                  dst.c_str());
+    return false;
+  }
+
+  // Create destination directory
+  if (!base::createDirectories(dst)) {
+    NNDEPLOY_LOGE("Failed to create destination directory: %s\n", dst.c_str());
+    return false;
+  }
+
+  // Copy directory tree recursively
+  try {
+    std::vector<std::string> files;
+    base::glob(src, "*", files, true, true);
+    
+    for (const std::string& file : files) {
+      std::string relative_path = file.substr(src.length());
+      if (!relative_path.empty() && (relative_path[0] == '/' || relative_path[0] == '\\')) {
+        relative_path = relative_path.substr(1);
+      }
+      
+      std::string dst_file = base::joinPath(dst, relative_path);
+      
+      if (base::isDirectory(file)) {
+        if (!base::createDirectories(dst_file)) {
+          NNDEPLOY_LOGE("Failed to create directory: %s\n", dst_file.c_str());
+          return false;
+        }
+      } else {
+        // Create parent directory if needed
+        std::string parent_dir = base::getParentPath(dst_file);
+        if (!base::exists(parent_dir) && !base::createDirectories(parent_dir)) {
+          NNDEPLOY_LOGE("Failed to create parent directory: %s\n", parent_dir.c_str());
+          return false;
+        }
+        
+        // Copy file
+        std::ifstream src_stream(file.c_str(), std::ios::binary);
+        std::ofstream dst_stream(dst_file.c_str(), std::ios::binary);
+        
+        if (!src_stream.is_open() || !dst_stream.is_open()) {
+          NNDEPLOY_LOGE("Failed to open files for copying: %s -> %s\n", file.c_str(), dst_file.c_str());
+          return false;
+        }
+        
+        dst_stream << src_stream.rdbuf();
+        
+        if (src_stream.bad() || dst_stream.bad()) {
+          NNDEPLOY_LOGE("Error occurred during file copy: %s -> %s\n", file.c_str(), dst_file.c_str());
+          return false;
+        }
+      }
+    }
+    
+    NNDEPLOY_LOGI("Resources copied successfully to %s\n", dst.c_str());
+    return true;
+  } catch (const std::exception& e) {
+    NNDEPLOY_LOGE("Failed to copy resources from %s to %s: %s", 
+                  src.c_str(), dst.c_str(), e.what());
+    return false;
+  }
 }
 
 }  // namespace demo

@@ -5,16 +5,46 @@ import logging
 import traceback
 from typing import Dict, Any, Tuple, List
 import argparse
+from pathlib import Path
+import shutil
 
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 import nndeploy.tokenizer
 
+def copy_resources_to_current_directory(resources):
+    logger = logging.getLogger("copy_resources_to_current_directory")
+    if resources == "":
+        return
+    if resources:
+        src = Path(resources).resolve()
+        dst = Path.cwd() / src.name
+        logger.info(f"Preparing to copy resources from {src} -> {dst}")
+
+        if not src.exists() or not src.is_dir():
+            logger.error(f"Resource directory not found or not a directory: {src}")
+            return
+
+        if dst.exists():
+            logger.warning(
+                f"Target directory already exists: {dst}. "
+                "Skipping copy. Please remove or rename it manually if you want to overwrite."
+            )
+        else:
+            try:
+                shutil.copytree(src, dst)
+                logger.info(f"Resources copied successfully to {dst}")
+            except Exception as e:
+                logger.error(f"Failed to copy resources from {src} to {dst}: {e}")
+                return
+
 def parse_args():
     parser = argparse.ArgumentParser()
     # json_file
     parser.add_argument("--json_file", type=str, required=True)
+    # resources
+    parser.add_argument("--resources", type=str, default="", required=False)
     # node_param: node_name:param_key:param_value
     parser.add_argument("--node_param", "-np", type=str, nargs='*', default=[], required=False)
     # parallel_type: kParallelTypeSequential

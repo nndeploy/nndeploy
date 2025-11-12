@@ -38,6 +38,13 @@ DECLARE_string(task_id);
 DECLARE_string(json_file);
 
 /**
+ * @brief 资源目录
+ * @note
+ *  --resources path/to/resources
+ */
+DECLARE_string(resources);
+
+/**
  * @brief 插件路径列表，支持多个插件
  * @note
  *  --plugin path/to/plugin1.so,path/to/plugin2.so
@@ -340,6 +347,9 @@ std::vector<std::string> getDetectorModelInputs();
 std::vector<std::string> getClassifierModelOutputs();
 std::vector<std::string> getRecognizerModelOutputs();
 std::vector<std::string> getDetectorModelOutputs();
+
+std::string getResources();
+bool copyResourcesToCurrentDirectory();
 
 }  // namespace demo
 }  // namespace nndeploy

@@ -130,7 +130,11 @@ int main(int argc, char* argv[]) {
     demo::showUsage();
     return -1;
   }
-
+  bool success = demo::copyResourcesToCurrentDirectory();
+  if (!success) {
+    NNDEPLOY_LOGE("copy resources to current directory failed");
+    return -1;
+  }
   bool remove_in_out_node = demo::removeInOutNode();
   base::ParallelType pt = demo::getParallelType();
   std::string json_file = demo::getJsonFile();

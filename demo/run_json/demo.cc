@@ -29,10 +29,15 @@ int main(int argc, char* argv[]) {
     demo::showUsage();
     return -1;
   }
+  bool success = demo::copyResourcesToCurrentDirectory();
+  if (!success) {
+    NNDEPLOY_LOGE("copy resources to current directory failed");
+    return -1;
+  }
   std::string json_file = demo::getJsonFile();
   std::string name = demo::getName();
   std::string task_id = demo::getTaskId();
-  bool success = demo::loadPlugin();
+  success = demo::loadPlugin();
   if (!success) {
     NNDEPLOY_LOGE("load plugin failed");
     return -1;

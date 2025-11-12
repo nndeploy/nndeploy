@@ -7,10 +7,10 @@
 ```bash
 cd path/to/nndeploy
 
-# Python CLI
+# Python CLI，保证当前工作目录下有resource资源
 python3 demo/llm/demo.py --json_file resources/workflow/QwenMNN.json
 
-# C++ CLI
+# C++ CLI，保证当前工作目录下有resource资源
 ./build/nndeploy_demo_llm --json_file resources/workflow/QwenMNN.json
 
 # Result
