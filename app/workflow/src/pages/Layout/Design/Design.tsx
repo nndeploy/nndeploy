@@ -31,9 +31,9 @@ import Resource from "./Resource";
 import WorkFlow from "./WorkFlow";
 import { IWorkFlowEntity } from "./WorkFlow/entity";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
-import { apiGetDagInfo } from "./api";
+import { apiGetDagInfo, apiGeResourceDir } from "./api";
 import store, { initialState, reducer } from "./store/store";
-import { initDagGraphInfo } from "./store/actionType";
+import { initDagGraphInfo, initResourceDir } from "./store/actionType";
 import { EnumFlowType } from "../../../enum";
 import Header from "./header";
 import TemplateDrawer from "./TemplateDrawer";
@@ -131,6 +131,21 @@ const Design: React.FC = () => {
 
   useEffect(() => {
     getDagInfo()
+  }, [])
+
+
+  async function getResourceDir() {
+    var response = await apiGeResourceDir()
+    if (response.flag != 'success') {
+      return
+    }
+
+    dispatch(initResourceDir(response.result))
+
+  }
+
+  useEffect(() => {
+    getResourceDir()
   }, [])
 
   // const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);

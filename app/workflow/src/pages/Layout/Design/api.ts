@@ -16,3 +16,11 @@ export async function apiGetDagInfo(){
   return response;
 }
 
+
+export async function apiGeResourceDir(){
+ var response = await request.get<string>('/api/resources', {});
+
+  return response;
+}
+
+

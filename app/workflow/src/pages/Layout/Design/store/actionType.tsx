@@ -35,4 +35,16 @@ export function initFreshResourceTree(payload:any){
 }
 
 
+export const INIT_RESOURCE_DIR:string = 'INIT_RESOURCE_DIR'  
+
+export function initResourceDir(payload:any){
+
+    //debugger;
+    return {
+        type: INIT_RESOURCE_DIR, 
+        payload
+    }
+}
+
+
 
