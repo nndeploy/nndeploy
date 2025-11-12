@@ -19,8 +19,14 @@ export async function apiGetDagInfo(){
 
 export async function apiGeResourceDir(){
  var response = await request.get<string>('/api/resources', {});
+ return response;
 
-  return response;
+//  return {
+//   flag: 'success', 
+//   result: 'xxxx'
+//  }
+
+  
 }
 
 

@@ -54,28 +54,28 @@ export interface IRunInfo {
 
 export interface ILineEntity {
 
-  originFrom?: string,
-  originFrom_name?: string,
-  originFromPort?: string | number,
+  originFrom?: string, //origin node ID
+  originFrom_name?: string, //origin node name : for debug
+  originFromPort?: string | number,//origin node port
 
-  oldFrom?: string;
-  oldFrom_name?: string;
+  oldFrom?: string; //old from node ID
+  oldFrom_name?: string; //old from node name
 
-  from: string,
-  from_name: string;
+  from: string,  //from node ID, when collapse subcavas node, outputline connnect to other node through subcavas
+  from_name: string; //from node name
 
-  oldFromPort?: string | number,
-  fromPort: string | number,
+  oldFromPort?: string | number, //old from port ID
+  fromPort: string | number, //from port ID, when collapse subcavas node, outputline connnect to other node through subcavas dynamic output port
 
 
-  oldTo?: string;
-  oldTo_name?: string;
+  oldTo?: string;  //old to node ID
+  oldTo_name?: string; //old to node name
   
-  to: string,
-  to_name: string;
+  to: string,  //when collapse subcavas node, inputline reconnect to subcavas 
+  to_name: string; //to node name
 
-  oldToPort?: string | number,
-  toPort: string | number,
+  oldToPort?: string | number, //old to port ID
+  toPort: string | number, //to port ID, when collapse subcavas node, inputline reconnect to subcavas input dynamic port
 
 
   originTo?: string,
