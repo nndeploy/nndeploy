@@ -987,6 +987,19 @@ class NnDeployServer:
                 "result": {"task_id": task_id}
             }, status_code=status.HTTP_202_ACCEPTED)
 
+        @api.get(
+            "/resources",
+            tags=["resources"],
+            status_code=status.HTTP_200_OK,
+            summary="resource directory"
+        )
+        async def get_resources():
+            return JSONResponse({
+                "flag": "success",
+                "message": "resource directory",
+                "result": str(Path(self.args.resources).resolve())
+            }, status_code=status.HTTP_200_OK)
+
         @self.app.on_event("startup")
         async def _on_startup():
             self.loop = asyncio.get_running_loop()
