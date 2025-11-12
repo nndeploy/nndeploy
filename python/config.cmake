@@ -28,7 +28,7 @@ file(GLOB PYTHON_SOURCE
   "${ROOT_PATH}/python/src/*.h"
   "${ROOT_PATH}/python/src/*.cc"
 )
-set(PYTHON_SOURCE ${PYTHON_SOURCE} ${ROOT_PATH}/plugin/include/nndeploy/force_link.h)
+set(PYTHON_SOURCE ${PYTHON_SOURCE} ${ROOT_PATH}/plugin/source/nndeploy/force_link.cc)
 set(SOURCE ${SOURCE} ${PYTHON_SOURCE})
 
 # framework

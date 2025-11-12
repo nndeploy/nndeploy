@@ -1,6 +1,4 @@
 
-#ifndef _NNDEPLOY_PLUGIN_FORCE_LINK_H_
-#define _NNDEPLOY_PLUGIN_FORCE_LINK_H_
 
 #include "nndeploy/base/macro.h"
 
@@ -99,5 +97,3 @@ NNDEPLOY_FORCE_LOAD_LIB_SYMBOL(nndeploy::ocr::OCRResult);
 
 // ... other plugins
 #endif  // _MSC_VER
-
-#endif // _NNDEPLOY_PLUGIN_FORCE_LINK_H_

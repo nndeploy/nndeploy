@@ -12,6 +12,7 @@ include_directories(${ROOT_PATH}/demo)
 include_directories(${ROOT_PATH}/framework/include/nndeploy/device/opencl)
 
 set(SOURCE ${ROOT_PATH}/demo/opencl_dev/demo.cc)
+set(SOURCE ${SOURCE} ${ROOT_PATH}/plugin/source/nndeploy/force_link.cc)
 
 # OBJECT
 # BINARY

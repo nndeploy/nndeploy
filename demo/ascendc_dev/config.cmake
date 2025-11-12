@@ -22,6 +22,7 @@ set(SOURCE ${ROOT_PATH}/demo/ascendc_dev/demo.cc)
 #   "${ROOT_PATH}/demo/*.cc"
 # )
 # set(SOURCE ${SOURCE} ${DEMO_SOURCE})
+set(SOURCE ${SOURCE} ${ROOT_PATH}/plugin/source/nndeploy/force_link.cc)
 
 # ascend c
 # set(SOC_VERSION "Ascend910B4" CACHE STRING "system on chip type")

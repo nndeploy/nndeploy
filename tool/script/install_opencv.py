@@ -136,6 +136,7 @@ else:
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DOPENCV_FFMPEG_SKIP_BUILD_CHECK=ON \
         -DBUILD_ZLIB=OFF \
         -DBUILD_PNG=ON \
         -DBUILD_JPEG=ON \
@@ -224,6 +225,22 @@ elif lib64_dir.exists() and lib_dir.exists():
             shutil.copytree(lib_file, target_dir, symlinks=True)
     shutil.rmtree(lib64_dir)
     print("Successfully merged lib64 directory contents into lib directory")
+    
+# 在安装完成后
+if platform.system() == "Linux":
+    print("Copying FFmpeg libraries...")
+    import subprocess
+    # 查找系统的 FFmpeg 库
+    ffmpeg_libs = subprocess.run(
+        "ldconfig -p | grep -E 'libavcodec|libavformat|libavutil|libswscale' | awk '{print $NF}'",
+        shell=True, capture_output=True, text=True
+    ).stdout.strip().split('\n')
+    
+    target_lib_dir = OPENCV_INSTALL_DIR / "lib"
+    for lib_path in ffmpeg_libs:
+        if lib_path and Path(lib_path).exists():
+            shutil.copy2(lib_path, target_lib_dir)
+            print(f"  Copied {lib_path}")
 
 # Verify installation
 print("Verifying installation results:")
