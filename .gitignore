@@ -295,3 +295,5 @@ template/python/resources/
 python/frontend/
 python/logs/
 python/resources/
+
+release/

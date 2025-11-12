@@ -63,6 +63,13 @@ parser.add_argument('--android-abi', type=str, default='arm64-v8a',
                    help='Android ABI (for Android builds)')
 parser.add_argument('--ios-deployment-target', type=str, default='11.0',
                    help='iOS deployment target (for iOS builds)')
+parser.add_argument('--generator', 
+                   default='Visual Studio 17 2022',
+                   help='CMake generator (default: Visual Studio 17 2022)')
+parser.add_argument('--architecture', 
+                   default='x64',
+                   choices=['x64', 'Win32', 'ARM64'],
+                   help='Target architecture (default: x64)')
 args = parser.parse_args()
 
 # 如果命令行指定了系统和架构，使用指定的值；否则使用当前平台信息
@@ -85,14 +92,32 @@ source_filename = f"MNN-{MNN_VER}.tar.gz"
 if not Path(source_filename).exists():
     print(f"Downloading from: {source_url}")
     import requests
-    response = requests.get(source_url, stream=True)
-    if response.status_code != 200:
-        raise Exception(f"Source download failed, status code: {response.status_code}")
+    import time
     
-    with open(source_filename, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-    print("Download completed")
+    max_retries = 3
+    retry_delay = 2  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"Download attempt {attempt + 1}/{max_retries}")
+            response = requests.get(source_url, stream=True, timeout=30)
+            if response.status_code != 200:
+                raise Exception(f"HTTP error: {response.status_code}")
+            
+            with open(source_filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print("Download completed")
+            break
+            
+        except Exception as e:
+            print(f"Download attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                raise Exception(f"Source download failed after {max_retries} attempts: {e}")
 else:
     print("Source archive already exists, skipping download")
 
@@ -129,9 +154,11 @@ cmake_args = [
 
 # 根据目标平台添加特定的CMake参数
 if system == "Windows":
+    print(f"Generator: {args.generator}")
+    print(f"Architecture: {args.architecture}")
     cmake_args.extend([
-        "-G", "Visual Studio 17 2022" if shutil.which("cmake") else "MinGW Makefiles",
-        "-A", "x64" if machine in ["AMD64", "x86_64"] else "Win32",
+        "-G", args.generator if shutil.which("cmake") else "MinGW Makefiles",
+        "-A", args.architecture if machine in ["AMD64", "x86_64"] else "Win32",
         "-DMNN_AVX512=true"
     ])
 elif system == "Android":

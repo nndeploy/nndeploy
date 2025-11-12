@@ -176,7 +176,7 @@ def install_rust():
     print("Rust installation completed!")
     return True
 
-def install_third_party_libraries():
+def install_third_party_libraries(generator, architecture):
     """Install third-party libraries"""
     print("Installing third-party libraries...")
     
@@ -192,19 +192,19 @@ def install_third_party_libraries():
     try:
         # Install OpenCV
         print("Installing OpenCV...")
-        result = run_command("python install_opencv.py", check=False)
+        result = run_command("python install_opencv.py --generator {generator} --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: OpenCV installation script failed")
         
         # Install ONNX Runtime
         print("Installing ONNX Runtime...")
-        result = run_command("python install_onnxruntime.py", check=False)
+        result = run_command("python install_onnxruntime.py --generator {generator} --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: ONNX Runtime installation failed")
         
         # Build MNN
         print("Building MNN...")
-        result = run_command("python build_mnn.py", check=False)
+        result = run_command("python build_mnn.py --generator {generator} --architecture {architecture}", check=False)
         if result.returncode != 0:
             print("Warning: MNN build failed")
             
@@ -359,7 +359,7 @@ def main():
     
     # Install dependencies
     if not args.skip_deps:
-        install_system_dependencies()
+        # install_system_dependencies()
         install_python_dependencies()
         install_rust()
     else:
@@ -367,7 +367,7 @@ def main():
     
     # Install third-party libraries
     if not args.skip_third_party:
-        install_third_party_libraries()
+        install_third_party_libraries(args.generator, args.architecture)
     else:
         print("Skipping third-party library installation")
     

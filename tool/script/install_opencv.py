@@ -8,6 +8,7 @@ import zipfile
 import requests
 import platform
 from pathlib import Path
+import subprocess
 
 # OpenCV version
 OPENCV_VER = "4.10.0"
@@ -175,12 +176,14 @@ else:
         -DWITH_LIBREALSENSE=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
-os.system(cmake_cmd)
-
+# os.system(cmake_cmd)
+subprocess.run(cmake_cmd, shell=True, encoding='utf-8', errors='ignore')
 # Build and install
 print("Building OpenCV...")
-os.system("cmake --build . --config Release -j6")
-os.system("cmake --install . --config Release")
+# os.system("cmake --build . --config Release -j6")
+subprocess.run("cmake --build . --config Release -j6", shell=True, encoding='utf-8', errors='ignore')
+# os.system("cmake --install . --config Release")
+subprocess.run("cmake --install . --config Release", shell=True, encoding='utf-8', errors='ignore')
 
 if platform.system() == "Windows":
     # Create target directory structure

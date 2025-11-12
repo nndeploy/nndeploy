@@ -109,7 +109,6 @@ def install_system_dependencies():
         "wget",
         "curl",
         "unzip",
-        "python@3.11"
     ]
     
     print("Installing build tools and dependencies...")
@@ -118,10 +117,6 @@ def install_system_dependencies():
         result = run_command(f"brew install {dep}", check=False)
         if result.returncode != 0:
             print(f"Warning: {dep} installation failed or already installed")
-    
-    # Link Python if needed
-    print("Linking Python...")
-    run_command("brew link --overwrite python@3.11", check=False)
     
     print("System dependencies installation completed!")
 

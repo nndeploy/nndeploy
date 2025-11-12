@@ -91,7 +91,7 @@ make install                # 在build目录下生成安装目录
 - `build_mac_arm64.py`: macOS ARM64 平台编译脚本  
 - `build_win.py`: Windows x86_64 平台编译脚本
 
-> **注意**：使用编译脚本需要稳定的网络连接以访问 GitHub 下载依赖库。如果网络环境受限或无法正常访问 GitHub，建议采用上述手动编译方式进行构建。
+> **注意**：使用编译脚本需要稳定的网络连接以访问 GitHub 下载依赖库。如果网络环境受限或无法正常访问 GitHub，建议采用上述手动编译方式进行构建。采用脚本编译时间很长，请耐心等待。
 
 > **编译配置说明**：
 > - 对应的配置文件：[cmake/config_opencv_ort_mnn_tokenizer.cmake](../../../cmake/config_opencv_ort_mnn_tokenizer.cmake)
