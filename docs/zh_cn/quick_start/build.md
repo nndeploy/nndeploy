@@ -83,6 +83,21 @@ make install                # 在build目录下生成安装目录
 >   ```
 > - **macOS/iOS**：使用 Xcode 编译
 
+### 提供的编译脚本
+
+为了简化编译过程，nndeploy 提供了针对不同平台的编译脚本：
+
+- `build_linux.py`: Linux 平台编译脚本
+- `build_mac_arm64.py`: macOS ARM64 平台编译脚本  
+- `build_win.py`: Windows x86_64 平台编译脚本
+
+> **注意**：使用编译脚本需要稳定的网络连接以访问 GitHub 下载依赖库。如果网络环境受限或无法正常访问 GitHub，建议采用上述手动编译方式进行构建。
+
+> **编译配置说明**：
+> - 对应的配置文件：[cmake/config_opencv_ort_mnn_tokenizer.cmake](../../../cmake/config_opencv_ort_mnn_tokenizer.cmake)
+> - 这些脚本使用与 Python 包相同的编译选项配置
+> - 默认启用的推理后端：ONNXRuntime、MNN
+> - 默认启用的依赖库：OpenCV、tokenizer-cpp
 
 ## 4. 主库编译
 

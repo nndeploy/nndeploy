@@ -9,9 +9,13 @@ cd path/to/nndeploy
 
 # Python CLI，保证当前工作目录下有resource资源
 python3 demo/llm/demo.py --json_file resources/workflow/QwenMNN.json
+# Python CLI，会将path/to/resources拷贝到当前工作目录
+python3 demo.py --json_file path/to/resources/workflow/QwenMNN.json --resources path/to/resources
 
 # C++ CLI，保证当前工作目录下有resource资源
 ./build/nndeploy_demo_llm --json_file resources/workflow/QwenMNN.json
+# C++ CLI，会将path/to/resources拷贝到当前工作目录
+.nndeploy_demo_llm --json_file path/to/resources/workflow/QwenMNN.json  --resources path/to/resources
 
 # Result
 A: 李白，唐代诗人，被誉为“诗仙”，以其高超的诗歌造诣和神奇的笔墨语言而受到世界的广泛喜爱。李白所作诗词广受欢迎，对于其深远影响和艺术成就的评价极高。李白生于唐代中叶，死于唐玄宗时期，活了600余岁，是唐代著名的诗人，被后人尊称为“诗圣”。
@@ -43,11 +47,15 @@ stream_out run()         82          0.358              0.004              0.000
 
 cd path/to/nndeploy
 
-# Python CLI
+# Python CLI，保证当前工作目录下有resource资源
 python3 demo/llm/demo.py --json_file resources/workflow/QwenMNN.json --remove_in_out_node
+# Python CLI，会将path/to/resources拷贝到当前工作目录
+python3 demo/llm/demo.py --json_file path/to/resources/workflow/QwenMNN.json --remove_in_out_node  --resources path/to/resources
 
-# C++ CLI
+# C++ CLI，保证当前工作目录下有resource资源
 ./build/nndeploy_demo_llm --json_file resources/workflow/QwenMNN.json --remove_in_out_node
+# C++ CLI，会将path/to/resources拷贝到当前工作目录
+.nndeploy_demo_llm --json_file path/to/resources/workflow/QwenMNN.json --remove_in_out_node  --resources path/to/resources
 
 # result
 A: Jordan is a surname that was commonly used in the United States during the late 19th century. It was commonly used in the United States as a middle name, in order to not conflict with the common surname of Samuel.
