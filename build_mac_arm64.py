@@ -362,7 +362,7 @@ def main():
     
     # Install dependencies
     if not args.skip_deps:
-        install_system_dependencies()
+        # install_system_dependencies()
         install_python_dependencies()
         install_rust()
     else:
