@@ -75,28 +75,6 @@ nndeploy-clean
 | `--front-end-version` | `!`                          | 指定前端版本，格式为 `owner/repo@tag`，如 `nndeploy/nndeploy-ui@v1.0.0`            |
 | `--plugin`            | `[]`                         | 支持传入多个 python 文件路径或者动态库路径，用于加载用户写好的自定义插件，默认为空 |
 
-## 常见问题
-
-Q1: 浏览器打开 http://localhost:8000 显示 404？
-
-A1: 请确认你是否已经下载前端资源。
-
-Q2: 启动时 download 前端资源文件一直失败怎么办？
-
-A2: 从`https://github.com/nndeploy/nndeploy_frontend/releases/`下载对应的 dist.zip，将 zip 解压到`frontend/owner_repo/tag/`目录下（通常下载失败后会自动建立该目录），重新启动服务。
-
-Q3: 如何切换使用不同版本的前端?
-
-A3: 使用 --front-end-version 参数指定版本，例如：
-
-```
-python app.py --front-end-version nndeploy/nndeploy-ui@v1.1.0
-```
-
-Q4: 前端资源下载完成了，还是无法打开前端界面？
-
-A4: 检查服务端 IP 以及端口是否正确，如果`localhost`以及`127.0.0.1`都无法访问，替换成局域网 IP（如`192.168.x.x`）重试。
-
 ## 清理过期资源
 
 随着nndeploy版本的迭代更新，frontend、logs、resources这三个核心目录中的资源文件也会相应地进行同步更新。为了保持系统的整洁性和避免磁盘空间的浪费，您可以使用以下命令行工具来快速清理过期和冗余的资源文件。
@@ -123,6 +101,28 @@ python clean.py
 | `--keep logs db` | keep logs and db directory, clean other directories |
 
 > 未指定参数时，清理上述所有资源
+
+## 常见问题
+
+Q1: 浏览器打开 http://localhost:8000 显示 404？
+
+A1: 请确认你是否已经下载前端资源。
+
+Q2: 启动时 download 前端资源文件一直失败怎么办？
+
+A2: 从`https://github.com/nndeploy/nndeploy_frontend/releases/`下载对应的 dist.zip，将 zip 解压到`frontend/owner_repo/tag/`目录下（通常下载失败后会自动建立该目录），重新启动服务。
+
+Q3: 如何切换使用不同版本的前端?
+
+A3: 使用 --front-end-version 参数指定版本，例如：
+
+```
+python app.py --front-end-version nndeploy/nndeploy-ui@v1.1.0
+```
+
+Q4: 前端资源下载完成了，还是无法打开前端界面？
+
+A4: 检查服务端 IP 以及端口是否正确，如果`localhost`以及`127.0.0.1`都无法访问，替换成局域网 IP（如`192.168.x.x`）重试。
 
 ## 案例展示
 

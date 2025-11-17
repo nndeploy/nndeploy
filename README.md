@@ -34,6 +34,10 @@ nndeploy：一款简单易用和高性能的AI部署框架
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
 </p>
 
+nndeploy 解决的是 AI 算法在端侧部署的问题，覆盖桌面端（Windows、macOS）、移动端（Android、iOS）、边缘计算设备（NVIDIA Jetson、Ascend310B、RK 等）以及单机服务器（RTX 系列、T4、Ascend310P 等），可让 AI 算法在上述平台更高效、更高性能地落地。
+
+针对大模型（如大语言模型和 AIGC 生成模型），nndeploy 适合作为一款可视化工作流工具。
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
@@ -43,15 +47,11 @@ nndeploy：一款简单易用和高性能的AI部署框架
 
 ---
 
-## 最新动态
-
-- [2025/01/29] 🔥 与昇腾联合推出 AI 推理框架免费课程[昇腾官方](https://www.hiascend.com/developer/courses/detail/1923211251905150977) | [B 站](https://space.bilibili.com/435543077?spm_id_from=333.788.0.0)！ 从零手搓推理框架，课程基于nndeploy内部推理子模块开发。
-
----
-
 ## 介绍
 
 nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化工作流和多端推理，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等 AI 模型，开箱即用。
+
+推荐的开发流程：算法工程师用 Python 封装节点并通过可视化界面调试；推理部署工程师基于 Python 实现进行 C++工程化和性能优化；应用工程师通过统一 SDK 和 JSON 配置集成 AI 能力。
 
 ### **简单易用**
 
@@ -75,58 +75,39 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化�
 - **并行优化**：支持串行、流水线并行、任务并行等执行模式
 - **内存优化**：零拷贝、内存池、内存复用等优化策略
 - **高性能优化**：内置 C++/CUDA/Ascend C/SIMD 等优化实现的节点
-- **多端推理**：一套工作流，多端推理，接入 13 种主流推理框架，覆盖云端、桌面、移动、边缘等全平台部署场景。
+- **多端推理**：一套工作流适配多端推理，深度集成 13 种主流推理框架，全面覆盖云端服务器、桌面应用、移动设备、边缘计算等全平台部署场景。框架支持灵活选择推理引擎，可按需编译减少依赖，同时支持接入自定义推理框架的独立运行模式。
 
-  <table cellpadding="5" cellspacing="0" border="1">
-  <tr>
-    <td><a href="https://github.com/microsoft/onnxruntime">ONNXRuntime</a></td>
-    <td><a href="https://github.com/NVIDIA/TensorRT">TensorRT</a></td>
-    <td><a href="https://github.com/openvinotoolkit/openvino">OpenVINO</a></td>
-    <td><a href="https://github.com/alibaba/MNN">MNN</a></td>
-    <td><a href="https://github.com/Tencent/TNN">TNN</a></td>
-    <td><a href="https://github.com/Tencent/ncnn">ncnn</a></td>
-    <td><a href="https://github.com/apple/coremltools">CoreML</a></td>
-    <td><a href="https://www.hiascend.com/zh/">AscendCL</a></td>
-    <td><a href="https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html">RKNN</a></td>
-    <td><a href="https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk">SNPE</a></td>
-    <td><a href="https://github.com/apache/tvm">TVM</a></td>
-    <td><a href="https://pytorch.org/">PyTorch</a></td>
-    <td><a href="docs/zh_cn/inference/README_INFERENCE.md">nndeploy_inner</a></td>
-  </tr>
-  <tr>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-    <td>✅</td>
-  </tr>
-  </table>
-
-  > 支持灵活的框架选择，可根据需求选择性编译。如果有自定义推理框架，可完全不依赖其他推理框架独立运行
+  | 推理框架                                                                         | 状态 |
+  | :------------------------------------------------------------------------------- | :--- |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | ✅   |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | ✅   |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | ✅   |
+  | [MNN](https://github.com/alibaba/MNN)                                            | ✅   |
+  | [TNN](https://github.com/Tencent/TNN)                                            | ✅   |
+  | [ncnn](https://github.com/Tencent/ncnn)                                          | ✅   |
+  | [CoreML](https://github.com/apple/coremltools)                                   | ✅   |
+  | [AscendCL](https://www.hiascend.com/zh/)                                         | ✅   |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅   |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | ✅   |
+  | [TVM](https://github.com/apache/tvm)                                             | ✅   |
+  | [PyTorch](https://pytorch.org/)                                                  | ✅   |
+  | [nndeploy内部推理子模块](docs/zh_cn/inference/README_INFERENCE.md)              | ✅   |
 
 ### **开箱即用的算法**
 
-已部署模型列表，并制作了 100+可视化节点，让你开箱即用。
+已部署多类 AI 模型并精心制作 100+可视化节点，实现开箱即用体验。随着部署节点数量的增加，节点库的复用性不断提升，这将显著降低后续算法部署的开发成本。我们还将持续部署更多具有实用价值的算法。
 
-| 应用场景       | 可用模型                                                                         | 备注                                                |
-| -------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
-| **大语言模型** | **QWen-2.5**, **QWen-3**                                                         | 支持小 B 模型                                       |
-| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 | 支持文生图、图生图、图像修复，基于**diffusers**实现 |
-| **换脸**       | **deep-live-cam**                                                                |                                                     |
-| **OCR**        | **Paddle OCR**                                                                   |                                                     |
-| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |                                                     |
-| **目标追踪**   | FairMot                                                                          |                                                     |
-| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |                                                     |
-| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |                                                     |
-| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       | 支持 LLM 和 AIGC 服务                               |
+| 应用场景       | 可用模型                                                                         |
+| -------------- | -------------------------------------------------------------------------------- |
+| **大语言模型** | **QWen-2.5**, **QWen-3**                                                         |
+| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 |
+| **换脸**       | **deep-live-cam**                                                                |
+| **OCR**        | **Paddle OCR**                                                                   |
+| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |
+| **目标追踪**   | FairMot                                                                          |
+| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |
+| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |
+| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       |
 
 > 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 
@@ -209,25 +190,17 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化�
       status = graph->deinit();
       ```
 
-- **推荐流程**
-  - 开发自定义节点
-  - 在可视化界面中，设计和调试工作流
-  - 导出工作流为JSON配置文件，通过API加载运行
-
 > 要求 Python 3.10+，默认包含 ONNXRuntime、MNN，更多推理后端请采用开发者模式。
 
 ## 文档
 
 - [编译](docs/zh_cn/quick_start/build.md)
 - [可视化工作流](docs/zh_cn/quick_start/workflow.md)
-- [生产环境中部署](docs/zh_cn/quick_start/deploy.md)
-- [Python API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/python_api/index.html)
+- [最佳实践](docs/zh_cn/quick_start/deploy.md)
 - [Python 自定义节点开发手册](docs/zh_cn/quick_start/plugin_python.md)
-- [C++ API](https://nndeploy-zh.readthedocs.io/zh-cn/latest/cpp_api/doxygen.html)
 - [C++自定义节点开发手册](docs/zh_cn/quick_start/plugin.md)
-- [部署新算法](docs/zh_cn/quick_start/ai_deploy.md)
 - [接入新推理框架](docs/zh_cn/developer_guide/how_to_support_new_inference.md)
-
+  
 ## 性能测试
 
 测试环境：Ubuntu 22.04，i7-12700，RTX3060
