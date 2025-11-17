@@ -79,35 +79,35 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化�
 
   | 推理框架                                                                         | 状态 |
   | :------------------------------------------------------------------------------- | :--- |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | ✅   |
-  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | ✅   |
-  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | ✅   |
-  | [MNN](https://github.com/alibaba/MNN)                                            | ✅   |
-  | [TNN](https://github.com/Tencent/TNN)                                            | ✅   |
-  | [ncnn](https://github.com/Tencent/ncnn)                                          | ✅   |
-  | [CoreML](https://github.com/apple/coremltools)                                   | ✅   |
-  | [AscendCL](https://www.hiascend.com/zh/)                                         | ✅   |
-  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅   |
-  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | ✅   |
-  | [TVM](https://github.com/apache/tvm)                                             | ✅   |
-  | [PyTorch](https://pytorch.org/)                                                  | ✅   |
-  | [nndeploy内部推理子模块](docs/zh_cn/inference/README_INFERENCE.md)              | ✅   |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          | ✅    |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   | ✅    |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          | ✅    |
+  | [MNN](https://github.com/alibaba/MNN)                                            | ✅    |
+  | [TNN](https://github.com/Tencent/TNN)                                            | ✅    |
+  | [ncnn](https://github.com/Tencent/ncnn)                                          | ✅    |
+  | [CoreML](https://github.com/apple/coremltools)                                   | ✅    |
+  | [AscendCL](https://www.hiascend.com/zh/)                                         | ✅    |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) | ✅    |
+  | [SNPE](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   | ✅    |
+  | [TVM](https://github.com/apache/tvm)                                             | ✅    |
+  | [PyTorch](https://pytorch.org/)                                                  | ✅    |
+  | [nndeploy内部推理子模块](docs/zh_cn/inference/README_INFERENCE.md)               | ✅    |
 
 ### **开箱即用的算法**
 
-已部署多类 AI 模型并精心制作 100+可视化节点，实现开箱即用体验。随着部署节点数量的增加，节点库的复用性不断提升，这将显著降低后续算法部署的开发成本。我们还将持续部署更多具有实用价值的算法。
+已部署多类 AI 模型，并开发 100+可视化节点，实现开箱即用体验。随着部署节点数量的增加，节点库的复用性不断提升，这将显著降低后续算法部署的开发成本。我们还将持续部署更多具有实用价值的算法。
 
-| 应用场景       | 可用模型                                                                         |
-| -------------- | -------------------------------------------------------------------------------- |
-| **大语言模型** | **QWen-2.5**, **QWen-3**                                                         |
-| **图片生成**   | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT 等模型 |
-| **换脸**       | **deep-live-cam**                                                                |
-| **OCR**        | **Paddle OCR**                                                                   |
-| **目标检测**   | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                               |
-| **目标追踪**   | FairMot                                                                          |
-| **图像分割**   | RBMGv1.4, PPMatting, **Segment Anything**                                        |
-| **分类**       | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet       |
-| **API 服务**   | OPENAI, DeepSeek, Moonshot                                                       |
+| Application Scenario       | Available Models                                                                | Remarks                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Large Language Models**  | **QWen-2.5**, **QWen-3**                                                        | Support small B models                                                          |
+| **Image/Video Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc. | Support text-to-image, image-to-image, image inpainting, based on **diffusers** |
+| **Face Swapping**          | **deep-live-cam**                                                               |                                                                                 |
+| **OCR**                    | **Paddle OCR**                                                                  |                                                                                 |
+| **Object Detection**       | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                              |                                                                                 |
+| **Object Tracking**        | FairMot                                                                         |                                                                                 |
+| **Image Segmentation**     | RBMGv1.4, PPMatting, **Segment Anything**                                       |                                                                                 |
+| **Classification**         | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet      |                                                                                 |
+| **API Services**           | OPENAI, DeepSeek, Moonshot                                                      | Support LLM and AIGC services                                                   |
 
 > 更多查看[已部署模型列表详解](docs/zh_cn/quick_start/model_list.md)
 

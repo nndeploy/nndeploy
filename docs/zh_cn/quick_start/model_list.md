@@ -47,7 +47,7 @@
 
 | 模型名称  | GitHub Stars | 支持的推理后端 | 算法原始链接                           | 部署详情                                                                            |
 | --------- | ------------ | -------------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
-| QWen-0.5B | ⭐ 19.2k     | ONNXRuntime    | [Qwen](https://github.com/QwenLM/Qwen) | [详情](https://github.com/nndeploy/nndeploy/blob/deploy_model/demo/llama/README.md) |
+| QWen-2.5-0.5B、QWen-3-0.5B  | ⭐ 19.2k     | ONNXRuntime    | [Qwen](https://github.com/QwenLM/Qwen) | [详情](https://github.com/nndeploy/nndeploy/blob/deploy_model/demo/llama/README.md) |
 
 ## 换脸
 
@@ -60,3 +60,8 @@
 | 模型名称   | GitHub Stars | 支持的推理后端       | 算法原始链接                             | 部署详情                                              |
 | ---------- | ------------ | -------------------- | ---------------------------------------- | ----------------------------------------------------- |
 | Paddle OCR |              | ONNXRuntime、OpenVINO、TensorRT、MNN ... |  | [详情](https://github.com/nndeploy/nndeploy-workflow) |
+
+
+## AIGC
+
+基于Diffusers实现。

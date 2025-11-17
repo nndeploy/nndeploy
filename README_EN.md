@@ -116,17 +116,17 @@ nndeploy is an easy-to-use and high-performance AI deployment framework. Based o
 
 A list of deployed models with over 100+ visual nodes.
 
-| Application Scenario | Available Models                                                                    | Remarks                                                  |
-| -------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Large Language Models** | **QWen-2.5**, **QWen-3**                                                           | Support small B models                                   |
-| **Image Generation** | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc.    | Support text-to-image, image-to-image, image inpainting, based on **diffusers** |
-| **Face Swapping**    | **deep-live-cam**                                                                  |                                                          |
-| **OCR**              | **Paddle OCR**                                                                      |                                                          |
-| **Object Detection** | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                                 |                                                          |
-| **Object Tracking**  | FairMot                                                                            |                                                          |
-| **Image Segmentation** | RBMGv1.4, PPMatting, **Segment Anything**                                          |                                                          |
-| **Classification**   | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet          |                                                          |
-| **API Services**     | OPENAI, DeepSeek, Moonshot                                                         | Support LLM and AIGC services                            |
+| Application Scenario      | Available Models                                                                | Remarks                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Large Language Models** | **QWen-2.5**, **QWen-3**                                                        | Support small B models                                                          |
+| **Image Generation**      | Stable Diffusion 1.5, Stable Diffusion XL, Stable Diffusion 3, HunyuanDiT, etc. | Support text-to-image, image-to-image, image inpainting, based on **diffusers** |
+| **Face Swapping**         | **deep-live-cam**                                                               |                                                                                 |
+| **OCR**                   | **Paddle OCR**                                                                  |                                                                                 |
+| **Object Detection**      | **YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv11, YOLOx**                              |                                                                                 |
+| **Object Tracking**       | FairMot                                                                         |                                                                                 |
+| **Image Segmentation**    | RBMGv1.4, PPMatting, **Segment Anything**                                       |                                                                                 |
+| **Classification**        | ResNet, MobileNet, EfficientNet, PPLcNet, GhostNet, ShuffleNet, SqueezeNet      |                                                                                 |
+| **API Services**          | OPENAI, DeepSeek, Moonshot                                                      | Support LLM and AIGC services                                                   |
 
 > For more, see [Detailed List of Deployed Models](docs/zh_cn/quick_start/model_list.md)
 
