@@ -34,10 +34,6 @@ nndeploy：一款简单易用和高性能的AI部署框架
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
 </p>
 
-nndeploy 解决的是 AI 算法在端侧部署的问题，覆盖桌面端（Windows、macOS）、移动端（Android、iOS）、边缘计算设备（NVIDIA Jetson、Ascend310B、RK 等）以及单机服务器（RTX 系列、T4、Ascend310P 等），可让 AI 算法在上述平台更高效、更高性能地落地。
-
-针对大模型（如大语言模型和 AIGC 生成模型），nndeploy 适合作为一款可视化工作流工具。
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/workflow.png">
@@ -49,9 +45,9 @@ nndeploy 解决的是 AI 算法在端侧部署的问题，覆盖桌面端（Wind
 
 ## 介绍
 
-nndeploy 是一款简单易用和高性能的 AI 部署框架。基于可视化工作流和多端推理，开发者可以快速从算法仓库开发出指定平台和硬件所需的 SDK，大幅节省开发时间。此外，框架已部署包括 LLM、AIGC 生成、换脸、目标检测、图像分割等 AI 模型，开箱即用。
+nndeploy 是一款简单易用和高性能的 AI 部署框架。解决的是 AI 算法在端侧部署的问题，包含桌面端（Windows、macOS）、移动端（Android、iOS）、边缘计算设备（NVIDIA Jetson、Ascend310B、RK 等）以及单机服务器（RTX 系列、T4、Ascend310P 等），可让 AI 算法在上述平台和硬件更高效、更高性能的落地。
 
-推荐的开发流程：算法工程师用 Python 封装节点并通过可视化界面调试；推理部署工程师基于 Python 实现进行 C++工程化和性能优化；应用工程师通过统一 SDK 和 JSON 配置集成 AI 能力。
+针对10B以上的大模型（如大语言模型和 AIGC 生成模型），nndeploy 适合作为一款可视化工作流工具。
 
 ### **简单易用**
 
