@@ -45,9 +45,9 @@ nndeploy：一款简单易用和高性能的AI部署框架
 
 ## 介绍
 
-nndeploy 是一款简单易用和高性能的 AI 部署框架。解决的是 AI 算法在端侧部署的问题，包含桌面端（Windows、macOS）、移动端（Android、iOS）、边缘计算设备（NVIDIA Jetson、Ascend310B、RK 等）以及单机服务器（RTX 系列、T4、Ascend310P 等），基于可视化工作流和多端推理，可让 AI 算法在上述平台和硬件更高效、更高性能的落地。
+nndeploy 是一款简单易用和高性能的 AI 部署框架。解决的是 AI 算法在端侧部署的问题，包含桌面端（Windows、macOS）、移动端（Android、iOS）、边缘计算设备（NVIDIA Jetson、Ascend310B、RK 等）以及单机服务器（RTX 系列、T4、Ascend310P 等），**基于可视化工作流和多端推理，可让 AI 算法在上述平台和硬件更高效、更高性能的落地。**
 
-针对10B以上的大模型（如大语言模型和 AIGC 生成模型），nndeploy 适合作为一款可视化工作流工具。
+**针对10B以上的大模型（如大语言模型和 AIGC 生成模型），nndeploy 适合作为一款可视化工作流工具。**
 
 ### **简单易用**
 
