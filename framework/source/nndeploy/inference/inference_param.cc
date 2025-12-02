@@ -826,7 +826,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("min_shape_")) {
     const rapidjson::Value& min_shape_obj = json["min_shape_"];
     min_shape_.clear();
-    auto size = min_shape_obj.Size();
+    auto size = min_shape_obj.MemberCount();
     if (size == 1) {
       std::string name =
           min_shape_obj.GetObject().MemberBegin()->name.GetString();
@@ -864,7 +864,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("opt_shape_")) {
     const rapidjson::Value& opt_shape_obj = json["opt_shape_"];
     opt_shape_.clear();
-    auto size = opt_shape_obj.Size();
+    auto size = opt_shape_obj.MemberCount();
     if (size == 1) {
       std::string name =
           opt_shape_obj.GetObject().MemberBegin()->name.GetString();
@@ -902,7 +902,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("max_shape_")) {
     const rapidjson::Value& max_shape_obj = json["max_shape_"];
     max_shape_.clear();
-    auto size = max_shape_obj.Size();
+    auto size = max_shape_obj.MemberCount();
     if (size == 1) {
       std::string name =
           max_shape_obj.GetObject().MemberBegin()->name.GetString();
