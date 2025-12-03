@@ -28,7 +28,7 @@ nndeploy：一款简单易用和高性能的AI部署框架
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-<!-- | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a>  -->
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 <!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a>  -->
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
@@ -231,6 +231,8 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。解决的是 AI 
 ## 联系我们
 
 - 如果你热爱开源、喜欢折腾，不论是出于学习目的，亦或是有更好的想法，欢迎加入我们
+
+- 如果你有兴趣结合nndeploy和特定领域做开源项目，我们可以为你提供技术支持（nndeploy可以提供：可视化工作流、有向无环图、多端推理部署、通用性能优化、异构设备管理、丰富基础组件等等）
 
 - 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
 
