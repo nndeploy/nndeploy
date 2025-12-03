@@ -8,9 +8,10 @@ import zipfile
 import requests
 import platform
 from pathlib import Path
+import subprocess
 
 # OpenCV version
-OPENCV_VER = "4.8.0"
+OPENCV_VER = "4.10.0"
 
 # 
 WORKSPACE = Path(os.getcwd())
@@ -61,6 +62,11 @@ if platform.system() == "Windows":
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DBUILD_ZLIB=OFF \
+        -DBUILD_PNG=ON \
+        -DBUILD_JPEG=ON \
+        -DBUILD_TIFF=ON \
+        -DBUILD_WEBP=OFF \
         -DBUILD_opencv_world=OFF \
         -DBUILD_opencv_core=ON \
         -DBUILD_opencv_imgproc=ON \
@@ -89,9 +95,9 @@ elif platform.system() == "Darwin":
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
         -DBUILD_ZLIB=OFF \
-        -DBUILD_PNG=OFF \
-        -DBUILD_JPEG=OFF \
-        -DBUILD_TIFF=OFF \
+        -DBUILD_PNG=ON \
+        -DBUILD_JPEG=ON \
+        -DBUILD_TIFF=ON \
         -DBUILD_WEBP=OFF \
         -DBUILD_opencv_world=OFF \
         -DBUILD_opencv_core=ON \
@@ -113,6 +119,17 @@ elif platform.system() == "Darwin":
         -DBUILD_DOCS=OFF \
         -DWITH_PROTOBUF=OFF \
         -DBUILD_PROTOBUF=OFF \
+        -DWITH_OBSENSOR=OFF \
+        -DWITH_OBSENSOR_ORBBEC_SDK=OFF \
+        -DWITH_1394=OFF \
+        -DWITH_ARAVIS=OFF \
+        -DWITH_GPHOTO2=OFF \
+        -DWITH_V4L=OFF \
+        -DWITH_XIMEA=OFF \
+        -DWITH_PVAPI=OFF \
+        -DWITH_OPENNI=OFF \
+        -DWITH_OPENNI2=OFF \
+        -DWITH_LIBREALSENSE=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
 else:
@@ -120,6 +137,12 @@ else:
         -DBUILD_TESTS=OFF \
         -DBUILD_PERF_TESTS=OFF \
         -DWITH_FFMPEG=ON \
+        -DOPENCV_FFMPEG_SKIP_BUILD_CHECK=ON \
+        -DBUILD_ZLIB=OFF \
+        -DBUILD_PNG=ON \
+        -DBUILD_JPEG=ON \
+        -DBUILD_TIFF=ON \
+        -DBUILD_WEBP=OFF \
         -DBUILD_opencv_world=OFF \
         -DBUILD_opencv_core=ON \
         -DBUILD_opencv_imgproc=ON \
@@ -140,14 +163,27 @@ else:
         -DBUILD_DOCS=OFF \
         -DWITH_PROTOBUF=OFF \
         -DBUILD_PROTOBUF=OFF \
+        -DWITH_OBSENSOR=OFF \
+        -DWITH_OBSENSOR_ORBBEC_SDK=OFF \
+        -DWITH_1394=OFF \
+        -DWITH_ARAVIS=OFF \
+        -DWITH_GPHOTO2=OFF \
+        -DWITH_V4L=OFF \
+        -DWITH_XIMEA=OFF \
+        -DWITH_PVAPI=OFF \
+        -DWITH_OPENNI=OFF \
+        -DWITH_OPENNI2=OFF \
+        -DWITH_LIBREALSENSE=OFF \
         -DCMAKE_INSTALL_PREFIX="{OPENCV_INSTALL_DIR}"
     """
-os.system(cmake_cmd)
-
+# os.system(cmake_cmd)
+subprocess.run(cmake_cmd, shell=True, encoding='utf-8', errors='ignore')
 # Build and install
 print("Building OpenCV...")
-os.system("cmake --build . --config Release -j6")
-os.system("cmake --install . --config Release")
+# os.system("cmake --build . --config Release -j6")
+subprocess.run("cmake --build . --config Release -j6", shell=True, encoding='utf-8', errors='ignore')
+# os.system("cmake --install . --config Release")
+subprocess.run("cmake --install . --config Release", shell=True, encoding='utf-8', errors='ignore')
 
 if platform.system() == "Windows":
     # Create target directory structure
@@ -192,6 +228,22 @@ elif lib64_dir.exists() and lib_dir.exists():
             shutil.copytree(lib_file, target_dir, symlinks=True)
     shutil.rmtree(lib64_dir)
     print("Successfully merged lib64 directory contents into lib directory")
+    
+# 在安装完成后
+if platform.system() == "Linux":
+    print("Copying FFmpeg libraries...")
+    import subprocess
+    # 查找系统的 FFmpeg 库
+    ffmpeg_libs = subprocess.run(
+        "ldconfig -p | grep -E 'libavcodec|libavformat|libavutil|libswscale' | awk '{print $NF}'",
+        shell=True, capture_output=True, text=True
+    ).stdout.strip().split('\n')
+    
+    target_lib_dir = OPENCV_INSTALL_DIR / "lib"
+    for lib_path in ffmpeg_libs:
+        if lib_path and Path(lib_path).exists():
+            shutil.copy2(lib_path, target_lib_dir)
+            print(f"  Copied {lib_path}")
 
 # Verify installation
 print("Verifying installation results:")

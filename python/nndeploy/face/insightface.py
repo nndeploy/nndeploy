@@ -643,7 +643,7 @@ class VideoInsightFaceSwapperWithMap(nndeploy.dag.Node):
         self.swapper = insightface.model_zoo.get_model(self.model_path_, providers=self.providers_)
         if self.is_gfpgan_:
             import gfpgan
-            self.device_, _ = nndeploy.device.get_available_device()
+            self.device_, _ = nndeploy.base.get_available_device()
             self.gfpgan = gfpgan.GFPGANer(self.gfpgan_model_path_, upscale=self.gfpgan_upscale_, device=self.device_)
         return nndeploy.base.Status.ok()
     

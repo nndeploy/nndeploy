@@ -227,6 +227,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
         "common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeImage);
+    path_ = "resources/images/output.jpg";
   }
   OpenCvImageEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
@@ -237,6 +238,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
         "common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeImage);
+    path_ = "resources/images/output.jpg";
   }
   OpenCvImageEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
@@ -246,6 +248,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
         "common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeImage);
+    path_ = "resources/images/output.jpg";
   }
   OpenCvImageEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -256,6 +259,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
         "common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeImage);
+    path_ = "resources/images/output.jpg";
   }
   virtual ~OpenCvImageEncode() {}
 
@@ -277,6 +281,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
         "supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeDir);
+    path_ = "resources/images";
   }
   OpenCvImagesEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                      std::vector<dag::Edge *> outputs)
@@ -287,6 +292,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
         "supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeDir);
+    path_ = "resources/images";
   }
 
   OpenCvImagesEncode(const std::string &name, base::CodecFlag flag)
@@ -297,6 +303,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
         "supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeDir);
+    path_ = "resources/images";
   }
   OpenCvImagesEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                      std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -307,6 +314,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
         "supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeDir);
+    path_ = "resources/images";
   }
   virtual ~OpenCvImagesEncode() {}
 
@@ -329,6 +337,7 @@ class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
         "supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeVideo);
+    path_ = "resources/videos/output.mp4";
   }
   OpenCvVideoEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
@@ -339,6 +348,7 @@ class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
         "supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeVideo);
+    path_ = "resources/videos/output.mp4";
   }
   OpenCvVideoEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
@@ -348,6 +358,7 @@ class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
         "supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeVideo);
+    path_ = "resources/videos/output.mp4";
   }
   OpenCvVideoEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -358,6 +369,7 @@ class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
         "supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeVideo);
+    path_ = "resources/videos/output.mp4";
   }
   virtual ~OpenCvVideoEncode() {}
 
@@ -384,6 +396,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
         "output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "resources/videos/camera_out.mp4";
   }
   OpenCvCameraEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                      std::vector<dag::Edge *> outputs)
@@ -394,6 +407,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
         "output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "resources/videos/camera_out.mp4";
   }
   OpenCvCameraEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
@@ -403,6 +417,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
         "output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "resources/videos/camera_out.mp4";
   }
   OpenCvCameraEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                      std::vector<dag::Edge *> outputs, base::CodecFlag flag)
@@ -413,6 +428,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
         "output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
     this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "resources/videos/camera_out.mp4";
   }
   virtual ~OpenCvCameraEncode() {}
 

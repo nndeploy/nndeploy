@@ -19,7 +19,7 @@
 # python run_json.py --json_file graph.json --parallel_type sequential # Set parallel type
 # python run_json.py --json_file graph.json --dump                    # Enable dump mode
 # python run_json.py --json_file graph.json --plugin plugin1.py       # Load specified plugin
-
+# python run_json.py --resources /path/to/resources # Set resources directory
 
 import nndeploy.dag.run_json as run_json
 

@@ -27,7 +27,9 @@ base::Status TokenizerEncodeCpp::init() {
   base::Status status = base::kStatusCodeOk;
 
   // 判断全局的图中是否有tokenizer_cpp
-  auto resource = this->getResourceWithoutState("tokenizer_cpp");
+  TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
+  std::string share_key = tokenizer_param->getShareKey();
+  auto resource = this->getResourceWithoutState(share_key);
   std::shared_ptr<tokenizers::Tokenizer> tokenizer_cpp = nullptr;
   if (!resource.empty()) {
     tokenizer_cpp = base::get<std::shared_ptr<tokenizers::Tokenizer>>(resource);
@@ -39,7 +41,7 @@ base::Status TokenizerEncodeCpp::init() {
   } else {  // #
             // 没有，创建一个，并把该资源全局注册到图的资源中，并赋值给tokenizer_
     // param_
-    TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
+    // TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
 
     if (tokenizer_param->tokenizer_type_ == TokenizerType::kTokenizerTypeHF) {
       if (tokenizer_param->json_blob_.empty()) {
@@ -113,7 +115,7 @@ base::Status TokenizerEncodeCpp::init() {
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "Invalid tokenizer type!");
     }
-    this->addResourceWithoutState("tokenizer_cpp", tokenizer_);
+    this->addResourceWithoutState(share_key, tokenizer_);
   }
 
   return status;
@@ -185,7 +187,9 @@ base::Status TokenizerDecodeCpp::init() {
   base::Status status = base::kStatusCodeOk;
 
   // 判断全局的图中是否有tokenizer_cpp
-  auto resource = this->getResourceWithoutState("tokenizer_cpp");
+  TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
+  std::string share_key = tokenizer_param->getShareKey();
+  auto resource = this->getResourceWithoutState(share_key);
   std::shared_ptr<tokenizers::Tokenizer> tokenizer_cpp = nullptr;
   if (!resource.empty()) {
     tokenizer_cpp = base::get<std::shared_ptr<tokenizers::Tokenizer>>(resource);
@@ -197,7 +201,7 @@ base::Status TokenizerDecodeCpp::init() {
   } else {  // #
             // 没有，创建一个，并把该资源全局注册到图的资源中，并赋值给tokenizer_
     // param_
-    TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
+    // TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
 
     if (tokenizer_param->tokenizer_type_ == TokenizerType::kTokenizerTypeHF) {
       if (tokenizer_param->json_blob_.empty()) {
@@ -271,7 +275,7 @@ base::Status TokenizerDecodeCpp::init() {
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "Invalid tokenizer type!");
     }
-    this->addResourceWithoutState("tokenizer_cpp", tokenizer_);
+    this->addResourceWithoutState(share_key, tokenizer_);
   }
 
   return status;

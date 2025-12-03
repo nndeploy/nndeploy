@@ -13,50 +13,74 @@ from pathlib import Path
 import time
 import argparse
 from tqdm import tqdm
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
+from urllib.parse import urljoin
 
 WORKSPACE_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..')
 OV_INSTALL_DIR = os.path.join(WORKSPACE_FOLDER, 'third_party', 'openvino')
-OV_PACAGES_URL = "https://storage.openvinotoolkit.org/repositories/openvino/packages"
+OV_PACAGES_URL = "https://storage.openvinotoolkit.org"
+EXCLUDE_DIRS = ["pre-release", "nightly", "master"]
+OV_FILETREE_URL = "https://storage.openvinotoolkit.org/filetree.json"
 
-def get_elements_from_url(url, by, value):
-    elements_list = []
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')  # 无界面模式
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get(url)
-    time.sleep(5)  # 等待页面加载完成，响应慢可以适当增加等待时间
-    elements = driver.find_elements('id', 'list')
-    for element in elements:
-        lines = element.text.splitlines()
-        for line in lines:
-            elements_list.append(line)
-    driver.quit()
-    return elements_list
+def fetch_filetree_json(url):
+    """从URL获取filetree.json内容"""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # 如果请求失败会抛出异常
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"获取filetree.json失败: {e}")
+        return None
+    
+def extract_openvino_archive_urls(filetree_data):
+    """从filetree.json中提取所有OpenVINO版本archive的下载URL"""
+    archives = []
+    
+    def traverse(node, current_path=""):
+        if node["type"] == "directory":
+            new_path = f"{current_path}/{node['name']}" if current_path else node['name']
+            if "children" in node:
+                for child in node["children"]:
+                    traverse(child, new_path)
+        elif node["type"] == "file":
+            # 检查是否在deployment_archives/releases目录下
+            if "repositories/openvino/packages" in current_path and is_archive_file(node["name"]) and not any(excl in current_path for excl in EXCLUDE_DIRS):
+                file_path = f"{current_path}/{node['name']}"
+                download_url = f"{OV_PACAGES_URL}{file_path}".replace("production", "")
+                archives.append({
+                    "name": node["name"],
+                    "path": file_path,
+                    "url": download_url,
+                    "size": node["size"],
+                    "last_modified": node["last modified"]
+                })
+    
+    traverse(filetree_data)
+    return archives
 
 def list_available_versions(url=OV_PACAGES_URL):
-    elements = get_elements_from_url(url, 'id', 'list')
+    filetree_data = fetch_filetree_json(OV_FILETREE_URL)
+    archives = extract_openvino_archive_urls(filetree_data)
 
     available_versions = []
-    for element in elements:
-        match = re.match(r'^([\d\.]+?)/', element)
+
+    for archive in archives:
+        # 提取版本号，版本号在文件名中以"202x.x"格式出现
+        match = re.search(r'(\d{4}\.\d+(\.\d+)*)', archive["url"])
         if match:
-            available_versions.append(match.group(1))
-            
+            version = match.group(1)
+            if version not in available_versions:
+                available_versions.append(version)
+
     return available_versions
 
 def list_available_files(url):
-    elements = get_elements_from_url(url, 'id', 'list')
-
+    filetree_data = fetch_filetree_json(OV_FILETREE_URL)
+    archives = extract_openvino_archive_urls(filetree_data)
     available_files = []
-    for element in elements:
-        if element.startswith('w_') or element.startswith('l_') or element.startswith('m_') or element.startswith('openvino'):
-            file_name = element.split()[0]
-            available_files.append(file_name)
-            
+    for archive in archives:
+        if url in archive["url"]:
+            available_files.append(archive["url"])
+
     return available_files
 
 def is_archive_file(file_name):
@@ -76,7 +100,7 @@ def find_suitable_openvino_url(version, target, arch):
     }
 
     system = system_map.get(target)
-    ov_url = f"{OV_PACAGES_URL}/{version}/{system}"
+    ov_url = f"{version}/{system}"
     available_files = list_available_files(ov_url)
     # print(f"Available files for version {version} on {system}: {available_files}")
     # 选择合适的文件
@@ -91,7 +115,7 @@ def find_suitable_openvino_url(version, target, arch):
         sys.exit(1)
     print(f"Found suitable file {target_file} for {system} {arch}")
 
-    download_url = f"{ov_url}/{target_file}"
+    download_url = target_file
 
     return download_url
 
@@ -149,7 +173,7 @@ def copy_files_with_suffix(src_dir, dest_dir, suffixes):
 
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         for file in files:
-            if any(file.endswith(suffix) for suffix in suffixes):
+            if any(suffix in file for suffix in suffixes):
                 shutil.copy2(os.path.join(root, file), dest_dir)
 
 # 解析命令行参数

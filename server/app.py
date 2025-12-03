@@ -34,6 +34,13 @@ def cli():
     ap.add_argument("--no-debug", dest="debug", action="store_false",
                     help="disable debug mode")
     ap.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
+    ap.add_argument(
+        "--json_file",
+        type=str,
+        nargs='*',
+        default=[],
+        help="Path(s) to one or more JSON files to copy into resources/workflow directory"
+    )
     ap.set_defaults(debug=False)
     return ap.parse_args()
 
@@ -90,15 +97,33 @@ def monitor_worker(
     plugin_update_q: "mp.queues.Queue",
     cancel_event_q: "mp.queues.Queue",
     resources,
+    server: NnDeployServer,
     stop_event: threading.Event,
 ) -> None:
+    restart_count = 0
     while not stop_event.is_set():
         if not worker.is_alive():
             logging.error(
                 "Worker died (exitcode=%s). Restarting in 2 seconds...", worker.exitcode
             )
+            try:
+                server.notify_system_event(
+                    "worker_died",
+                    {"exitcode": worker.exitcode, "restart_in_sec": 2}
+                )
+            except Exception:
+                logging.exception("[monitor_worker] notify worker_died failed")
             time.sleep(2)
+            logging.info("Worker restarted, new pid=%s (restart_count=%s)", worker.pid, restart_count)
             worker = start_worker(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, resources)
+            restart_count += 1
+            try:
+                server.notify_system_event(
+                    "worker_restarted",
+                    {"pid": worker.pid}
+                )
+            except Exception:
+                logging.exception("[monitor_worker] notify worker_restarted failed")
         time.sleep(1)
 
 def start_scheduler(queue: TaskQueue, job_q: mp.Queue):
@@ -173,6 +198,29 @@ def main() -> None:
 
     install_taskid_logrecord_factory()
 
+    # copy json file to workflow directory
+    json_files = []
+    for item in args.json_file:
+        for part in item.split(","):
+            part = part.strip()
+            if part:
+                json_files.append(part)
+
+    if json_files:
+        import shutil
+        workflow_dir = Path(args.resources) / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        for json_path in json_files:
+            try:
+                src = Path(json_path)
+                if not src.exists():
+                    logging.warning(f"JSON file not found: {src}")
+                    continue
+                shutil.copy(src, workflow_dir)
+                logging.info(f"Copied JSON file {src} to {workflow_dir}")
+            except Exception as e:
+                logging.error(f"Failed to copy JSON file {json_path}: {e}")
+
     # load plugin
     plugin_dir = Path(args.resources) / "plugin"
     plugin_dir.mkdir(parents=True, exist_ok=True)
@@ -204,7 +252,7 @@ def main() -> None:
     stop_event = threading.Event()
     monitor_t = threading.Thread(
         target=monitor_worker,
-        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, cancel_event_queue, args.resources, stop_event),
+        args=(worker, job_mp_queue, result_q, progress_q, log_q, plugin_update_q, cancel_event_queue, args.resources, server, stop_event),
         daemon=True,
     )
     monitor_t.start()

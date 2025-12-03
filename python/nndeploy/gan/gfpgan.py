@@ -18,7 +18,7 @@ class GFPGAN(nndeploy.dag.Node):
         
         self.model_path_ = "GFPGANv1.4.pth"
         self.upscale_ = 1
-        self.device_, _ = nndeploy.device.get_available_device()
+        self.device_, _ = nndeploy.base.get_available_device()
         
         # print(self.device_)
         

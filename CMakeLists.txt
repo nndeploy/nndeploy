@@ -4,9 +4,9 @@ project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
 
-set(NNDEPLOY_MAJOR_VERSION 2)
-set(NNDEPLOY_MINOR_VERSION 6)
-set(NNDEPLOY_PATCH_VERSION 2)
+set(NNDEPLOY_MAJOR_VERSION 3)
+set(NNDEPLOY_MINOR_VERSION 0)
+set(NNDEPLOY_PATCH_VERSION 7)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}")
 add_definitions(-DNNDEPLOY_VERSION="${NNDEPLOY_VERSION}")
 
@@ -24,6 +24,7 @@ endif()
 # set
 set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
+######################################################## build options ########################################################
 # 1. **Basic Build Options (Default Configuration Recommended)**: Such as whether to build as a shared library, C++ standard used, etc.
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "Build as shared library instead of static library" ON)
 nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "Hide symbols in the library to reduce binary size" OFF)
@@ -71,7 +72,6 @@ nndeploy_option(ENABLE_NNDEPLOY_IR "Enable Intermediate Representation module" O
 nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "Enable ONNX format support in IR module" OFF)
 # # Operators module
 nndeploy_option(ENABLE_NNDEPLOY_OP "Enable operators module" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "Enable Ascend C operators" OFF)
 # # Net module
 nndeploy_option(ENABLE_NNDEPLOY_NET "Enable neural network graph representation" ON)
 # # Inference module
@@ -117,6 +117,10 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration l
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK "Enable XNNPACK acceleration library" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK "Enable QNNPACK acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS "Enable Ascend ACLops acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "Enable Ascend C operators" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_CUDA "Enable CUDA operators" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_OPENCL "Enable OpenCL operators" OFF)
 
 # 5. **Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)**: Such as TensorRT, OpenVINO, ONNX Runtime and other inference frameworks
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "Enable NVIDIA TensorRT backend" OFF)
@@ -143,7 +147,7 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT "Enable MediaTek NeuroPilot
 ## OpenCV[Required options]
 ### method 1:
 # nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" "path/to/opencv") 
-# nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "opencv_world480") 
+# nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "opencv_world4100") 
 ### method 2:
 nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" ON)
 nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "") 
@@ -179,7 +183,7 @@ nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_
 ## super_resolution
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION "ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION" ON)
 ## ocr
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_OCR "ENABLE_NNDEPLOY_PLUGIN_OCR" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_OCR "ENABLE_NNDEPLOY_PLUGIN_OCR" ON)
 
 # Handle dependencies between build options
 ## plugin
@@ -221,11 +225,6 @@ endif()
 if(ENABLE_NNDEPLOY_PYTHON)
   set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
-  # # Add pybind11 subdirectory
-  # add_subdirectory(${ROOT_PATH}/third_party/pybind11)
-  # # include
-  # include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
-  # add_definitions(-DENABLE_NNDEPLOY_PYTHON)
 endif()
 
 if(ENABLE_NNDEPLOY_DEMO)
@@ -290,6 +289,7 @@ if(ENABLE_NNDEPLOY_DEVICE)
 endif()
 
 set(ENABLE_NNDEPLOY_BASE ON)
+######################################################## build options ########################################################
 
 # print option
 print_summary()
@@ -801,7 +801,7 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
   endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_CUDA AND ENABLE_NNDEPLOY_DEVICE_CUDNN)
+  if(ENABLE_NNDEPLOY_DEVICE_CUDA AND ENABLE_NNDEPLOY_DEVICE_CUDNN AND ENABLE_NNDEPLOY_OP_CUDA)
     file(GLOB_RECURSE OP_CUDA_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
@@ -814,11 +814,13 @@ if(ENABLE_NNDEPLOY_OP)
   endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-    file(GLOB OP_ASCEND_CL_SOURCE
+    if(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS)
+      file(GLOB OP_ASCEND_CL_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
-    )
-    set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+        "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
+      )
+      set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+    endif()
     if (ENABLE_NNDEPLOY_OP_ASCEND_C)
       add_definitions(-DENABLE_NNDEPLOY_OP_ASCEND_C)
       file(GLOB_RECURSE OP_ASCEND_C_SOURCE

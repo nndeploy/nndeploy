@@ -1,16 +1,15 @@
 /* eslint-disable no-console */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
 import { debounce } from "lodash-es";
 import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import { createFreeSnapPlugin } from "@flowgram.ai/free-snap-plugin";
 import { createFreeNodePanelPlugin } from "@flowgram.ai/free-node-panel-plugin";
 import { createFreeLinesPlugin } from "@flowgram.ai/free-lines-plugin";
-import { FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
+import { FlowNodeEntity, FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
 import { createFreeGroupPlugin } from "@flowgram.ai/free-group-plugin";
 import { createContainerNodePlugin } from "@flowgram.ai/free-container-plugin";
 
-import { onDragLineEnd } from "../utils";
 import { FlowNodeRegistry, FlowDocumentJSON } from "../typings";
 import { shortcuts } from "../shortcuts";
 import { CustomService, RunningService } from "../services";
@@ -22,20 +21,21 @@ import {
   BaseNode,
   CommentRender,
   GroupNodeRender,
-  LineAddButton,
   NodePanel,
 } from "../components";
-import { useFlowEnviromentContext } from "../context/flow-enviroment-context";
 import store from "../pages/Layout/Design/store/store";
 import React from "react";
+import { getNodeById, isbothNodeOffSpringOftheSameFixedGraph, isCompositeNode, isContainerNode, isFxiedGraphNode, isGraphNode, isNodeOffspringOfCompositeNode, isNodeOffSpringOfFixedGraph } from "../pages/components/flow/functions";
+import { IExpandInfo } from "../pages/components/flow/entity";
+import lodash from 'lodash'
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
 
-   const { state } = React.useContext(store);
-   const {dagGraphInfo } = state
+  //const { state } = React.useContext(store);
+
   return useMemo<FreeLayoutProps>(() => {
     return {
       /**
@@ -76,6 +76,7 @@ export function useEditorProps(
         hovered: "#37d0ff",
         selected: "#37d0ff",
         error: "red",
+        flowing: "#5DD6E3",
       },
       /*
        * Check whether the line can be added
@@ -91,14 +92,24 @@ export function useEditorProps(
           return false
         }
 
-      //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
-      //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
-      //   !succesorNodes && fromPort.type
-      
-      // ){
-      //     return false
-      //   }
-       // dagGraphInfo.accepted_edge_types[fromPort.node.]
+
+
+        if (isNodeOffspringOfCompositeNode(fromPort.node, ctx) || isNodeOffspringOfCompositeNode(toPort.node, ctx)) {
+          return false
+        }
+
+        if (isbothNodeOffSpringOftheSameFixedGraph(fromPort.node, toPort.node, ctx)) {
+          return false
+        }
+
+        //   var succesorNodes = dagGraphInfo.accepted_edge_types[fromPort.node.flowNodeType]
+        //   if(succesorNodes && succesorNodes.includes(toPort.node.flowNodeType as string) || 
+        //   !succesorNodes && fromPort.type
+
+        // ){
+        //     return false
+        //   }
+        // dagGraphInfo.accepted_edge_types[fromPort.node.]
 
 
 
@@ -109,6 +120,51 @@ export function useEditorProps(
        * 判断是否能删除连线, 这个会在默认快捷键 (Backspace or Delete) 触发
        */
       canDeleteLine(ctx, line, newLineInfo, silent) {
+
+
+
+        if (isbothNodeOffSpringOftheSameFixedGraph(line.from, line.to, ctx)) {
+          return false
+        }
+        if (isGraphNode(line.from!.id, ctx)) {
+          const fromNode = getNodeById(line.from!.id, ctx)
+          const expandInfo: IExpandInfo = fromNode?.getNodeMeta().expandInfo
+          let { outputLines = [] } = expandInfo
+
+          outputLines = outputLines.filter(outputLine => {
+            if (outputLine.from == line.from!.id && outputLine.fromPort == line.fromPort?.portID
+              && outputLine.to == line.to!.id && outputLine.toPort == line.toPort?.portID
+
+            ) {
+              return false
+            }
+            return true
+          })
+
+          fromNode!.getNodeMeta().expandInfo = { ...expandInfo, outputLines }
+
+
+
+        }
+
+        if (isGraphNode(line.to!.id, ctx)) {
+          const toNode = getNodeById(line.to!.id, ctx)
+          const expandInfo: IExpandInfo = toNode?.getNodeMeta().expandInfo
+          let { inputLines = [] } = expandInfo
+
+          inputLines = inputLines.filter(inputLine => {
+            if (inputLine.from == line.from!.id && inputLine.fromPort == line.fromPort?.portID
+              && inputLine.to == line.to!.id && inputLine.toPort == line.toPort?.portID
+
+            ) {
+              return false
+            }
+            return true
+          })
+
+          toNode!.getNodeMeta().expandInfo = { ...expandInfo, inputLines }
+
+        }
         return true;
       },
       /**
@@ -116,13 +172,38 @@ export function useEditorProps(
        * 判断是否能删除节点, 这个会在默认快捷键 (Backspace or Delete) 触发
        */
       canDeleteNode(ctx, node) {
+
+        if (isNodeOffSpringOfFixedGraph(node, ctx)) {
+          return false
+        }
+
+        if (isNodeOffspringOfCompositeNode(node, ctx)) {
+          return false
+        }
+
+        return true;
+      },
+      /**
+       * Whether allow dragging into the container node
+       * 是否允许拖入容器节点
+       */
+      canDropToNode: (ctx, params) => {
+        const { dragNode, dropNode } = params;
+        // Nested container parent nodes cannot be dragged into child nodes
+        if (dropNode?.parent?.id === dragNode?.id) {
+          return false;
+        }
+
+        if (isFxiedGraphNode(dropNode?.id, ctx) || isCompositeNode(dropNode?.id, ctx)) {
+          return false;
+        }
         return true;
       },
       /**
        * Drag the end of the line to create an add panel (feature optional)
        * 拖拽线条结束需要创建一个添加面板 （功能可选）
        */
-      onDragLineEnd: undefined, 
+      onDragLineEnd: undefined,
       /**
        * SelectBox config
        */
@@ -161,7 +242,7 @@ export function useEditorProps(
        * Content change
        */
       onContentChange: debounce((ctx, event) => {
-             //console.log("Auto Save: ", event, ctx.document.toJSON());
+        //console.log("Auto Save: ", event, ctx.document.toJSON());
       }, 1000),
       /**
        * Running line
@@ -182,7 +263,7 @@ export function useEditorProps(
        * Playground init
        */
       onInit() {
-        //console.log("--- Playground init ---");
+        console.log("--- Playground init ---");
       },
       /**
        * Playground render
@@ -190,7 +271,7 @@ export function useEditorProps(
       onAllLayersRendered(ctx) {
         //  Fitview
         ctx.document.fitView(false);
-        //console.log("--- Playground rendered ---");
+        console.log("--- Playground rendered ---");
       },
       /**
        * Playground dispose
@@ -229,7 +310,7 @@ export function useEditorProps(
             nodeBorderColor: "rgba(6, 7, 9, 0.10)",
             overlayColor: "rgba(255, 255, 255, 0.55)",
           },
-          inactiveDebounceTime: 1,
+          //inactiveDebounceTime: 1,
         }),
         /**
          * Variable plugin
@@ -259,9 +340,9 @@ export function useEditorProps(
          * 这个用于 loop 节点子画布的渲染
          */
         createContainerNodePlugin({}),
-        createFreeGroupPlugin({
-          groupNodeRender: GroupNodeRender,
-        }),
+        // createFreeGroupPlugin({
+        //   groupNodeRender: GroupNodeRender,
+        // }),
       ],
     };
   }, [initialData, nodeRegistries]);

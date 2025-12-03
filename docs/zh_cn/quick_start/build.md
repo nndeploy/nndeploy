@@ -15,7 +15,7 @@ python3 clone_submodule.py
 
 ## 2. 编译宏介绍
 
-+ 参考[编译宏文档](./build_macro.md) 的详细介绍
+参考[编译宏文档](./build_macro.md) 的详细介绍
 
 包含了以下几类配置：
 
@@ -23,12 +23,12 @@ python3 clone_submodule.py
 2. **核心模块选项（建议采用默认配置）**：更细粒度控制需要编译的文件
 3. **设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）**：如CUDA、OpenCL、各种NPU等硬件加速支持
 4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn、onednn、xnnpack、qnnpack
-5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持
+5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime、MNN等推理框架支持
 6. **算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）**：如检测、分割、llm、文生图等算法插件
 
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
 
-    + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
+    + **注意：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，由于该库依赖rust，打开前**务必**参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)**
 
 > 注：所有后端均可选。三方库可使用自己的，也可使用nndeploy预编译版本：
 > + [huggingface](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party)：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
@@ -81,14 +81,86 @@ make install                # 在build目录下生成安装目录
 >            -DANDROID_STL=c++_static \
 >            -DANDROID_NATIVE_API_LEVEL=android-14
 >   ```
-> - **macOS/iOS**：使用 Xcode 编译
+> - **macOS**：使用上述 make 命令编译 or 使用 Xcode 编译
+> - **iOS**：使用 Xcode 编译
 
+
+### Python包的安装
+
+nndeploy 提供了完整的 Python API，支持通过Python API快速部署各种深度学习模型。
+
+- 环境要求：Python 3.10+
+
+- 安装方式
+
+  在完成上述的cmake、make、make install之后
+
+  ```bash
+  cd path/to/nndeploy/python
+  pip install -e .
+  ```
+
+- 安装验证
+
+  运行以下命令确认安装成功：
+
+  ```bash
+  python -c "import nndeploy; print(nndeploy.__version__)"
+  ```
+
+- 可能的问题
+
+  - **conda环境冲突问题**
+  
+    当与conda环境产生冲突，无法正常运行时，可参考[解决方案脚本](https://github.com/nndeploy/nndeploy/blob/main/tool/script/fixed_sys_conda.sh)进行修复。
+
+  - **系统环境保护问题**
+  
+    在某些系统中，为了保护系统Python环境的完整性，不允许直接在全局Python环境中安装第三方包。此时建议使用虚拟环境进行安装：
+    
+    ```bash
+    # 创建虚拟环境
+    python3 -m venv nndeploy_env
+    
+    # 激活虚拟环境
+    source nndeploy_env/bin/activate
+    
+    # 在虚拟环境中安装
+    pip install -e .
+    ```
+
+  - **动态库路径问题**
+  
+    如果运行时提示找不到相关动态库，需要将nndeploy的库路径添加到系统环境变量中：
+    
+    ```bash
+    export LD_LIBRARY_PATH=path/to/nndeploy/python/nndeploy:$LD_LIBRARY_PATH
+    ```
+    
+    其中`path/to/nndeploy`需要替换为实际的nndeploy安装路径。
+
+### 提供的编译脚本
+
+为了简化编译过程，nndeploy 提供了针对不同平台的编译脚本：
+
+- `build_linux.py`: Linux 平台编译脚本
+- `build_mac_arm64.py`: macOS ARM64 平台编译脚本  
+- `build_win.py`: Windows x86_64 平台编译脚本
+
+> **注意**：使用编译脚本，需要稳定的网络访问 GitHub，如果无法正常访问 GitHub，建议采用上述手动编译方式进行构建。采用脚本编译时间很长，请耐心等待。
+
+> **编译配置说明**：
+> - 对应的配置文件：[cmake/config_opencv_ort_mnn_tokenizer.cmake](../../../cmake/config_opencv_ort_mnn_tokenizer.cmake)
+> - 这些脚本使用与 Python 包相同的编译选项配置
+> - 默认启用的推理后端：ONNXRuntime、MNN
+> - 默认启用的依赖库：OpenCV、tokenizer-cpp
 
 ## 4. 主库编译
 
-+ 默认编译产物为：libnndeploy_framework.so(Windows下为nndeploy_framework.dll)
-+ 算法插件编译产物为：libnndeploy_plugin_xxx.so(Windows下为nndeploy_plugin_xxx.dll)
-+ 可执行程序编译产物为：nndeploy_demo_xxx(Windows下为nndeploy_demo_xxx.exe)
++ 默认编译产物：libnndeploy_framework.so(Windows下为nndeploy_framework.dll)
++ 算法插件编译产物：libnndeploy_plugin_xxx.so(Windows下为nndeploy_plugin_xxx.dll)
++ 可执行程序编译产物：nndeploy_demo_xxx(Windows下为nndeploy_demo_xxx.exe)
++ cpp导出python的编译产物：nndeploy_internal.cpython-xxx.so(Windows下为nndeploy_internal.cpython-xxx.pyd)
 
 > 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag  
 
@@ -96,7 +168,7 @@ make install                # 在build目录下生成安装目录
 
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |         备注         |
 | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------: |
-|       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                                                                  [链接](https://opencv.org/get-started/)                                                                   |                      |
+|       [opencv](https://github.com/opencv/opencv)        |  4.10.0   |                           [链接](https://opencv.org/get-started/)                           |                                                                  [链接](https://opencv.org/get-started/)                                                                   |                      |
 |     [TensorRT](https://github.com/NVIDIA/TensorRT)      | 8.6.0.12 |  [链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing)  |                                                            [链接](https://developer.nvidia.com/zh-cn/tensorrt)                                                             | 支持jetson-orin-nano |
 | [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      | [链接](https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/download.html?ENVIRONMENT=RUNTIME&OP_SYSTEM=MACOS&VERSION=v_2023_0_1&DISTRIBUTION=ARCHIVE) |                      |
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) |                                                   [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1)                                                    |                      |
@@ -121,6 +193,9 @@ make install                # 在build目录下生成安装目录
 
 - 安装opencv
   - `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
+
+
+
       
       
       

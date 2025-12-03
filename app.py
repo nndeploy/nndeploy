@@ -17,8 +17,9 @@
 # python app.py --log ./my_logs/server.log         # Specify log file path
 # python app.py --plugin plugin1.py plugin2.so     # Load specified plugins
 # python app.py --front-end-version @latest        # Specify frontend version
+# python app.py --json_file ./json_file.json,...   # Specify json file paths, copy json files to workflow directory
 
-import server.app as app
+import nndeploy.server.app as app
 
 if __name__ == "__main__":
     app.main()

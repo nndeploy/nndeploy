@@ -14,7 +14,7 @@
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
-  
+
 struct PyObjectWrapper {
   PyObject *obj;  // 指向Python对象的指针
 
@@ -68,11 +68,6 @@ class PyNode : public Base {
                            getDeviceType);
   }
 
-  //   base::Status setParam(base::Param *param) override {
-  //     PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam,
-  //     param);
-  //   }
-
   base::Status setParamSharedPtr(std::shared_ptr<base::Param> param) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParamSharedPtr,
                            param);
@@ -83,10 +78,6 @@ class PyNode : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_param", setParam, key,
                            value);
   }
-
-  //   base::Param *getParam() override {
-  //     PYBIND11_OVERRIDE_NAME(base::Param *, Base, "get_param", getParam);
-  //   }
 
   std::shared_ptr<base::Param> getParamSharedPtr() override {
     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Base, "get_param",
@@ -104,6 +95,73 @@ class PyNode : public Base {
       const std::string &key) override {
     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Base,
                            "get_external_param", getExternalParam, key);
+  }
+
+  base::Status addResourceWithoutState(const std::string &key,
+                                       const base::Any &value) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "add_resource_without_state",
+                           addResourceWithoutState, key, value);
+  }
+
+  base::Any &getResourceWithoutState(const std::string &key) override {
+    PYBIND11_OVERRIDE_NAME(base::Any &, Base, "get_resource_without_state",
+                           getResourceWithoutState, key);
+  }
+
+  Edge *createResourceWithState(const std::string &key) override {
+    PYBIND11_OVERRIDE_NAME(Edge *, Base, "create_resource_with_state",
+                           createResourceWithState, key);
+  }
+
+  base::Status addResourceWithState(const std::string &key,
+                                    Edge *edge) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "add_resource_with_state",
+                           addResourceWithState, key, edge);
+  }
+
+  Edge *getResourceWithState(const std::string &key) override {
+    PYBIND11_OVERRIDE_NAME(Edge *, Base, "get_resource_with_state",
+                           getResourceWithState, key);
+  }
+
+  base::Status setInput(Edge *input, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input", setInput, input,
+                           index);
+  }
+
+  base::Status setOutput(Edge *output, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output", setOutput, output,
+                           index);
+  }
+
+  base::Status setIterInput(Edge *input, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_iter_input", setIterInput,
+                           input, index);
+  }
+
+  base::Status setInputs(std::vector<Edge *> inputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_inputs", setInputs, inputs);
+  }
+
+  base::Status setOutputs(std::vector<Edge *> outputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs", setOutputs,
+                           outputs);
+  }
+
+  Edge *createInternalOutputEdge(const std::string &name) override {
+    PYBIND11_OVERRIDE_NAME(Edge *, Base, "create_internal_output_edge",
+                           createInternalOutputEdge, name);
+  }
+
+  base::Status setParallelType(
+      const base::ParallelType &parallel_type) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_parallel_type",
+                           setParallelType, parallel_type);
+  }
+
+  base::ParallelType getParallelType() override {
+    PYBIND11_OVERRIDE_NAME(base::ParallelType, Base, "get_parallel_type",
+                           getParallelType);
   }
 
   std::shared_ptr<RunStatus> getRunStatus() override {
@@ -148,6 +206,19 @@ class PyNode : public Base {
     PYBIND11_OVERRIDE_NAME(bool, Base, "synchronize", synchronize);
   }
 
+  bool interrupt() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "interrupt", interrupt);
+  }
+
+  bool checkInterruptStatus() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "check_interrupt_status",
+                           checkInterruptStatus);
+  }
+
+  void clearInterrupt() override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "clear_interrupt", clearInterrupt);
+  }
+
   std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
                            inputs);
@@ -177,7 +248,8 @@ class PyNode : public Base {
   }
 
   base::Status toStaticGraph() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph",
+                           toStaticGraph);
   }
 
   std::vector<std::string> getRealOutputsName() override {
@@ -292,6 +364,33 @@ class PyGraph : public Base {
                            setOutputsSharedPtr, outputs);
   }
 
+  virtual void setLoopMaxFlag(bool is_loop_max_flag) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_loop_max_flag", setLoopMaxFlag,
+                           is_loop_max_flag);
+  }
+
+  virtual bool getLoopMaxFlag() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "get_loop_max_flag", getLoopMaxFlag);
+  }
+
+  virtual void setLoopCount(int loop_count) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_loop_count", setLoopCount,
+                           loop_count);
+  }
+
+  virtual int getLoopCount() override {
+    PYBIND11_OVERRIDE_NAME(int, Base, "get_loop_count", getLoopCount);
+  }
+
+  // 在类定义前添加类型别名
+  using LoopCountMap = std::map<std::string, int>;
+
+  // 然后在方法中使用
+  virtual LoopCountMap getLoopCountMap() override {
+    PYBIND11_OVERRIDE_NAME(LoopCountMap, Base, "get_loop_count_map",
+                           getLoopCountMap);
+  }
+
   virtual base::Status defaultParam() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "default_param", defaultParam);
   }
@@ -310,6 +409,10 @@ class PyGraph : public Base {
 
   virtual bool synchronize() override {
     PYBIND11_OVERRIDE_NAME(bool, Base, "synchronize", synchronize);
+  }
+
+  virtual bool interrupt() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "interrupt", interrupt);
   }
 
   std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
@@ -345,7 +448,30 @@ class PyGraph : public Base {
   }
 
   base::Status toStaticGraph() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph", toStaticGraph);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "to_static_graph",
+                           toStaticGraph);
+  }
+
+  virtual base::Status addResourceWithoutState(
+      const std::string &key, const base::Any &value) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "add_resource_without_state",
+                           addResourceWithoutState, key, value);
+  }
+
+  virtual base::Any &getResourceWithoutState(const std::string &key) override {
+    PYBIND11_OVERRIDE_NAME(base::Any &, Base, "get_resource_without_state",
+                           getResourceWithoutState, key);
+  }
+
+  virtual base::Status addResourceWithState(const std::string &key,
+                                            Edge *edge) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "add_resource_with_state",
+                           addResourceWithState, key, edge);
+  }
+
+  virtual Edge *getResourceWithState(const std::string &key) override {
+    PYBIND11_OVERRIDE_NAME(Edge *, Base, "get_resource_with_state",
+                           getResourceWithState, key);
   }
 
   virtual base::Status serialize(
@@ -367,21 +493,6 @@ class PyGraph : public Base {
   virtual base::Status deserialize(const std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
                            json_str);
-  }
-
-  virtual void setLoopCount(int loop_count) override {
-    PYBIND11_OVERRIDE_NAME(void, Base, "set_loop_count", setLoopCount,
-                           loop_count);
-  }
-
-  virtual int getLoopCount() override {
-    PYBIND11_OVERRIDE_NAME(int, Base, "get_loop_count", getLoopCount);
-  }
-
-  virtual std::map<std::string, int> getLoopCountMap() override {
-    using ReturnType = std::map<std::string, int>;
-    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map",
-                           getLoopCountMap);
   }
 
   virtual void setUnusedNodeNames(const std::string &node_name) override {
@@ -409,6 +520,10 @@ class PyGraph : public Base {
   virtual std::set<std::string> getUnusedNodeNames() override {
     PYBIND11_OVERRIDE_NAME(std::set<std::string>, Base, "get_unused_node_names",
                            getUnusedNodeNames);
+  }
+
+  virtual void removeInOutNode() override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "remove_in_out_node", removeInOutNode);
   }
 
   virtual void setNodeValue(const std::string &node_value_str) override {

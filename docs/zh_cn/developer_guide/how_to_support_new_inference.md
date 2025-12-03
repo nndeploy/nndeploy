@@ -5,6 +5,7 @@
 
 inference是nndeploy的多端推理子模块，通过对第三方推理框架的抽象，屏蔽不同推理框架的差异性，并做到统一的接口调用的体验，nndeploy当前已经支持TensorRT、OpenVINO、ONNXRuntime、MNN、TNN、ncnn、coreML、paddle-lite、AscendCL、RKNN等多个推理框架。
 
+nndeploy支持灵活的推理框架选择，用户可以根据实际需求进行选择性编译。如果您有自定义的推理框架，也可以完全不依赖其他第三方推理框架独立运行，具有很好的扩展性和灵活性。
 
 ## 步骤
 

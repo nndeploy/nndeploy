@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, INIT_FRESH_RESOURCE_TREE, } from './actionType'
+import { INIT_DAG_GRAPH_INFO, INIT_FRESH_FLOW_TREE, INIT_FRESH_RESOURCE_TREE, INIT_RESOURCE_DIR, } from './actionType'
 import { IDagGraphInfo, INodeEntity, INodeTreeNodeEntity, NodeTreeNodeData } from '../../../Node/entity';
 import { FlowNodeRegistry } from '../../../../typings';
 import { buildNodeRegistry } from '../../../components/flow/nodeRegistry/buildNodeRegistry';
 import { CommentNodeRegistry } from '../../../../nodes/comment';
+import { GroupNodeRegistry } from '../../../../nodes/group';
 
 interface state {
   dagGraphInfo: IDagGraphInfo,
@@ -12,6 +13,7 @@ interface state {
   treeData: NodeTreeNodeData[],
   freshFlowTreeCnt: number,
   freshResourceTreeCnt: number,
+  resourceDir: string,
 }
 
 export const initialState: state = {
@@ -19,6 +21,7 @@ export const initialState: state = {
     graph: {
       key_: "",
       name_: "",
+      desc_: "", 
       device_type_: "",
       inputs_: [],
       outputs_: [],
@@ -38,7 +41,8 @@ export const initialState: state = {
   nodeRegistries: [],
   treeData: [],
   freshFlowTreeCnt: 0,
-  freshResourceTreeCnt: 0
+  freshResourceTreeCnt: 0, 
+  resourceDir: ''
 
 }
 
@@ -94,6 +98,8 @@ export function reducer(state: state, action: any): state {
       })
 
       nodeRegistries.push(CommentNodeRegistry)
+       nodeRegistries.push(GroupNodeRegistry)
+       
 
 
       const treeData = buildTreeFromArray(dagGraphInfo.nodes)
@@ -111,6 +117,12 @@ export function reducer(state: state, action: any): state {
     }
     case INIT_FRESH_RESOURCE_TREE: {
       const temp: state = { ...state, freshResourceTreeCnt: state.freshResourceTreeCnt + 1 }
+      return temp
+    }
+
+    case INIT_RESOURCE_DIR: {
+      const workDir: string = action.payload
+      const temp: state = { ...state, resourceDir: workDir }
       return temp
     }
     default:

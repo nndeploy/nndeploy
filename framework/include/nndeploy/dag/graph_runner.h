@@ -41,8 +41,8 @@ class NNDEPLOY_CC_API GraphRunner {
    * @return base::Status 执行状态
    */
   std::shared_ptr<GraphRunnerResult> run(const std::string& graph_json_str,
-                                         const std::string& name,
-                                         const std::string& task_id);
+                                         const std::string& name = "graph_runner",
+                                         const std::string& task_id = "task_id");
 
   void set_json_file(bool is_json_file);
   void set_dump(bool is_dump);
@@ -52,6 +52,8 @@ class NNDEPLOY_CC_API GraphRunner {
   void set_loop_max_flag(bool is_loop_max_flag);
   void set_node_value(const std::string& node_name, const std::string& key,
                       const std::string& value);
+  void set_node_value(
+      std::map<std::string, std::map<std::string, std::string>> node_value_map);
 
  protected:
   /**

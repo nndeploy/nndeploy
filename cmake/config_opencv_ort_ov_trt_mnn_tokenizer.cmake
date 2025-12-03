@@ -34,10 +34,14 @@ set(ENABLE_NNDEPLOY_DEVICE_MTK_NPU OFF) # Whether to enable device MTK NPU, defa
 set(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU OFF) # Whether to enable device Sophon NPU, default is OFF
 
 # Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)
-set(ENABLE_NNDEPLOY_DEVICE_CUDNN ON) # Whether to enable operator CUDNN, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN OFF) # Whether to enable operator X86_ONEDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK OFF) # Whether to enable operator ARM_XNNPACK, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNNPACK, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS OFF) # Whether to enable operator ASCEND_ACLOPS, default is OFF
+set(ENABLE_NNDEPLOY_OP_ASCEND_C OFF) # Whether to enable operator ASCEND_C, default is OFF
+set(ENABLE_NNDEPLOY_OP_CUDA OFF) # Whether to enable operator CUDA, default is OFF
+set(ENABLE_NNDEPLOY_OP_OPENCL OFF) # Whether to enable operator OPENCL, default is OFF
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON) # Whether to enable INFERENCE TENSORRT, default is OFF
@@ -47,7 +51,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, 
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "tool/script/third_party/onnxruntime1.18.0")
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
-set(ENABLE_NNDEPLOY_INFERENCE_MNN "tool/script/third_party/mnn2.4.0") # Whether to enable INFERENCE MNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_MNN "tool/script/third_party/mnn3.2.4") # Whether to enable INFERENCE MNN, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # Whether to enable INFERENCE TVM, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # Whether to enable INFERENCE PADDLELITE, default is OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # Whether to enable INFERENCE RKNN_TOOLKIT_1, default is OFF
@@ -63,11 +67,11 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # Link OpenCV by specifying the path
-# set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0") # Whether to link the third-party OpenCV library, default is ON
+# set(NNDEPLOY_OPENCV_LIBS "opencv_world4100") # Specific OpenCV library names to link, such as opencv_world4100, opencv_java4, etc.
+set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.10.0") # Whether to link the third-party OpenCV library, default is ON
 # Includes complete functional modules such as image display, camera calibration, feature detection, and KalmanFilter tracking functionality
 set(NNDEPLOY_OPENCV_LIBS opencv_core opencv_imgproc opencv_imgcodecs opencv_videoio opencv_highgui opencv_video opencv_dnn opencv_calib3d opencv_features2d opencv_flann)
-set(NNDEPLOY_OPENCV_VERSION 480)
+set(NNDEPLOY_OPENCV_VERSION 4100)
 
 ## Tokenizer-cpp
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF

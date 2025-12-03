@@ -46,7 +46,7 @@ class RingQueue {
       return T{};
     }
     T value = std::move(data_[head_]);
-    // data_[head_] = T{};
+    data_[head_] = T{};
     head_ = (head_ + 1) & mask_;
     --size_;
     return value;

@@ -38,7 +38,9 @@ base::Status Condition::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -50,7 +52,9 @@ base::Status Condition::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(true);
+  if (!is_inner_) {
+    setInitializedFlag(true);
+  }
 
   return status;
 }
@@ -68,7 +72,9 @@ base::Status Condition::deinit() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  if (!is_inner_) {
+    setInitializedFlag(false);
+  }
 
   return status;
 }
@@ -76,7 +82,9 @@ base::Status Condition::deinit() {
 base::Status Condition::run() {
   base::Status status = base::kStatusCodeOk;
 
-  setRunningFlag(true);
+  if (!is_inner_) {
+    setRunningFlag(true);
+  }
 
   int index = this->choose();
   if (index < 0 || index >= node_repository_.size()) {
@@ -95,7 +103,9 @@ base::Status Condition::run() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "condition executor run failed!");
 
-  setRunningFlag(false);
+  if (!is_inner_) {
+    setRunningFlag(false);
+  }
 
   return status;
 }

@@ -137,7 +137,7 @@ class MakeImageGrid(nndeploy.dag.Node):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
         self.set_key("nndeploy.codec.MakeImageGrid")
-        self.set_desc("将多张PIL图像拼接为网格")
+        self.set_desc("Concatenate multiple PIL images into a grid")
         self.rows = 1
         self.cols = 1
         self.resize_h = -1

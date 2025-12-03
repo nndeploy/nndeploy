@@ -142,7 +142,7 @@ device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
   if (device::isHostDeviceType(device_type)) {
     auto host_device = device::getDevice(device_type);
     device::Tensor* host_tensor =
-        new device::Tensor(host_device, desc, data_ptr);
+        new device::Tensor(host_device, desc, data_ptr, "");
     if (host_tensor == nullptr) {
       return nullptr;
     }
@@ -151,7 +151,7 @@ device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
   } else {
     auto host_device = device::getDefaultHostDevice();
     device::Tensor* host_tensor =
-        new device::Tensor(host_device, desc, data_ptr);
+        new device::Tensor(host_device, desc, data_ptr, "");
     if (host_tensor == nullptr) {
       return nullptr;
     }

@@ -1,5 +1,20 @@
 
-## app运行
+## app安装运行
+
+<table cellpadding="5" cellspacing="0" border="1">
+<tr>
+  <td>桌面端搭建AI工作流</td>
+  <td>移动端部署</td>
+</tr>
+<tr>
+  <td><img src="../../docs/image/workflow/worflow_llm.gif" width="500px"></td>
+  <td><img src="../../docs/image/android_app/app-chat.jpg" width="100px"></td>
+</tr>
+<tr>
+  <td><img src="../../docs/image/workflow/worflow_segment_rmbg.gif" width="500px"></td>
+  <td><img src="../../docs/image/android_app/app-seg-result.jpg" width="100px"></td>
+</tr>
+</table>
 
 ### 配置NDK
 ```bash
@@ -25,7 +40,9 @@ ninja
 ninja install
 ```
 
-### libc++_shared.so
+> 更多请参考[编译手册](../../docs/zh_cn/quick_start/build.md)
+
+### 拷贝libc++_shared.so
 ```bash
 cp /snap/android-ndk-r25c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so /home/always/github/public/nndeploy/build/nndeploy_2.6.2_Android_aarch64_Release_Clang/lib
 ```
@@ -44,9 +61,25 @@ python3 ../tool/script/android_install_resouces.py -r  /home/always/github/publi
 ### 启动Android Studio
 
 - 通过Android Studio，打开path/nndeploy/app/android
+- 编译
+
+### 运行
+
+<table cellpadding="5" cellspacing="0" border="1">
+<tr>
+  <td>首页</td>
+  <td>chat</td>
+  <td>seg</td>
+</tr>
+<tr>
+  <td><img src="../../docs/image/android_app/app-cover.jpg" width="100px"></td>
+  <td><img src="../../docs/image/android_app/app-chat.jpg" width="100px"></td>
+  <td><img src="../../docs/image/android_app/app-seg-result.jpg" width="100px"></td>
+</tr>
+</table>
 
 
-## adb运行
+## 另一种方式：adb运行
 
 ### push
 ```bash

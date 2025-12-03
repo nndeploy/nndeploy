@@ -7,7 +7,7 @@
    python3 install_opencv.py
    ```
 
-   This script will automatically download and install OpenCV 4.8.0.
+   This script will automatically download and install OpenCV 4.10.0.
 
 2. Run Demo Programs
    Execute in SDK directory:

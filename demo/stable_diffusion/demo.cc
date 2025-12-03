@@ -1,3 +1,8 @@
+/**
+ * nndeploy Stable Diffusion Demo:
+ * Implementation of stable diffusion algorithm using static graph construction
+ */
+
 // #include <cuda_runtime.h>
 
 #include "flag.h"

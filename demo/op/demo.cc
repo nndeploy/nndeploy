@@ -1,3 +1,8 @@
+/**
+ * nndeploy Op Demo:
+ * test op
+ */
+
 #include <cassert>
 #include <chrono>
 #include <fstream>
@@ -86,7 +91,7 @@ int main(int argc, char* argv[]) {
     data_test[i] = (float)(i % 2 + 1);
   }
   device::Tensor* h_input =
-      new device::Tensor(cpu_device, desc, (void*)data_test);
+      new device::Tensor(cpu_device, desc, (void*)data_test, "");
   h_input->copyTo(d_input);
 
   // to save residual

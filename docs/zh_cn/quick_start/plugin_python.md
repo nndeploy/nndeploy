@@ -1,16 +1,41 @@
 
-# Python插件开发手册
+# Python自定义节点开发手册
 
-## 插件开发简介
+## **自定义节点参考代码**：
 
-在nndeploy框架中，插件（plugin）是一种可以组合调用的功能模块，通过Python实现的插件继承自`nndeploy.dag.Node`基类。插件通过DAG（有向无环图）进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理等等。
+- [template/python/template.py](https://github.com/nndeploy/nndeploy/blob/main/template/python/template.py)
 
-插件设计的目的是：
+- 前端工作流加载自定义节点：
+    - 命令行加载
+        ```bash
+        nndeploy-app --port 8000 --plugin path/to/template/python/template.py
+        ```
+    - 代码启动
+        
+        参考代码：[template/python/app.py][https://github.com/nndeploy/nndeploy/blob/main/template/python/app.py]
+        ```python
+        import nndeploy.server.app as app
+
+        from template import TemplatePy # 导入用户自定以节点
+
+        if __name__ == "__main__":
+            app.main()
+        ```
+        ```bash
+        cd template/python/
+        python app.py --port 8000
+        ```
+
+## 自定义节点开发简介
+
+在nndeploy框架中，自定义节点是一种可以组合调用的功能模块，通过Python实现的自定义节点继承自`nndeploy.dag.Node`基类。自定义节点通过DAG（有向无环图）进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理等等。
+
+自定义节点设计的目的是：
 
 - **模块化**：将特定的逻辑封装为节点，易于组合和替换
-- **解耦性**：将插件与调度模块进行解耦
+- **解耦性**：将自定义节点与调度模块进行解耦
 - **可扩展性**：开发者可以轻松接入新的算法和数据处理流程
-- **跨语言互操作**：Python插件可与C++插件无缝集成
+- **跨语言互操作**：Python自定义节点可与C++自定义节点无缝集成
 
 ### 什么是DAG
 
@@ -21,7 +46,7 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 
 图在运行时根据节点输入输出边判断节点的执行顺序，自动调度各个节点执行。
 
-### 插件在流水线中的位置
+### 自定义节点在流水线中的位置
 
 以GFPGAN人脸修复为例，推理流程大致如下：
 
@@ -35,11 +60,11 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 输入图像 → 预处理节点 → 推理节点 → 后处理节点 → 检测结果
 ```
 
-通过这些插件的组合，我们可以构建完整的AI算法部署流程。
+通过这些自定义节点的组合，我们可以构建完整的AI算法部署流程。
 
-## Python插件编写基础
+## Python自定义节点编写基础
 
-nndeploy中的Python插件本质上是自定义的DAG节点，继承自`nndeploy.dag.Node`。要实现一个Python插件，一般需要完成以下步骤：
+nndeploy中的Python自定义节点本质上是自定义的DAG节点，继承自`nndeploy.dag.Node`。要实现一个Python自定义节点，一般需要完成以下步骤：
 
 ### 1. 定义节点类
 
@@ -56,9 +81,9 @@ class MyCustomNode(nndeploy.dag.Node):
         super().set_key("nndeploy.example.MyCustomNode")
         # 设置节点描述
         super().set_desc("自定义节点示例")
-        # 设置输入类型，如果该节点有输入，则必须要设置
+        # 设置输入类型，如果该节点有输入，则必须要设置。如果有多个输入就依次调用self.set_input_type(Xxx)函数
         self.set_input_type(np.ndarray)
-        # 设置输出类型，如果该节点有输出，则必须要设置
+        # 设置输出类型，如果该节点有输出，则必须要设置。如果有多个输出就依次调用self.set_output_type(Xxx)函数
         self.set_output_type(np.ndarray)
         
         # 节点参数定义
@@ -66,26 +91,21 @@ class MyCustomNode(nndeploy.dag.Node):
         
     def init(self):
         """节点初始化方法，在图初始化时调用"""
-        # 在这里进行模型加载、资源初始化等操作
         return nndeploy.base.Status.ok()
         
     def run(self):
-        """节点执行方法，包含主要的计算逻辑"""
-        # 获取输入数据
-        input_edge = self.get_input(0)
-        input_data = input_edge.get(self)
+        # 步骤一：获取输入数据
+        input_data = self.get_input_data(0)
         
-        # 执行计算逻辑
+        # 步骤二：执行计算逻辑
         output_data = self.process_data(input_data)
         
-        # 设置输出数据
-        output_edge = self.get_output(0)
-        output_edge.set(output_data)
+        # 步骤三：设置输出数据
+        self.set_output_data(output_data, 0)
         
         return nndeploy.base.Status.ok()
         
     def process_data(self, input_data):
-        """自定义数据处理逻辑"""
         # 在这里实现具体的算法逻辑
         return input_data * self.my_param
         
@@ -103,7 +123,7 @@ class MyCustomNode(nndeploy.dag.Node):
         return super().deserialize(target)
 ```
 
-### 2. 创建节点创建器
+### 2. 创建节点创建器和注册
 
 ```python
 class MyCustomNodeCreator(nndeploy.dag.NodeCreator):
@@ -114,32 +134,23 @@ class MyCustomNodeCreator(nndeploy.dag.NodeCreator):
         """创建节点实例"""
         self.node = MyCustomNode(name, inputs, outputs)
         return self.node
-```
 
-### 3. 注册节点类型
-
-```python
 # 创建节点创建器实例
 my_custom_node_creator = MyCustomNodeCreator()
-
 # 注册节点，第一个参数是节点的唯一标识符，需要与节点类中set_key()设置的标识符保持一致
 nndeploy.dag.register_node("nndeploy.example.MyCustomNode", my_custom_node_creator)
 ```
 
-### 4. 节点中的输入输出访问
+**通过上述两个个步骤，在前端就会产生一个可拖拽的节点。**
 
-#### 获取输入数据
+### 细节一：节点中的输入输出访问
+
+#### 获取多个输入数据
 
 ```python
 def run(self):
-    # 获取第一个输入边
-    input_edge = self.get_input(0)
-    # 从输入边获取数据
-    input_data = input_edge.get(self)
-    
-    # 如果有多个输入
-    input_edge_1 = self.get_input(1)
-    input_data_1 = input_edge_1.get(self)
+    input_data_0 = self.get_input_data(0)
+    input_data_1 = self.get_input_data(1)
 ```
 
 #### 设置输出数据
@@ -147,18 +158,14 @@ def run(self):
 ```python
 def run(self):
     # 处理后的输出数据
-    output_data = self.process_data(input_data)
+    output_data_list = self.process_data(input_data)
     
     # 获取输出边并设置数据
-    output_edge = self.get_output(0)
-    output_edge.set(output_data)
-    
-    # 如果有多个输出
-    output_edge_1 = self.get_output(1)
-    output_edge_1.set(output_data_1)
+    self.set_output_data(output_data_list[0], 0)
+    self.set_output_data(output_data_list[1], 1)
 ```
 
-### 5. 参数管理
+### 细节二：参数管理
 
 #### 前端展示参数
 
@@ -201,7 +208,7 @@ class MyCustomNode(nndeploy.dag.Node):
 
 ```python
 def serialize(self):
-    # 添加必需参数，前端会进行验证
+    # 添加必需参数，前端会进行验证，并添加必须设置的标志*
     self.add_required_param("model_path")
     json_str = super().serialize()
     json_obj = json.loads(json_str)
@@ -231,15 +238,13 @@ class GrayScaleNode(nndeploy.dag.Node):
         self.weights = [0.114, 0.587, 0.299]  # BGR权重
         
     def run(self):
-        input_edge = self.get_input(0)
-        input_image = input_edge.get(self)
+        input_image = self.get_input_data(0)
         
         # BGR转灰度
         gray = np.dot(input_image[...,:3], self.weights)
         gray = gray.astype(np.uint8)
         
-        output_edge = self.get_output(0)
-        output_edge.set(gray)
+        self.set_output_data(gray, 0)
         return nndeploy.base.Status.ok()
         
     def serialize(self):
@@ -302,14 +307,13 @@ class GFPGAN(nndeploy.dag.Node):
         
     def run(self):
         """执行人脸修复"""
-        input_edge = self.get_input(0)
-        input_image = input_edge.get(self)
+        input_image = self.get_input_data(0)
         
         # 执行人脸修复
         _, _, enhanced_image = self.gfpgan.enhance(input_image, paste_back=True)
         
         # 输出结果
-        self.get_output(0).set(enhanced_image)
+        self.set_output_data(enhanced_image, 0)
         return nndeploy.base.Status.ok()
     
     def serialize(self):
@@ -383,7 +387,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         
     def run(self):
         """执行人脸分析"""
-        input_image = self.get_input(0).get(self)
+        input_image = self.get_input_data(0)
         faces = self.analysis.get(input_image)
         
         # 按照从左到右的顺序排列，基于bbox的x坐标进行排序
@@ -400,7 +404,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
             else:
                 result_faces = faces  # 返回所有人脸
                 
-        self.get_output(0).set(result_faces)
+        self.set_output_data(result_faces, 0)
         return nndeploy.base.Status.ok()
     
     def serialize(self):
@@ -439,7 +443,7 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceAnalysis", insightface_anal
 
 ### 创建子图
 
-当插件涉及更复杂的功能逻辑时，可以通过创建子图（继承`nndeploy.dag.Graph`）来组织多个节点：
+当自定义节点涉及更复杂的功能逻辑时，可以通过创建子图（继承`nndeploy.dag.Graph`）来组织多个节点：
 
 ```python
 import nndeploy.dag
@@ -554,13 +558,13 @@ nndeploy.dag.register_node("nndeploy.detect.YoloPyGraph", yolo_py_graph_creator)
 ### 2. 类型安全
 
 ```python
-# 明确指定输入输出类型
+# 在构造函数时，明确指定输入输出类型
 self.set_input_type(np.ndarray)
 self.set_output_type(dict)
 
 # 在运行时进行类型检查
 def run(self):
-    input_data = self.get_input(0).get(self)
+    input_data = self.get_input_data(0)
     if not isinstance(input_data, np.ndarray):
         print("Input type error: expected np.ndarray")
         return nndeploy.base.Status.error()
@@ -595,11 +599,11 @@ def run(self):
     if self.get_debug_flag():
         print(f"Output shape: {output_data.shape}")
         
-    self.get_output(0).set(output_data)
+    self.set_output_data(output_data, 0)
     return nndeploy.base.Status.ok()
 ```
 
-## 插件部署和使用
+## 自定义节点部署和使用
 
 ### 1. 文件组织
 

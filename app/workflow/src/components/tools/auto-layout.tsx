@@ -9,7 +9,9 @@ export const AutoLayout =  forwardRef<any>((props, ref) => {
   const tools = usePlaygroundTools();
   const playground = usePlayground();
   const autoLayout = useCallback(async () => {
-    await tools.autoLayout();
+    await tools.autoLayout(
+      //{layoutConfig: {rankdir: 'TB'}}
+    );
   }, [tools]);
 
   return (

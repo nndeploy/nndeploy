@@ -1,13 +1,23 @@
-# C++插件开发手册
+# C++自定义节点开发手册
 
-## 插件开发简介
+## **自定义节点参考代码**：
 
-在nndeploy框架中，插件（plugin）是一种可以组合调用的功能模块，通常表现为继承自`dag::Node`的自定义节点。插件通过DAG进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理操作等等。
+- [template/cpp/template.h](https://github.com/nndeploy/nndeploy/blob/main/template/cpp/template.h)
 
-插件设计的目的是：
+- 前端工作流加载自定义节点：
+  - 命令行加载
+    ```bash
+    nndeploy-app --port 8000 --plugin path/to/libnndeploy_plugin_template.so
+    ```
+
+## 自定义节点开发简介
+
+在nndeploy框架中，自定义节点是一种可以组合调用的功能模块，通常表现为继承自`dag::Node`的自定义节点。自定义节点通过DAG进行组织和调用，用于执行开发者自定义的前/后处理逻辑、推理操作等等。
+
+自定义节点设计的目的是：
 
 - 模块化：将特定的逻辑封装为节点，易于组合和替换；
-- 解耦性：将插件与调度模块进行解耦；
+- 解耦性：将自定义节点与调度模块进行解耦；
 - 可扩展性：开发者可以轻松接入新的调度算法和数据处理流程；
 
 ### 什么是DAG
@@ -19,7 +29,7 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 
 图在运行时根据节点输入输出边判断节点的执行顺序，自动调度各个节点执行。
 
-### 插件在流水线中的位置
+### 自定义节点在流水线中的位置
 
 以stable diffusion 1.5为例，推理流程大致如下：
 
@@ -37,11 +47,11 @@ nndeploy的执行核心是有向无环图（DAG），图由以下两个基本组
 - save_node表示数据存储为图片的节点；
 - prompt、token_ids、prompt_ids等表示用于传递数据的边；
 
-通过这些插件的组合，我们可以构建一个完整的文生图执行流程。
+通过这些自定义节点的组合，我们可以构建一个完整的文生图执行流程。
 
-## 插件编写基础
+## 自定义节点编写基础
 
-nndeploy中的插件本质上是自定义的DAG节点，继承自`dag::Node`，要实现一个插件，一般需要完成以下步骤：
+nndeploy中的自定义节点本质上是自定义的DAG节点，继承自`dag::Node`，要实现一个自定义节点，一般需要完成以下步骤：
 
 ### 1. 定义节点类
 ```C++
@@ -64,7 +74,7 @@ class MyCustomNode : public dag::Node {
   virtual ~MyCustomNode() {}
 
   base::Status run() override {
-    // 插件逻辑写在这里
+    // 自定义节点逻辑写在这里
     return base::kStatusCodeOk;
   }
 };
@@ -93,7 +103,7 @@ device::Tensor *output_tensor = this->getOutput(0)->create(device, tensor_desc);
 
 ### 4. 设置参数（可选）
 
-你可以为插件定义参数类（继承 base::Param），并通过 setParam() 接口设置：
+你可以为自定义节点定义参数类（继承 base::Param），并通过 setParam() 接口设置：
 
 ```C++
 class MyParam : public base::Param {
@@ -114,9 +124,9 @@ my_node->setParam(param.get());
 MyParam *p = (MyParam *)(param_.get());
 ```
 
-### 5. 将插件添加到计算图中
+### 5. 将自定义节点添加到计算图中
 
-在nndeploy中，有两种方式将插件添加到图中：
+在nndeploy中，有两种方式将自定义节点添加到图中：
 
 **方式一：直接创建节点对象**
 
@@ -140,7 +150,7 @@ MyCustomNode *node = (MyCustomNode *)graph->createNode(desc);
 
 ### 创建子图
 
-当插件涉及更复杂的功能逻辑时，例如模型推理、多输入合并策略等，开发者可以通过创建子图（继承 dag::Graph）来组织多个节点为一个整体流程模块：
+当自定义节点涉及更复杂的功能逻辑时，例如模型推理、多输入合并策略等，开发者可以通过创建子图（继承 dag::Graph）来组织多个节点为一个整体流程模块：
 
 - 子图类继承自`dag::Graph`；
 - 为子图添加自定义构图函数，如`make()`，封装边与节点创建流程；
@@ -369,11 +379,11 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
 
 ## 实际开发案例
 
-接下来我们通过两个实际的部署案例来更加深入地学习一下插件的应用流程。
+接下来我们通过两个实际的部署案例来更加深入地学习一下自定义节点的应用流程。
 
 ### 目标检测
 
-实际的[目标检测应用](../../../demo/detect/demo.cc)以及[插件](../../../plugin/source/nndeploy/detect/yolo/yolo.cc)在nndeploy的demo以及plugin目录下，感兴趣的开发者可以自行查看，这里对开发和应用流程进行介绍。
+实际的[目标检测应用](../../../demo/detect/demo.cc)以及[自定义节点](../../../plugin/source/nndeploy/detect/yolo/yolo.cc)在nndeploy的demo以及plugin目录下，感兴趣的开发者可以自行查看，这里对开发和应用流程进行介绍。
 
 ![detect-graph](../../image/demo/detect/detect_graph.png)
 
@@ -578,11 +588,11 @@ if (status != base::kStatusCodeOk) {
 
 ### 文生图
 
-Stable Diffusion 是一种基于扩散模型的文本生成图像的算法，其推理过程较长，涉及多个阶段模块，nndeploy将其拆分成多个插件并组合为图结构，对插件的详细实现感兴趣的同学可以查看[plugin](../../../plugin/source/nndeploy/stable_diffusion/text2image.cc)目录下的实现。
+Stable Diffusion 是一种基于扩散模型的文本生成图像的算法，其推理过程较长，涉及多个阶段模块，nndeploy将其拆分成多个自定义节点并组合为图结构，对自定义节点的详细实现感兴趣的同学可以查看[plugin](../../../plugin/source/nndeploy/stable_diffusion/text2image.cc)目录下的实现。
 
 ![stable-diffusion-1.5-dag](../../image/demo/stable_diffusion/sd-1.5-dag.png)
 
-插件解析：
+自定义节点解析：
 
 - prompt / negative_prompt：用户输入的正向与反向文本提示词；
 - clip（子图）：文本编码器模块，将文字转换为 latent 空间中的 embedding 表达；
@@ -596,7 +606,7 @@ Stable Diffusion 是一种基于扩散模型的文本生成图像的算法，其
 - vae（子图）：图像解码模块；
 - scale_latents：数值范围转换；
 - vae_infer：vae decoder解码，生成 RGB 图像；
-- save_node：图像保存插件，将结果输出为图像文件。
+- save_node：图像保存自定义节点，将结果输出为图像文件。
 
 #### 配置参数
 

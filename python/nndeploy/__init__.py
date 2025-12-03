@@ -84,6 +84,8 @@ import nndeploy.detect
 import nndeploy.track
 import nndeploy.segment
 import nndeploy.matting
+import nndeploy.ocr
+import nndeploy.llm
 import nndeploy.face
 import nndeploy.gan
 import nndeploy.diffusion

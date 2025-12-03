@@ -1,7 +1,6 @@
 /**
- *
- * This example demonstrates the OCR inference functionality of the nndeploy
- * framework, focusing on OCR inference using C++ API
+ * nndeploy OCR Demo:
+ * Implementation of OCR algorithm using static graph construction
  */
 
 #include "flag.h"

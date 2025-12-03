@@ -20,6 +20,8 @@ file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.cc"
 )
 set(SOURCE ${SOURCE} ${DEMO_SOURCE})
+set(SOURCE ${SOURCE} ${ROOT_PATH}/plugin/source/nndeploy/force_link.cc)
+
 # OBJECT
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})

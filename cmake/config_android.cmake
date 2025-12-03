@@ -38,6 +38,10 @@ set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, defaul
 set(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN OFF) # Whether to enable operator X86_ONEDNN, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK OFF) # Whether to enable operator ARM_XNNPACK, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK OFF) # Whether to enable operator ARM_QNNPACK, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_ACLOPS OFF) # Whether to enable operator ASCEND_ACLOPS, default is OFF
+set(ENABLE_NNDEPLOY_OP_ASCEND_C OFF) # Whether to enable operator ASCEND_C, default is OFF
+set(ENABLE_NNDEPLOY_OP_CUDA OFF) # Whether to enable operator CUDA, default is OFF
+set(ENABLE_NNDEPLOY_OP_OPENCL OFF) # Whether to enable operator OPENCL, default is OFF
 
 # Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF
@@ -64,8 +68,8 @@ set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUR
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
-# set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
-set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.8.0_Android") # Whether to link the third-party OpenCV library, default is ON
+# set(NNDEPLOY_OPENCV_LIBS "opencv_world4100") # Specific OpenCV library names to link, such as opencv_world4100, opencv_java4, etc.
+set(ENABLE_NNDEPLOY_OPENCV "tool/script/third_party/opencv4.10.0_Android") # Whether to link the third-party OpenCV library, default is ON
 set(NNDEPLOY_OPENCV_LIBS opencv_java4) # Link all OpenCV libraries by default
 
 set(ENABLE_NNDEPLOY_SAFETENSORS_CPP OFF) # Whether to enable IR, default is OFF
@@ -79,3 +83,12 @@ set(ENABLE_NNDEPLOY_DEMO ON) # Whether to enable language model plugin, default 
 set(ENABLE_NNDEPLOY_PYTHON OFF) # Whether to enable text-to-image plugin, default is OFF
 
 set(ENABLE_NNDEPLOY_FFI_JAVA ON) # Whether to enable FFI Java, default is OFF
+
+## Tokenizer-cpp
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # Whether to enable C++ tokenizer plugin, default is OFF
+
+## Language Model
+set(ENABLE_NNDEPLOY_PLUGIN_LLM ON) # Whether to enable language model plugin, default is OFF
+
+## Stable Diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # Whether to enable text-to-image plugin, default is OFF

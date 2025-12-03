@@ -39,7 +39,7 @@ on:
 # Environment variables definition
 env:
   IOS_DEPLOYMENT_TARGET: 11.0
-  OPENCV_VERSION: 4.8.0
+  OPENCV_VERSION: 4.10.0
 
 # Job definition
 jobs:

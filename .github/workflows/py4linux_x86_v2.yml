@@ -22,7 +22,7 @@ jobs:
       fail-fast: false  # Don't terminate other jobs due to single job failure
       matrix:
         platform: [ubuntu-22.04]  # Running platform
-        python-version: ["3.13",]
+        python-version: ["3.13", "3.14"]
 
     runs-on: ${{ matrix.platform }}  # Specify runtime environment
 
@@ -43,6 +43,28 @@ jobs:
           sudo apt-get update  # Update package manager index
           sudo apt-get install -y build-essential cmake ninja-build pkg-config libopencv-dev protobuf-compiler libprotobuf-dev
 
+      # 在Step 4之前添加：
+      - name: Free up disk space
+        run: |
+          # 清理不必要的软件和缓存
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/share/swift
+
+          # 清理Docker镜像
+          sudo docker system prune -af
+
+          # 清理APT缓存
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          
+          # 显示磁盘空间
+          df -h
+      
       # Step 4: Update Python dependencies
       - name: Update Python dependencies
         run: |
@@ -62,13 +84,14 @@ jobs:
           cd tool/script
           python install_opencv.py
           python install_onnxruntime.py
-
+          python build_mnn.py
+          
       # Verify third-party library installation status
       - name: Verify third-party library installation
         run: |
           echo "Verifying OpenCV installation..."
-          if [ -d "tool/script/third_party/opencv4.8.0/lib" ]; then
-            ls -la tool/script/third_party/opencv4.8.0/lib
+          if [ -d "tool/script/third_party/opencv4.10.0/lib" ]; then
+            ls -la tool/script/third_party/opencv4.10.0/lib
           else
             echo "OpenCV library directory does not exist"
             exit 1
@@ -86,7 +109,7 @@ jobs:
       - name: Configure build
         run: |
           mkdir build                    # Create build directory (out-of-source build)
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cp cmake/config_opencv_ort_mnn_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
           cd build                       # Enter build directory
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..  # Configure CMake project using Ninja generator
 

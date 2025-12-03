@@ -35,6 +35,9 @@ jobs:
           - os: macos-14
             arch: arm64
             python-version: "3.13"
+          - os: macos-14
+            arch: arm64
+            python-version: "3.14"
           - os: macos-15
             arch: arm64
             python-version: "3.10"
@@ -47,6 +50,9 @@ jobs:
           - os: macos-15
             arch: arm64
             python-version: "3.13"
+          - os: macos-15
+            arch: arm64
+            python-version: "3.14"
           # x86_64 runners (older macOS versions for x86_64 compatibility)
           # - os: macos-12
           #   arch: x86_64
@@ -146,12 +152,13 @@ jobs:
           cd tool/script
           python install_opencv.py
           python install_onnxruntime.py
+          python build_mnn.py
 
       # Step 8: Configure CMake build environment
       - name: Configure build
         run: |
           mkdir build                    # Create build directory (out-of-source build)
-          cp cmake/config_opencv_ort_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
+          cp cmake/config_opencv_ort_mnn_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
           cd build                       # Enter build directory
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} ..
 

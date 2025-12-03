@@ -3,7 +3,8 @@ import { IconInfoCircle } from '@douyinfe/semi-icons';
 
 export const NodeWrapperStyle = styled.div`
   align-items: flex-start;
-  background-color: #fff;
+  //background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(6, 7, 9, 0.15);
   border-radius: 8px;
   box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
@@ -12,9 +13,9 @@ export const NodeWrapperStyle = styled.div`
   justify-content: center;
   position: relative;
   min-width: 200px;
-  max-width: 1000px;
+  //max-width: 1000px;
   width: 100%;
-  height: auto;
+  height: auto!important;
  
 
   &.selected {

@@ -17,7 +17,7 @@ if platform.system() == "Windows":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # OpenCV version
-OPENCV_VER = "4.8.0"
+OPENCV_VER = "4.10.0"
 
 def get_download_info(target_system):
     """根据目标平台返回对应的下载信息"""

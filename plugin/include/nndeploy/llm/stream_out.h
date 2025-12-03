@@ -45,15 +45,23 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::llm::StreamOut";
     desc_ = "StreamOut: Stream output node";
+    this->setDynamicOutput(true);
     this->setInputTypeInfo<tokenizer::TokenizerText>("input_text");
     this->setOutputTypeInfo<tokenizer::TokenizerText>("output_text");
-    this->setOutputTypeInfo<std::string>("stream_output");
+    // this->setOutputTypeInfo<std::string>("stream_output");
   }
 
   virtual ~StreamOut() {}
 
   virtual base::Status init() override {
     is_first_ = true;
+    return base::kStatusCodeOk;
+  };
+
+  virtual base::Status deinit() override {
+    if (stream_output_) {
+      delete stream_output_;
+    }
     return base::kStatusCodeOk;
   };
 
@@ -98,7 +106,9 @@ class NNDEPLOY_CC_API StreamOut : public dag::Node {
       }
     }
 
-    outputs_[1]->set(stream_output_, true);
+    if (outputs_.size() > 1) {
+      outputs_[1]->set(stream_output_, true);
+    }
     return base::kStatusCodeOk;
   };
 

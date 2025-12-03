@@ -1,6 +1,6 @@
-import { IconFile, IconGithubLogo, IconHelpCircle, IconUser } from "@douyinfe/semi-icons"
+import { IconExit, IconFile, IconGithubLogo, IconHelpCircle, IconUser } from "@douyinfe/semi-icons"
 import { Avatar, Button, Dropdown, Nav } from "@douyinfe/semi-ui"
-import { faBilibili, faDiscord, faWeixin, faZhihu } from "@fortawesome/free-brands-svg-icons"
+import { faBilibili, faDeploydog, faDiscord, faWeixin, faZhihu } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import companyLogo from "../../../../assets/kapybara_logo.png";
 import { useNavigate } from "react-router-dom";
@@ -104,32 +104,32 @@ const Header: React.FC = () => {
             <Dropdown.Menu >
               <Dropdown.Item>
                 <a href="https://github.com/nndeploy/nndeploy" target="_blank" className="helpItem">
-                  <IconGithubLogo /> github
+                  <IconGithubLogo /> Github Issues
                 </a></Dropdown.Item>
               <Dropdown.Item>
                 <a href="https://github.com/nndeploy/nndeploy" target="_blank" className="helpItem">
 
-                  <IconFile /> docs
+                  <IconFile /> View Docs
                 </a>
               </Dropdown.Item>
-              <Dropdown.Item>
+              {/* <Dropdown.Item>
                 <a href="https://www.zhihu.com/column/c_1690464325314240512" target="_blank" className="helpItem">
 
                   <FontAwesomeIcon icon={faZhihu} size="1x" /> zhihu
                 </a>
-              </Dropdown.Item>
+              </Dropdown.Item> */}
               <Dropdown.Item>
                 <a href="https://discord.gg/9rUwfAaMbr" target="_blank" className="helpItem">
 
-                  <FontAwesomeIcon icon={faDiscord} size="1x" /> discord
+                  <FontAwesomeIcon icon={faDiscord} size="1x" /> Discord Group
                 </a>
               </Dropdown.Item>
-              <Dropdown.Item>
+              {/* <Dropdown.Item>
                 <a href="https://discord.spm_id_from/9rUwfAaMbr" target="_blank" className="helpItem">
 
                   <FontAwesomeIcon icon={faBilibili} size="1x" /> bilibili
                 </a>
-              </Dropdown.Item>
+              </Dropdown.Item> */}
               <Dropdown position={'leftTop'}
                 render={
                   <Dropdown.Menu>
@@ -145,10 +145,21 @@ const Header: React.FC = () => {
                 }>
                 <Dropdown.Item>
                   <a href="#" target="_blank" className="helpItem">
-                    <FontAwesomeIcon icon={faWeixin} size="1x" /> wechat
+                    <FontAwesomeIcon icon={faWeixin} size="1x" /> 
+                     Wechat Group
+                   
                   </a>
                 </Dropdown.Item>
               </Dropdown>
+
+               <Dropdown.Item>
+                <a href="https://github.com/nndeploy/nndeploy/blob/main/docs/zh_cn/quick_start/deploy.md" target="_blank" className="helpItem">
+
+                  <IconExit /> 
+                  {/* <FontAwesomeIcon icon={faDeploydog} size="1x" />  */}
+                  Deployment 
+                </a>
+              </Dropdown.Item>
 
             </Dropdown.Menu>
           }
