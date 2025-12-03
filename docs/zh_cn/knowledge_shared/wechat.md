@@ -8,7 +8,7 @@
 
 - 微信：Always031856（欢迎加好友，进群交流，备注：nndeploy\_姓名）
 
-  ![wechat](../../image/wechat.jpg)
+  <img src="../../image/wechat.jpg" alt="wechat" width="25%">
 
 - 关注公众号：nndeploy
 
