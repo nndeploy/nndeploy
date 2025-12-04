@@ -11,9 +11,6 @@ InferenceParam::InferenceParam() : base::Param() {}
 InferenceParam::InferenceParam(base::InferenceType type)
     : base::Param(), inference_type_(type) {}
 
-// InferenceParam::InferenceParam(const InferenceParam &param) {}
-// InferenceParam::InferenceParam &operator=(const InferenceParam &param) {}
-
 InferenceParam::~InferenceParam() {}
 
 base::Status InferenceParam::set(const std::string& key, base::Any& any) {
