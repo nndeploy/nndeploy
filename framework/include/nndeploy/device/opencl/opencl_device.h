@@ -76,32 +76,37 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device {
 
   virtual void deallocate(void *ptr);
 
-  virtual base::Status copy(void *src, void *dst, size_t size,
+  base::Status copy(void *src, void *dst, size_t size,
                             Stream *stream = nullptr) override;
-  virtual base::Status download(void *src, void *dst, size_t size,
+  base::Status download(void *src, void *dst, size_t size,
                                 Stream *stream = nullptr) override;
-  virtual base::Status upload(void *src, void *dst, size_t size,
+  base::Status upload(void *src, void *dst, size_t size,
                               Stream *stream = nullptr) override;
-
-  virtual base::Status copy(Buffer *src, Buffer *dst,
+  base::Status copy(Buffer *src, Buffer *dst,
                             Stream *stream = nullptr) override;
-  virtual base::Status download(Buffer *src, Buffer *dst,
+  base::Status download(Buffer *src, Buffer *dst,
                                 Stream *stream = nullptr) override;
-  virtual base::Status upload(Buffer *src, Buffer *dst,
+  base::Status upload(Buffer *src, Buffer *dst,
                               Stream *stream = nullptr) override;
-
-  virtual void *getContext();
+  
+  /**
+   * @brief Get the Context object
+   * 
+   * @return void* 
+   */
+  void *getContext() override;
 
   // stream
-  virtual Stream *createStream();
-  virtual Stream *createStream(void *stream);
-  virtual base::Status destroyStream(Stream *stream);
+  Stream *createStream() override;
+  Stream *createStream(void *stream) override;
+  base::Status destroyStream(Stream *stream) override;
 
   // event
-  virtual Event *createEvent();
-  virtual base::Status destroyEvent(Event *event);
-  virtual base::Status createEvents(Event **events, size_t count);
-  virtual base::Status destroyEvents(Event **events, size_t count);
+  Event *createEvent() override;
+  base::Status destroyEvent(Event *event) override;
+  base::Status createEvents(Event **events, size_t count) override;
+  base::Status destroyEvents(Event **events, size_t count) override;
+  
   /**
    * @brief Construct a new OpenCL Device object
    *
@@ -122,31 +127,30 @@ class NNDEPLOY_CC_API OpenCLDevice : public Device {
    *
    * @return base::Status
    */
-  virtual base::Status init();
+  base::Status init() override;
+  
   /**
    * @brief deinit
    *
    * @return base::Status
    */
-  virtual base::Status deinit();
+  base::Status deinit() override;
 
  private:
-  cl::Context _context;
-  std::vector<cl::Platform> _platforms;
-  std::vector<cl::Device> _gpuDevices;
+  cl::Context context_;
 };
 
 class OpenCLStream : public Stream {
  public:
   OpenCLStream(Device *device);
   OpenCLStream(Device *device, void *stream);
-  virtual ~OpenCLStream();
+  ~OpenCLStream();
 
-  virtual base::Status synchronize();
-  virtual base::Status recordEvent(Event *event);
-  virtual base::Status waitEvent(Event *event);
+  base::Status synchronize() override;
+  base::Status recordEvent(Event *event) override;
+  base::Status waitEvent(Event *event) override;
 
-  virtual void *getNativeStream();
+  void *getNativeStream() override;
 
   cl::CommandQueue getStream();
 

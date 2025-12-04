@@ -1,8 +1,16 @@
 #include "nndeploy/device/opencl/opencl_device.h"
 
+#include <cstddef>
+#include <iostream>
+#include <vector>
+
+#include "CL/cl.h"
+#include "cl.hpp"
+#include "nndeploy/base/common.h"
+#include "nndeploy/base/status.h"
 #include "nndeploy/device/buffer.h"
+#include "nndeploy/device/device.h"
 #include "nndeploy/device/opencl/opencl_util.h"
-#include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
 namespace device {
@@ -10,9 +18,9 @@ TypeArchitectureRegister<OpenCLArchitecture> opencl_architecture_register(
     base::kDeviceTypeCodeOpenCL);
 
 OpenCLArchitecture::OpenCLArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
-OpenCLArchitecture::~OpenCLArchitecture(){};
+OpenCLArchitecture::~OpenCLArchitecture() {};
 
 base::Status OpenCLArchitecture::checkDevice(int device_id,
                                              std::string library_path) {
@@ -36,7 +44,7 @@ base::Status OpenCLArchitecture::enableDevice(int device_id,
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
-    if (device->init() = !base::kStatusCodeOk) {
+    if (device->init() != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("device init failed\n");
       return base::kStatusCodeErrorDeviceOpenCL;
     }
@@ -63,11 +71,15 @@ Device *OpenCLArchitecture::getDevice(int device_id) {
 std::vector<DeviceInfo> OpenCLArchitecture::getDeviceInfo(
     std::string library_path) {
   std::vector<DeviceInfo> device_info_list;
+  device_info_list.resize(clGetNumDevices());
+  for (size_t i = 0; i < device_info_list.size(); ++i) {
+    device_info_list[i].device_type_ =
+        base::DeviceType(base::kDeviceTypeCodeOpenCL, i);
+  }
   return device_info_list;
 }
 
 /* OpenCLDevice */
-
 BufferDesc OpenCLDevice::toBufferDesc(const TensorDesc &desc,
                                       const base::IntVector &config) {
   NNDEPLOY_LOGE("Not Implemented\n");
@@ -126,11 +138,7 @@ base::Status OpenCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
   return base::kStatusCodeOk;
 }
 
-void *OpenCLDevice::getContext() {
-  auto numDev = _context.getInfo<CL_CONTEXT_DEVICES>();
-  std::cout << "Num Devices in this context: " << numDev.size() << std::endl;
-  return &_context;
-}
+void *OpenCLDevice::getContext() { return &context_; }
 
 Stream *OpenCLDevice::createStream() {
   NNDEPLOY_LOGE("Not Implemented\n");
@@ -181,17 +189,19 @@ base::Status OpenCLDevice::init() {
     return base::kStatusCodeErrorDeviceOpenCL;
   }
   NNDEPLOY_LOGI("opencl loaded successfully!\n");
-  NNDEPLOY_OPENCL_CHECK(cl::Platform::get(&_platforms));
-  if (_platforms.size() <= 0) {
+  std::vector<cl::Platform> platforms;
+  NNDEPLOY_OPENCL_CHECK(cl::Platform::get(&platforms));
+  if (platforms.size() <= 0) {
     return base::kStatusCodeErrorDeviceOpenCL;
   }
+  std::vector<cl::Device> gpu_devices;
   NNDEPLOY_OPENCL_CHECK(
-      _platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &_gpuDevices));
-  if (_gpuDevices.size() <= 0) {
+      platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &gpu_devices));
+  if (gpu_devices.size() <= 0) {
     return base::kStatusCodeErrorDeviceOpenCL;
   }
   cl_int err;
-  _context = cl::Context(_gpuDevices, NULL, NULL, NULL, &err);
+  context_ = cl::Context(gpu_devices, nullptr, nullptr, nullptr, &err);
   NNDEPLOY_OPENCL_CHECK(err);
   return base::kStatusCodeOk;
 }
@@ -206,6 +216,33 @@ base::Status OpenCLDevice::deinit() {
 }
 
 OpenCLDevice::~OpenCLDevice() { OpenCLDevice::deinit(); }
+
+/* OpenCLStream */
+OpenCLStream::OpenCLStream(Device *device) : Stream(device) {
+  auto opencl_device = static_cast<OpenCLDevice *>(device);
+  cl::Context *context =
+      static_cast<cl::Context *>(opencl_device->getContext());
+  auto devices = context->getInfo<CL_CONTEXT_DEVICES>();
+  for (auto &device : devices) {
+    std::cout << device.getInfo<CL_DEVICE_NAME>() << '\n';
+  }
+  // cl::CommandQueue stream(opencl_device->getContext(), );
+}
+
+/* UNIMPLEMENTED */
+OpenCLStream::OpenCLStream(Device *device, void *stream)
+    : Stream(device, stream) {}
+base::Status OpenCLStream::synchronize() { return base::kStatusCodeOk; }
+base::Status OpenCLStream::recordEvent(Event *event) {
+  return base::kStatusCodeOk;
+}
+base::Status OpenCLStream::waitEvent(Event *event) {
+  return base::kStatusCodeOk;
+}
+void *OpenCLStream::getNativeStream() { return nullptr; }
+cl::CommandQueue OpenCLStream::getStream() { return cl::CommandQueue(); }
+
+OpenCLStream::~OpenCLStream() {}
 
 }  // namespace device
 }  // namespace nndeploy
