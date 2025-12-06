@@ -26,14 +26,24 @@ chardet>=5.2.0
 torch>=2.0.0
 torchvision>=0.15.0
 
-## diffusers
-accelerate
-diffusers
-transformers
-
 ## onnx
 onnx>=1.16.0
 onnxruntime>=1.18.0
+
+## Hugging Face
+accelerate
+diffusers
+transformers>=4.51.0
+
+## triton
+triton>=3.0.0
+
+## flash-attn
+flash-attn
+
+## xxhash
+xxhash>=3.0.0
+
 
 
 

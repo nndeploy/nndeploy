@@ -28,10 +28,10 @@ nndeploy：一款简单易用和高性能的AI部署框架
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-<!-- | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a>  -->
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>微信</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
-<!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
-| <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a>  -->
+| <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> 
+| <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> 
 </p>
 
 <!-- <p align="center">

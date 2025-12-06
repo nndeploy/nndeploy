@@ -91,6 +91,8 @@ import nndeploy.gan
 import nndeploy.diffusion
 import nndeploy.api_llm
 import nndeploy.api_aigc
+# import nndeploy.e_base
+# import nndeploy.e_llm
 
 from .nndeploy import get_version, framework_init, framework_deinit
 from .nndeploy import __version__

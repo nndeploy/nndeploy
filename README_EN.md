@@ -28,7 +28,7 @@ nndeploy: An Easy-to-Use and High-Performance AI deployment framework
 <p align="center">
 <a href="https://nndeploy-zh.readthedocs.io/en/latest/"><b>Documentation</b></a> 
 | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>Ask DeepWiki</b></a>
-<!-- | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a>  -->
+| <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> 
 | <a href="https://discord.gg/9rUwfAaMbr"><b>Discord</b></a> 
 <!-- | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a>  -->
 <!-- | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>Bilibili</b></a>  -->
