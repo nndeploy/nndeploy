@@ -140,10 +140,7 @@ base::Status OpenCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 
 void *OpenCLDevice::getContext() { return &context_; }
 
-Stream *OpenCLDevice::createStream() {
-  NNDEPLOY_LOGE("Not Implemented\n");
-  return nullptr;
-}
+Stream *OpenCLDevice::createStream() { return new OpenCLStream(this); }
 
 Stream *OpenCLDevice::createStream(void *stream) {
   NNDEPLOY_LOGE("Not Implemented\n");
@@ -151,11 +148,12 @@ Stream *OpenCLDevice::createStream(void *stream) {
 }
 
 base::Status OpenCLDevice::destroyStream(Stream *stream) {
-  NNDEPLOY_LOGE("Not Implemented\n");
   if (stream == nullptr) {
-    NNDEPLOY_LOGE("stream is nullptr\n");
-    return base::kStatusCodeOk;
+    NNDEPLOY_LOGE("event is nullptr\n");
+    return base::kStatusCodeErrorDeviceOpenCL;
   }
+  delete stream;
+  stream = nullptr;
   return base::kStatusCodeOk;
 }
 
@@ -165,11 +163,12 @@ Event *OpenCLDevice::createEvent() {
 }
 
 base::Status OpenCLDevice::destroyEvent(Event *event) {
-  NNDEPLOY_LOGE("Not Implemented\n");
   if (event == nullptr) {
     NNDEPLOY_LOGE("event is nullptr\n");
     return base::kStatusCodeErrorDeviceOpenCL;
   }
+  delete event;
+  event = nullptr;
   return base::kStatusCodeOk;
 }
 
@@ -206,14 +205,7 @@ base::Status OpenCLDevice::init() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCLDevice::deinit() {
-  if (OpenCLSymbols::GetInstance()->UnLoadOpenCLLibrary() == false) {
-    NNDEPLOY_LOGE("unload opencl lib failed!\n");
-    return base::kStatusCodeErrorDeviceOpenCL;
-  }
-  NNDEPLOY_LOGI("opencl unloaded successfully!\n");
-  return base::kStatusCodeOk;
-}
+base::Status OpenCLDevice::deinit() { return base::kStatusCodeOk; }
 
 OpenCLDevice::~OpenCLDevice() { OpenCLDevice::deinit(); }
 
@@ -223,10 +215,11 @@ OpenCLStream::OpenCLStream(Device *device) : Stream(device) {
   cl::Context *context =
       static_cast<cl::Context *>(opencl_device->getContext());
   auto devices = context->getInfo<CL_CONTEXT_DEVICES>();
-  for (auto &device : devices) {
-    std::cout << device.getInfo<CL_DEVICE_NAME>() << '\n';
-  }
-  // cl::CommandQueue stream(opencl_device->getContext(), );
+  // for (auto &device : devices) {
+  //   std::cout << device.getInfo<CL_DEVICE_NAME>() << '\n';
+  // }
+  cl::CommandQueue stream(*context, devices[0]);
+  stream_ = stream;
 }
 
 /* UNIMPLEMENTED */
