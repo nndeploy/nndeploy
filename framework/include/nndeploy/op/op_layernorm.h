@@ -21,7 +21,7 @@ class OpLayerNorm : public Op {
 NNDEPLOY_CC_API base::Status layerNorm(device::Tensor *input,
                                        device::Tensor *weight,
                                        device::Tensor *bias,
-                                       std::shared_ptr<base::Param> param,
+                                       std::shared_ptr<ir::LayerNormalizationParam> param,
                                        device::Tensor *output);
 
 }  // namespace op

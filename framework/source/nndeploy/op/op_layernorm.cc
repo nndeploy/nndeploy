@@ -32,7 +32,8 @@ base::Status OpLayerNorm::run() {
 }
 
 base::Status layerNorm(device::Tensor *input, device::Tensor *weight,
-                       device::Tensor *bias, std::shared_ptr<base::Param> param,
+                       device::Tensor *bias,
+                       std::shared_ptr<ir::LayerNormalizationParam> param,
                        device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 

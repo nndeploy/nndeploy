@@ -191,8 +191,8 @@ def rms_norm(input, weight, epsilon=1e-5):
     return Tensor(_C.op.rms_norm(input, weight, param))
 
 
-def layer_norm(input, weight, bias, eps=1e-5):
-    param = _C.ir.RMSNormParam()
+def layer_norm(input, weight, bias=None, eps=1e-5):
+    param = _C.ir.LayerNormalizationParam()
     param.epsilon_ = eps
     return Tensor(_C.op.layer_norm(input, weight, bias, param))
 

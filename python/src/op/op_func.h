@@ -67,7 +67,7 @@ device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
 
 device::Tensor* layerNormFunc(device::Tensor* input, device::Tensor* weight,
                               device::Tensor* bias,
-                              std::shared_ptr<ir::RMSNormParam> param);
+                              std::shared_ptr<ir::LayerNormalizationParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
