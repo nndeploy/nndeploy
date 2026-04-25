@@ -284,7 +284,7 @@ class AscendCLOpLayerNorm : public OpLayerNorm {
 
 #endif
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeLayerNorm, AscendCLOpLayerNorm)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeLayerNormalization, AscendCLOpLayerNorm)
 
 }  // namespace op
 }  // namespace nndeploy

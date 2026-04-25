@@ -36,7 +36,7 @@ base::Status layerNorm(device::Tensor *input, device::Tensor *weight,
                        device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeLayerNorm);
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeLayerNormalization);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -69,7 +69,7 @@ base::Status layerNorm(device::Tensor *input, device::Tensor *weight,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeLayerNorm, OpLayerNorm)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeLayerNormalization, OpLayerNorm)
 
 }  // namespace op
 }  // namespace nndeploy
