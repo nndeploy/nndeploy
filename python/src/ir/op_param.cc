@@ -170,6 +170,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .value("Xor", kOpTypeXor)
       .value("RMSNorm", kOpTypeRMSNorm)
       .value("Embedding", kOpTypeEmbedding)
+      .value("LayerNormalization", kOpTypeLayerNormalization)
       .value("kOpTypeNone", kOpTypeNone);
 
   m.def("op_type_to_string", &opTypeToString);
@@ -297,6 +298,12 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def(py::init<>())
       .def_readwrite("eps_", &RMSNormParam::eps_)
       .def_readwrite("is_last_", &RMSNormParam::is_last_);
+
+  py::class_<LayerNormalizationParam, OpParam,
+             std::shared_ptr<LayerNormalizationParam>>(
+      m, "LayerNormalizationParam")
+      .def(py::init<>())
+      .def_readwrite("epsilon_", &LayerNormalizationParam::epsilon_);
 
   py::class_<FlattenParam, OpParam, std::shared_ptr<FlattenParam>>(
       m, "FlattenParam")

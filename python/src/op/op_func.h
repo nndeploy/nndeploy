@@ -26,6 +26,7 @@
 #include "nndeploy/op/op_gemm.h"
 #include "nndeploy/op/op_global_averagepool.h"
 #include "nndeploy/op/op_hardsigmoid.h"
+#include "nndeploy/op/op_layernorm.h"
 #include "nndeploy/op/op_log.h"
 #include "nndeploy/op/op_mat_mul.h"
 #include "nndeploy/op/op_maxpool.h"

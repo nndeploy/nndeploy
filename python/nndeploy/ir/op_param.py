@@ -146,6 +146,7 @@ name_to_op_type = {
     "Xor": _C.ir.OpType.Xor,
     "RMSNorm": _C.ir.OpType.RMSNorm,
     "Embedding": _C.ir.OpType.Embedding,
+    "LayerNormalization": _C.ir.OpType.LayerNormalization,
     "None": _C.ir.OpType.kOpTypeNone,
 }
 
@@ -305,6 +306,7 @@ class OpType(_C.ir.OpType):
     Xor = _C.ir.OpType.Xor
     RMSNorm = _C.ir.OpType.RMSNorm
     Embedding = _C.ir.OpType.Embedding
+    LayerNormalization = _C.ir.OpType.LayerNormalization
     kOpTypeNone = _C.ir.OpType.kOpTypeNone
     
     @classmethod

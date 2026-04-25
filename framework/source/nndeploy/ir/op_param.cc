@@ -381,6 +381,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSplit, SplitParam);
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeLayerNormalization,
+                               LayerNormalizationParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization,
                                BatchNormalizationParam);

@@ -927,6 +927,34 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
   bool is_last_ = false;
 };
 
+class NNDEPLOY_CC_API LayerNormalizationParam : public OpParam {
+ public:
+  LayerNormalizationParam() : OpParam() {}
+  virtual ~LayerNormalizationParam() {}
+
+  PARAM_COPY(LayerNormalizationParam)
+  PARAM_COPY_TO(LayerNormalizationParam)
+
+  using base::Param::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("epsilon_", epsilon_, allocator);
+    return base::kStatusCodeOk;
+  }
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("epsilon_")) {
+      epsilon_ = json["epsilon_"].GetFloat();
+    } else {
+      epsilon_ = 1e-5f;
+    }
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  float epsilon_ = 1e-5f;
+};
+
 class NNDEPLOY_CC_API FlattenParam : public OpParam {
  public:
   FlattenParam() : OpParam() {};
