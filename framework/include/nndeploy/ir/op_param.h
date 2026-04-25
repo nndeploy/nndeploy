@@ -214,6 +214,7 @@ enum OpType : int {
 
   kOpTypeRMSNorm,
   kOpTypeEmbedding,
+  kOpTypeLayerNorm,
 
   kOpTypeNone,
 };

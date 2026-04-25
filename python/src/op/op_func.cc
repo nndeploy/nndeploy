@@ -17,6 +17,22 @@ device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
   return output;
 }
 
+device::Tensor* layerNormFunc(device::Tensor* input, device::Tensor* weight,
+                              device::Tensor* bias,
+                              std::shared_ptr<ir::RMSNormParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("layer_norm.output");
+  base::Status status = op::layerNorm(input, weight, bias, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::layer_norm failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
                          std::shared_ptr<ir::ConvParam> param) {

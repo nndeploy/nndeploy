@@ -204,6 +204,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       py::return_value_policy::take_ownership);
 
   m.def("rms_norm", &rmsNormFunc, py::return_value_policy::take_ownership);
+  m.def("layer_norm", &layerNormFunc, py::return_value_policy::take_ownership);
   m.def("reshape", &reshapeFunc, py::return_value_policy::take_ownership);
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);
   m.def("relu", &reluFunc, py::return_value_policy::take_ownership);

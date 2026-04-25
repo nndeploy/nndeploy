@@ -52,6 +52,7 @@
 #include "nndeploy/op/op_tanh.h"
 #include "nndeploy/op/op_transpose.h"
 #include "nndeploy/op/op_where.h"
+#include "nndeploy/op/op_layernorm.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;
@@ -62,6 +63,10 @@ namespace nndeploy {
 
 device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
                             std::shared_ptr<ir::RMSNormParam> param);
+
+device::Tensor* layerNormFunc(device::Tensor* input, device::Tensor* weight,
+                              device::Tensor* bias,
+                              std::shared_ptr<ir::RMSNormParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
