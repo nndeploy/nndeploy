@@ -382,7 +382,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeLayerNormalization,
-                               LayerNormParam);
+                               LayerNormalizationParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization,
                                BatchNormalizationParam);
