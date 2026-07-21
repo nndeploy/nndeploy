@@ -28,19 +28,19 @@ struct NNDEPLOY_CC_API DataType {
 
   ~DataType();
 
-  DataType(const DataType &other);
-  DataType &operator=(const DataType &other);
+  DataType(const DataType& other);
+  DataType& operator=(const DataType& other);
 
-  DataType(DataType &&other);
-  DataType &operator=(DataType &&other);
+  DataType(DataType&& other);
+  DataType& operator=(DataType&& other);
 
-  bool operator==(const DataType &other) const;
-  bool operator==(const DataTypeCode &other) const;
+  bool operator==(const DataType& other) const;
+  bool operator==(const DataTypeCode& other) const;
 
-  bool operator!=(const DataType &other) const;
-  bool operator!=(const DataTypeCode &other) const;
+  bool operator!=(const DataType& other) const;
+  bool operator!=(const DataTypeCode& other) const;
 
-  bool operator<(const DataType &other) const;  // used for std::map
+  bool operator<(const DataType& other) const;  // used for std::map
 
   size_t size() const;
 
@@ -101,6 +101,8 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeQualcommNpu,
   kDeviceTypeCodeMtkNpu,
   kDeviceTypeCodeSophonNpu,
+  kDeviceTypeCodeAxeraNpu,
+  kDeviceTypeCodeLynxiNpu,
 
   // not support
   kDeviceTypeCodeNotSupport,
@@ -110,18 +112,18 @@ struct NNDEPLOY_CC_API DeviceType {
   DeviceType();
   DeviceType(DeviceTypeCode code, int device_id = 0);
 
-  DeviceType(const DeviceType &other);
-  DeviceType &operator=(const DeviceType &other);
-  DeviceType &operator=(const DeviceTypeCode &other);
+  DeviceType(const DeviceType& other);
+  DeviceType& operator=(const DeviceType& other);
+  DeviceType& operator=(const DeviceTypeCode& other);
 
-  DeviceType(DeviceType &&other);
-  DeviceType &operator=(DeviceType &&other);
+  DeviceType(DeviceType&& other);
+  DeviceType& operator=(DeviceType&& other);
 
-  bool operator==(const DeviceType &other) const;
-  bool operator==(const DeviceTypeCode &other) const;
+  bool operator==(const DeviceType& other) const;
+  bool operator==(const DeviceTypeCode& other) const;
 
-  bool operator!=(const DeviceType &other) const;
-  bool operator!=(const DeviceTypeCode &other) const;
+  bool operator!=(const DeviceType& other) const;
+  bool operator!=(const DeviceTypeCode& other) const;
 
   DeviceTypeCode code_;
   int device_id_;
@@ -260,6 +262,9 @@ enum ModelType : int {
 
   kModelTypeSophon,
 
+  kModelTypeAxera,
+  kModelTypeLynxi,
+
   // torch - 结构和权重
   kModelTypeTorchScript,
   // torch - 权重
@@ -307,6 +312,9 @@ enum InferenceType : int {
 
   kInferenceTypeSophon,
 
+  kInferenceTypeAxera,
+  kInferenceTypeLynxi,
+
   kInferenceTypeTorch,
 
   kInferenceTypeTensorFlow,
@@ -339,6 +347,7 @@ enum CodecType : int {
   kCodecTypeOpenCV,
   kCodecTypeFFmpeg,
   kCodecTypeStb,
+  kCodecTypeGStreamer,
 };
 
 enum CodecFlag : int {
@@ -346,9 +355,28 @@ enum CodecFlag : int {
   kCodecFlagImages,
   kCodecFlagVideo,
   kCodecFlagCamera,
+  kCodecFlagStreaming,
 
   kCodecFlagOther,
 };
+
+// FFmpeg hardware acceleration device types
+enum FFmpegHWDeviceType : int {
+  kFFmpegHWDeviceNone = 0x0000,
+  kFFmpegHWDeviceQsv,           // Intel QuickSync (oneVPL/LibMFX)
+  kFFmpegHWDeviceVaapi,         // Intel VA-API (Linux)
+  kFFmpegHWDeviceCuda,          // NVIDIA CUDA (NVENC/NVDEC)
+  kFFmpegHWDeviceVideoToolbox,  // Apple VideoToolbox (macOS/iOS)
+  kFFmpegHWDeviceV4l2M2m,       // V4L2 Memory-to-Memory (embedded Linux)
+  kFFmpegHWDeviceRkmpp,         // Rockchip MPP (RK3588, etc.)
+  kFFmpegHWDeviceAscend,        // Huawei Ascend DVPP
+  kFFmpegHWDeviceSophgo,        // Sophgo VPU/JPU
+};
+
+extern NNDEPLOY_CC_API FFmpegHWDeviceType
+stringToFFmpegHWDeviceType(const std::string& src);
+extern NNDEPLOY_CC_API std::string ffmpegHWDeviceTypeToString(
+    FFmpegHWDeviceType src);
 
 enum ParallelType : int {
   kParallelTypeNone = 0x0001,
@@ -382,87 +410,87 @@ using ShapeMap = std::map<std::string, std::vector<int>>;
 
 extern NNDEPLOY_CC_API std::string dataTypeCodeToString(DataTypeCode src);
 extern NNDEPLOY_CC_API DataTypeCode
-stringToDataTypeCode(const std::string &src);
+stringToDataTypeCode(const std::string& src);
 extern NNDEPLOY_CC_API std::string dataTypeToString(DataType data_type);
-extern NNDEPLOY_CC_API DataType stringToDataType(const std::string &str);
+extern NNDEPLOY_CC_API DataType stringToDataType(const std::string& str);
 
 extern NNDEPLOY_CC_API std::string dataFormatToString(DataFormat data_format);
-extern NNDEPLOY_CC_API DataFormat stringToDataFormat(const std::string &str);
+extern NNDEPLOY_CC_API DataFormat stringToDataFormat(const std::string& str);
 
 extern NNDEPLOY_CC_API DeviceTypeCode
-stringToDeviceTypeCode(const std::string &src);
+stringToDeviceTypeCode(const std::string& src);
 extern NNDEPLOY_CC_API std::string deviceTypeCodeToString(DeviceTypeCode src);
-extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string &src);
+extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string& src);
 extern NNDEPLOY_CC_API std::string deviceTypeToString(DeviceType src);
 
-extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string &src);
+extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string& src);
 extern NNDEPLOY_CC_API std::string modelTypeToString(ModelType src);
 
 extern NNDEPLOY_CC_API InferenceType
-stringToInferenceType(const std::string &src);
+stringToInferenceType(const std::string& src);
 extern NNDEPLOY_CC_API std::string inferenceTypeToString(InferenceType src);
 
-extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string &src);
+extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string& src);
 extern NNDEPLOY_CC_API std::string encryptTypeToString(EncryptType src);
 
 extern NNDEPLOY_CC_API ShareMemoryType
-stringToShareMemoryType(const std::string &src);
+stringToShareMemoryType(const std::string& src);
 extern NNDEPLOY_CC_API std::string shareMemoryTypeToString(ShareMemoryType src);
 
-extern NNDEPLOY_CC_API MemoryType stringToMemoryType(const std::string &src);
+extern NNDEPLOY_CC_API MemoryType stringToMemoryType(const std::string& src);
 extern NNDEPLOY_CC_API std::string memoryTypeToString(MemoryType src);
 
 extern NNDEPLOY_CC_API MemoryPoolType
-stringToMemoryPoolType(const std::string &src);
+stringToMemoryPoolType(const std::string& src);
 extern NNDEPLOY_CC_API std::string memoryPoolTypeToString(MemoryPoolType src);
 
-extern NNDEPLOY_CC_API TensorType stringToTensorType(const std::string &src);
+extern NNDEPLOY_CC_API TensorType stringToTensorType(const std::string& src);
 extern NNDEPLOY_CC_API std::string tensorTypeToString(TensorType src);
 
 extern NNDEPLOY_CC_API ForwardOpType
-stringToForwardOpType(const std::string &src);
+stringToForwardOpType(const std::string& src);
 extern NNDEPLOY_CC_API std::string forwardOpTypeToString(ForwardOpType src);
 
 extern NNDEPLOY_CC_API InferenceOptLevel
-stringToInferenceOptLevel(const std::string &src);
+stringToInferenceOptLevel(const std::string& src);
 extern NNDEPLOY_CC_API std::string inferenceOptLevelToString(
     InferenceOptLevel src);
 
 extern NNDEPLOY_CC_API PrecisionType
-stringToPrecisionType(const std::string &src);
+stringToPrecisionType(const std::string& src);
 extern NNDEPLOY_CC_API std::string precisionTypeToString(PrecisionType src);
 
-extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string &src);
+extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string& src);
 extern NNDEPLOY_CC_API std::string powerTypeToString(PowerType src);
 
-extern NNDEPLOY_CC_API CodecType stringToCodecType(const std::string &src);
+extern NNDEPLOY_CC_API CodecType stringToCodecType(const std::string& src);
 extern NNDEPLOY_CC_API std::string codecTypeToString(CodecType src);
 
-extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
+extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string& src);
 extern NNDEPLOY_CC_API std::string codecFlagToString(CodecFlag src);
 
 extern NNDEPLOY_CC_API std::string parallelTypeToString(ParallelType src);
 extern NNDEPLOY_CC_API ParallelType
-stringToParallelType(const std::string &src);
+stringToParallelType(const std::string& src);
 
 extern NNDEPLOY_CC_API std::string overflowPolicyToString(
     QueueOverflowPolicy src);
 extern NNDEPLOY_CC_API QueueOverflowPolicy
-stringToOverflowPolicy(const std::string &src);
+stringToOverflowPolicy(const std::string& src);
 
-extern NNDEPLOY_CC_API EdgeType stringToEdgeType(const std::string &src);
+extern NNDEPLOY_CC_API EdgeType stringToEdgeType(const std::string& src);
 extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeType src);
 
 extern NNDEPLOY_CC_API EdgeUpdateFlag
-stringToEdgeUpdateFlag(const std::string &src);
+stringToEdgeUpdateFlag(const std::string& src);
 extern NNDEPLOY_CC_API std::string edgeUpdateFlagToString(EdgeUpdateFlag src);
 
 extern NNDEPLOY_CC_API NodeColorType
-stringToNodeColorType(const std::string &src);
+stringToNodeColorType(const std::string& src);
 extern NNDEPLOY_CC_API std::string nodeColorTypeToString(NodeColorType src);
 
 extern NNDEPLOY_CC_API TopoSortType
-stringToTopoSortType(const std::string &src);
+stringToTopoSortType(const std::string& src);
 extern NNDEPLOY_CC_API std::string topoSortTypeToString(TopoSortType src);
 
 extern NNDEPLOY_CC_API PrecisionType getPrecisionType(DataType data_type);
