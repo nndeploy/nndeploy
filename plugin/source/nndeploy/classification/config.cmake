@@ -18,21 +18,21 @@ add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJE
 set_property(TARGET ${PLUGIN_BINARY} PROPERTY FOLDER ${NNDEPLOY_PLUGIN_DIRECTORY})
 
 # # DEPEND_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_DEPEND_LIBRARY})
 
 # # SYSTEM_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_SYSTEM_LIBRARY})
 
 # # THIRD_PARTY_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 
 # # NNDEPLOY_FRAMEWORK_BINARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_FRAMEWORK_BINARY})
-target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_preprocess)
-target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_FRAMEWORK_BINARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE nndeploy_plugin_preprocess)
+target_link_libraries(${PLUGIN_BINARY} PRIVATE nndeploy_plugin_infer)
 
 # # NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 
 # # install
 if(SYSTEM_Windows)
