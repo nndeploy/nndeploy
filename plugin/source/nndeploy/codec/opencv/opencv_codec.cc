@@ -177,10 +177,13 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
   if (parallel_type_ == base::kParallelTypePipeline) {
     std::lock_guard<std::mutex> lock(path_mutex_);
     path_ = path;
-    if (!base::exists(path_)) {
+    
+    bool is_url = path_.find("://") != std::string::npos;
+    if (!is_url && !base::exists(path_)) {
       NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
+    
     index_ = 0;
     if (cap_ != nullptr) {
       cap_->release();
@@ -189,24 +192,37 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     }
     path_changed_ = true;
     cap_ = new cv::VideoCapture();
+    
     if (!cap_->open(path_)) {
-      NNDEPLOY_LOGE("can not open video file %s\n", path_.c_str());
+      NNDEPLOY_LOGE("can not open video file/stream %s\n", path_.c_str());
       delete cap_;
       cap_ = nullptr;
       return base::kStatusCodeErrorInvalidParam;
+    }
+    
+    if (is_url) {
+      cap_->set(cv::CAP_PROP_BUFFERSIZE, 3);
     }
     size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
     fps_ = cap_->get(cv::CAP_PROP_FPS);
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
+    
+    if (is_url && size_ <= 0) {
+      size_ = INT_MAX;
+    }
+    
     path_ready_ = true;     // 设置标志
     path_cv_.notify_one();  // 通知等待的线程
   } else {
     path_ = path;
-    if (!base::exists(path_)) {
+    
+    bool is_url = path_.find("://") != std::string::npos;
+    if (!is_url && !base::exists(path_)) {
       NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
+    
     index_ = 0;
     if (cap_ != nullptr) {
       cap_->release();
@@ -215,16 +231,26 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     }
     path_changed_ = true;
     cap_ = new cv::VideoCapture();
+    
     if (!cap_->open(path_)) {
-      NNDEPLOY_LOGE("can not open video file %s\n", path_.c_str());
+      NNDEPLOY_LOGE("can not open video file/stream %s\n", path_.c_str());
       delete cap_;
       cap_ = nullptr;
       return base::kStatusCodeErrorInvalidParam;
+    }
+    
+    if (is_url) {
+      cap_->set(cv::CAP_PROP_BUFFERSIZE, 3);
     }
     size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
     fps_ = cap_->get(cv::CAP_PROP_FPS);
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
+    
+    if (is_url && size_ <= 0) {
+      size_ = INT_MAX;
+    }
+    
     path_ready_ = true;  // 设置标志
   }
   // NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
@@ -242,23 +268,53 @@ base::Status OpenCvVideoDecode::run() {
   // }
   if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(path_mutex_);
-    // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
   }
-  if (index_ < size_) {
-    cv::Mat *mat = new cv::Mat();
-    cap_->read(*mat);
+  
+  if (cap_ == nullptr || !cap_->isOpened()) {
+    NNDEPLOY_LOGW("VideoCapture is not opened\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  
+  cv::Mat *mat = new cv::Mat();
+  bool success = cap_->read(*mat);
+  
+  if (success && !mat->empty()) {
     outputs_[0]->set(mat, false);
-    // std::string name = "input_" + std::to_string(index_) + ".jpg";
-    // std::string full_path = base::joinPath("./", name);
-    // cv::imwrite(full_path, *mat);
     index_++;
-    if (index_ == size_) {
+    
+    if (size_ != INT_MAX && index_ >= size_) {
       cap_->release();
     }
   } else {
-    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
-                  index_, size_);
+    if (size_ == INT_MAX) {
+      NNDEPLOY_LOGW("Network stream read failed, attempting to reconnect...\n");
+      delete mat;
+      
+      cap_->release();
+      delete cap_;
+      cap_ = new cv::VideoCapture();
+      cap_->set(cv::CAP_PROP_BUFFERSIZE, 3);
+      cap_->open(path_);
+      
+      if (!cap_->isOpened()) {
+        NNDEPLOY_LOGE("Failed to reconnect to stream %s\n", path_.c_str());
+        return base::kStatusCodeErrorInvalidParam;
+      }
+      
+      cv::Mat *retry_mat = new cv::Mat();
+      if (cap_->read(*retry_mat) && !retry_mat->empty()) {
+        outputs_[0]->set(retry_mat, false);
+        index_++;
+      } else {
+        delete retry_mat;
+        return base::kStatusCodeErrorInvalidParam;
+      }
+    } else {
+      delete mat;
+      NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+                    index_, size_);
+    }
   }
 
   return base::kStatusCodeOk;
@@ -486,12 +542,14 @@ base::Status OpenCvVideoEncode::setPath(const std::string &path) {
   }
   path_ = path;
   path_changed_ = true;
+  if (width_ <= 0 || height_ <= 0) {
+    return base::kStatusCodeOk;
+  }
   cv::Size frame_size(width_, height_);
   int fourcc =
       cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2], fourcc_[3]);
   writer_ = new cv::VideoWriter();
   writer_->open(path_, fourcc, fps_, frame_size, true);
-  // 检查视频写入对象是否成功打开
   if (!writer_->isOpened()) {
     NNDEPLOY_LOGE("Error: Failed to open output video file %s.\n",
                   path_.c_str());
@@ -504,17 +562,35 @@ base::Status OpenCvVideoEncode::setPath(const std::string &path) {
 }
 
 base::Status OpenCvVideoEncode::run() {
-  // NNDEPLOY_LOGI("OpenCvVideoEncode::run() index_[%d] size_[%d]\n", index_,
-  // size_); NNDEPLOY_LOGI("OpenCvVideoEncode::run() size_[%d] fps_[%f]
-  // width_[%d] height_[%d]\n", size_, fps_, width_, height_);
-  if (index_ < size_) {
+  if (writer_ == nullptr && width_ <= 0 && height_ <= 0) {
+    cv::Mat *first = inputs_[0]->getCvMat(this);
+    if (first == nullptr || first->empty()) {
+      NNDEPLOY_LOGE("OpenCvVideoEncode: first frame unavailable for lazy init\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    width_ = first->cols;
+    height_ = first->rows;
+    cv::Size frame_size(width_, height_);
+    int fourcc =
+        cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2], fourcc_[3]);
+    writer_ = new cv::VideoWriter();
+    writer_->open(path_, fourcc, fps_, frame_size, true);
+    if (!writer_->isOpened()) {
+      NNDEPLOY_LOGE("Error: Failed to open output video file %s (lazy init).\n",
+                    path_.c_str());
+      writer_->release();
+      delete writer_;
+      writer_ = nullptr;
+      return base::kStatusCodeErrorInvalidParam;
+    }
+  }
+  if (size_ == 0 || index_ < size_) {
     cv::Mat *mat = inputs_[0]->getCvMat(this);
     if (mat != nullptr) {
       writer_->write(*mat);
     }
     index_++;
-    if (index_ == size_) {
-      // NNDEPLOY_LOGI("OpenCvVideoEncode::run() writer_->release()\n");
+    if (size_ > 0 && index_ == size_) {
       writer_->release();
     }
   } else {
@@ -565,6 +641,175 @@ base::Status OpenCvCameraEncode::run() {
   return base::kStatusCodeOk;
 }
 
+// ==================== OpenCvStreamDecode ====================
+
+base::Status OpenCvStreamDecode::init() {
+  size_ = INT_MAX;
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvStreamDecode::deinit() {
+  if (cap_ != nullptr) {
+    cap_->release();
+    delete cap_;
+    cap_ = nullptr;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvStreamDecode::setPath(const std::string &path) {
+  if (parallel_type_ == base::kParallelTypePipeline) {
+    std::lock_guard<std::mutex> lock(path_mutex_);
+    path_ = path;
+    index_ = 0;
+    if (cap_ != nullptr) {
+      cap_->release();
+      delete cap_;
+      cap_ = nullptr;
+    }
+    path_changed_ = true;
+
+    cap_ = new cv::VideoCapture();
+    cap_->set(cv::CAP_PROP_BUFFERSIZE, 1);
+    if (!cap_->open(path_, cv::CAP_FFMPEG)) {
+      NNDEPLOY_LOGE("can not open stream %s\n", path_.c_str());
+      delete cap_;
+      cap_ = nullptr;
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    size_ = INT_MAX;
+    fps_ = cap_->get(cv::CAP_PROP_FPS);
+    width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
+    height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
+    path_ready_ = true;
+    path_cv_.notify_one();
+  } else {
+    path_ = path;
+    index_ = 0;
+    if (cap_ != nullptr) {
+      cap_->release();
+      delete cap_;
+      cap_ = nullptr;
+    }
+    path_changed_ = true;
+
+    cap_ = new cv::VideoCapture();
+    cap_->set(cv::CAP_PROP_BUFFERSIZE, 1);
+    if (!cap_->open(path_, cv::CAP_FFMPEG)) {
+      NNDEPLOY_LOGE("can not open stream %s\n", path_.c_str());
+      delete cap_;
+      cap_ = nullptr;
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    size_ = INT_MAX;
+    fps_ = cap_->get(cv::CAP_PROP_FPS);
+    width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
+    height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
+    path_ready_ = true;
+  }
+  loop_count_ = size_;
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvStreamDecode::run() {
+  if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(path_mutex_);
+    path_cv_.wait(lock, [this] { return path_ready_; });
+  }
+
+  if (cap_ == nullptr || !cap_->isOpened()) {
+    // Attempt reconnection
+    for (int attempt = 0; attempt < reconnect_attempts_; attempt++) {
+      NNDEPLOY_LOGW("Stream reconnection attempt %d/%d for %s\n",
+                    attempt + 1, reconnect_attempts_, path_.c_str());
+      if (cap_ != nullptr) {
+        cap_->release();
+        delete cap_;
+        cap_ = nullptr;
+      }
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(reconnect_delay_ms_));
+      cap_ = new cv::VideoCapture();
+      cap_->set(cv::CAP_PROP_BUFFERSIZE, 1);
+      if (cap_->open(path_, cv::CAP_FFMPEG)) {
+        NNDEPLOY_LOGI("Reconnection successful on attempt %d\n", attempt + 1);
+        break;
+      }
+      delete cap_;
+      cap_ = nullptr;
+    }
+    if (cap_ == nullptr || !cap_->isOpened()) {
+      NNDEPLOY_LOGE("All reconnection attempts failed for %s\n",
+                    path_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+  }
+
+  cv::Mat *mat = new cv::Mat();
+  bool success = cap_->read(*mat);
+
+  if (success && !mat->empty()) {
+    outputs_[0]->set(mat, false);
+    index_++;
+  } else {
+    delete mat;
+    // Stream read failed, return error to trigger reconnection on next run()
+    NNDEPLOY_LOGW("Stream read failed for %s, will retry on next run\n",
+                  path_.c_str());
+    cap_->release();
+    delete cap_;
+    cap_ = nullptr;
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  return base::kStatusCodeOk;
+}
+
+// ==================== OpenCvStreamEncode ====================
+
+base::Status OpenCvStreamEncode::init() {
+  base::Status status = base::kStatusCodeOk;
+  return status;
+}
+
+base::Status OpenCvStreamEncode::deinit() {
+  base::Status status = base::kStatusCodeOk;
+  return status;
+}
+
+base::Status OpenCvStreamEncode::setRefPath(const std::string &path) {
+  if (ref_path_ == path) {
+    return base::kStatusCodeOk;
+  }
+  ref_path_ = path;
+  path_changed_ = true;
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvStreamEncode::setPath(const std::string &path) {
+  if (path_ == path) {
+    return base::kStatusCodeOk;
+  }
+  path_ = path;
+  path_changed_ = true;
+  return base::kStatusCodeOk;
+}
+
+base::Status OpenCvStreamEncode::run() {
+  cv::Mat *mat = inputs_[0]->getCvMat(this);
+  if (mat != nullptr && !mat->empty()) {
+    // For streaming encode, display frame or write to network output
+    // Currently supports display via imshow for testing
+#if NNDEPLOY_OS_WINDOWS || NNDEPLOY_OS_MACOS
+    cv::imshow(path_, *mat);
+    cv::waitKey(1);
+#else
+    ;
+#endif
+  }
+  return base::kStatusCodeOk;
+}
+
 TypeCreatelDecodeRegister g_type_create_decode_node_register(
     base::kCodecTypeOpenCV, createOpenCvDecode);
 TypeCreatelDecodeSharedPtrRegister
@@ -582,6 +827,8 @@ Decode *createOpenCvDecode(base::CodecFlag flag, const std::string &name,
     temp = new OpenCvVideoDecode(name, {}, {output}, flag);
   } else if (flag == base::kCodecFlagCamera) {
     temp = new OpenCvCameraDecode(name, {}, {output}, flag);
+  } else if (flag == base::kCodecFlagStreaming) {
+    temp = new OpenCvStreamDecode(name, {}, {output}, flag);
   }
 
   return temp;
@@ -603,6 +850,9 @@ std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(base::CodecFlag flag,
   } else if (flag == base::kCodecFlagCamera) {
     temp = std::shared_ptr<OpenCvCameraDecode>(
         new OpenCvCameraDecode(name, {}, {output}, flag));
+  } else if (flag == base::kCodecFlagStreaming) {
+    temp = std::shared_ptr<OpenCvStreamDecode>(
+        new OpenCvStreamDecode(name, {}, {output}, flag));
   }
 
   return temp;
@@ -625,6 +875,8 @@ Encode *createOpenCvEncode(base::CodecFlag flag, const std::string &name,
     temp = new OpenCvVideoEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagCamera) {
     temp = new OpenCvCameraEncode(name, {input}, {}, flag);
+  } else if (flag == base::kCodecFlagStreaming) {
+    temp = new OpenCvStreamEncode(name, {input}, {}, flag);
   }
 
   return temp;
@@ -646,6 +898,9 @@ std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(base::CodecFlag flag,
   } else if (flag == base::kCodecFlagCamera) {
     temp = std::shared_ptr<OpenCvCameraEncode>(
         new OpenCvCameraEncode(name, {input}, {}, flag));
+  } else if (flag == base::kCodecFlagStreaming) {
+    temp = std::shared_ptr<OpenCvStreamEncode>(
+        new OpenCvStreamEncode(name, {input}, {}, flag));
   }
 
   return temp;
@@ -655,10 +910,12 @@ REGISTER_NODE("nndeploy::codec::OpenCvImageDecode", OpenCvImageDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvImagesDecode", OpenCvImagesDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvVideoDecode", OpenCvVideoDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvCameraDecode", OpenCvCameraDecode);
+REGISTER_NODE("nndeploy::codec::OpenCvStreamDecode", OpenCvStreamDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvImageEncode", OpenCvImageEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode", OpenCvImagesEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvVideoEncode", OpenCvVideoEncode);
 REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode", OpenCvCameraEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvStreamEncode", OpenCvStreamEncode);
 
 }  // namespace codec
 }  // namespace nndeploy

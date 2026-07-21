@@ -2,10 +2,14 @@
 
 #include "nndeploy/infer/infer.h"
 
+#ifdef ENABLE_NNDEPLOY_INFERENCE_RKNN
+#include "nndeploy/base/dma_buf.h"
+#endif
+
 namespace nndeploy {
 namespace infer {
 
-Infer::Infer(const std::string &name) : dag::Node(name) {
+Infer::Infer(const std::string& name) : dag::Node(name) {
   key_ = "nndeploy::infer::Infer";
   desc_ =
       "Universal Inference Node - Enables cross-platform model deployment with "
@@ -18,8 +22,8 @@ Infer::Infer(const std::string &name) : dag::Node(name) {
   this->setDynamicInput(true);
   this->setDynamicOutput(true);
 }
-Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
+Infer::Infer(const std::string& name, std::vector<dag::Edge*> inputs,
+             std::vector<dag::Edge*> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::infer::Infer";
   desc_ =
@@ -41,7 +45,7 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
   this->setDynamicOutput(true);
 }
 
-Infer::Infer(const std::string &name, base::InferenceType type)
+Infer::Infer(const std::string& name, base::InferenceType type)
     : dag::Node(name) {
   key_ = "nndeploy::infer::Infer";
   type_ = type;
@@ -57,8 +61,8 @@ Infer::Infer(const std::string &name, base::InferenceType type)
   this->setDynamicInput(true);
   this->setDynamicOutput(true);
 }
-Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs, base::InferenceType type)
+Infer::Infer(const std::string& name, std::vector<dag::Edge*> inputs,
+             std::vector<dag::Edge*> outputs, base::InferenceType type)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::infer::Infer";
   type_ = type;
@@ -87,7 +91,7 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
 
 Infer::~Infer() {}
 
-base::Status Infer::setInputName(const std::string &name, int index) {
+base::Status Infer::setInputName(const std::string& name, int index) {
   if (index < 0) {
     NNDEPLOY_LOGE("index is out of range.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -108,7 +112,7 @@ base::Status Infer::setInputName(const std::string &name, int index) {
   input_type_info_[index]->setEdgeName(name);
   return base::kStatusCodeOk;
 }
-base::Status Infer::setOutputName(const std::string &name, int index) {
+base::Status Infer::setOutputName(const std::string& name, int index) {
   if (index < 0) {
     NNDEPLOY_LOGE("index is out of range.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -129,7 +133,7 @@ base::Status Infer::setOutputName(const std::string &name, int index) {
 
   return base::kStatusCodeOk;
 }
-base::Status Infer::setInputNames(const std::vector<std::string> &names) {
+base::Status Infer::setInputNames(const std::vector<std::string>& names) {
   if (names.empty()) {
     NNDEPLOY_LOGE("names is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -152,7 +156,7 @@ base::Status Infer::setInputNames(const std::vector<std::string> &names) {
   }
   return base::kStatusCodeOk;
 }
-base::Status Infer::setOutputNames(const std::vector<std::string> &names) {
+base::Status Infer::setOutputNames(const std::vector<std::string>& names) {
   if (names.empty()) {
     NNDEPLOY_LOGE("names is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -191,12 +195,16 @@ base::Status Infer::setInferenceType(base::InferenceType inference_type) {
   }
 }
 
-base::Status Infer::setParam(base::Param *param) {
+base::Status Infer::setParam(base::Param* param) {
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("inference_ is nullptr");
+    return base::kStatusCodeErrorInvalidParam;
+  }
   base::Status status = base::kStatusCodeOk;
   status = inference_->setParam(param);
   return status;
 }
-base::Param *Infer::getParam() {
+base::Param* Infer::getParam() {
   if (inference_ == nullptr) {
     return nullptr;
   }
@@ -204,17 +212,25 @@ base::Param *Infer::getParam() {
 }
 
 base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("inference_ is nullptr");
+    return base::kStatusCodeErrorInvalidParam;
+  }
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
   status = inference_->setParamSharedPtr(param);
   return status;
 }
 std::shared_ptr<base::Param> Infer::getParamSharedPtr() {
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("inference_ is nullptr");
+    return nullptr;
+  }
   std::shared_ptr<base::Param> param = inference_->getParamSharedPtr();
   return param;
 }
 
-base::Status Infer::shareInference(Infer *infer) {
+base::Status Infer::shareInference(Infer* infer) {
   if (infer == nullptr) {
     return base::kStatusCodeOk;
   }
@@ -241,8 +257,8 @@ base::Status Infer::init() {
          device::isHostDeviceType(inference_->getDeviceType()))) {
       inference_->setStream(stream_);
     }
-    inference::InferenceParam *inference_param =
-        dynamic_cast<inference::InferenceParam *>(inference_->getParam());
+    inference::InferenceParam* inference_param =
+        dynamic_cast<inference::InferenceParam*>(inference_->getParam());
     if (inference_param != nullptr) {
       inference_param->parallel_type_ = parallel_type_;
     }
@@ -300,127 +316,104 @@ base::Status Infer::deinit() {
 }
 
 int64_t Infer::getMemorySize() { return inference_->getMemorySize(); }
-base::Status Infer::setMemory(device::Buffer *buffer) {
+base::Status Infer::setMemory(device::Buffer* buffer) {
   return inference_->setMemory(buffer);
 }
 
 base::Status Infer::run() {
-  // NNDEPLOY_LOGE("Infer::run!Thread ID: %d.\n", std::this_thread::get_id());
   base::Status status = base::kStatusCodeOk;
-  std::vector<device::Tensor *> tensors;
-  // std::vector<int> indexs;
-  for (auto input : inputs_) {
-    device::Tensor *tensor = input->getTensor(this);
-    tensors.emplace_back(tensor);
-    // int index = input->getIndex(this);
-    // indexs.emplace_back(index);
+
+  // Zero-copy path: check if ALL input Edges carry DmaBufBuffer (RKNN only).
+  // When upstream RGA nodes pass dma-buf fds through Edges, we forward them
+  // directly to rknn_set_io_mem, avoiding any CPU-side data copy.
+#ifdef ENABLE_NNDEPLOY_INFERENCE_RKNN
+  bool use_dma_buf_path = (type_ == base::kInferenceTypeRknn);
+  std::vector<base::DmaBufBuffer*> dma_bufs;
+  if (use_dma_buf_path) {
+    for (auto input : inputs_) {
+      auto* db = input->get<base::DmaBufBuffer>(this);
+      if (db == nullptr || db->fd < 0) {
+        use_dma_buf_path = false;
+        break;
+      }
+      dma_bufs.push_back(db);
+    }
   }
-  // int index = indexs[0];
-  // for (int i = 1; i < indexs.size(); i++) {
-  //   if (index != indexs[i]) {
-  //     NNDEPLOY_LOGE("index not equal");
-  //     return base::kStatusCodeErrorInvalidValue;
-  //   }
-  // }
-  if (is_input_dynamic_) {
-    base::ShapeMap shape_map;
-    for (int i = 0; i < tensors.size(); i++) {
+
+  if (use_dma_buf_path) {
+    NNDEPLOY_LOGI("Infer::run: zero-copy dma-buf path (%d input(s))\n",
+                  (int)dma_bufs.size());
+    for (int i = 0; i < (int)dma_bufs.size(); i++) {
+      std::string name = input_type_info_[i]->getEdgeName();
+      inference_->setInputTensorFromDmaBuf(name.c_str(), dma_bufs[i]->fd,
+                                           dma_bufs[i]->size);
+    }
+  } else
+#endif
+  {
+    std::vector<device::Tensor*> tensors;
+    for (auto input : inputs_) {
+      device::Tensor* tensor = input->getTensor(this);
+      tensors.emplace_back(tensor);
+    }
+    if (is_input_dynamic_) {
+      base::ShapeMap shape_map;
+      for (int i = 0; i < (int)tensors.size(); i++) {
+        std::string name = tensors[i]->getName();
+        if (inference_input_names_.find(name) == inference_input_names_.end()) {
+          name = input_type_info_[i]->getEdgeName();
+        }
+        shape_map[name] = tensors[i]->getShape();
+      }
+      NNDEPLOY_LOGI("shape_map: \n");
+      for (auto iter : shape_map) {
+        std::string shape_str = "[";
+        for (int i = 0; i < (int)iter.second.size(); i++) {
+          shape_str += std::to_string(iter.second[i]);
+          if (i < (int)iter.second.size() - 1) {
+            shape_str += ", ";
+          }
+        }
+        shape_str += "]";
+        NNDEPLOY_LOGI("shape_map[%s] = %s\n", iter.first.c_str(),
+                      shape_str.c_str());
+      }
+      inference_->reshape(shape_map);
+    }
+    for (int i = 0; i < (int)tensors.size(); i++) {
       std::string name = tensors[i]->getName();
       if (inference_input_names_.find(name) == inference_input_names_.end()) {
         name = input_type_info_[i]->getEdgeName();
       }
-      shape_map[name] = tensors[i]->getShape();
+      tensors[i]->setName(name);
+      inference_->setInputTensor(name, tensors[i]);
     }
-    // debug：print shape_map
-    NNDEPLOY_LOGI("shape_map: \n");
-    for (auto iter : shape_map) {
-      std::string shape_str = "[";
-      for (int i = 0; i < iter.second.size(); i++) {
-        shape_str += std::to_string(iter.second[i]);
-        if (i < iter.second.size() - 1) {
-          shape_str += ", ";
-        }
-      }
-      shape_str += "]";
-      NNDEPLOY_LOGI("shape_map[%s] = %s\n", iter.first.c_str(), shape_str.c_str());
-    }
-    inference_->reshape(shape_map);
-  }
-  for (int i = 0; i < tensors.size(); i++) {
-    std::string name = tensors[i]->getName();
-    if (inference_input_names_.find(name) == inference_input_names_.end()) {
-      name = input_type_info_[i]->getEdgeName();
-    }
-    // NNDEPLOY_LOGI("setInputTensor[%s].\n", name.c_str());
-    tensors[i]->setName(name);
-    inference_->setInputTensor(name, tensors[i]);
-
-#if 0
-    static int input_count = 0;
-    if (input_count == 0) {
-      std::string filename = name + ".csv";
-      size_t pos = 0;
-      while ((pos = filename.find('/')) != std::string::npos) {
-        filename.replace(pos, 1, "_");
-      }
-      std::ofstream input_file(filename, std::ios::trunc);
-      if (input_file.is_open()) {
-        tensors[i]->print(input_file);
-        input_file.close();
-      } else {
-        NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
-      }
-    }
-    input_count++;
-#endif
   }
 
   status = inference_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
-  for (int i = 0; i < outputs_.size(); i++) {
+
+  for (int i = 0; i < (int)outputs_.size(); i++) {
     std::string name = outputs_[i]->getName();
-    // NNDEPLOY_LOGI("outputs_[%d]->getName() = %s\n", i, name.c_str());
     if (inference_output_names_.find(name) == inference_output_names_.end()) {
       name = output_type_info_[i]->getEdgeName();
     }
-    // NNDEPLOY_LOGI("getOutputTensorAfterRun[%s].\n", name.c_str());
     base::ParallelType parallel_type = outputs_[i]->getParallelType();
     bool flag = parallel_type == base::kParallelTypePipeline;
-    device::Tensor *tensor =
+    device::Tensor* tensor =
         inference_->getOutputTensorAfterRun(name, device_type_, flag);
     if (tensor == nullptr) {
       NNDEPLOY_LOGE("can't getOutputTensorAfterRun[%s].\n", name.c_str());
       status = base::kStatusCodeErrorInvalidParam;
       break;
     }
-
-#if 0
-    static int output_count = 0;
-    if (output_count == 0) {
-      std::string filename = name + ".csv";
-      size_t pos = 0;
-      while ((pos = filename.find('/')) != std::string::npos) {
-        filename.replace(pos, 1, "_");
-      }
-      std::ofstream output_file(filename, std::ios::trunc);
-      if (output_file.is_open()) {
-        tensor->print(output_file);
-        output_file.close();
-      } else {
-        NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
-      }
-    }
-    output_count++;
-#endif
-
-    auto *internal_output = inference_->getOutputTensor(name);
+    auto* internal_output = inference_->getOutputTensor(name);
     if (internal_output != tensor) {
       outputs_[i]->set(tensor, false);
     } else {
       outputs_[i]->set(tensor, true);
     }
   }
-  // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
   return status;
 }
 
@@ -428,8 +421,8 @@ std::shared_ptr<inference::Inference> Infer::getInference() {
   return inference_;
 }
 
-base::Status Infer::serialize(rapidjson::Value &json,
-                              rapidjson::Document::AllocatorType &allocator) {
+base::Status Infer::serialize(rapidjson::Value& json,
+                              rapidjson::Document::AllocatorType& allocator) {
   base::Status status = dag::Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -447,14 +440,14 @@ base::Status Infer::serialize(rapidjson::Value &json,
   // json.AddMember("can_op_input_", can_op_input_, allocator);
   // json.AddMember("can_op_output_", can_op_output_, allocator);
   if (inference_ != nullptr) {
-    base::Param *param = inference_->getParam();
+    base::Param* param = inference_->getParam();
     if (param != nullptr) {
       rapidjson::Value param_json(rapidjson::kObjectType);
       param->serialize(param_json, allocator);
       json.AddMember("param_", param_json, allocator);
     }
   } else {
-    inference::InferenceParam *inference_param =
+    inference::InferenceParam* inference_param =
         new inference::InferenceParam();
     inference_param->parallel_type_ = parallel_type_;
     rapidjson::Value param_json(rapidjson::kObjectType);
@@ -464,7 +457,7 @@ base::Status Infer::serialize(rapidjson::Value &json,
   }
   return status;
 }
-base::Status Infer::deserialize(rapidjson::Value &json) {
+base::Status Infer::deserialize(rapidjson::Value& json) {
   base::Status status = dag::Node::deserialize(json);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -491,8 +484,8 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
   // }
   if (json.HasMember("param_") && json["param_"].IsObject() &&
       inference_ != nullptr) {
-    inference::InferenceParam *param =
-        static_cast<inference::InferenceParam *>(inference_->getParam());
+    inference::InferenceParam* param =
+        static_cast<inference::InferenceParam*>(inference_->getParam());
     if (param != nullptr) {
       // NNDEPLOY_LOGE("param deserialize start %p\n", param);
       status = param->deserialize(json["param_"]);

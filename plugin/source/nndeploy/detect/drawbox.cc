@@ -5,6 +5,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/result.h"
+#include "nndeploy/detect/yolo_obb/result.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
@@ -121,6 +122,8 @@ namespace detect {
 REGISTER_NODE("nndeploy::detect::DrawBox", DrawBox);
 REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBox",
               YoloMultiConvDrawBox);
+REGISTER_NODE("nndeploy::detect::DrawObbBox", DrawObbBox);
+REGISTER_NODE("nndeploy::detect::DrawBBox", DrawBBox);
 
 }  // namespace detect
 }  // namespace nndeploy
