@@ -50,21 +50,21 @@ class NNDEPLOY_CC_API Inference {
    * @param param
    * @return base::Status
    */
-  base::Status setParam(base::Param *param);
+  base::Status setParam(base::Param* param);
   base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
-  
+
   /**
    * @brief Get the Inference Param（这里使用基类指针）
    *
    * @return base::Param*
    */
-  base::Param *getParam();
+  base::Param* getParam();
   std::shared_ptr<base::Param> getParamSharedPtr();
-  
+
   base::DeviceType getDeviceType() { return inference_param_->device_type_; }
 
-  void setStream(device::Stream *stream);
-  device::Stream *getStream();
+  void setStream(device::Stream* stream);
+  device::Stream* getStream();
 
   /**
    * @brief 初始化推理
@@ -103,7 +103,7 @@ class NNDEPLOY_CC_API Inference {
    * @param shape_map
    * @return base::Status
    */
-  virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
+  virtual base::Status reshape(base::ShapeMap& shape_map) = 0;
 
   /**
    * @brief 获取推理所需的内存大小
@@ -117,7 +117,7 @@ class NNDEPLOY_CC_API Inference {
    * @param buffer
    * @return base::Status
    */
-  virtual base::Status setMemory(device::Buffer *buffer);
+  virtual base::Status setMemory(device::Buffer* buffer);
   /**
    * @brief 获得推理计算量
    *
@@ -221,7 +221,7 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return base::IntVector
    */
-  virtual base::IntVector getInputShape(const std::string &name);
+  virtual base::IntVector getInputShape(const std::string& name);
   /**
    * @brief Get the Output Shape object
    *
@@ -235,14 +235,14 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::TensorDesc
    */
-  virtual device::TensorDesc getInputTensorDesc(const std::string &name);
+  virtual device::TensorDesc getInputTensorDesc(const std::string& name);
   /**
    * @brief Get the Output Tensor Desc object
    *
    * @param name
    * @return device::TensorDesc
    */
-  virtual device::TensorDesc getOutputTensorDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorDesc(const std::string& name);
 
   /**
    * @brief Get the Input Tensor Align Desc object
@@ -250,40 +250,40 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::TensorDesc
    */
-  virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
+  virtual device::TensorDesc getInputTensorAlignDesc(const std::string& name);
   /**
    * @brief Get the Output Tensor Align Desc object
    *
    * @param name
    * @return device::TensorDesc
    */
-  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string& name);
 
   /**
    * @brief Get the All Input Tensor Map object
    *
    * @return std::map<std::string, device::Tensor *>
    */
-  virtual std::map<std::string, device::Tensor *> getAllInputTensorMap();
+  virtual std::map<std::string, device::Tensor*> getAllInputTensorMap();
   /**
    * @brief Get the All Output Tensor Map object
    *
    * @return std::map<std::string, device::Tensor *>
    */
-  virtual std::map<std::string, device::Tensor *> getAllOutputTensorMap();
+  virtual std::map<std::string, device::Tensor*> getAllOutputTensorMap();
 
   /**
    * @brief Get the All Input Tensor Vector object
    *
    * @return std::vector<device::Tensor *>
    */
-  virtual std::vector<device::Tensor *> getAllInputTensorVector();
+  virtual std::vector<device::Tensor*> getAllInputTensorVector();
   /**
    * @brief Get the All Output Tensor Vector object
    *
    * @return std::vector<device::Tensor *>
    */
-  virtual std::vector<device::Tensor *> getAllOutputTensorVector();
+  virtual std::vector<device::Tensor*> getAllOutputTensorVector();
 
   /**
    * @brief Get the Input Tensor object
@@ -291,14 +291,14 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::Tensor*
    */
-  virtual device::Tensor *getInputTensor(const std::string &name);
+  virtual device::Tensor* getInputTensor(const std::string& name);
   /**
    * @brief Get the Output Tensor object
    *
    * @param name
    * @return device::Tensor*
    */
-  virtual device::Tensor *getOutputTensor(const std::string &name);
+  virtual device::Tensor* getOutputTensor(const std::string& name);
 
   /**
    * @brief Set the Input Tensor object
@@ -309,8 +309,8 @@ class NNDEPLOY_CC_API Inference {
    * @details
    * 传入外部的tensor
    */
-  virtual base::Status setInputTensor(const std::string &name,
-                                      device::Tensor *input_tensor);
+  virtual base::Status setInputTensor(const std::string& name,
+                                      device::Tensor* input_tensor);
 
   /**
    * @brief 推理
@@ -325,8 +325,8 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::Tensor*
    */
-  virtual device::Tensor *getOutputTensorAfterRun(
-      const std::string &name, base::DeviceType device_type, bool is_copy,
+  virtual device::Tensor* getOutputTensorAfterRun(
+      const std::string& name, base::DeviceType device_type, bool is_copy,
       base::DataFormat data_format = base::kDataFormatAuto) = 0;
 
  protected:
@@ -352,7 +352,7 @@ class NNDEPLOY_CC_API Inference {
    * @details
    */
   bool is_external_stream_ = false;
-  device::Stream *stream_ = nullptr;
+  device::Stream* stream_ = nullptr;
 
   /**
    * @brief 输入tensor的map
@@ -360,21 +360,21 @@ class NNDEPLOY_CC_API Inference {
    * 部分第三方推理框架（TNN、MNN、Openvino等）内部分配输入tensor，这是第三方推理框架内部分配的输入tensor的一个浅拷贝
    * 部分推理框架（TensorRt、onnxruntime等）内部不分配输入tensor（也或许是外部无法获得到内部分配的输入tensor），nndeploy的推理将尝试为第三方推理框架分配输入tensor
    */
-  std::map<std::string, device::Tensor *> input_tensors_;
+  std::map<std::string, device::Tensor*> input_tensors_;
   /**
    * @brief 输出tensor的map
    * @details
    * 部分第三方推理框架（TNN、MNN、Openvino等）内部分配输出tensor，这是第三方推理框架内部分配的输出tensor的一个浅拷贝
    * 部分推理框架（TensorRt、onnxruntime等）内部不分配输出tensor（也或许是外部无法获得到内部分配的输出tensor），nndeploy的推理将尝试为第三方推理框架分配输出tensor
    */
-  std::map<std::string, device::Tensor *> output_tensors_;
+  std::map<std::string, device::Tensor*> output_tensors_;
 
   /**
    * @brief 外部输入tensor的map
    * @details
    * 外部输入tensor的map，也可以是input_tensors_
    */
-  std::map<std::string, device::Tensor *> external_input_tensors_;
+  std::map<std::string, device::Tensor*> external_input_tensors_;
 };
 
 /**
@@ -385,7 +385,8 @@ class InferenceCreator {
  public:
   virtual ~InferenceCreator() {};
   // virtual Inference *createInference(base::InferenceType type) = 0;
-  virtual std::shared_ptr<Inference> createInference(base::InferenceType type) = 0;
+  virtual std::shared_ptr<Inference> createInference(
+      base::InferenceType type) = 0;
 };
 
 /**
@@ -408,8 +409,9 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-extern NNDEPLOY_CC_API std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap();
+extern NNDEPLOY_CC_API
+    std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
+    getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板
@@ -432,7 +434,8 @@ class TypeInferenceRegister {
  */
 // extern NNDEPLOY_CC_API Inference *createInference(base::InferenceType type);
 
-extern NNDEPLOY_CC_API std::shared_ptr<Inference> createInference(base::InferenceType type);
+extern NNDEPLOY_CC_API std::shared_ptr<Inference> createInference(
+    base::InferenceType type);
 
 }  // namespace inference
 }  // namespace nndeploy

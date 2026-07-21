@@ -346,9 +346,24 @@ device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
   // return external_output_tensor;
 }
 
+// [修复] 检查 ONNX 模型输入是否包含动态维度（值为 -1 的维度）。
+//
+// 修改说明：
+//   原始代码从 i=1 开始遍历，跳过了 dim 0（batch 维度）。
+//   这导致当 ONNX 模型的 batch 维度为动态（如 [-1, 3, 640, 640]）时，
+//   isDynamic() 错误地返回 false，框架进入静态 shape 分支，
+//   直接使用包含 -1 的 shape 创建 Tensor，触发 malloc 溢出和推理崩溃。
+//
+//   修复后从 i=0 开始遍历，检查所有维度（包括 batch 维度），
+//   与 base::isDynamicShape() 的行为保持一致。
+//
+// 影响范围：
+//   所有使用 ONNX Runtime 且模型具有动态 batch 维度的工作流（47 个 JSON / 65 个 ORT 节点）。
+//   修复后，动态 batch 模型正确进入动态 shape 路径（空张量 + reshape），
+//   避免了 shape 中 -1 导致的内存分配溢出。
 bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> &shape) {
   int size = static_cast<int>(shape.size());
-  for (int i = 1; i < size; ++i) {
+  for (int i = 0; i < size; ++i) {
     if (shape[i] < 0) {
       return true;
     }
