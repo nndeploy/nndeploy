@@ -174,6 +174,10 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
                              std::vector<std::string> &model_value) {
     // auto infer = dynamic_cast<infer::Infer *>(infer_);
     auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+    if (param == nullptr) {
+      NNDEPLOY_LOGE("param is nullptr");
+      return base::kStatusCodeErrorInvalidParam;
+    }
     param->device_type_ = device_type;
     param->model_type_ = model_type;
     param->is_path_ = is_path;
