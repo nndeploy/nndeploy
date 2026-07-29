@@ -204,8 +204,8 @@ base::Status YoloPostProcess::runV8V11() {
     for (int k = 0; k < 16 && k < (int)(tensor->getSize() / sizeof(float)); ++k)
       off += snprintf(buf + off, sizeof(buf) - off, "%s%.6f", k == 0 ? "" : ",",
                       dbg[k]);
-    NNDEPLOY_LOGE("[YoloV8V11] shape=[%s] expected_c=%d first_16=%s",
-                  shape_str.c_str(), expected_channels, buf);
+    // NNDEPLOY_LOGE("[YoloV8V11] shape=[%s] expected_c=%d first_16=%s",
+    //               shape_str.c_str(), expected_channels, buf);
   }
 
   // Auto-detect: NCHW (batch,C,N) vs NHWC (batch,N,C)
@@ -219,17 +219,17 @@ base::Status YoloPostProcess::runV8V11() {
   }
 
   int height, width;
+  cv::Mat cv_mat_dst;  // 持久化，防止 use-after-free
   if (need_transpose) {
-    NNDEPLOY_LOGE("[YoloV8V11] layout=NCHW, transpose (%d,%d) -> (%d,%d)\n",
+    NNDEPLOY_LOGD("[YoloV8V11] layout=NCHW, transpose (%d,%d) -> (%d,%d)\n",
                   dim1, dim2, dim2, dim1);
     cv::Mat cv_mat_src(dim1, dim2, CV_32FC1, data);
-    cv::Mat cv_mat_dst(dim2, dim1, CV_32FC1);
     cv::transpose(cv_mat_src, cv_mat_dst);
     height = dim2;
     width = dim1;
     data = (float*)cv_mat_dst.data;
   } else {
-    NNDEPLOY_LOGE("[YoloV8V11] layout=NHWC, use as-is (N=%d, C=%d)\n", dim1,
+    NNDEPLOY_LOGD("[YoloV8V11] layout=NHWC, use as-is (N=%d, C=%d)\n", dim1,
                   dim2);
     height = dim1;
     width = dim2;

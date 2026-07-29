@@ -36,7 +36,7 @@ namespace detect {
  * @return std::array<float, 4>
  */
 extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
-    float xmin, float ymin, float xmax, float ymax, const float *scale_factor,
+    float xmin, float ymin, float xmax, float ymax, const float* scale_factor,
     float x_offset, float y_offset, int ori_width, int ori_height);
 
 /**
@@ -51,7 +51,7 @@ extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
  * @return * std::array<float, 4>
  */
 extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
-    const std::array<float, 4> &box, const float *scale_factor, float x_offset,
+    const std::array<float, 4>& box, const float* scale_factor, float x_offset,
     float y_offset, int ori_width, int ori_height);
 
 /**
@@ -77,8 +77,8 @@ float computeIOU(float xmin0, float ymin0, float xmax0, float ymax0,
  * @param box1 [xmin1, ymin1, xmax1, ymax1]
  * @return * float
  */
-float computeIOU(const std::array<float, 4> &box0,
-                 const std::array<float, 4> &box1);
+float computeIOU(const std::array<float, 4>& box0,
+                 const std::array<float, 4>& box1);
 
 /**
  * @brief
@@ -88,7 +88,7 @@ float computeIOU(const std::array<float, 4> &box0,
  * @param j
  * @return float
  */
-float computeIOU(const float *boxes, int i, int j);
+float computeIOU(const float* boxes, int i, int j);
 
 /**
  * @brief
@@ -98,10 +98,16 @@ float computeIOU(const float *boxes, int i, int j);
  * @param iou_threshold
  * @return base::Status
  */
-base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
+base::Status computeNMS(const DetectResult& src, std::vector<int>& keep_idxs,
                         const float iou_threshold);
 
-base::Status fastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
+base::Status fastNMS(const DetectResult& src, std::vector<int>& keep_idxs,
+                     const float iou_threshold);
+
+base::Status computeNMS(const BBoxResult& src, std::vector<int>& keep_idxs,
+                        const float iou_threshold);
+
+base::Status fastNMS(const BBoxResult& src, std::vector<int>& keep_idxs,
                      const float iou_threshold);
 
 }  // namespace detect
