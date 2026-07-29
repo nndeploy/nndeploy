@@ -202,7 +202,7 @@ base::Status BoxMotNode::processTracker(const cv::Mat& frame) {
   detect::BBoxResult* bbox_result =
       static_cast<detect::BBoxResult*>(inputs_[0]->getParam(this));
   detect::ObbResult* obb_result = nullptr;
-  if (inputs_.size() > 1 && inputs_[1] != inputs_[0]) {
+  if (inputs_.size() > 1 && inputs_[1] != inputs_[0] && !inputs_[1]->empty()) {
     obb_result = static_cast<detect::ObbResult*>(inputs_[1]->getParam(this));
   }
 
@@ -238,7 +238,7 @@ base::Status BoxMotNode::processTracker(const cv::Mat& frame) {
 // =========================================================================
 
 base::Status BoxMotNode::run() {
-  // Get frame image from input[2]
+  // Get frame image from input[2] (input[0]=BBoxResult, input[1]=ObbResult optional)
   cv::Mat* frame = inputs_[2]->getCvMat(this);
   if (frame == nullptr || frame->empty()) {
     NNDEPLOY_LOGE("BoxMotNode: input image is null or empty\n");

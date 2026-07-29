@@ -32,9 +32,9 @@ namespace track {
  * The tracker_type_ field in BoxMotParam selects which tracker is used.
  *
  * Inputs:
- *   [0] detect::BBoxResult  (AABB detections, optional if OBB provided)
- *   [1] detect::ObbResult   (OBB detections, optional if AABB provided)
- *   [2] cv::Mat             (frame image, required)
+ *   [0] detect::BBoxResult        (AABB detections, required)
+ *   [1] detect::ObbResult         (OBB detections, optional)
+ *   [2] cv::Mat                   (frame image, required)
  *
  * Outputs:
  *   [0] MOTResult           (legacy-compatible tracked objects)
