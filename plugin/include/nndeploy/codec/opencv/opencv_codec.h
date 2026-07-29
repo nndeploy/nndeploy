@@ -441,6 +441,127 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
   virtual base::Status run();
 };
 
+class NNDEPLOY_CC_API OpenCvStreamDecode : public Decode {
+ public:
+  OpenCvStreamDecode(const std::string &name)
+      : Decode(name, base::CodecFlag::kCodecFlagStreaming) {
+    key_ = "nndeploy::codec::OpenCvStreamDecode";
+    desc_ =
+        "Decode real-time video stream using OpenCV, from network RTSP/HTTP "
+        "stream to cv::Mat frames, with auto-reconnection, default color "
+        "space is BGR";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    size_ = INT_MAX;
+    loop_count_ = size_;
+  }
+  OpenCvStreamDecode(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs)
+      : Decode(name, inputs, outputs, base::CodecFlag::kCodecFlagStreaming) {
+    key_ = "nndeploy::codec::OpenCvStreamDecode";
+    desc_ =
+        "Decode real-time video stream using OpenCV, from network RTSP/HTTP "
+        "stream to cv::Mat frames, with auto-reconnection, default color "
+        "space is BGR";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    size_ = INT_MAX;
+    loop_count_ = size_;
+  }
+  OpenCvStreamDecode(const std::string &name, base::CodecFlag flag)
+      : Decode(name, flag) {
+    key_ = "nndeploy::codec::OpenCvStreamDecode";
+    desc_ =
+        "Decode real-time video stream using OpenCV, from network RTSP/HTTP "
+        "stream to cv::Mat frames, with auto-reconnection, default color "
+        "space is BGR";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    size_ = INT_MAX;
+    loop_count_ = size_;
+  }
+  OpenCvStreamDecode(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+      : Decode(name, inputs, outputs, flag) {
+    key_ = "nndeploy::codec::OpenCvStreamDecode";
+    desc_ =
+        "Decode real-time video stream using OpenCV, from network RTSP/HTTP "
+        "stream to cv::Mat frames, with auto-reconnection, default color "
+        "space is BGR";
+    this->setOutputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    size_ = INT_MAX;
+    loop_count_ = size_;
+  }
+  virtual ~OpenCvStreamDecode() {}
+
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status setPath(const std::string &path) override;
+  virtual base::Status run();
+
+ private:
+  cv::VideoCapture *cap_ = nullptr;
+  int reconnect_attempts_ = 3;
+  int reconnect_delay_ms_ = 1000;
+};
+
+class NNDEPLOY_CC_API OpenCvStreamEncode : public Encode {
+ public:
+  OpenCvStreamEncode(const std::string &name)
+      : Encode(name, base::CodecFlag::kCodecFlagStreaming) {
+    key_ = "nndeploy::codec::OpenCvStreamEncode";
+    desc_ =
+        "Encode real-time video stream using OpenCV, from cv::Mat frames to "
+        "network stream output, supports RTSP/HTTP output";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "output_stream.mp4";
+  }
+  OpenCvStreamEncode(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs)
+      : Encode(name, inputs, outputs, base::CodecFlag::kCodecFlagStreaming) {
+    key_ = "nndeploy::codec::OpenCvStreamEncode";
+    desc_ =
+        "Encode real-time video stream using OpenCV, from cv::Mat frames to "
+        "network stream output, supports RTSP/HTTP output";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "output_stream.mp4";
+  }
+  OpenCvStreamEncode(const std::string &name, base::CodecFlag flag)
+      : Encode(name, flag) {
+    key_ = "nndeploy::codec::OpenCvStreamEncode";
+    desc_ =
+        "Encode real-time video stream using OpenCV, from cv::Mat frames to "
+        "network stream output, supports RTSP/HTTP output";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "output_stream.mp4";
+  }
+  OpenCvStreamEncode(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+      : Encode(name, inputs, outputs, flag) {
+    key_ = "nndeploy::codec::OpenCvStreamEncode";
+    desc_ =
+        "Encode real-time video stream using OpenCV, from cv::Mat frames to "
+        "network stream output, supports RTSP/HTTP output";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setIoType(dag::IOType::kIOTypeCamera);
+    path_ = "output_stream.mp4";
+  }
+  virtual ~OpenCvStreamEncode() {}
+
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &path) override;
+
+  virtual base::Status run();
+};
+
 extern NNDEPLOY_CC_API Decode *createOpenCvDecode(base::CodecFlag flag,
                                                   const std::string &name,
                                                   dag::Edge *output);
