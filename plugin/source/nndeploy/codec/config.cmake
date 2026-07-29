@@ -23,29 +23,6 @@ else()
   message(STATUS "  - OpenCV codec backend (disabled)")
 endif()
 
-# FFmpeg codec source (optional)
-if(ENABLE_NNDEPLOY_FFMPEG)
-  file(GLOB_RECURSE FFMPEG_CODEC_SOURCE
-    "${PLUGIN_ROOT_PATH}/include/nndeploy/codec/ffmpeg/*.h"
-    "${PLUGIN_ROOT_PATH}/source/nndeploy/codec/ffmpeg/*.cc"
-  )
-  list(APPEND PLUGIN_SOURCE ${FFMPEG_CODEC_SOURCE})
-  message(STATUS "  + FFmpeg codec backend")
-else()
-  message(STATUS "  - FFmpeg codec backend (disabled)")
-endif()
-
-# GStreamer codec source (optional)
-if(ENABLE_NNDEPLOY_GSTREAMER)
-  file(GLOB_RECURSE GSTREAMER_CODEC_SOURCE
-    "${PLUGIN_ROOT_PATH}/include/nndeploy/codec/gstreamer/*.h"
-    "${PLUGIN_ROOT_PATH}/source/nndeploy/codec/gstreamer/*.cc"
-  )
-  list(APPEND PLUGIN_SOURCE ${GSTREAMER_CODEC_SOURCE})
-  message(STATUS "  + GStreamer codec backend")
-else()
-  message(STATUS "  - GStreamer codec backend (disabled)")
-endif()
 
 ## TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
