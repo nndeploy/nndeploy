@@ -208,10 +208,7 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
     
-    if (size_ <= 0) {
-      // if (is_url && size_ <= 0) {
-      // CAP_PROP_FRAME_COUNT 可能返回 0（如网络流、部分编码格式），
-      // 此时无法预知总帧数，设为 INT_MAX 表示无限循环，由 run() 在读取失败时终止
+    if (is_url && size_ <= 0) {
       size_ = INT_MAX;
     }
     
@@ -250,15 +247,16 @@ base::Status OpenCvVideoDecode::setPath(const std::string &path) {
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
     
-    if (size_ <= 0) {
-      // CAP_PROP_FRAME_COUNT 可能返回 0（如网络流、部分编码格式），
-      // 此时无法预知总帧数，设为 INT_MAX 表示无限循环，由 run() 在读取失败时终止
+    if (is_url && size_ <= 0) {
       size_ = INT_MAX;
     }
     
     path_ready_ = true;  // 设置标志
   }
   // NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
+  // NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
+  // NNDEPLOY_LOGE("Video width_: %d.\n", width_);
+  // NNDEPLOY_LOGE("Video height_: %d.\n", height_);
   loop_count_ = size_;
   return base::kStatusCodeOk;
 }
@@ -289,8 +287,7 @@ base::Status OpenCvVideoDecode::run() {
       cap_->release();
     }
   } else {
-    bool is_url = path_.find("://") != std::string::npos;
-    if (size_ == INT_MAX && is_url) {
+    if (size_ == INT_MAX) {
       NNDEPLOY_LOGW("Network stream read failed, attempting to reconnect...\n");
       delete mat;
       
@@ -315,11 +312,8 @@ base::Status OpenCvVideoDecode::run() {
       }
     } else {
       delete mat;
-      // 本地文件（非网络流）且 size_ 为 INT_MAX（帧数未知）时，
-      // 读取失败说明视频已结束，将 size_ 设为当前已读帧数以终止循环
-      if (size_ == INT_MAX) {
-        size_ = index_;
-      }
+      NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+                    index_, size_);
     }
   }
 
