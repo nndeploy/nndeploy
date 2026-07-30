@@ -299,3 +299,10 @@ python/resources/
 release/
 
 temp/
+
+.cache/
+.codegraph/
+.github/
+.omo/
+.opencode/
+.specstory/
