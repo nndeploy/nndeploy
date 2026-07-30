@@ -97,5 +97,18 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_OCR)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/ocr/config.cmake)
 endif()
 
+
+# # keypoint
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_KEYPOINT)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_KEYPOINT)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/keypoint/config.cmake)
+endif()
+
+# # depth
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DEPTH)
+  add_definitions(-DENABLE_NNDEPLOY_PLUGIN_DEPTH)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/depth/config.cmake)
+endif()
+
 # appedn list
 # message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")

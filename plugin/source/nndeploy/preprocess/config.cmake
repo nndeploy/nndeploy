@@ -1,4 +1,4 @@
-message(STATUS "plugin/basic")
+message(STATUS "plugin/preprocess")
 
 # set
 set(PLUGIN_SOURCE)

@@ -23,6 +23,8 @@
 namespace nndeploy {
 namespace dag {
 
+class DagOptimizer;
+
 /**
  * @brief Directed Acyclic Graph Node
  * @details Graph class inherits from Node class, representing a directed acyclic graph (DAG)
@@ -635,6 +637,25 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return Operation status
    */
   base::Status markOutputEdge(std::vector<Edge *> outputs);
+
+  /**
+   * @brief Enable DAG optimisation passes by name.
+   *
+   * Passes are run in Graph::init() between construct() and executor().
+   * Unknown names are silently ignored.
+   */
+  void setEnabledOptimizationPasses(
+      const std::vector<std::string>& pass_names);
+
+  /**
+   * @brief Return the list of enabled optimisation passes.
+   */
+  std::vector<std::string> getEnabledOptimizationPasses() const;
+
+  void setDisabledOptimizationPasses(
+      const std::vector<std::string>& pass_names);
+
+  std::vector<std::string> getDisabledOptimizationPasses() const;
 
   /**
    * @brief Set default parameters
@@ -1340,7 +1361,16 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return Operation status
    */
   virtual base::Status removeUnusedNodeAndEdge();
-  
+
+  /**
+   * @brief Run DAG optimisation passes (between construct & executor).
+   *
+   * Override in sub-graphs to customise or skip optimisation.
+   * The base implementation runs the passes listed in
+   * enabled_opt_passes_.
+   */
+  virtual base::Status optimizeGraph();
+
   /**
    * @brief Construct graph
    * @return Operation status
@@ -1381,6 +1411,8 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   bool is_remove_in_out_node_ = false;      ///< Whether to remove input/output nodes
   std::set<std::string> unused_node_names_; ///< Unused node name set
+  std::vector<std::string> enabled_opt_passes_;  ///< Enabled optimisation passes
+  std::vector<std::string> disabled_opt_passes_;  ///< Disabled optimisation passes
   /*
    * @brief Node values
    * @details

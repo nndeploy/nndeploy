@@ -27,9 +27,9 @@ BoxMot 插件集成了 5 种原生 C++ 多目标跟踪器，统一通过 `BoxMot
 ### 输入/输出
 
 **BoxMotNode:**
-- 输入 `[0]`：`detect::BBoxResult`（AABB 检测结果）
-- 输入 `[1]`：`cv::Mat`（视频帧，必须）
-- 注：ObbResult 可选输入（原 input[1]）因 graph.cc 空名输入跳过修复不再传入，input 索引整体前移一位
+- 输入 `[0]`：`cv::Mat`（视频帧，必须）
+- 输入 `[1]`：`detect::BBoxResult`（AABB 检测结果，必须）
+- 输入 `[2]`：`detect::ObbResult`（OBB 检测结果，可选）
 - 输出 `[0]`：`MOTResult`（传统跟踪结果）
 - 输出 `[1]`：`BoxMotResult`（扩展跟踪结果，含 OBB 信息）
 

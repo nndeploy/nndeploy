@@ -32,9 +32,9 @@ namespace track {
  * The tracker_type_ field in BoxMotParam selects which tracker is used.
  *
  * Inputs:
- *   [0] detect::BBoxResult        (AABB detections, required)
- *   [1] detect::ObbResult         (OBB detections, optional)
- *   [2] cv::Mat                   (frame image, required)
+ *   [0] cv::Mat                   (frame image, required)
+ *   [1] detect::BBoxResult        (AABB detections, required)
+ *   [2] detect::ObbResult         (OBB detections, optional)
  *
  * Outputs:
  *   [0] MOTResult           (legacy-compatible tracked objects)
@@ -50,9 +50,9 @@ class NNDEPLOY_CC_API BoxMotNode : public dag::Node {
         "BoxMot unified multi-object tracker "
         "[BBoxResult/ObbResult+Image->MOTResult+BoxMotResult]";
     param_ = std::make_shared<BoxMotParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<detect::BBoxResult>();
     this->setInputTypeInfo<detect::ObbResult>();
-    this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MOTResult>();
     this->setOutputTypeInfo<BoxMotResult>();
   }
@@ -64,9 +64,9 @@ class NNDEPLOY_CC_API BoxMotNode : public dag::Node {
         "BoxMot unified multi-object tracker "
         "[BBoxResult/ObbResult+Image->MOTResult+BoxMotResult]";
     param_ = std::make_shared<BoxMotParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<detect::BBoxResult>();
     this->setInputTypeInfo<detect::ObbResult>();
-    this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MOTResult>();
     this->setOutputTypeInfo<BoxMotResult>();
   }

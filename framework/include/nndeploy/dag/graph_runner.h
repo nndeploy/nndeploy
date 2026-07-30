@@ -49,6 +49,10 @@ class NNDEPLOY_CC_API GraphRunner {
   void set_time_profile(bool is_time_profile);
   void set_debug(bool is_debug);
   void set_parallel_type(base::ParallelType parallel_type);
+  /**
+   * @brief 显式设置是否使用输入节点的最大循环次数
+   * @note 只有显式调用此方法后，才会覆盖 JSON 中 is_loop_max_flag_ 的值
+   */
   void set_loop_max_flag(bool is_loop_max_flag);
   void set_node_value(const std::string& node_name, const std::string& key,
                       const std::string& value);
@@ -81,6 +85,7 @@ class NNDEPLOY_CC_API GraphRunner {
   bool is_debug_ = false;
   base::ParallelType parallel_type_ = base::ParallelType::kParallelTypeNone;
   bool is_loop_max_flag_ = true;
+  bool has_is_loop_max_flag_ = false;  // 标记用户是否显式调用了 set_loop_max_flag
   std::map<std::string, std::map<std::string, std::string>> node_value_map_;
 };
 

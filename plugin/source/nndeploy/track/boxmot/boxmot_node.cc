@@ -198,12 +198,14 @@ template <typename TrackerT, typename DetectionT, typename TrackOutputT>
 base::Status BoxMotNode::processTracker(const cv::Mat& frame) {
   auto* tracker = static_cast<TrackerT*>(tracker_);
 
-  // input_[0]/[1] 必须来自不同的边，否则 static_cast 会导致 UB
-  detect::BBoxResult* bbox_result =
-      static_cast<detect::BBoxResult*>(inputs_[0]->getParam(this));
+  // input_[1]/[2] 必须来自不同的边，否则 static_cast 会导致 UB
+  detect::BBoxResult* bbox_result = nullptr;
+  if (inputs_.size() > 1 && !inputs_[1]->empty()) {
+    bbox_result = static_cast<detect::BBoxResult*>(inputs_[1]->getParam(this));
+  }
   detect::ObbResult* obb_result = nullptr;
-  if (inputs_.size() > 1 && inputs_[1] != inputs_[0] && !inputs_[1]->empty()) {
-    obb_result = static_cast<detect::ObbResult*>(inputs_[1]->getParam(this));
+  if (inputs_.size() > 2 && inputs_[2] != inputs_[1] && !inputs_[2]->empty()) {
+    obb_result = static_cast<detect::ObbResult*>(inputs_[2]->getParam(this));
   }
 
   std::vector<DetectionT> detections;
@@ -238,8 +240,8 @@ base::Status BoxMotNode::processTracker(const cv::Mat& frame) {
 // =========================================================================
 
 base::Status BoxMotNode::run() {
-  // Get frame image from input[2] (input[0]=BBoxResult, input[1]=ObbResult optional)
-  cv::Mat* frame = inputs_[2]->getCvMat(this);
+  // Get frame image from input[0] (input[1]=BBoxResult, input[2]=ObbResult optional)
+  cv::Mat* frame = inputs_[0]->getCvMat(this);
   if (frame == nullptr || frame->empty()) {
     NNDEPLOY_LOGE("BoxMotNode: input image is null or empty\n");
     return base::kStatusCodeErrorInvalidValue;

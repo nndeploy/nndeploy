@@ -35,6 +35,7 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(
   }
 
   // 反序列化图
+  NNDEPLOY_LOGE("GraphRunner[%s]: calling buildGraph()...\n", name.c_str());
   if (is_time_profile_) {
     NNDEPLOY_TIME_POINT_START("deserialize_" + name);
   }
@@ -56,10 +57,14 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(
     if (parallel_type_ != base::ParallelType::kParallelTypeNone) {
       graph_->setParallelType(parallel_type_);
     }
-    graph_->setLoopMaxFlag(is_loop_max_flag_);
+    // 只有用户显式调用 set_loop_max_flag() 时才覆盖 JSON 中的值
+    if (has_is_loop_max_flag_) {
+      graph_->setLoopMaxFlag(is_loop_max_flag_);
+    }
   }
 
   // 初始化图
+  NNDEPLOY_LOGE("GraphRunner[%s]: calling graph_->init()...\n", name.c_str());
   if (is_time_profile_) {
     base::timePointStart("init_" + name);
   }
@@ -87,12 +92,18 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(
     base::timePointStart("sum_" + name);
   }
 
+  NNDEPLOY_LOGE("GraphRunner[%s]: init done, getting loop count...\n", name.c_str());
   int count = graph_->getLoopCount();
+  NNDEPLOY_LOGE("GraphRunner[%s]: loop count = %d, parallel_type = %d\n",
+                name.c_str(), count, (int)parallel_type);
   for (int i = 0; i < count; ++i) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     status = graph_->run();
     if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("GraphRunner[%s]: graph_->run() FAILED at iteration %d/%d, "
+                    "status = %d\n",
+                    name.c_str(), i, count, (int)status);
       result->status = status;
       return result;
     }
@@ -100,8 +111,11 @@ std::shared_ptr<GraphRunnerResult> GraphRunner::run(
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
         end_time - start_time);
-    std::cout << "run " << i << " times, time: " << duration.count() / 1000.0
-              << " ms" << std::endl;
+    // std::cout << "run " << i << " times, time: " << duration.count() / 1000.0
+    //           << " ms" << std::endl;
+    NNDEPLOY_LOGI(
+        "GraphRunner[%s]: graph_->run() iteration %d/%d, time = %.3f ms\n",
+        name.c_str(), i, count, duration.count() / 1000.0);
 
     // 对于非流水线模式，立即获取输出
     if (parallel_type != base::ParallelType::kParallelTypePipeline) {
@@ -198,6 +212,7 @@ void GraphRunner::set_parallel_type(base::ParallelType parallel_type) {
 
 void GraphRunner::set_loop_max_flag(bool is_loop_max_flag) {
   is_loop_max_flag_ = is_loop_max_flag;
+  has_is_loop_max_flag_ = true;
 }
 
 void GraphRunner::set_node_value(const std::string& node_name,
