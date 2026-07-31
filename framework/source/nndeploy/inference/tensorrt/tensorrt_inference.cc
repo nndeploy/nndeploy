@@ -67,6 +67,7 @@ base::Status TensorRtInference::init() {
   is_share_context_ = true;
   forward_memory_size_ = 0;
   inner_forward_buffer_ = nullptr;
+  inner_forward_raw_ = nullptr;
 
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(inference_param_->device_type_);
@@ -198,6 +199,11 @@ base::Status TensorRtInference::deinit() {
   device::Device *device = device::getDevice(inference_param_->device_type_);
   if (inner_forward_buffer_ != nullptr) {
     delete inner_forward_buffer_;
+    inner_forward_buffer_ = nullptr;
+  }
+  if (inner_forward_raw_ != nullptr) {
+    device->deallocate(inner_forward_raw_);
+    inner_forward_raw_ = nullptr;
   }
   return status;
 }
@@ -538,7 +544,18 @@ base::Status TensorRtInference::CreateExecuteContext() {
     ;
   } else {
     device::Device *device = device::getDevice(inference_param_->device_type_);
-    void *data = device->allocate(forward_memory_size_);
+    // cudaMalloc only guarantees 256-byte alignment, but TensorRT requires
+    // the device memory workspace to be aligned on a 512-byte boundary.
+    // Allocate extra bytes and manually align the pointer.
+    size_t alloc_size = forward_memory_size_ + 511;
+    void *raw_data = device->allocate(alloc_size);
+    if (raw_data == nullptr) {
+      NNDEPLOY_LOGE("allocate forward memory(%zu) failed!\n", alloc_size);
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+    uintptr_t addr = reinterpret_cast<uintptr_t>(raw_data);
+    void *data = reinterpret_cast<void *>((addr + 511u) & ~uintptr_t(511u));
+    inner_forward_raw_ = raw_data;
     inner_forward_buffer_ =
         new device::Buffer(device, forward_memory_size_, data);
     context_->setDeviceMemory(data);
