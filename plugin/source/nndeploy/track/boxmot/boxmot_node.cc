@@ -221,8 +221,43 @@ base::Status BoxMotNode::processTracker(const cv::Mat& frame) {
     return base::kStatusCodeOk;
   }
 
+  // nndeploy 的 BBoxResult 携带归一化 [0,1] 坐标，而 boxmot 系列 tracker
+  // （卡尔曼滤波、GMC 相机运动补偿、IOU 匹配）按像素坐标设计。
+  // 若直接把归一化检测框喂给开启 GMC 的 BotSort，会破坏轨迹状态：
+  // ECC 计算出的像素级 warp 被直接叠加到归一化 [0,1] 轨迹坐标上，
+  // 导致从第 2 帧起所有轨迹被甩出画面。
+  // 因此在调用 Update() 之前把检测框转换为像素坐标，
+  // 之后再统一缩放回归一化 [0,1] 坐标（VisBoxMot 绘制时按图像宽高缩放）。
+  const float im_w = static_cast<float>(frame.cols);
+  const float im_h = static_cast<float>(frame.rows);
+  if (im_w > 0.0F && im_h > 0.0F) {
+    for (auto& det : detections) {
+      det.xyxy(0) *= im_w;
+      det.xyxy(2) *= im_w;
+      det.xyxy(1) *= im_h;
+      det.xyxy(3) *= im_h;
+      det.xywha(0) *= im_w;
+      det.xywha(2) *= im_w;
+      det.xywha(1) *= im_h;
+      det.xywha(3) *= im_h;
+    }
+  }
+
   // Run tracking (capital U!)
   std::vector<TrackOutputT> track_outputs = tracker->Update(detections, frame);
+
+  if (im_w > 0.0F && im_h > 0.0F) {
+    for (auto& track : track_outputs) {
+      track.xyxy(0) /= im_w;
+      track.xyxy(2) /= im_w;
+      track.xyxy(1) /= im_h;
+      track.xyxy(3) /= im_h;
+      track.xywha(0) /= im_w;
+      track.xywha(2) /= im_w;
+      track.xywha(1) /= im_h;
+      track.xywha(3) /= im_h;
+    }
+  }
 
   // Convert to nndeploy output types
   MOTResult* mot_result =
