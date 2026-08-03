@@ -38,7 +38,7 @@ int main(int argc, char const *argv[]) {
     decode->init();
     base::Status status = decode->run();
     NNDEPLOY_LOGI("Image decode: width=%d, height=%d, status=%d\n",
-                  decode->getWidth(), decode->getHeight(), status);
+                  decode->getWidth(), decode->getHeight(), int(status));
 
     // Encode single image
     codec::Encode *encode = codec::createEncode(codec_type, codec_flag, "encode", input);
@@ -53,7 +53,7 @@ int main(int argc, char const *argv[]) {
     if (frame) {
       input->set(frame, false);
       status = encode->run();
-      NNDEPLOY_LOGI("Image encode status=%d\n", status);
+      NNDEPLOY_LOGI("Image encode status=%d\n", int(status));
     }
     delete decode;
     delete encode;
