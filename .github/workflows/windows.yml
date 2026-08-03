@@ -42,7 +42,8 @@ on:
 jobs:
   build:  # Job ID
     name: Windows Build  # Job display name
-    runs-on: windows-latest  # Specify runtime environment as latest Windows
+    # Keep the runner aligned with the Visual Studio 2022 generator used below.
+    runs-on: windows-2022
   
     steps:  # Build step sequence
       # Step 1: Checkout source code
@@ -59,7 +60,24 @@ jobs:
         
       # Step 3: Setup Visual Studio environment
       - name: Setup Visual Studio build environment
-        uses: microsoft/setup-msbuild@v1.1  # Setup MSBuild build tools
+        uses: microsoft/setup-msbuild@v3
+        with:
+          vs-version: '[17.0,18.0)'
+          msbuild-architecture: x64
+
+      # CMake's Visual Studio generator needs the VS installation, not only
+      # MSBuild on PATH. Resolve it explicitly so nested CMake invocations
+      # (for example build_mnn.py) use the same VS 2022 instance.
+      - name: Locate Visual Studio 2022
+        shell: powershell
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsInstall = & $vswhere -latest -products * -version "[17.0,18.0)" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vsInstall) {
+            throw "Visual Studio 2022 with the C++ toolchain was not found"
+          }
+          "CMAKE_GENERATOR_INSTANCE=$vsInstall" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Using Visual Studio instance: $vsInstall"
 
       # Step 4: Update Python dependencies
       - name: Update Python dependencies
@@ -108,7 +126,7 @@ jobs:
           mkdir build                    # Create build directory (out-of-source build)
           cp cmake/config_opencv_ort_mnn_tokenizer.cmake build/config.cmake   # Copy project-specific CMake configuration file
           cd build                       # Enter build directory
-          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..  # Configure using Visual Studio 2022 generator
+          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_GENERATOR_INSTANCE="$env:CMAKE_GENERATOR_INSTANCE" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..  # Configure using Visual Studio 2022 generator
           
       # Step 8: Compile, install, package and verify
       - name: Compile, install, package and verify
