@@ -19,17 +19,17 @@ namespace segment {
   }
 
 base::Status SAMPointsParam::serialize(
-    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
   json.SetObject();
   rapidjson::Value points_array(rapidjson::kArrayType);
-  float *points_data = points_.data();
+  float* points_data = points_.data();
   for (size_t i = 0; i < points_.size(); ++i) {
     points_array.PushBack(points_data[i], allocator);
   }
   json.AddMember("points", points_array, allocator);
 
   rapidjson::Value labels_array(rapidjson::kArrayType);
-  float *labels_data = labels_.data();
+  float* labels_data = labels_.data();
   for (size_t i = 0; i < labels_.size(); ++i) {
     labels_array.PushBack(labels_data[i], allocator);
   }
@@ -39,10 +39,17 @@ base::Status SAMPointsParam::serialize(
   json.AddMember("ori_height", ori_height, allocator);
   json.AddMember("version", version_, allocator);
 
+  rapidjson::Value box_array(rapidjson::kArrayType);
+  for (size_t i = 0; i < box_.size(); ++i) {
+    box_array.PushBack(box_[i], allocator);
+  }
+  json.AddMember("box", box_array, allocator);
+  json.AddMember("use_box", use_box_, allocator);
+
   return base::kStatusCodeOk;
 }
 
-base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
+base::Status SAMPointsParam::deserialize(rapidjson::Value& json) {
   // rapidjson::StringBuffer buffer;
   // rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
   // json.Accept(writer);
@@ -50,7 +57,7 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
   // 反序列化 points_ 数组
   if (json.HasMember("points") && json["points"].IsArray()) {
     points_.clear();
-    const rapidjson::Value &points_array = json["points"];
+    const rapidjson::Value& points_array = json["points"];
     for (rapidjson::SizeType i = 0; i < points_array.Size(); i++) {
       float point = 0.0f;
       if (points_array[i].IsFloat()) {
@@ -60,7 +67,7 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
       } else if (points_array[i].IsInt()) {
         point = static_cast<float>(points_array[i].GetInt());
       } else {
-        NNDEPLOY_LOGE("Invalid point value type at index %zu", i);
+        NNDEPLOY_LOGE("Invalid point value type at index %u", i);
         return base::kStatusCodeErrorInvalidValue;
       }
       points_.push_back(point);
@@ -70,7 +77,7 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
   // 反序列化 labels_ 数组
   if (json.HasMember("labels") && json["labels"].IsArray()) {
     labels_.clear();
-    const rapidjson::Value &labels_array = json["labels"];
+    const rapidjson::Value& labels_array = json["labels"];
     for (rapidjson::SizeType i = 0; i < labels_array.Size(); i++) {
       float label = 0.0f;
       if (labels_array[i].IsFloat()) {
@@ -80,7 +87,7 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
       } else if (labels_array[i].IsInt()) {
         label = static_cast<float>(labels_array[i].GetInt());
       } else {
-        NNDEPLOY_LOGE("Invalid label value type at index %zu", i);
+        NNDEPLOY_LOGE("Invalid label value type at index %u", i);
         return base::kStatusCodeErrorInvalidValue;
       }
       labels_.push_back(label);
@@ -100,6 +107,21 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
     version_ = json["version"].GetInt();
   }
 
+  if (json.HasMember("use_box") && json["use_box"].IsBool()) {
+    use_box_ = json["use_box"].GetBool();
+  }
+  if (json.HasMember("box") && json["box"].IsArray()) {
+    box_.clear();
+    const rapidjson::Value& box_array = json["box"];
+    for (rapidjson::SizeType i = 0; i < box_array.Size(); i++) {
+      if (box_array[i].IsFloat()) {
+        box_.push_back(box_array[i].GetFloat());
+      } else if (box_array[i].IsInt()) {
+        box_.push_back(static_cast<float>(box_array[i].GetInt()));
+      }
+    }
+  }
+
   NNDEPLOY_LOGE(
       "SAMPointsParam deserialized: "
       "points size: %zu, labels size: %zu, "
@@ -109,16 +131,65 @@ base::Status SAMPointsParam::deserialize(rapidjson::Value &json) {
   return base::kStatusCodeOk;
 }
 
+/**
+ * @brief Reshape 4D NHWC [1, H, W, C] to 3D HWC [H, W, C] for SAM1 encoder.
+ *
+ * The vietanhdev SAM1 encoder model was exported without a batch dimension
+ * (rank 3, HWC format). Standard preprocessing outputs rank 4 NHWC with batch
+ * dim. This node creates a zero-copy view that squeezes the batch dimension.
+ */
+class SAMEncoderInputNode : public dag::Node {
+ public:
+  SAMEncoderInputNode(const std::string& name) : dag::Node(name) {
+    key_ = "nndeploy::segment::SAMEncoderInputNode";
+    desc_ =
+        "Reshape 4D NHWC [1,H,W,C] to 3D HWC [H,W,C] for SAM1 encoder input.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
+  SAMEncoderInputNode(const std::string& name, std::vector<dag::Edge*> inputs,
+                      std::vector<dag::Edge*> outputs)
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::segment::SAMEncoderInputNode";
+    desc_ =
+        "Reshape 4D NHWC [1,H,W,C] to 3D HWC [H,W,C] for SAM1 encoder input.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
+  virtual ~SAMEncoderInputNode() {}
+
+  base::Status run() override {
+    device::Tensor* input_tensor = inputs_[0]->getTensor(this);
+    if (input_tensor == nullptr) {
+      NNDEPLOY_LOGE("Input tensor is null");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    device::TensorDesc desc = input_tensor->getDesc();
+    if (desc.shape_.size() != 4) {
+      NNDEPLOY_LOGE("Expected 4D NHWC input, got %zuD", desc.shape_.size());
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    desc.shape_ = {desc.shape_[1], desc.shape_[2], desc.shape_[3]};
+    desc.data_format_ = base::kDataFormatAuto;
+    device::Buffer* buffer = input_tensor->getBuffer();
+    device::Tensor* output_tensor = new device::Tensor(desc, buffer, "");
+    outputs_[0]->set(output_tensor, false);
+    return base::kStatusCodeOk;
+  }
+};
+
 class SAMPointNode : public dag::Node {
  public:
-  SAMPointNode(const std::string &name) : dag::Node(name) {
+  SAMPointNode(const std::string& name) : dag::Node(name) {
+    key_ = "nndeploy::segment::SAMPointNode";
+    desc_ = "Segment Anything Point Node for image segmentation tasks.";
     this->setInputTypeInfo<SAMPointsParam>();
     this->setOutputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  SAMPointNode(const std::string &name, std::vector<dag::Edge *> inputs,
-               std::vector<dag::Edge *> outputs)
+  SAMPointNode(const std::string& name, std::vector<dag::Edge*> inputs,
+               std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::SAMPointNode";
     desc_ = "Segment Anything Point Node for image segmentation tasks.";
@@ -130,29 +201,45 @@ class SAMPointNode : public dag::Node {
   virtual ~SAMPointNode() {}
 
   base::Status run() override {
-    SAMPointsParam *param =
-        (SAMPointsParam *)inputs_[0]->get<SAMPointsParam>(this);
+    SAMPointsParam* param =
+        (SAMPointsParam*)inputs_[0]->get<SAMPointsParam>(this);
     CHECK_IF_NULL_RETURN(param, "Failed to get SAMPointsParam from input");
 
     NNDEPLOY_LOGE(
         "SAMPointsParam: points size: %zu, labels size: %zu, "
-        "ori_width: %d, ori_height: %d, version: %d",
+        "ori_width: %d, ori_height: %d, version: %d, use_box: %d",
         param->points_.size() / 2, param->labels_.size(), param->ori_width,
-        param->ori_height, param->version_);
+        param->ori_height, param->version_, param->use_box_);
 
-    base::Status status = preparePointCoords(param);
+    std::vector<float> merged_points = param->points_;
+    std::vector<float> merged_labels = param->labels_;
+    if (param->use_box_ && param->box_.size() >= 4) {
+      // SAM box encoding: top-left label=2, bottom-right label=3
+      merged_points.push_back(param->box_[0]);
+      merged_points.push_back(param->box_[1]);
+      merged_labels.push_back(2.0f);
+      merged_points.push_back(param->box_[2]);
+      merged_points.push_back(param->box_[3]);
+      merged_labels.push_back(3.0f);
+      NNDEPLOY_LOGE("SAM box prompt: (%.1f, %.1f) -> (%.1f, %.1f)",
+                    param->box_[0], param->box_[1], param->box_[2],
+                    param->box_[3]);
+    }
+
+    base::Status status = preparePointCoords(
+        merged_points, merged_labels, param->ori_width, param->ori_height);
     CHECK_IF_ERROR_RETURN(status, "Failed to prepare point coordinates");
 
-    device::Device *cur_device = device::getDefaultHostDevice();
+    device::Device* cur_device = device::getDefaultHostDevice();
     device::TensorDesc ori_im_size_desc;
     ori_im_size_desc.data_format_ = base::kDataFormatN;
     ori_im_size_desc.data_type_ = base::dataTypeOf<float>();
     ori_im_size_desc.shape_ = {2};
-    device::Tensor *ori_im_size_tensor =
+    device::Tensor* ori_im_size_tensor =
         outputs_[2]->create(cur_device, ori_im_size_desc);
     CHECK_IF_NULL_RETURN(ori_im_size_tensor,
                          "Failed to create ori_im_size_tensor");
-    float *ori_im_size_data = (float *)ori_im_size_tensor->getData();
+    float* ori_im_size_data = (float*)ori_im_size_tensor->getData();
     ori_im_size_data[0] = static_cast<float>(param->ori_height);
     ori_im_size_data[1] = static_cast<float>(param->ori_width);
 
@@ -160,52 +247,54 @@ class SAMPointNode : public dag::Node {
   }
 
  private:
-  base::Status preparePointCoords(const SAMPointsParam *param) {
-    if (param->ori_width <= 0 || param->ori_height <= 0) {
-      NNDEPLOY_LOGE("Invalid original image size: (%d, %d)", param->ori_width,
-                    param->ori_height);
+  base::Status preparePointCoords(const std::vector<float>& points,
+                                  const std::vector<float>& labels,
+                                  int ori_width, int ori_height) {
+    if (ori_width <= 0 || ori_height <= 0) {
+      NNDEPLOY_LOGE("Invalid original image size: (%d, %d)", ori_width,
+                    ori_height);
       return base::kStatusCodeErrorInvalidValue;
     }
-    if (param->points_.empty() || param->labels_.empty()) {
+    if (points.empty() || labels.empty()) {
       NNDEPLOY_LOGE(
-          "Points or labels are empty, points num: %d, labels num: %d.",
-          param->points_.size() / 2, param->labels_.size());
+          "Points or labels are empty, points num: %zu, labels num: %zu.",
+          points.size() / 2, labels.size());
       return base::kStatusCodeErrorInvalidValue;
     }
 
-    if (param->points_.size() / 2 != param->labels_.size()) {
+    if (points.size() / 2 != labels.size()) {
       NNDEPLOY_LOGE("Points and labels size mismatch: %zu vs %zu",
-                    param->points_.size(), param->labels_.size());
+                    points.size(), labels.size());
       return base::kStatusCodeErrorInvalidValue;
     }
 
-    int points_num = (int)param->points_.size() / 2;
-    device::Device *cur_device = device::getDefaultHostDevice();
+    int points_num = (int)points.size() / 2;
+    device::Device* cur_device = device::getDefaultHostDevice();
 
     device::TensorDesc point_coords_desc;
     point_coords_desc.data_format_ = base::kDataFormatNCL;
     point_coords_desc.data_type_ = base::dataTypeOf<float>();
     point_coords_desc.shape_ = {1, points_num, 2};
 
-    device::Tensor *point_coords_tensor =
+    device::Tensor* point_coords_tensor =
         outputs_[0]->create(cur_device, point_coords_desc);
     CHECK_IF_NULL_RETURN(point_coords_tensor,
                          "Failed to create point_coords_tensor");
-    float *point_coords_data = (float *)point_coords_tensor->getData();
+    float* point_coords_data = (float*)point_coords_tensor->getData();
 
     device::TensorDesc point_labels_desc;
     point_labels_desc.data_format_ = base::kDataFormatNC;
     point_labels_desc.data_type_ = base::dataTypeOf<float>();
     point_labels_desc.shape_ = {1, points_num};
-    device::Tensor *point_labels_tensor =
+    device::Tensor* point_labels_tensor =
         outputs_[1]->create(cur_device, point_labels_desc);
     CHECK_IF_NULL_RETURN(point_labels_tensor,
                          "Failed to create point_labels_tensor");
-    float *point_labels_data = (float *)point_labels_tensor->getData();
+    float* point_labels_data = (float*)point_labels_tensor->getData();
 
     const int model_size = 1024;
-    int origin_h = param->ori_height;
-    int origin_w = param->ori_width;
+    int origin_h = ori_height;
+    int origin_w = ori_width;
     float scale_h = (float)model_size / origin_h;
     float scale_w = (float)model_size / origin_w;
     int new_h, new_w;
@@ -220,9 +309,9 @@ class SAMPointNode : public dag::Node {
     float scale_height = (float)new_h / origin_h;
 
     for (int i = 0; i < points_num; ++i) {
-      point_coords_data[2 * i + 0] = param->points_[2 * i + 0] * scale_width;
-      point_coords_data[2 * i + 1] = param->points_[2 * i + 1] * scale_height;
-      point_labels_data[i] = param->labels_[i];
+      point_coords_data[2 * i + 0] = points[2 * i + 0] * scale_width;
+      point_coords_data[2 * i + 1] = points[2 * i + 1] * scale_height;
+      point_labels_data[i] = labels[i];
     }
     return base::kStatusCodeOk;
   }
@@ -230,7 +319,7 @@ class SAMPointNode : public dag::Node {
 
 class SAMPostProcess : public dag::Node {
  public:
-  SAMPostProcess(const std::string &name) : dag::Node(name) {
+  SAMPostProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::SAMPostProcess";
     desc_ = "Segment Anything Post Process Node for image segmentation tasks.";
     this->setInputTypeInfo<device::Tensor>();
@@ -238,8 +327,8 @@ class SAMPostProcess : public dag::Node {
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  SAMPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
-                 std::vector<dag::Edge *> outputs)
+  SAMPostProcess(const std::string& name, std::vector<dag::Edge*> inputs,
+                 std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::SAMPostProcess";
     desc_ = "Segment Anything Post Process Node for image segmentation tasks.";
@@ -253,13 +342,13 @@ class SAMPostProcess : public dag::Node {
   base::Status run() override {
     // int a = this->inputs_.size();
 
-    device::Tensor *masks_tensor = inputs_[0]->getTensor(this);
-    device::Tensor *iou_tensor = inputs_[1]->getTensor(this);
+    device::Tensor* masks_tensor = inputs_[0]->getTensor(this);
+    device::Tensor* iou_tensor = inputs_[1]->getTensor(this);
     // device::Tensor *c = inputs_[2]->getTensor(this);
     device::TensorDesc masks_desc = masks_tensor->getDesc();
     int result_num = masks_desc.shape_[1];
-    float *masks_data = (float *)masks_tensor->getData();
-    float *iou_data = (float *)iou_tensor->getData();
+    float* masks_data = (float*)masks_tensor->getData();
+    float* iou_data = (float*)iou_tensor->getData();
 
     int height = masks_desc.shape_[2];
     int width = masks_desc.shape_[3];
@@ -275,7 +364,7 @@ class SAMPostProcess : public dag::Node {
       }
     }
 
-    cv::Mat *result = new cv::Mat();
+    cv::Mat* result = new cv::Mat();
     cv::Mat mask(height, width, CV_32FC1, masks_data + best_idx * offset);
     mask.convertTo(*result, CV_8UC1, 255.0f);
 
@@ -290,7 +379,7 @@ class SAMPostProcess : public dag::Node {
  */
 class SAMMaskNode : public dag::Node {
  public:
-  SAMMaskNode(const std::string &name) : dag::Node(name) {
+  SAMMaskNode(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::SAMMaskNode";
     desc_ = "Segment Anything Mask Node for image segmentation tasks.";
     // this->setInputTypeInfo<cv::Mat>();
@@ -298,8 +387,8 @@ class SAMMaskNode : public dag::Node {
     this->setOutputTypeInfo<device::Tensor>();
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
-  SAMMaskNode(const std::string &name, std::vector<dag::Edge *> inputs,
-              std::vector<dag::Edge *> outputs)
+  SAMMaskNode(const std::string& name, std::vector<dag::Edge*> inputs,
+              std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::SAMMaskNode";
     desc_ = "Segment Anything Mask Node for image segmentation tasks.";
@@ -310,14 +399,14 @@ class SAMMaskNode : public dag::Node {
   virtual ~SAMMaskNode() {}
 
   base::Status run() override {
-    device::Device *cur_device = device::getDefaultHostDevice();
+    device::Device* cur_device = device::getDefaultHostDevice();
 
     device::TensorDesc mask_desc;
     mask_desc.data_format_ = base::kDataFormatNCHW;
     mask_desc.data_type_ = base::dataTypeOf<float>();
     mask_desc.shape_ = {1, 1, 256, 256};
 
-    device::Tensor *mask_input_tensor =
+    device::Tensor* mask_input_tensor =
         outputs_[0]->create(cur_device, mask_desc);
     CHECK_IF_NULL_RETURN(mask_input_tensor,
                          "Failed to create mask_input_tensor");
@@ -327,7 +416,7 @@ class SAMMaskNode : public dag::Node {
     has_mask_desc.data_format_ = base::kDataFormatN;
     has_mask_desc.data_type_ = base::dataTypeOf<float>();
     has_mask_desc.shape_ = {1};
-    device::Tensor *has_mask_tensor =
+    device::Tensor* has_mask_tensor =
         outputs_[1]->create(cur_device, has_mask_desc);
     CHECK_IF_NULL_RETURN(has_mask_tensor, "Failed to create has_mask_tensor");
     memset(has_mask_tensor->getData(), 0, has_mask_tensor->getSize());
@@ -358,14 +447,29 @@ class SAMMaskNode : public dag::Node {
 base::Status SAMGraph::setInferParam(base::InferenceType inference_type,
                                      base::DeviceType device_type,
                                      base::ModelType model_type, bool is_path,
-                                     std::vector<std::string> &model_value) {
+                                     std::vector<std::string>& model_value) {
   base::Status status = base::kStatusCodeOk;
+
+  // If model_value is given as a single directory, extract encoder/decoder
+  // paths
+  if (model_value.size() == 1) {
+    std::string model_dir = model_value[0];
+    encoder_infer_param_.model_value_ = {model_dir +
+                                         "/sam_vit_b_01ec64.encoder.onnx"};
+    decoder_infer_param_.model_value_ = {model_dir +
+                                         "/sam_vit_b_01ec64.decoder.onnx"};
+  } else if (model_value.size() >= 2) {
+    encoder_infer_param_.model_value_ = {model_value[0]};
+    decoder_infer_param_.model_value_ = {model_value[1]};
+  } else {
+    NNDEPLOY_LOGE("model_value is empty, cannot set inference parameters");
+    return base::kStatusCodeErrorInvalidValue;
+  }
 
   encoder_infer_param_.inference_type_ = inference_type;
   encoder_infer_param_.device_type_ = device_type;
   encoder_infer_param_.model_type_ = model_type;
   encoder_infer_param_.is_path_ = is_path;
-  encoder_infer_param_.model_value_ = {model_value[0]};
   status = encoder_infer_node_->setInferenceType(
       encoder_infer_param_.inference_type_);
   CHECK_IF_ERROR_RETURN(status,
@@ -377,7 +481,6 @@ base::Status SAMGraph::setInferParam(base::InferenceType inference_type,
   decoder_infer_param_.device_type_ = device_type;
   decoder_infer_param_.model_type_ = model_type;
   decoder_infer_param_.is_path_ = is_path;
-  decoder_infer_param_.model_value_ = {model_value[1]};
   decoder_infer_param_.is_dynamic_shape_ = true;
   decoder_infer_param_.max_shape_.insert({"point_coords", {1, 3, 2}});
   decoder_infer_param_.max_shape_.insert({"point_labels", {1, 3, 1}});
@@ -394,8 +497,8 @@ base::Status SAMGraph::setInferParam(base::InferenceType inference_type,
 base::Status SAMGraph::defaultParam() {
   base::Status status = base::kStatusCodeOk;
 
-  preprocess::CvtResizePadNormTransParam *preprocess_image_param =
-      (preprocess::CvtResizePadNormTransParam *)
+  preprocess::CvtResizePadNormTransParam* preprocess_image_param =
+      (preprocess::CvtResizePadNormTransParam*)
           preprocess_image_node_->getParam();
   CHECK_IF_NULL_RETURN(preprocess_image_param,
                        "Failed to get preprocess_image_param");
@@ -413,8 +516,9 @@ base::Status SAMGraph::defaultParam() {
   preprocess_image_param->std_[1] = 58.395;
   preprocess_image_param->std_[2] = 57.12;
   preprocess_image_param->std_[3] = 57.375;
-  preprocess_image_param->normalize_ = false;
-  preprocess_image_param->data_type_ = base::dataTypeOf<uint8_t>();
+  preprocess_image_param->normalize_ = true;
+  preprocess_image_param->data_type_ = base::dataTypeOf<float>();
+  preprocess_image_param->data_format_ = base::kDataFormatNHWC;
 
   return status;
 }
@@ -422,27 +526,30 @@ base::Status SAMGraph::defaultParam() {
 base::Status SAMGraph::initStaticGraphNodes() {
   base::Status status = base::kStatusCodeOk;
 
-  dag::Edge *encoder_input = this->createEdge("encoder_input");
+  dag::Edge* encoder_input = this->createEdge("encoder_input");
   CHECK_IF_NULL_RETURN(encoder_input, "Failed to create encoder_input edge");
-  dag::Edge *decoder_input = this->createEdge("decoder_input");
+  dag::Edge* encoder_reshape = this->createEdge("encoder_reshape");
+  CHECK_IF_NULL_RETURN(encoder_reshape,
+                       "Failed to create encoder_reshape edge");
+  dag::Edge* decoder_input = this->createEdge("decoder_input");
   CHECK_IF_NULL_RETURN(decoder_input, "Failed to create decoder_input edge");
-  dag::Edge *mask_input = this->createEdge("mask_input");
+  dag::Edge* mask_input = this->createEdge("mask_input");
   CHECK_IF_NULL_RETURN(mask_input, "Failed to create mask_input edge");
-  dag::Edge *has_mask_input = this->createEdge("has_mask_input");
+  dag::Edge* has_mask_input = this->createEdge("has_mask_input");
   CHECK_IF_NULL_RETURN(has_mask_input, "Failed to create has_mask_input edge");
-  dag::Edge *point_coords = this->createEdge("point_coords");
+  dag::Edge* point_coords = this->createEdge("point_coords");
   CHECK_IF_NULL_RETURN(point_coords, "Failed to create point_coords edge");
-  dag::Edge *point_labels = this->createEdge("point_labels");
+  dag::Edge* point_labels = this->createEdge("point_labels");
   CHECK_IF_NULL_RETURN(point_labels, "Failed to create point_labels edge");
-  dag::Edge *ori_im_size = this->createEdge("orig_im_size");
+  dag::Edge* ori_im_size = this->createEdge("orig_im_size");
   CHECK_IF_NULL_RETURN(ori_im_size, "Failed to create ori_im_size edge");
-  dag::Edge *decoder_output_mask = this->createEdge("masks");
+  dag::Edge* decoder_output_mask = this->createEdge("masks");
   CHECK_IF_NULL_RETURN(decoder_output_mask,
                        "Failed to create decoder_output_mask edge");
-  dag::Edge *decoder_output_iou = this->createEdge("iou_predictions");
+  dag::Edge* decoder_output_iou = this->createEdge("iou_predictions");
   CHECK_IF_NULL_RETURN(decoder_output_iou,
                        "Failed to create decoder_output_iou edge");
-  dag::Edge *decoder_low_res_masks = this->createEdge("low_res_masks");
+  dag::Edge* decoder_low_res_masks = this->createEdge("low_res_masks");
   CHECK_IF_NULL_RETURN(decoder_low_res_masks,
                        "Failed to create decoder_low_res_masks edge");
 
@@ -451,8 +558,12 @@ base::Status SAMGraph::initStaticGraphNodes() {
   CHECK_IF_NULL_RETURN(preprocess_image_node_,
                        "Failed to create preprocess_image node");
 
-  encoder_infer_node_ = (infer::Infer *)this->createNode<infer::Infer>(
-      "encoder_infer", {encoder_input}, {decoder_input});
+  // SAM1 encoder exported without batch dim (rank 3 HWC); reshape 4D→3D
+  this->createNode<SAMEncoderInputNode>("encoder_input_reshape",
+                                        {encoder_input}, {encoder_reshape});
+
+  encoder_infer_node_ = (infer::Infer*)this->createNode<infer::Infer>(
+      "encoder_infer", {encoder_reshape}, {decoder_input});
   CHECK_IF_NULL_RETURN(encoder_infer_node_,
                        "Failed to create encoder_infer node");
 
@@ -462,14 +573,14 @@ base::Status SAMGraph::initStaticGraphNodes() {
   CHECK_IF_NULL_RETURN(preprocess_point_node_,
                        "Failed to create preprocess_point node");
 
-  std::vector<dag::Edge *> no_input;
-  std::vector<dag::Edge *> mask_output = {mask_input, has_mask_input};
+  std::vector<dag::Edge*> no_input;
+  std::vector<dag::Edge*> mask_output = {mask_input, has_mask_input};
   preprocess_mask_node_ =
       this->createNode<SAMMaskNode>("preprocess_mask", no_input, mask_output);
   CHECK_IF_NULL_RETURN(preprocess_mask_node_,
                        "Failed to create preprocess_mask node");
 
-  decoder_infer_node_ = (infer::Infer *)this->createNode<infer::Infer>(
+  decoder_infer_node_ = (infer::Infer*)this->createNode<infer::Infer>(
       "decoder_infer",
       {decoder_input, point_coords, point_labels, mask_input, has_mask_input,
        ori_im_size},
@@ -493,8 +604,14 @@ base::Status SAMGraph::initDynamicsGraphNodes() {
   CHECK_IF_NULL_RETURN(preprocess_image_node_,
                        "Failed to create preprocess_image node");
 
+  // SAM1 encoder exported without batch dim (rank 3 HWC); reshape 4D→3D
+  encoder_input_reshape_node_ =
+      this->createNode<SAMEncoderInputNode>("encoder_input_reshape");
+  CHECK_IF_NULL_RETURN(encoder_input_reshape_node_,
+                       "Failed to create encoder_input_reshape node");
+
   encoder_infer_node_ =
-      (infer::Infer *)this->createNode<infer::Infer>("encoder_infer");
+      (infer::Infer*)this->createNode<infer::Infer>("encoder_infer");
   CHECK_IF_NULL_RETURN(encoder_infer_node_,
                        "Failed to create encoder_infer node");
 
@@ -507,7 +624,7 @@ base::Status SAMGraph::initDynamicsGraphNodes() {
                        "Failed to create preprocess_mask node");
 
   decoder_infer_node_ =
-      (infer::Infer *)this->createNode<infer::Infer>("decoder_infer");
+      (infer::Infer*)this->createNode<infer::Infer>("decoder_infer");
   CHECK_IF_NULL_RETURN(decoder_infer_node_,
                        "Failed to create decoder_infer node");
   decoder_infer_node_->setInputName("image_embeddings", 0);
@@ -531,6 +648,7 @@ REGISTER_NODE("nndeploy::segment::SAMGraph", SAMGraph);
 REGISTER_NODE("nndeploy::segment::SAMPointNode", SAMPointNode);
 REGISTER_NODE("nndeploy::segment::SAMPostProcess", SAMPostProcess);
 REGISTER_NODE("nndeploy::segment::SAMMaskNode", SAMMaskNode);
+REGISTER_NODE("nndeploy::segment::SAMEncoderInputNode", SAMEncoderInputNode);
 
 }  // namespace segment
 }  // namespace nndeploy

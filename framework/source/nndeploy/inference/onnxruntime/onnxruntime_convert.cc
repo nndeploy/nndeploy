@@ -7,7 +7,7 @@ namespace nndeploy {
 namespace inference {
 
 base::DataType OnnxRuntimeConvert::convertToDataType(
-    const ONNXTensorElementDataType &src) {
+    const ONNXTensorElementDataType& src) {
   base::DataType dst;
   switch (src) {
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
@@ -85,7 +85,7 @@ base::DataType OnnxRuntimeConvert::convertToDataType(
 }
 
 ONNXTensorElementDataType OnnxRuntimeConvert::convertFromDataType(
-    const base::DataType &src) {
+    const base::DataType& src) {
   ONNXTensorElementDataType dst;
   if (src.code_ == base::kDataTypeCodeFp && src.lanes_ == 1) {
     if (src.bits_ == 16) {
@@ -124,6 +124,9 @@ ONNXTensorElementDataType OnnxRuntimeConvert::convertFromDataType(
     } else {
       dst = ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED;
     }
+  } else if (src.code_ == base::kDataTypeCodeOpaqueHandle && src.bits_ == 8 &&
+             src.lanes_ == 1) {
+    dst = ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL;
   } else {
     dst = ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED;
   }
@@ -131,7 +134,7 @@ ONNXTensorElementDataType OnnxRuntimeConvert::convertFromDataType(
 }
 
 base::DataFormat OnnxRuntimeConvert::getDataFormatByShape(
-    const base::IntVector &src) {
+    const base::IntVector& src) {
   base::DataFormat dst = base::kDataFormatNotSupport;
   if (src.size() == 5) {
     dst = base::kDataFormatNCDHW;
@@ -149,7 +152,7 @@ base::DataFormat OnnxRuntimeConvert::getDataFormatByShape(
   return dst;
 }
 
-base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
+base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t>& src,
                                                    base::IntVector max_shape) {
   base::IntVector dst;
   if (!max_shape.empty()) {
@@ -164,7 +167,7 @@ base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
 }
 
 std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
-    const base::IntVector &src) {
+    const base::IntVector& src) {
   int src_size = static_cast<int>(src.size());
   std::vector<int64_t> dst;
   for (int i = 0; i < src_size; ++i) {
@@ -174,8 +177,8 @@ std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
 }
 
 base::Status OnnxRuntimeConvert::convertFromInferenceParam(
-    OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst,
-    device::Stream *stream) {
+    OnnxRuntimeInferenceParam& src, Ort::SessionOptions& dst,
+    device::Stream* stream) {
   base::Status status = base::kStatusCodeOk;
   if (src.graph_optimization_level_ >= 0) {
     dst.SetGraphOptimizationLevel(
@@ -205,7 +208,7 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
     } else {
       OrtCUDAProviderOptions cuda_srcs;
       cuda_srcs.device_id = src.device_type_.device_id_;
-      device::Device *device = device::getDevice(src.device_type_);
+      device::Device* device = device::getDevice(src.device_type_);
       // TODO:always set user_compute_stream
       if (stream != nullptr) {
         cuda_srcs.has_user_compute_stream = 1;
@@ -224,10 +227,10 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
   return status;
 }
 
-base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
-                                                 const std::string &name,
-                                                 device::Device *device,
-                                                 device::Tensor *dst) {
+base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value& src,
+                                                 const std::string& name,
+                                                 device::Device* device,
+                                                 device::Tensor* dst) {
   base::Status status = base::kStatusCodeOk;
 
   bool copy_flag = false;
@@ -245,11 +248,11 @@ base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
   const auto elesize = dst_data_type.size();
 
   size_t src_size = src_numel * elesize;
-  const void *value_ptr = src.GetTensorData<void *>();
+  const void* value_ptr = src.GetTensorData<void*>();
   if (copy_flag) {
-    device::Buffer *src_buffer =
-        new device::Buffer(device, src_size, (void *)value_ptr);
-    device::Buffer *dst_buffer = dst->getBuffer();
+    device::Buffer* src_buffer =
+        new device::Buffer(device, src_size, (void*)value_ptr);
+    device::Buffer* dst_buffer = dst->getBuffer();
     device->copy(src_buffer, dst_buffer);
     device->deallocate(src_buffer);
   } else {
@@ -258,13 +261,16 @@ base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
     desc.shape_ = OnnxRuntimeConvert::convertToShape(src_shape);
     desc.data_type_ = dst_data_type;
     desc.data_format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
-    dst->create(device, desc, (void *)value_ptr, name);
+    dst->create(device, desc, name);
+    if (dst->getData() != nullptr && value_ptr != nullptr) {
+      memcpy(dst->getData(), value_ptr, src_size);
+    }
   }
 
   return status;
 }
 
-Ort::Value OnnxRuntimeConvert::convertFromTensor(device::Tensor *src) {
+Ort::Value OnnxRuntimeConvert::convertFromTensor(device::Tensor* src) {
   base::DeviceType device_type = src->getDeviceType();
   auto src_data_type = src->getDataType();
   ONNXTensorElementDataType dst_data_type =

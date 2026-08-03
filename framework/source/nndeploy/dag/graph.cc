@@ -16,6 +16,7 @@
 #include "nndeploy/dag/executor/parallel_task_executor.h"
 #include "nndeploy/dag/executor/sequential_executor.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/optimizer.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
@@ -25,14 +26,14 @@
 namespace nndeploy {
 namespace dag {
 
-Graph::Graph(const std::string &name) : Node(name) {
+Graph::Graph(const std::string& name) : Node(name) {
   key_ = "nndeploy::dag::Graph";
   desc_ = "Graph: Graph for nndeploy in cpp";
   constructed_ = true;
   is_graph_ = true;
 }
-Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
-             std::vector<Edge *> outputs)
+Graph::Graph(const std::string& name, std::vector<Edge*> inputs,
+             std::vector<Edge*> outputs)
     : Node(name, inputs, outputs) {
   key_ = "nndeploy::dag::Graph";
   desc_ = "Graph: Graph for nndeploy in cpp";
@@ -80,12 +81,12 @@ Graph::~Graph() {
   // NNDEPLOY_LOGI("graph[%s] deinit success!\n", getName().c_str());
 }
 
-base::Status Graph::addImageUrl(const std::string &url) {
+base::Status Graph::addImageUrl(const std::string& url) {
   image_url_.push_back(url);
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::removeImageUrl(const std::string &url) {
+base::Status Graph::removeImageUrl(const std::string& url) {
   auto it = std::find(image_url_.begin(), image_url_.end(), url);
   if (it != image_url_.end()) {
     image_url_.erase(it);
@@ -94,12 +95,12 @@ base::Status Graph::removeImageUrl(const std::string &url) {
   return base::kStatusCodeErrorNullParam;
 }
 
-base::Status Graph::addVideoUrl(const std::string &url) {
+base::Status Graph::addVideoUrl(const std::string& url) {
   video_url_.push_back(url);
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::removeVideoUrl(const std::string &url) {
+base::Status Graph::removeVideoUrl(const std::string& url) {
   auto it = std::find(video_url_.begin(), video_url_.end(), url);
   if (it != video_url_.end()) {
     video_url_.erase(it);
@@ -108,12 +109,12 @@ base::Status Graph::removeVideoUrl(const std::string &url) {
   return base::kStatusCodeErrorNullParam;
 }
 
-base::Status Graph::addAudioUrl(const std::string &url) {
+base::Status Graph::addAudioUrl(const std::string& url) {
   audio_url_.push_back(url);
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::removeAudioUrl(const std::string &url) {
+base::Status Graph::removeAudioUrl(const std::string& url) {
   auto it = std::find(audio_url_.begin(), audio_url_.end(), url);
   if (it != audio_url_.end()) {
     audio_url_.erase(it);
@@ -122,12 +123,12 @@ base::Status Graph::removeAudioUrl(const std::string &url) {
   return base::kStatusCodeErrorNullParam;
 }
 
-base::Status Graph::addModelUrl(const std::string &url) {
+base::Status Graph::addModelUrl(const std::string& url) {
   model_url_.push_back(url);
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::removeModelUrl(const std::string &url) {
+base::Status Graph::removeModelUrl(const std::string& url) {
   auto it = std::find(model_url_.begin(), model_url_.end(), url);
   if (it != model_url_.end()) {
     model_url_.erase(it);
@@ -136,12 +137,12 @@ base::Status Graph::removeModelUrl(const std::string &url) {
   return base::kStatusCodeErrorNullParam;
 }
 
-base::Status Graph::addOtherUrl(const std::string &url) {
+base::Status Graph::addOtherUrl(const std::string& url) {
   other_url_.push_back(url);
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::removeOtherUrl(const std::string &url) {
+base::Status Graph::removeOtherUrl(const std::string& url) {
   auto it = std::find(other_url_.begin(), other_url_.end(), url);
   if (it != other_url_.end()) {
     other_url_.erase(it);
@@ -197,7 +198,7 @@ int Graph::getEdgeQueueDropCount() { return queue_drop_count_; }
 //   return base::kStatusCodeOk;
 // }
 
-base::Status Graph::setInput(Edge *input, int index) {
+base::Status Graph::setInput(Edge* input, int index) {
   base::Status status = Node::setInput(input, index);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -209,7 +210,7 @@ base::Status Graph::setInput(Edge *input, int index) {
   }
   return base::kStatusCodeOk;
 }
-base::Status Graph::setOutput(Edge *output, int index) {
+base::Status Graph::setOutput(Edge* output, int index) {
   base::Status status = Node::setOutput(output, index);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -223,7 +224,7 @@ base::Status Graph::setOutput(Edge *output, int index) {
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::setInputs(std::vector<Edge *> inputs) {
+base::Status Graph::setInputs(std::vector<Edge*> inputs) {
   base::Status status = Node::setInputs(inputs);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -238,7 +239,7 @@ base::Status Graph::setInputs(std::vector<Edge *> inputs) {
   }
   return base::kStatusCodeOk;
 }
-base::Status Graph::setOutputs(std::vector<Edge *> outputs) {
+base::Status Graph::setOutputs(std::vector<Edge*> outputs) {
   base::Status status = Node::setOutputs(outputs);
   if (status != base::kStatusCodeOk) {
     return status;
@@ -316,7 +317,7 @@ base::Status Graph::setOutputsSharedPtr(
   return base::kStatusCodeOk;
 }
 
-Edge *Graph::createEdge(const std::string &name) {
+Edge* Graph::createEdge(const std::string& name) {
   std::string unique_name = name;
   if (unique_name.empty()) {
     unique_name = "edge_" + base::getUniqueString();
@@ -325,8 +326,8 @@ Edge *Graph::createEdge(const std::string &name) {
     NNDEPLOY_LOGE("edge name[%s] is already used!\n", unique_name.c_str());
     return nullptr;
   }
-  Edge *edge = new Edge(unique_name);
-  EdgeWrapper *edge_wrapper = new EdgeWrapper();
+  Edge* edge = new Edge(unique_name);
+  EdgeWrapper* edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = unique_name;
@@ -335,7 +336,7 @@ Edge *Graph::createEdge(const std::string &name) {
   return edge;
 }
 
-std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
+std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string& name) {
   std::string unique_name = name;
   if (unique_name.empty()) {
     unique_name = "edge_" + base::getUniqueString();
@@ -345,8 +346,8 @@ std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
     return nullptr;
   }
   std::shared_ptr<Edge> edge_ptr = std::make_shared<Edge>(unique_name);
-  Edge *edge = edge_ptr.get();
-  EdgeWrapper *edge_wrapper = new EdgeWrapper();
+  Edge* edge = edge_ptr.get();
+  EdgeWrapper* edge_wrapper = new EdgeWrapper();
   // 创建shared edge
   edge_wrapper->is_external_ = true;
   edge_wrapper->edge_ = edge;
@@ -358,8 +359,8 @@ std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
   return edge_ptr;
 }
 
-Edge *Graph::getEdge(const std::string &name) {
-  for (EdgeWrapper *edge_wrapper : edge_repository_) {
+Edge* Graph::getEdge(const std::string& name) {
+  for (EdgeWrapper* edge_wrapper : edge_repository_) {
     if (edge_wrapper->name_ == name) {
       return edge_wrapper->edge_;
     }
@@ -367,7 +368,7 @@ Edge *Graph::getEdge(const std::string &name) {
   return nullptr;
 }
 
-std::shared_ptr<Edge> Graph::getEdgeSharedPtr(const std::string &name) {
+std::shared_ptr<Edge> Graph::getEdgeSharedPtr(const std::string& name) {
   for (auto edge_ptr : shared_edge_repository_) {
     if (edge_ptr->getName() == name) {
       return edge_ptr;
@@ -376,7 +377,7 @@ std::shared_ptr<Edge> Graph::getEdgeSharedPtr(const std::string &name) {
   return nullptr;
 }
 
-EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
+EdgeWrapper* Graph::addEdge(Edge* edge, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
   if (used_edge_names_.find(edge->getName()) != used_edge_names_.end()) {
     for (auto edge_wrapper : edge_repository_) {
@@ -385,7 +386,7 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
       }
     }
   }
-  EdgeWrapper *edge_wrapper = new EdgeWrapper();
+  EdgeWrapper* edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = is_external;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = edge->getName();
@@ -394,12 +395,12 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   return edge_wrapper;
 }
 
-EdgeWrapper *Graph::addEdgeSharedPtr(std::shared_ptr<Edge> edge) {
+EdgeWrapper* Graph::addEdgeSharedPtr(std::shared_ptr<Edge> edge) {
   if (edge == nullptr) {
     NNDEPLOY_LOGE("edge is null!");
     return nullptr;
   }
-  EdgeWrapper *edge_wrapper = this->addEdge(edge.get(), true);
+  EdgeWrapper* edge_wrapper = this->addEdge(edge.get(), true);
   if (edge_wrapper == nullptr) {
     NNDEPLOY_LOGE("addEdge failed!");
     return nullptr;
@@ -408,11 +409,11 @@ EdgeWrapper *Graph::addEdgeSharedPtr(std::shared_ptr<Edge> edge) {
   return edge_wrapper;
 }
 
-base::Status Graph::deleteEdge(Edge *edge) {
+base::Status Graph::deleteEdge(Edge* edge) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge, "edge is null!");
 
   // 查找要删除的边
-  EdgeWrapper *edge_wrapper_to_delete = nullptr;
+  EdgeWrapper* edge_wrapper_to_delete = nullptr;
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->edge_ == edge) {
       edge_wrapper_to_delete = edge_wrapper;
@@ -469,13 +470,13 @@ base::Status Graph::deleteEdge(Edge *edge) {
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
+base::Status Graph::updteEdge(EdgeWrapper* edge_wrapper, Edge* edge,
                               bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge, "edge is null!");
   // 从shared_edge_repository_中移除
   auto shared_it = std::find_if(
       shared_edge_repository_.begin(), shared_edge_repository_.end(),
-      [edge_wrapper](std::shared_ptr<Edge> &shared_edge) {
+      [edge_wrapper](std::shared_ptr<Edge>& shared_edge) {
         return shared_edge.get() == edge_wrapper->edge_;
       });
   if (shared_it != shared_edge_repository_.end()) {
@@ -489,7 +490,7 @@ base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
-Node *Graph::createNode(const std::string &key, const std::string &name) {
+Node* Graph::createNode(const std::string& key, const std::string& name) {
   if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
@@ -498,13 +499,13 @@ Node *Graph::createNode(const std::string &key, const std::string &name) {
   if (unique_name.empty()) {
     unique_name = "node_" + base::getUniqueString();
   }
-  Node *node = nndeploy::dag::createNode(key, unique_name);
+  Node* node = nndeploy::dag::createNode(key, unique_name);
   if (node == nullptr) {
     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
     return nullptr;
   }
   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
-  NodeWrapper *node_wrapper = new NodeWrapper();
+  NodeWrapper* node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
   node_wrapper->name_ = unique_name;
@@ -514,49 +515,49 @@ Node *Graph::createNode(const std::string &key, const std::string &name) {
   node->setGraph(this);
   return node;
 }
-Node *Graph::createNode(const NodeDesc &desc) {
-  const std::string &name = desc.getName();
-  const std::string &node_key = desc.getKey();
+Node* Graph::createNode(const NodeDesc& desc) {
+  const std::string& name = desc.getName();
+  const std::string& node_key = desc.getKey();
   std::vector<std::string> input_names = desc.getInputs();
   std::vector<std::string> output_names = desc.getOutputs();
   if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  std::vector<Edge *> inputs;
+  std::vector<Edge*> inputs;
   for (auto input_name : input_names) {
-    Edge *input = getEdge(input_name);
+    Edge* input = getEdge(input_name);
     if (input == nullptr) {
       input = createEdge(input_name);
     }
     inputs.emplace_back(input);
   }
-  std::vector<Edge *> outputs;
+  std::vector<Edge*> outputs;
   for (auto output_name : output_names) {
-    Edge *output = getEdge(output_name);
+    Edge* output = getEdge(output_name);
     if (output == nullptr) {
       output = createEdge(output_name);
     }
     outputs.emplace_back(output);
   }
-  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  Node* node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
   if (node == nullptr) {
     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
     return nullptr;
   }
-  NodeWrapper *node_wrapper = new NodeWrapper();
+  NodeWrapper* node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
   node_wrapper->name_ = name;
   for (auto input : inputs) {
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
     }
     input_wrapper->consumers_.emplace_back(node_wrapper);
   }
   for (auto output : outputs) {
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output);
     }
@@ -571,7 +572,7 @@ Node *Graph::createNode(const NodeDesc &desc) {
   return node;
 }
 
-base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
+base::Status Graph::setNodeDesc(Node* node, const NodeDesc& desc) {
   if (node == nullptr) {
     NNDEPLOY_LOGE("node is null!");
     return base::kStatusCodeErrorInvalidValue;
@@ -586,7 +587,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
   //               node);
   // 根据desc的输入判断node
-  std::vector<Edge *> inputs = node->getAllInput();
+  std::vector<Edge*> inputs = node->getAllInput();
   if (!inputs.empty()) {
     // 该节点已经设置，不允许二次设置
     NNDEPLOY_LOGE("node[%s] already set, can't set again!",
@@ -594,7 +595,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
     return base::kStatusCodeErrorInvalidValue;
   }
   std::vector<std::string> output_names = desc.getOutputs();
-  std::vector<Edge *> outputs = node->getAllOutput();
+  std::vector<Edge*> outputs = node->getAllOutput();
   if (!outputs.empty()) {
     // 该节点已经设置，不允许二次设置
     NNDEPLOY_LOGE("node[%s] already set, can't set again!\n",
@@ -632,7 +633,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   std::vector<std::string> input_names = desc.getInputs();
   for (auto input_name : input_names) {
     // NNDEPLOY_LOGE("input_name: %s.\n", input_name.c_str());
-    Edge *input = getEdge(input_name);
+    Edge* input = getEdge(input_name);
     if (input == nullptr) {
       input = createEdge(input_name);
     }
@@ -640,7 +641,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   }
   for (auto input : inputs) {
     // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
     }
@@ -649,14 +650,14 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   base::Status status = node->setInputs(inputs);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node setInput failed!");
   for (auto output_name : output_names) {
-    Edge *output = getEdge(output_name);
+    Edge* output = getEdge(output_name);
     if (output == nullptr) {
       output = createEdge(output_name);
     }
     outputs.emplace_back(output);
   }
   for (auto output : outputs) {
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output);
     }
@@ -669,7 +670,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::addNode(Node *node, bool is_external) {
+base::Status Graph::addNode(Node* node, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   if (this == node) {
     NNDEPLOY_LOGE("Graph[%s] cannot add itself as node\n",
@@ -681,12 +682,12 @@ base::Status Graph::addNode(Node *node, bool is_external) {
                   node->getName().c_str());
   }
   base::Status status = base::kStatusCodeOk;
-  NodeWrapper *node_wrapper = new NodeWrapper();
+  NodeWrapper* node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = is_external;
   node_wrapper->node_ = node;
   node_wrapper->name_ = node->getName();
   for (auto input : node->getAllInput()) {
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       // input_wrapper = this->addEdge(input, is_external);
       input_wrapper = this->addEdge(input, true);
@@ -695,7 +696,7 @@ base::Status Graph::addNode(Node *node, bool is_external) {
     insertUnique(input_wrapper->consumers_, node_wrapper);
   }
   for (auto output : node->getAllOutput()) {
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       // output_wrapper = this->addEdge(output, is_external);
       output_wrapper = this->addEdge(output, true);
@@ -723,8 +724,8 @@ base::Status Graph::addNodeSharedPtr(std::shared_ptr<Node> node) {
   return status;
 }
 
-base::Status Graph::deleteNode(Node *node) {
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node);
+base::Status Graph::deleteNode(Node* node) {
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node);
   if (node_wrapper == nullptr) {
     NNDEPLOY_LOGE("can't find node_wrapper!");
     return base::kStatusCodeOk;
@@ -747,7 +748,7 @@ base::Status Graph::deleteNode(Node *node) {
   // # 更新shared_node_repository_，将node从shared_node_repository_中删除
   auto shared_it = std::find_if(
       shared_node_repository_.begin(), shared_node_repository_.end(),
-      [node](const std::shared_ptr<Node> &ptr) { return ptr.get() == node; });
+      [node](const std::shared_ptr<Node>& ptr) { return ptr.get() == node; });
   if (shared_it != shared_node_repository_.end()) {
     shared_node_repository_.erase(shared_it);
   }
@@ -774,7 +775,7 @@ base::Status Graph::deleteNode(Node *node) {
   return base::kStatusCodeOk;
 }
 
-Node *Graph::getNode(const std::string &name) {
+Node* Graph::getNode(const std::string& name) {
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->name_ == name) {
       return node_wrapper->node_;
@@ -783,14 +784,14 @@ Node *Graph::getNode(const std::string &name) {
   return nullptr;
 }
 
-Node *Graph::getNode(int index) {
+Node* Graph::getNode(int index) {
   if (index < 0 || index >= node_repository_.size()) {
     return nullptr;
   }
   return node_repository_[index]->node_;
 }
 
-std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
+std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string& name) {
   for (auto node_ptr : shared_node_repository_) {
     if (node_ptr->getName() == name) {
       return node_ptr;
@@ -799,7 +800,7 @@ std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
   return nullptr;
 }
 
-Node *Graph::getNodeByKey(const std::string &key) {
+Node* Graph::getNodeByKey(const std::string& key) {
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getKey() == key) {
       return node_wrapper->node_;
@@ -808,8 +809,8 @@ Node *Graph::getNodeByKey(const std::string &key) {
   return nullptr;
 }
 
-std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
-  std::vector<Node *> nodes;
+std::vector<Node*> Graph::getNodesByKey(const std::string& key) {
+  std::vector<Node*> nodes;
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getKey() == key) {
       nodes.emplace_back(node_wrapper->node_);
@@ -820,21 +821,21 @@ std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
 
 int Graph::getNodeCount() { return node_repository_.size(); }
 
-std::vector<Node *> Graph::getNodes() {
-  std::vector<Node *> nodes;
+std::vector<Node*> Graph::getNodes() {
+  std::vector<Node*> nodes;
   for (auto node_wrapper : node_repository_) {
     nodes.emplace_back(node_wrapper->node_);
   }
   return nodes;
 }
 
-std::vector<Node *> Graph::getNodesRecursive() {
-  std::vector<Node *> nodes;
+std::vector<Node*> Graph::getNodesRecursive() {
+  std::vector<Node*> nodes;
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getGraphFlag()) {
-      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      dag::Graph* graph = dynamic_cast<dag::Graph*>(node_wrapper->node_);
       if (graph != nullptr) {
-        std::vector<Node *> graph_nodes = graph->getNodesRecursive();
+        std::vector<Node*> graph_nodes = graph->getNodesRecursive();
         nodes.insert(nodes.end(), graph_nodes.begin(), graph_nodes.end());
       }
     } else {
@@ -857,7 +858,7 @@ std::vector<std::string> Graph::getNodesNameRecursive() {
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getGraphFlag()) {
       names.emplace_back(node_wrapper->node_->getName());
-      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      dag::Graph* graph = dynamic_cast<dag::Graph*>(node_wrapper->node_);
       if (graph != nullptr) {
         std::vector<std::string> graph_names = graph->getNodesNameRecursive();
         names.insert(names.end(), graph_names.begin(), graph_names.end());
@@ -869,7 +870,7 @@ std::vector<std::string> Graph::getNodesNameRecursive() {
   return names;
 }
 
-Node *Graph::getInputNode(int index) {
+Node* Graph::getInputNode(int index) {
   // 查找输入节点
   int input_count = 0;
   for (auto node_wrapper : node_repository_) {
@@ -882,7 +883,7 @@ Node *Graph::getInputNode(int index) {
   }
   return nullptr;
 }
-Node *Graph::getOutputNode(int index) {
+Node* Graph::getOutputNode(int index) {
   // 查找输出节点
   int output_count = 0;
   for (auto node_wrapper : node_repository_) {
@@ -895,7 +896,7 @@ Node *Graph::getOutputNode(int index) {
   }
   return nullptr;
 }
-Node *Graph::getInferNode(int index) {
+Node* Graph::getInferNode(int index) {
   // 查找推理节点（key为nndeploy::plugin::Infer的节点）
   int infer_count = 0;
   for (auto node_wrapper : node_repository_) {
@@ -909,7 +910,7 @@ Node *Graph::getInferNode(int index) {
   return nullptr;
 }
 
-base::Status Graph::connect(Node *predecessor, Node *successor,
+base::Status Graph::connect(Node* predecessor, Node* successor,
                             int predecessor_port, int successor_port) {
   // 判断节点和端口是否存在
   if (predecessor == nullptr || successor == nullptr) {
@@ -942,14 +943,14 @@ base::Status Graph::connect(Node *predecessor, Node *successor,
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  Edge *predecessor_output = predecessor->getOutput(predecessor_port);
+  Edge* predecessor_output = predecessor->getOutput(predecessor_port);
   if (predecessor_output == nullptr) {  // 输出边不存在
     // # 创建边，添加消费者和生产者
     std::string output_name =
         predecessor->getName() + "@output_" + std::to_string(predecessor_port);
     predecessor_output = this->createEdge(output_name);
   }
-  EdgeWrapper *output_wrapper =
+  EdgeWrapper* output_wrapper =
       findEdgeWrapper(edge_repository_, predecessor_output);
   if (output_wrapper == nullptr) {
     output_wrapper = this->addEdge(predecessor_output);
@@ -963,7 +964,7 @@ base::Status Graph::connect(Node *predecessor, Node *successor,
 
   return base::kStatusCodeOk;
 }
-base::Status Graph::disconnect(Node *predecessor, Node *successor,
+base::Status Graph::disconnect(Node* predecessor, Node* successor,
                                int predecessor_port, int successor_port) {
   // # 判断节点和端口是否存在
   // 判断节点和端口是否存在
@@ -998,13 +999,13 @@ base::Status Graph::disconnect(Node *predecessor, Node *successor,
   }
 
   // # 判断边是否存在
-  Edge *po = predecessor->getOutput(predecessor_port);
+  Edge* po = predecessor->getOutput(predecessor_port);
   if (po == nullptr) {
     NNDEPLOY_LOGI("predecessor_output not found!");
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  EdgeWrapper *predecessor_output = findEdgeWrapper(edge_repository_, po);
+  EdgeWrapper* predecessor_output = findEdgeWrapper(edge_repository_, po);
   if (predecessor_output == nullptr) {
     NNDEPLOY_LOGI("predecessor_output not found!");
     return base::kStatusCodeErrorInvalidParam;
@@ -1064,7 +1065,7 @@ Graph::getNodesRunStatusRecursive() {
   std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getGraphFlag()) {
-      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      dag::Graph* graph = dynamic_cast<dag::Graph*>(node_wrapper->node_);
       if (graph != nullptr) {
         std::map<std::string, std::shared_ptr<RunStatus>> graph_run_status_map =
             graph->getNodesRunStatusRecursive();
@@ -1079,11 +1080,11 @@ Graph::getNodesRunStatusRecursive() {
   return run_status_map;
 }
 
-base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
-                                          std::vector<Edge *> inputs,
-                                          std::vector<Edge *> outputs) {
+base::Status Graph::addNodeInputAndOutput(NodeWrapper* node_wrapper,
+                                          std::vector<Edge*> inputs,
+                                          std::vector<Edge*> outputs) {
   for (auto input : inputs) {
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       // input_wrapper = this->addEdge(input, is_external);
       input_wrapper = this->addEdge(input, true);
@@ -1092,7 +1093,7 @@ base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
     }
   }
   for (auto output : outputs) {
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       // output_wrapper = this->addEdge(output, is_external);
       output_wrapper = this->addEdge(output, true);
@@ -1104,43 +1105,43 @@ base::Status Graph::addNodeInputAndOutput(NodeWrapper *node_wrapper,
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::setNodeParam(const std::string &node_name,
-                                 base::Param *param) {
+base::Status Graph::setNodeParam(const std::string& node_name,
+                                 base::Param* param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   status = node_wrapper->node_->setParam(param);
   return status;
 }
 
-base::Param *Graph::getNodeParam(const std::string &node_name) {
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+base::Param* Graph::getNodeParam(const std::string& node_name) {
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParam();
 }
 
-base::Status Graph::setNodeParamSharedPtr(const std::string &node_name,
+base::Status Graph::setNodeParamSharedPtr(const std::string& node_name,
                                           std::shared_ptr<base::Param> param) {
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   base::Status status = node_wrapper->node_->setParamSharedPtr(param);
   return status;
 }
 std::shared_ptr<base::Param> Graph::getNodeParamSharedPtr(
-    const std::string &node_name) {
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+    const std::string& node_name) {
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParamSharedPtr();
 }
 
-base::Status Graph::setExternalParam(const std::string &node_name,
+base::Status Graph::setExternalParam(const std::string& node_name,
                                      std::shared_ptr<base::Param> param) {
   external_param_repository_[node_name] = param;
   return base::kStatusCodeOk;
 }
 std::shared_ptr<base::Param> Graph::getExternalParam(
-    const std::string &node_name) {
+    const std::string& node_name) {
   if (external_param_repository_.find(node_name) !=
       external_param_repository_.end()) {
     return external_param_repository_[node_name];
@@ -1152,9 +1153,9 @@ std::shared_ptr<base::Param> Graph::getExternalParam(
   }
 }
 
-base::Status Graph::setNodeParallelType(const std::string &node_name,
+base::Status Graph::setNodeParallelType(const std::string& node_name,
                                         base::ParallelType parallel_type) {
-  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   base::Status status = node_wrapper->node_->setParallelType(parallel_type);
   return status;
@@ -1178,32 +1179,42 @@ void Graph::setLoopCount(int loop_count) {
   }
 }
 int Graph::getLoopCount() {
-  if (inputs_.size() > 0) {
+  if (is_inner_ && inputs_.size() > 0) {
+    NNDEPLOY_LOGI("Graph[%s] getLoopCount: is_inner_ && inputs_.size()=%d, return 1\n",
+                  name_.c_str(), (int)inputs_.size());
     return 1;
   }
   int loop_count_min = INT_MAX;
   int loop_count_max = 1;
   bool is_find_input = false;
+  NNDEPLOY_LOGI("Graph[%s] getLoopCount: scanning %d nodes, is_loop_max_flag_=%d\n",
+                name_.c_str(), (int)node_repository_.size(), (int)is_loop_max_flag_);
   for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+    Node* node = node_wrapper->node_;
+    NodeType nt = node->getNodeType();
+    int nlc = node->getLoopCount();
+    NNDEPLOY_LOGI("  node[%s] node_type=%d loop_count=%d\n",
+                  node->getName().c_str(), (int)nt, nlc);
+    if (nt == NodeType::kNodeTypeInput) {
       is_find_input = true;
-      if (node_wrapper->node_->getLoopCount() < loop_count_min) {
-        loop_count_min = node_wrapper->node_->getLoopCount();
+      if (nlc < loop_count_min) {
+        loop_count_min = nlc;
       }
-      if (node_wrapper->node_->getLoopCount() > loop_count_max) {
-        loop_count_max = node_wrapper->node_->getLoopCount();
+      if (nlc > loop_count_max) {
+        loop_count_max = nlc;
       }
     }
   }
 
   if (!is_find_input) {
+    NNDEPLOY_LOGI("Graph[%s] getLoopCount: no input node found, return 1\n",
+                  name_.c_str());
     return 1;
   }
-  if (is_loop_max_flag_) {
-    return loop_count_max;
-  } else {
-    return loop_count_min;
-  }
+  int result = is_loop_max_flag_ ? loop_count_max : loop_count_min;
+  NNDEPLOY_LOGI("Graph[%s] getLoopCount: max=%d, min=%d, result=%d\n",
+                name_.c_str(), loop_count_max, loop_count_min, result);
+  return result;
 }
 
 std::map<std::string, int> Graph::getLoopCountMap() {
@@ -1217,11 +1228,11 @@ std::map<std::string, int> Graph::getLoopCountMap() {
   return loop_count_map;
 }
 
-base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                                 std::vector<Edge *> outputs) {
+base::Status Graph::updateNodeIO(Node* node, std::vector<Edge*> inputs,
+                                 std::vector<Edge*> outputs) {
   base::Status status = base::kStatusCodeOk;
   // 找到node对应的node_wrapper
-  NodeWrapper *node_wrapper = nullptr;
+  NodeWrapper* node_wrapper = nullptr;
   for (auto wrapper : node_repository_) {
     if (wrapper->node_ == node) {
       node_wrapper = wrapper;
@@ -1233,7 +1244,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
     return base::kStatusCodeErrorInvalidValue;
   }
   for (auto input : inputs) {
-    EdgeWrapper *edge_wrapper =
+    EdgeWrapper* edge_wrapper =
         findEdgeWrapper(edge_repository_, input->getName());
     if (edge_wrapper == nullptr) {
       edge_wrapper = this->addEdge(input, true);
@@ -1255,7 +1266,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
     // NNDEPLOY_LOGI("Consumer: %s\n", node_wrapper->node_->getName().c_str());
   }
   for (auto output : outputs) {
-    EdgeWrapper *edge_wrapper =
+    EdgeWrapper* edge_wrapper =
         findEdgeWrapper(edge_repository_, output->getName());
     if (edge_wrapper == nullptr) {
       edge_wrapper = this->addEdge(output, true);
@@ -1279,13 +1290,13 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
   return status;
 }
 
-base::Status Graph::markInputEdge(std::vector<Edge *> inputs) {
+base::Status Graph::markInputEdge(std::vector<Edge*> inputs) {
   for (auto input : inputs) {
     insertUnique(inputs_, input);
   }
   return base::kStatusCodeOk;
 };
-base::Status Graph::markOutputEdge(std::vector<Edge *> outputs) {
+base::Status Graph::markOutputEdge(std::vector<Edge*> outputs) {
   for (auto output : outputs) {
     insertUnique(outputs_, output);
   }
@@ -1303,32 +1314,68 @@ base::Status Graph::defaultParam() {
   return base::kStatusCodeOk;
 }
 
+void Graph::setEnabledOptimizationPasses(
+    const std::vector<std::string>& pass_names) {
+  enabled_opt_passes_ = pass_names;
+}
+
+std::vector<std::string> Graph::getEnabledOptimizationPasses() const {
+  return enabled_opt_passes_;
+}
+
+void Graph::setDisabledOptimizationPasses(
+    const std::vector<std::string>& pass_names) {
+  disabled_opt_passes_ = pass_names;
+}
+
+std::vector<std::string> Graph::getDisabledOptimizationPasses() const {
+  return disabled_opt_passes_;
+}
+
+base::Status Graph::optimizeGraph() {
+  DagOptimizer optimizer;
+  base::Status status =
+      optimizer.init(enabled_opt_passes_, disabled_opt_passes_);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("Graph::optimizeGraph init failed\n");
+    return status;
+  }
+  if (!optimizer.hasPasses()) {
+    return base::kStatusCodeOk;
+  }
+  status = optimizer.optimize(this);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "Graph::optimizeGraph optimize failed");
+  optimizer.deinit();
+  return status;
+}
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   if (!is_inner_) {
     setInitializedFlag(false);
   }
 
-  // NNDEPLOY_LOGE("###########################\n");
-  // NNDEPLOY_LOGE("construct!\n");
-  // NNDEPLOY_LOGE("###########################\n");
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
-  // NNDEPLOY_LOGE("###########################\n");
+  // DAG optimisation passes run after construct() so they operate on a
+  // structurally complete DAG but before executor() which needs the result.
+  status = this->optimizeGraph();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph optimizeGraph failed!\n");
+    return status;
+  }
+
   // NNDEPLOY_LOGE("executor!\n");
-  // NNDEPLOY_LOGE("###########################\n");
+
   status = this->executor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   if (!is_inner_) {
     setInitializedFlag(true);
   }
@@ -1361,9 +1408,7 @@ base::Status Graph::deinit() {
     }
   }
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   if (!is_inner_) {
     setInitializedFlag(false);
   }
@@ -1374,9 +1419,7 @@ base::Status Graph::deinit() {
 base::Status Graph::run() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag true!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   if (!is_inner_) {
     setRunningFlag(true);
   }
@@ -1387,9 +1430,7 @@ base::Status Graph::run() {
   status = executor_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   if (!is_inner_) {
     setRunningFlag(false);
   }
@@ -1413,29 +1454,29 @@ bool Graph::interrupt() {
   return is_interrupt;
 }
 
-std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
+std::vector<Edge*> Graph::forward(std::vector<Edge*> inputs) {
   is_forward_api_ok_ = false;
-  std::vector<Edge *> outputs;
+  std::vector<Edge*> outputs;
   return outputs;
 };
-std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
+std::vector<Edge*> Graph::operator()(std::vector<Edge*> inputs) {
   if (traced_) {
     // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph run failed!");
-      return std::vector<Edge *>();
+      return std::vector<Edge*>();
     }
     return outputs_;
   } else {
     // NNDEPLOY_LOGI("graph not traced!\n");
     this->markInputEdge(inputs);
-    std::vector<Edge *> outputs = this->forward(inputs);
+    std::vector<Edge*> outputs = this->forward(inputs);
     if (graph_ != nullptr) {
       base::Status status = graph_->updateNodeIO(this, inputs, outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
-        return std::vector<Edge *>();
+        return std::vector<Edge*>();
       }
       // for (auto input : inputs) {
       //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
@@ -1448,37 +1489,37 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
     return outputs;
   }
 }
-std::vector<Edge *> Graph::forward() {
+std::vector<Edge*> Graph::forward() {
   // is_forward_api_ok_ = false;
-  Edge *input = nullptr;
-  std::vector<Edge *> outputs = this->forward(input);
+  Edge* input = nullptr;
+  std::vector<Edge*> outputs = this->forward(input);
   if (isForwardApiOk()) {
     return outputs;
   } else {
     NNDEPLOY_LOGE("graph[%s] is not implemented forward api!\n", name_.c_str());
     is_forward_api_ok_ = false;
-    return std::vector<Edge *>();
+    return std::vector<Edge*>();
   }
 }
-std::vector<Edge *> Graph::operator()() {
+std::vector<Edge*> Graph::operator()() {
   if (traced_) {
     // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph run failed!");
-      return std::vector<Edge *>();
+      return std::vector<Edge*>();
     }
     return outputs_;
   } else {
     // NNDEPLOY_LOGI("graph not traced!\n");
-    this->markInputEdge(std::vector<Edge *>());
-    std::vector<Edge *> outputs = this->forward();
+    this->markInputEdge(std::vector<Edge*>());
+    std::vector<Edge*> outputs = this->forward();
     if (graph_ != nullptr) {
       base::Status status =
-          graph_->updateNodeIO(this, std::vector<Edge *>(), outputs);
+          graph_->updateNodeIO(this, std::vector<Edge*>(), outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
-        return std::vector<Edge *>();
+        return std::vector<Edge*>();
       }
       // for (auto input : inputs) {
       //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
@@ -1492,38 +1533,38 @@ std::vector<Edge *> Graph::operator()() {
   }
 }
 
-std::vector<Edge *> Graph::forward(Edge *input) {
+std::vector<Edge*> Graph::forward(Edge* input) {
   // is_forward_api_ok_ = false;
-  std::vector<Edge *> inputs;
+  std::vector<Edge*> inputs;
   inputs.emplace_back(input);
-  std::vector<Edge *> outputs = this->forward(inputs);
+  std::vector<Edge*> outputs = this->forward(inputs);
   if (isForwardApiOk()) {
     return outputs;
   } else {
     NNDEPLOY_LOGI("graph[%s] is not implemented forward api!\n", name_.c_str());
     is_forward_api_ok_ = false;
-    return std::vector<Edge *>();
+    return std::vector<Edge*>();
   }
 }
-std::vector<Edge *> Graph::operator()(Edge *input) {
+std::vector<Edge*> Graph::operator()(Edge* input) {
   if (traced_) {
     // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph run failed!");
-      return std::vector<Edge *>();
+      return std::vector<Edge*>();
     }
     return outputs_;
   } else {
     // NNDEPLOY_LOGI("graph not traced!\n");
-    this->markInputEdge(std::vector<Edge *>({input}));
-    std::vector<Edge *> outputs = this->forward(input);
+    this->markInputEdge(std::vector<Edge*>({input}));
+    std::vector<Edge*> outputs = this->forward(input);
     if (graph_ != nullptr) {
       base::Status status =
-          graph_->updateNodeIO(this, std::vector<Edge *>({input}), outputs);
+          graph_->updateNodeIO(this, std::vector<Edge*>({input}), outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
-        return std::vector<Edge *>();
+        return std::vector<Edge*>();
       }
       // for (auto input : inputs) {
       //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
@@ -1537,7 +1578,7 @@ std::vector<Edge *> Graph::operator()(Edge *input) {
   }
 }
 
-base::Status Graph::dump(std::ostream &oss) {
+base::Status Graph::dump(std::ostream& oss) {
   base::Status status = base::kStatusCodeOk;
   // start
   if (is_inner_) {
@@ -1562,14 +1603,14 @@ base::Status Graph::dump(std::ostream &oss) {
     }
     for (auto input : inputs_) {
       if (input->getName().empty()) {
-        oss << "p" << (void *)input << "[shape=diamond, label=input]\n";
+        oss << "p" << (void*)input << "[shape=diamond, label=input]\n";
       } else {
         std::string label = "\"" + input->getName() + "\"";
-        oss << "p" << (void *)input << "[shape=diamond, label=" << label
+        oss << "p" << (void*)input << "[shape=diamond, label=" << label
             << "]\n";
       }
-      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, input);
-      std::vector<Node *> consumers;
+      EdgeWrapper* edge_wrapper = findEdgeWrapper(edge_repository_, input);
+      std::vector<Node*> consumers;
       // for (auto consumer : edge_wrapper->consumers_) {
       //   auto consumer_node = consumer->node_;
       //   if (consumer_node->getGraphFlag()) {
@@ -1590,8 +1631,8 @@ base::Status Graph::dump(std::ostream &oss) {
       // }
       findConsumerNode(edge_wrapper, consumers);
       for (auto node : consumers) {
-        oss << "p" << (void *)input << "->"
-            << "p" << (void *)node;
+        oss << "p" << (void*)input << "->"
+            << "p" << (void*)node;
         if (input->getName().empty()) {
           oss << "\n";
         } else {
@@ -1602,14 +1643,14 @@ base::Status Graph::dump(std::ostream &oss) {
     }
     for (auto output : outputs_) {
       if (output->getName().empty()) {
-        oss << "p" << (void *)output << "[shape=diamond, label=output]\n";
+        oss << "p" << (void*)output << "[shape=diamond, label=output]\n";
       } else {
         std::string label = "\"" + output->getName() + "\"";
-        oss << "p" << (void *)output << "[shape=diamond, label=" << label
+        oss << "p" << (void*)output << "[shape=diamond, label=" << label
             << "]\n";
       }
-      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output);
-      std::vector<Node *> producers;
+      EdgeWrapper* edge_wrapper = findEdgeWrapper(edge_repository_, output);
+      std::vector<Node*> producers;
       // for (auto producer : edge_wrapper->producers_) {
       //   auto producer_node = producer->node_;
       //   if (producer_node->getGraphFlag()) {
@@ -1630,8 +1671,8 @@ base::Status Graph::dump(std::ostream &oss) {
       // }
       findProducerNode(edge_wrapper, producers);
       for (auto node : producers) {
-        oss << "p" << (void *)node << "->"
-            << "p" << (void *)output;
+        oss << "p" << (void*)node << "->"
+            << "p" << (void*)output;
         if (output->getName().empty()) {
           oss << "\n";
         } else {
@@ -1643,22 +1684,22 @@ base::Status Graph::dump(std::ostream &oss) {
   }
   // dump node
   for (auto node_wrapper : node_repository_) {
-    Node *node = node_wrapper->node_;
+    Node* node = node_wrapper->node_;
     if (node->getGraphFlag()) {
-      Graph *graph = (Graph *)node;
+      Graph* graph = (Graph*)node;
       graph->dump(oss);
     } else {
       if (node->getName().empty()) {
-        oss << "p" << (void *)node << "[label=node]\n";
+        oss << "p" << (void*)node << "[label=node]\n";
       } else {
         std::string label = "\"" + node->getName() + "\"";
-        oss << "p" << (void *)node << "[label=" << label << "]\n";
+        oss << "p" << (void*)node << "[label=" << label << "]\n";
       }
     }
   }
   // dump edge
   for (auto edge_wrapper : edge_repository_) {
-    std::vector<Node *> producers;
+    std::vector<Node*> producers;
     // for (auto producer : edge_wrapper->producers_) {
     //   auto producer_node = producer->node_;
     //   if (producer_node->getGraphFlag()) {
@@ -1678,7 +1719,7 @@ base::Status Graph::dump(std::ostream &oss) {
     //   }
     // }
     findProducerNode(edge_wrapper, producers);
-    std::vector<Node *> consumers;
+    std::vector<Node*> consumers;
     // for (auto consumer : edge_wrapper->consumers_) {
     //   auto consumer_node = consumer->node_;
     //   if (consumer_node->getGraphFlag()) {
@@ -1700,8 +1741,8 @@ base::Status Graph::dump(std::ostream &oss) {
     findConsumerNode(edge_wrapper, consumers);
     for (auto producer : producers) {
       for (auto consumer : consumers) {
-        oss << "p" << (void *)producer << "->"
-            << "p" << (void *)consumer;
+        oss << "p" << (void*)producer << "->"
+            << "p" << (void*)consumer;
         if (edge_wrapper->edge_->getName().empty()) {
           oss << "\n";
         } else {
@@ -1723,15 +1764,15 @@ void Graph::setTraceFlag(bool flag) {
   }
 }
 
-std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
+std::vector<Edge*> Graph::trace(std::vector<Edge*> inputs) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
-  std::vector<Edge *> outputs = this->operator()(inputs);
+  std::vector<Edge*> outputs = this->operator()(inputs);
   // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
-    return std::vector<Edge *>();
+    return std::vector<Edge*>();
   }
   // status = this->dump();
   // if (status != base::kStatusCodeOk) {
@@ -1742,15 +1783,15 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   return outputs;
 }
 
-std::vector<Edge *> Graph::trace() {
+std::vector<Edge*> Graph::trace() {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
-  std::vector<Edge *> outputs = this->operator()();
+  std::vector<Edge*> outputs = this->operator()();
   // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
-    return std::vector<Edge *>();
+    return std::vector<Edge*>();
   }
   // status = this->dump();
   // if (status != base::kStatusCodeOk) {
@@ -1760,15 +1801,15 @@ std::vector<Edge *> Graph::trace() {
   traced_ = true;
   return outputs;
 }
-std::vector<Edge *> Graph::trace(Edge *input) {
+std::vector<Edge*> Graph::trace(Edge* input) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
-  std::vector<Edge *> outputs = this->operator()(input);
+  std::vector<Edge*> outputs = this->operator()(input);
   // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
-    return std::vector<Edge *>();
+    return std::vector<Edge*>();
   }
   // status = this->dump();
   // if (status != base::kStatusCodeOk) {
@@ -1789,7 +1830,7 @@ base::Status Graph::toStaticGraph() {
   this->setTraceFlag(true);
   base::Status status = base::kStatusCodeOk;
   if (input_type_info_.size() == 0) {
-    std::vector<Edge *> outputs = this->operator()();
+    std::vector<Edge*> outputs = this->operator()();
     if (isForwardApiOk()) {
       return base::kStatusCodeOk;
     } else {
@@ -1816,9 +1857,9 @@ base::Status Graph::toStaticGraph() {
     // }
   } else if (input_type_info_.size() == 1) {
     std::string name = this->getName() + "@" + "input_" + std::to_string(0);
-    Edge *edge = new Edge(name);
+    Edge* edge = new Edge(name);
     this->addEdge(edge, false);
-    std::vector<Edge *> outputs = this->operator()(edge);
+    std::vector<Edge*> outputs = this->operator()(edge);
     if (isForwardApiOk()) {
       return base::kStatusCodeOk;
     } else {
@@ -1840,14 +1881,14 @@ base::Status Graph::toStaticGraph() {
     // }
     // // delete edge;
   } else {
-    std::vector<Edge *> edges;
+    std::vector<Edge*> edges;
     for (int i = 0; i < input_type_info_.size(); i++) {
       std::string name = this->getName() + "@" + "input_" + std::to_string(i);
-      Edge *edge = new Edge(name);
+      Edge* edge = new Edge(name);
       this->addEdge(edge, false);
       edges.emplace_back(edge);
     }
-    std::vector<Edge *> outputs = this->operator()(edges);
+    std::vector<Edge*> outputs = this->operator()(edges);
     if (isForwardApiOk()) {
       return base::kStatusCodeOk;
     } else {
@@ -1863,8 +1904,8 @@ base::Status Graph::toStaticGraph() {
   return status;
 }
 
-base::Status Graph::addResourceWithoutState(const std::string &key,
-                                            const base::Any &value) {
+base::Status Graph::addResourceWithoutState(const std::string& key,
+                                            const base::Any& value) {
   if (graph_ == nullptr) {
     // if (resource_without_state_.find(key) != resource_without_state_.end()) {
     //   NNDEPLOY_LOGI("global resource without state[%s] already exists!\n",
@@ -1880,7 +1921,7 @@ base::Status Graph::addResourceWithoutState(const std::string &key,
   }
 }
 
-base::Any &Graph::getResourceWithoutState(const std::string &key) {
+base::Any& Graph::getResourceWithoutState(const std::string& key) {
   if (graph_ == nullptr) {
     if (resource_without_state_.find(key) == resource_without_state_.end()) {
       // NNDEPLOY_LOGI("global resource without state[%s] not found!\n",
@@ -1894,7 +1935,7 @@ base::Any &Graph::getResourceWithoutState(const std::string &key) {
   }
 }
 
-base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
+base::Status Graph::addResourceWithState(const std::string& key, Edge* value) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) != resource_with_state_.end()) {
       NNDEPLOY_LOGI("global resource with state[%s] already exists!\n",
@@ -1908,7 +1949,7 @@ base::Status Graph::addResourceWithState(const std::string &key, Edge *value) {
   }
 }
 
-Edge *Graph::getResourceWithState(const std::string &key) {
+Edge* Graph::getResourceWithState(const std::string& key) {
   if (graph_ == nullptr) {
     if (resource_with_state_.find(key) == resource_with_state_.end()) {
       // NNDEPLOY_LOGI("global resource with state[%s] not found!\n",
@@ -1934,8 +1975,8 @@ base::Status Graph::removeUnusedNodeAndEdge() {
   if (!unused_node_names_.empty()) {
     // #. 更新边的信息
     for (auto edge_wrapper : edge_repository_) {
-      std::vector<NodeWrapper *> producers_to_delete;
-      std::vector<NodeWrapper *> consumers_to_delete;
+      std::vector<NodeWrapper*> producers_to_delete;
+      std::vector<NodeWrapper*> consumers_to_delete;
       for (auto producer : edge_wrapper->producers_) {
         if (unused_node_names_.find(producer->name_) !=
             unused_node_names_.end()) {
@@ -1961,7 +2002,7 @@ base::Status Graph::removeUnusedNodeAndEdge() {
     }
 
     // #. 删除节点 - node_repository_, shared_node_repository_, used_node_names_
-    std::vector<NodeWrapper *> nodes_to_delete;
+    std::vector<NodeWrapper*> nodes_to_delete;
     for (auto node_wrapper : node_repository_) {
       if (unused_node_names_.find(node_wrapper->name_) !=
           unused_node_names_.end()) {
@@ -1985,7 +2026,7 @@ base::Status Graph::removeUnusedNodeAndEdge() {
     }
 
     // #. 删除边，如果边的生产者或消费者为空，则删除边
-    std::vector<EdgeWrapper *> edges_to_delete;
+    std::vector<EdgeWrapper*> edges_to_delete;
     for (auto edge_wrapper : edge_repository_) {
       if (edge_wrapper->producers_.empty() ||
           edge_wrapper->consumers_.empty()) {
@@ -2016,21 +2057,17 @@ base::Status Graph::construct() {
 
   // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("remove unused node names!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   status = this->removeUnusedNodeAndEdge();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "remove unused node and edge failed!");
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   for (auto node_wrapper : node_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
                                          "edge_repository_ node is null!");
-    std::vector<Edge *> inputs = node_wrapper->node_->getAllInput();
-    std::vector<Edge *> outputs = node_wrapper->node_->getAllOutput();
+    std::vector<Edge*> inputs = node_wrapper->node_->getAllInput();
+    std::vector<Edge*> outputs = node_wrapper->node_->getAllOutput();
     this->addNodeInputAndOutput(node_wrapper, inputs, outputs);
     // NNDEPLOY_LOGE("Node: %s\n", node_wrapper->node_->getName().c_str());
     // NNDEPLOY_LOGE("Predecessors:\n");
@@ -2065,17 +2102,17 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
   // NNDEPLOY_LOGI("####################\n");
   for (auto node_wrapper : node_repository_) {
-    Node *node = node_wrapper->node_;
+    Node* node = node_wrapper->node_;
     node->setDebugFlag(is_debug_);
     node->setTimeProfileFlag(is_time_profile_);
     node->setParallelType(parallel_type_);
     node->setInnerFlag(true);
-    std::vector<Edge *> inputs = node->getAllInput();
+    std::vector<Edge*> inputs = node->getAllInput();
     // NNDEPLOY_LOGE("NODE: %s has %d inputs.\n", node->getName().c_str(),
     //               inputs.size());
     for (auto input : inputs) {
       // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
-      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+      EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
       // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
@@ -2084,9 +2121,9 @@ base::Status Graph::construct() {
         // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
       }
     }
-    std::vector<Edge *> outputs = node->getAllOutput();
+    std::vector<Edge*> outputs = node->getAllOutput();
     for (auto output : outputs) {
-      EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+      EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
       // NNDEPLOY_LOGE("output_wrapper: %s.\n",
@@ -2104,12 +2141,12 @@ base::Status Graph::construct() {
   for (auto edge_wrapper : edge_repository_) {
     // NNDEPLOY_LOGE("edge: %s, %p.\n", edge_wrapper->edge_->getName().c_str(),
     //               edge_wrapper->edge_);
-    std::vector<Node *> producers;
+    std::vector<Node*> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
       // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
     }
-    std::vector<Node *> consumers;
+    std::vector<Node*> consumers;
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
       // NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
@@ -2156,6 +2193,10 @@ base::Status Graph::construct() {
   // 没有生产者的为输入边
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->producers_.empty()) {
+      const std::string& edge_name = edge_wrapper->edge_->getName();
+      if (edge_name.empty()) {
+        continue;  // 跳过空名的占位符边（如BoxMotNode的可选ObbResult输入）
+      }
       auto it = std::find(inputs_.begin(), inputs_.end(), edge_wrapper->edge_);
       if (it == inputs_.end()) {
         inputs_.emplace_back(edge_wrapper->edge_);
@@ -2166,6 +2207,10 @@ base::Status Graph::construct() {
   // 没有消费者的为输出边
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->consumers_.empty()) {
+      const std::string& edge_name = edge_wrapper->edge_->getName();
+      if (edge_name.empty()) {
+        continue;  // 跳过空名的占位符边
+      }
       auto it =
           std::find(outputs_.begin(), outputs_.end(), edge_wrapper->edge_);
       if (it == outputs_.end()) {
@@ -2175,7 +2220,7 @@ base::Status Graph::construct() {
   }
 
   // 找到运行节点
-  std::vector<NodeWrapper *> run_node_repository;
+  std::vector<NodeWrapper*> run_node_repository;
   for (auto node_wrapper : node_repository_) {
     bool has_input_or_output = false;
     for (auto edge_wrapper : edge_repository_) {
@@ -2254,9 +2299,7 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type_!\n");
-  // NNDEPLOY_LOGI("###########################\n");
   // base::ParallelType parallel_type_ = parallel_type_;
 
   // NNDEPLOY_LOGI("##############\n");
@@ -2317,7 +2360,7 @@ base::Status Graph::executor() {
   return status;
 }
 
-Node *Graph::createNode4Py(const std::string &key, const std::string &name) {
+Node* Graph::createNode4Py(const std::string& key, const std::string& name) {
   if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
@@ -2326,13 +2369,13 @@ Node *Graph::createNode4Py(const std::string &key, const std::string &name) {
   if (unique_name.empty()) {
     unique_name = "node_" + base::getUniqueString();
   }
-  Node *node = nndeploy::dag::createNode(key, unique_name);
+  Node* node = nndeploy::dag::createNode(key, unique_name);
   if (node == nullptr) {
     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
     return nullptr;
   }
   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
-  NodeWrapper *node_wrapper = new NodeWrapper();
+  NodeWrapper* node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = true;
   node_wrapper->node_ = node;
   node_wrapper->name_ = unique_name;
@@ -2342,49 +2385,49 @@ Node *Graph::createNode4Py(const std::string &key, const std::string &name) {
   node->setGraph(this);
   return node;
 }
-Node *Graph::createNode4Py(const NodeDesc &desc) {
-  const std::string &name = desc.getName();
-  const std::string &node_key = desc.getKey();
+Node* Graph::createNode4Py(const NodeDesc& desc) {
+  const std::string& name = desc.getName();
+  const std::string& node_key = desc.getKey();
   std::vector<std::string> input_names = desc.getInputs();
   std::vector<std::string> output_names = desc.getOutputs();
   if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  std::vector<Edge *> inputs;
+  std::vector<Edge*> inputs;
   for (auto input_name : input_names) {
-    Edge *input = getEdge(input_name);
+    Edge* input = getEdge(input_name);
     if (input == nullptr) {
       input = createEdge(input_name);
     }
     inputs.emplace_back(input);
   }
-  std::vector<Edge *> outputs;
+  std::vector<Edge*> outputs;
   for (auto output_name : output_names) {
-    Edge *output = getEdge(output_name);
+    Edge* output = getEdge(output_name);
     if (output == nullptr) {
       output = createEdge(output_name);
     }
     outputs.emplace_back(output);
   }
-  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  Node* node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
   if (node == nullptr) {
     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
     return nullptr;
   }
-  NodeWrapper *node_wrapper = new NodeWrapper();
+  NodeWrapper* node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = true;
   node_wrapper->node_ = node;
   node_wrapper->name_ = name;
   for (auto input : inputs) {
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
     }
     input_wrapper->consumers_.emplace_back(node_wrapper);
   }
   for (auto output : outputs) {
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output);
     }
@@ -2399,11 +2442,11 @@ Node *Graph::createNode4Py(const NodeDesc &desc) {
   return node;
 }
 
-EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
+EdgeWrapper* Graph::getEdgeWrapper(Edge* edge) {
   return findEdgeWrapper(edge_repository_, edge);
 }
 
-EdgeWrapper *Graph::getEdgeWrapper(const std::string &name) {
+EdgeWrapper* Graph::getEdgeWrapper(const std::string& name) {
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->name_ == name) {
       return edge_wrapper;
@@ -2412,16 +2455,16 @@ EdgeWrapper *Graph::getEdgeWrapper(const std::string &name) {
   return nullptr;
 }
 
-NodeWrapper *Graph::getNodeWrapper(Node *node) {
+NodeWrapper* Graph::getNodeWrapper(Node* node) {
   return findNodeWrapper(node_repository_, node);
 }
 
-NodeWrapper *Graph::getNodeWrapper(const std::string &name) {
+NodeWrapper* Graph::getNodeWrapper(const std::string& name) {
   return findNodeWrapper(node_repository_, name);
 }
 
-base::Status Graph::serialize(rapidjson::Value &json,
-                              rapidjson::Document::AllocatorType &allocator) {
+base::Status Graph::serialize(rapidjson::Value& json,
+                              rapidjson::Document::AllocatorType& allocator) {
   base::Status status = base::kStatusCodeOk;
   status = Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
@@ -2446,7 +2489,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("loop_count_", loop_count_, allocator);
 
     rapidjson::Value unused_node_names_array(rapidjson::kArrayType);
-    for (const auto &name : unused_node_names_) {
+    for (const auto& name : unused_node_names_) {
       rapidjson::Value name_value(name.c_str(), allocator);
       unused_node_names_array.PushBack(name_value, allocator);
     }
@@ -2456,7 +2499,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
   // 序列化URL映射
   if (!image_url_.empty()) {
     rapidjson::Value image_url_array(rapidjson::kArrayType);
-    for (const auto &url : image_url_) {
+    for (const auto& url : image_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       image_url_array.PushBack(url_value, allocator);
     }
@@ -2472,7 +2515,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
 
   if (!video_url_.empty()) {
     rapidjson::Value video_url_array(rapidjson::kArrayType);
-    for (const auto &url : video_url_) {
+    for (const auto& url : video_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       video_url_array.PushBack(url_value, allocator);
     }
@@ -2488,7 +2531,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
 
   if (!audio_url_.empty()) {
     rapidjson::Value audio_url_array(rapidjson::kArrayType);
-    for (const auto &url : audio_url_) {
+    for (const auto& url : audio_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       audio_url_array.PushBack(url_value, allocator);
     }
@@ -2504,7 +2547,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
 
   if (!model_url_.empty()) {
     rapidjson::Value model_url_array(rapidjson::kArrayType);
-    for (const auto &url : model_url_) {
+    for (const auto& url : model_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       model_url_array.PushBack(url_value, allocator);
     }
@@ -2520,7 +2563,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
 
   if (!other_url_.empty()) {
     rapidjson::Value other_url_array(rapidjson::kArrayType);
-    for (const auto &url : other_url_) {
+    for (const auto& url : other_url_) {
       rapidjson::Value url_value(url.c_str(), allocator);
       other_url_array.PushBack(url_value, allocator);
     }
@@ -2576,7 +2619,7 @@ std::string Graph::serialize() {
 
   return json_str;
 }
-base::Status Graph::deserialize(rapidjson::Value &json) {
+base::Status Graph::deserialize(rapidjson::Value& json) {
   base::Status status = Node::deserialize(json);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
@@ -2585,7 +2628,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 
   // 反序列化URL映射参数
   if (json.HasMember("image_url_") && json["image_url_"].IsArray()) {
-    const rapidjson::Value &image_url = json["image_url_"];
+    const rapidjson::Value& image_url = json["image_url_"];
     for (rapidjson::SizeType i = 0; i < image_url.Size(); i++) {
       if (image_url[i].IsString()) {
         image_url_.push_back(image_url[i].GetString());
@@ -2594,7 +2637,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("video_url_") && json["video_url_"].IsArray()) {
-    const rapidjson::Value &video_url = json["video_url_"];
+    const rapidjson::Value& video_url = json["video_url_"];
     for (rapidjson::SizeType i = 0; i < video_url.Size(); i++) {
       if (video_url[i].IsString()) {
         video_url_.push_back(video_url[i].GetString());
@@ -2603,7 +2646,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("audio_url_") && json["audio_url_"].IsArray()) {
-    const rapidjson::Value &audio_url = json["audio_url_"];
+    const rapidjson::Value& audio_url = json["audio_url_"];
     for (rapidjson::SizeType i = 0; i < audio_url.Size(); i++) {
       if (audio_url[i].IsString()) {
         audio_url_.push_back(audio_url[i].GetString());
@@ -2612,7 +2655,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("model_url_") && json["model_url_"].IsArray()) {
-    const rapidjson::Value &model_url = json["model_url_"];
+    const rapidjson::Value& model_url = json["model_url_"];
     for (rapidjson::SizeType i = 0; i < model_url.Size(); i++) {
       if (model_url[i].IsString()) {
         model_url_.push_back(model_url[i].GetString());
@@ -2621,7 +2664,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("other_url_") && json["other_url_"].IsArray()) {
-    const rapidjson::Value &other_url = json["other_url_"];
+    const rapidjson::Value& other_url = json["other_url_"];
     for (rapidjson::SizeType i = 0; i < other_url.Size(); i++) {
       if (other_url[i].IsString()) {
         other_url_.push_back(other_url[i].GetString());
@@ -2659,7 +2702,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 
   if (json.HasMember("unused_node_names_") &&
       json["unused_node_names_"].IsArray()) {
-    const rapidjson::Value &unused_node_names = json["unused_node_names_"];
+    const rapidjson::Value& unused_node_names = json["unused_node_names_"];
     for (rapidjson::SizeType i = 0; i < unused_node_names.Size(); i++) {
       if (unused_node_names[i].IsString()) {
         unused_node_names_.insert(unused_node_names[i].GetString());
@@ -2678,11 +2721,11 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
 
   if (!is_inner_) {
     if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
-      const rapidjson::Value &inputs = json["inputs_"];
+      const rapidjson::Value& inputs = json["inputs_"];
       for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
         if (inputs[i].IsObject()) {
           std::string input_name = inputs[i]["name_"].GetString();
-          Edge *edge = this->getEdge(input_name);
+          Edge* edge = this->getEdge(input_name);
           if (edge == nullptr) {
             edge = this->createEdge(input_name);
           }
@@ -2695,11 +2738,11 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
       }
     }
     if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
-      const rapidjson::Value &outputs = json["outputs_"];
+      const rapidjson::Value& outputs = json["outputs_"];
       for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
         if (outputs[i].IsObject()) {
           std::string output_name = outputs[i]["name_"].GetString();
-          Edge *edge = this->getEdge(output_name);
+          Edge* edge = this->getEdge(output_name);
           if (edge == nullptr) {
             edge = this->createEdge(output_name);
           }
@@ -2741,7 +2784,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   return base::kStatusCodeOk;
 }
 
-base::Status Graph::deserialize(const std::string &json_str) {
+base::Status Graph::deserialize(const std::string& json_str) {
   std::string json_str_param;
   // replace node value
   if (!node_value_map_.empty()) {
@@ -2762,15 +2805,15 @@ base::Status Graph::deserialize(const std::string &json_str) {
     NNDEPLOY_LOGE("parse json string failed\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  rapidjson::Value &json = document;
+  rapidjson::Value& json = document;
 
   if (json.HasMember("node_repository_") &&
       json["node_repository_"].IsArray()) {
-    const rapidjson::Value &nodes = json["node_repository_"];
+    const rapidjson::Value& nodes = json["node_repository_"];
     for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
       if (nodes[i].IsObject()) {
         NodeDesc node_desc;
-        rapidjson::Value &node_json = const_cast<rapidjson::Value &>(nodes[i]);
+        rapidjson::Value& node_json = const_cast<rapidjson::Value&>(nodes[i]);
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         node_json.Accept(writer);
@@ -2779,7 +2822,7 @@ base::Status Graph::deserialize(const std::string &json_str) {
         if (status != base::kStatusCodeOk) {
           return status;
         }
-        Node *node = nullptr;
+        Node* node = nullptr;
         // TODO
         if (node_repository_.size() > i) {
           node = this->getNode(node_desc.getName());
@@ -2822,6 +2865,13 @@ base::Status Graph::deserialize(const std::string &json_str) {
     }
   }
 
+  // 从 JSON 读取 is_loop_max_flag_（之前缺失此逻辑）
+  if (json.HasMember("is_loop_max_flag_") && json["is_loop_max_flag_"].IsBool()) {
+    is_loop_max_flag_ = json["is_loop_max_flag_"].GetBool();
+    NNDEPLOY_LOGE("Graph[%s] deserialize: is_loop_max_flag_ = %d\n",
+                  name_.c_str(), (int)is_loop_max_flag_);
+  }
+
   return status;
 }
 
@@ -2834,24 +2884,24 @@ base::Status Graph::deserialize(const std::string &json_str) {
 //   return Node::serialize(path);
 // }
 
-void Graph::setUnusedNodeNames(const std::string &node_name) {
+void Graph::setUnusedNodeNames(const std::string& node_name) {
   unused_node_names_.insert(node_name);
 }
-void Graph::setUnusedNodeNames(const std::set<std::string> &node_names) {
+void Graph::setUnusedNodeNames(const std::set<std::string>& node_names) {
   unused_node_names_.insert(node_names.begin(), node_names.end());
 }
-void Graph::removeUnusedNodeNames(const std::string &node_name) {
+void Graph::removeUnusedNodeNames(const std::string& node_name) {
   unused_node_names_.erase(node_name);
 }
-void Graph::removeUnusedNodeNames(const std::set<std::string> &node_names) {
-  for (const auto &name : node_names) {
+void Graph::removeUnusedNodeNames(const std::set<std::string>& node_names) {
+  for (const auto& name : node_names) {
     unused_node_names_.erase(name);
   }
 }
 std::set<std::string> Graph::getUnusedNodeNames() { return unused_node_names_; }
 void Graph::removeInOutNode() { is_remove_in_out_node_ = true; }
 
-void Graph::setNodeValue(const std::string &node_value_str) {
+void Graph::setNodeValue(const std::string& node_value_str) {
   // 查找第一个冒号的位置
   size_t first_colon = node_value_str.find(":");
   if (first_colon == std::string::npos) {
@@ -2876,8 +2926,8 @@ void Graph::setNodeValue(const std::string &node_value_str) {
 
   node_value_map_[node_name][key] = value;
 }
-void Graph::setNodeValue(const std::string &node_name, const std::string &key,
-                         const std::string &value) {
+void Graph::setNodeValue(const std::string& node_name, const std::string& key,
+                         const std::string& value) {
   node_value_map_[node_name][key] = value;
 }
 void Graph::setNodeValue(
@@ -2891,7 +2941,7 @@ Graph::getNodeValue() {
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
-std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
+std::map<std::string, createGraphFunc>& getGlobalGraphCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<std::string, createGraphFunc>> creators;
   std::call_once(once, []() {
@@ -2900,12 +2950,12 @@ std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
   return *creators;
 }
 
-Graph *createGraph(const std::string &name, base::InferenceType inference_type,
-                   base::DeviceType device_type, Edge *input, Edge *output,
+Graph* createGraph(const std::string& name, base::InferenceType inference_type,
+                   base::DeviceType device_type, Edge* input, Edge* output,
                    base::ModelType model_type, bool is_path,
                    std::vector<std::string> model_value) {
-  Graph *temp = nullptr;
-  auto &creater_map = getGlobalGraphCreatorMap();
+  Graph* temp = nullptr;
+  auto& creater_map = getGlobalGraphCreatorMap();
   if (creater_map.count(name) > 0) {
     temp = creater_map[name](name, inference_type, device_type, input, output,
                              model_type, is_path, model_value);
@@ -2913,20 +2963,20 @@ Graph *createGraph(const std::string &name, base::InferenceType inference_type,
   return temp;
 }
 
-base::Status serialize(Graph *graph, rapidjson::Value &json,
-                       rapidjson::Document::AllocatorType &allocator) {
+base::Status serialize(Graph* graph, rapidjson::Value& json,
+                       rapidjson::Document::AllocatorType& allocator) {
   return graph->serialize(json, allocator);
 }
-std::string serialize(Graph *graph) { return graph->serialize(); }
-base::Status saveFile(Graph *graph, const std::string &path) {
+std::string serialize(Graph* graph) { return graph->serialize(); }
+base::Status saveFile(Graph* graph, const std::string& path) {
   return graph->saveFile(path);
 }
 // from json
-Graph *deserialize(rapidjson::Value &json) {
+Graph* deserialize(rapidjson::Value& json) {
   if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
     std::string key = json["key_"].GetString();
     std::string name = json["name_"].GetString();
-    Graph *graph = (Graph *)createNode(key, name, {}, {});
+    Graph* graph = (Graph*)createNode(key, name, {}, {});
     if (graph == nullptr) {
       NNDEPLOY_LOGE("create graph failed\n");
       return nullptr;
@@ -2940,17 +2990,17 @@ Graph *deserialize(rapidjson::Value &json) {
   }
   return nullptr;
 }
-Graph *deserialize(const std::string &json_str) {
+Graph* deserialize(const std::string& json_str) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
     return nullptr;
   }
-  rapidjson::Value &json = document;
+  rapidjson::Value& json = document;
   if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
     std::string key = json["key_"].GetString();
     std::string name = json["name_"].GetString();
-    Graph *graph = (Graph *)createNode(key, name, {}, {});
+    Graph* graph = (Graph*)createNode(key, name, {}, {});
     if (graph == nullptr) {
       NNDEPLOY_LOGE("create graph failed\n");
       return nullptr;
@@ -2964,7 +3014,7 @@ Graph *deserialize(const std::string &json_str) {
   }
   return nullptr;
 }
-Graph *loadFile(const std::string &path) {
+Graph* loadFile(const std::string& path) {
   std::ifstream ifs(path);
   if (!ifs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());

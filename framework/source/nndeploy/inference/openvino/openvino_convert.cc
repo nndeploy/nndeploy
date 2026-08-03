@@ -120,7 +120,7 @@ ov::element::Type OpenVinoConvert::convertFromDataType(
     } else if (src.bits_ == 64) {
       dst = ov::element::f64;
     } else {
-      dst = ov::element::undefined;
+      dst = ov::element::dynamic;
     }
   } else if (src.code_ == base::kDataTypeCodeBFp && src.bits_ == 16 &&
              src.lanes_ == 1) {
@@ -135,7 +135,7 @@ ov::element::Type OpenVinoConvert::convertFromDataType(
     } else if (src.bits_ == 64) {
       dst = ov::element::i64;
     } else {
-      dst = ov::element::undefined;
+      dst = ov::element::dynamic;
     }
   } else if (src.code_ == base::kDataTypeCodeUint && src.lanes_ == 1) {
     if (src.bits_ == 8) {
@@ -147,10 +147,10 @@ ov::element::Type OpenVinoConvert::convertFromDataType(
     } else if (src.bits_ == 64) {
       dst = ov::element::u64;
     } else {
-      dst = ov::element::undefined;
+      dst = ov::element::dynamic;
     }
   } else {
-    dst = ov::element::undefined;
+    dst = ov::element::dynamic;
   }
   return dst;
 }
@@ -235,16 +235,6 @@ base::Status OpenVinoConvert::convertFromInferenceParam(
       dst_properties["NUM_STREAMS"] = ov::streams::NUMA;
     } else if (openvino_inference_param->num_streams_ > 0) {
       dst_properties["NUM_STREAMS"] = openvino_inference_param->num_streams_;
-    }
-
-    if (openvino_inference_param->affinity_ == "YES") {
-      dst_properties["AFFINITY"] = "CORE";
-    } else if (openvino_inference_param->affinity_ == "NO") {
-      dst_properties["AFFINITY"] = "NONE";
-    } else if (openvino_inference_param->affinity_ == "NUMA") {
-      dst_properties["AFFINITY"] = "NUMA";
-    } else if (openvino_inference_param->affinity_ == "HYBRID_AWARE") {
-      dst_properties["AFFINITY"] = "HYBRID_AWARE";
     }
   } else if (openvino_inference_param->hint_ == "LATENCY") {
     dst_properties.emplace(

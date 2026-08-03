@@ -34,37 +34,47 @@ namespace detect {
 class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
   float score_threshold_ = 0.5;  // 分数阈值，用于决定哪些检测框被保留
-  float nms_threshold_ = 0.45;    // 非最大抑制(NMS)阈值，用于合并重叠的检测框
-  int num_classes_ = 80;        // 模型可以识别的类别数量
+  float nms_threshold_ = 0.45;   // 非最大抑制(NMS)阈值，用于合并重叠的检测框
+  int num_classes_ = 80;         // 模型可以识别的类别数量
   int model_h_ = 640;            // 模型输入图像的高度
   int model_w_ = 640;            // 模型输入图像的宽度
 
-  int version_ = 11;  // YOLO模型的版本号，默认为-1表示未指定
+  int version_ = 11;  // YOLO模型的版本号，支持5/6/7/8/9/10/11/12/26
+                      // YOLOE-11/26-PF (prompt-free) 输出格式与 YOLOv8
+                      // 相同，分别用 version_=11/26
+
+  bool e2e_ = false;  // 端到端模式（1,300,6格式），YOLO26 E2E导出使用
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(rapidjson::Value& json,
+                                 rapidjson::Document::AllocatorType& allocator);
   using base::Param::deserialize;
-  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(rapidjson::Value& json);
 };
 
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
-  YoloPostProcess(const std::string &name) : dag::Node(name) {
+  YoloPostProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::detect::YoloPostProcess";
-    desc_ = "YOLO v5/v6/v7/v8/v11 postprocess[device::Tensor->DetectResult]";
+    desc_ =
+        "YOLO v5/v6/v7/v8/v9/v10/v11/v12/v26 "
+        "postprocess[device::Tensor->BBoxResult|DetectResult]";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
-    this->setOutputTypeInfo<DetectResult>();
+    this->setOutputTypeInfo<BBoxResult>("bbox");
+    this->setOutputTypeInfo<DetectResult>("detect");
   }
-  YoloPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
-                  std::vector<dag::Edge *> outputs)
+  YoloPostProcess(const std::string& name, std::vector<dag::Edge*> inputs,
+                  std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloPostProcess";
-    desc_ = "YOLO v5/v6/v7/v8/v11 postprocess[device::Tensor->DetectResult]";
+    desc_ =
+        "YOLO v5/v6/v7/v8/v9/v10/v11/v12/v26 "
+        "postprocess[device::Tensor->BBoxResult|DetectResult]";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
-    this->setOutputTypeInfo<DetectResult>();
+    this->setOutputTypeInfo<BBoxResult>("bbox");
+    this->setOutputTypeInfo<DetectResult>("detect");
   }
   virtual ~YoloPostProcess() {}
 
@@ -73,51 +83,55 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
   base::Status runV5V6();
   base::Status runV8V11();
   base::Status runX();
+  base::Status runE2E();
 };
 
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
-  YoloGraph(const std::string &name) : dag::Graph(name) {
+  YoloGraph(const std::string& name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloGraph";
-    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
+    desc_ =
+        "yolo v5/v6/v7/v8/v9/v10/v11/v12/v26 "
+        "graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
-    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans*>(
         this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
     infer_ =
-        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
-    post_ = dynamic_cast<YoloPostProcess *>(
+        dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<YoloPostProcess*>(
         this->createNode<YoloPostProcess>("postprocess"));
   }
 
-  YoloGraph(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
+  YoloGraph(const std::string& name, std::vector<dag::Edge*> inputs,
+            std::vector<dag::Edge*> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloGraph";
-    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
+    desc_ =
+        "yolo v5/v6/v7/v8/v9/v10/v11/v12/v26 "
+        "graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
-    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans*>(
         this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
     infer_ =
-        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
-    post_ = dynamic_cast<YoloPostProcess *>(
+        dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<YoloPostProcess*>(
         this->createNode<YoloPostProcess>("postprocess"));
   }
 
   virtual ~YoloGraph() {}
 
   virtual base::Status defaultParam() {
-    preprocess::CvtResizeNormTransParam *pre_param =
-        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam* pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam*>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
     pre_param->h_ = 640;
     pre_param->w_ = 640;
 
-    YoloPostParam *post_param =
-        dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post_->getParam());
     post_param->score_threshold_ = 0.5;
     post_param->nms_threshold_ = 0.45;
     post_param->num_classes_ = 80;
@@ -127,10 +141,10 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
 
     return base::kStatusCodeOk;
   }
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
+  base::Status make(const dag::NodeDesc& pre_desc,
+                    const dag::NodeDesc& infer_desc,
                     base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
+                    const dag::NodeDesc& post_desc) {
     this->setNodeDesc(pre_, pre_desc);
     this->setNodeDesc(infer_, infer_desc);
     this->setNodeDesc(post_, post_desc);
@@ -153,8 +167,12 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
   }
   base::Status setInferParam(base::DeviceType device_type,
                              base::ModelType model_type, bool is_path,
-                             std::vector<std::string> &model_value) {
-    auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+                             std::vector<std::string>& model_value) {
+    auto param = dynamic_cast<inference::InferenceParam*>(infer_->getParam());
+      if (param == nullptr) {
+        NNDEPLOY_LOGE("param is nullptr");
+        return base::kStatusCodeErrorInvalidParam;
+      }
     param->device_type_ = device_type;
     param->model_type_ = model_type;
     param->is_path_ = is_path;
@@ -163,54 +181,54 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
   }
 
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtResizeNormTransParam *param =
-        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam* param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam*>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }
 
   base::Status setScoreThreshold(float score_threshold) {
-    YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* param = dynamic_cast<YoloPostParam*>(post_->getParam());
     param->score_threshold_ = score_threshold;
     return base::kStatusCodeOk;
   }
 
   base::Status setNmsThreshold(float nms_threshold) {
-    YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* param = dynamic_cast<YoloPostParam*>(post_->getParam());
     param->nms_threshold_ = nms_threshold;
     return base::kStatusCodeOk;
   }
 
   base::Status setNumClasses(int num_classes) {
-    YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* param = dynamic_cast<YoloPostParam*>(post_->getParam());
     param->num_classes_ = num_classes;
     return base::kStatusCodeOk;
   }
 
   base::Status setModelHW(int model_h, int model_w) {
-    YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* param = dynamic_cast<YoloPostParam*>(post_->getParam());
     param->model_h_ = model_h;
     param->model_w_ = model_w;
     return base::kStatusCodeOk;
   }
 
   base::Status setVersion(int version) {
-    YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
+    YoloPostParam* param = dynamic_cast<YoloPostParam*>(post_->getParam());
     param->version_ = version;
     return base::kStatusCodeOk;
   }
 
-  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
-    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
-    std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs);
-    std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs);
+  std::vector<dag::Edge*> forward(std::vector<dag::Edge*> inputs) {
+    std::vector<dag::Edge*> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge*> infer_outputs = (*infer_)(pre_outputs);
+    std::vector<dag::Edge*> post_outputs = (*post_)(infer_outputs);
     return post_outputs;
   }
 
  private:
-  dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
-  infer::Infer *infer_ = nullptr;  ///< Inference node pointer
-  dag::Node *post_ = nullptr;      ///< Postprocessing node pointer
+  dag::Node* pre_ = nullptr;       ///< Preprocessing node pointer
+  infer::Infer* infer_ = nullptr;  ///< Inference node pointer
+  dag::Node* post_ = nullptr;      ///< Postprocessing node pointer
 };
 
 }  // namespace detect

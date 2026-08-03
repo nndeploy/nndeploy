@@ -43,6 +43,8 @@ enum StatusCode : int {
   kStatusCodeErrorDeviceQualcommNpu,
   kStatusCodeErrorDeviceMtkNpu,
   kStatusCodeErrorDeviceSophonNpu,
+  kStatusCodeErrorDeviceAxeraNpu,
+  kStatusCodeErrorDeviceLynxiNpu,
 
   // op
   kStatusCodeErrorOpAscendCL,
@@ -65,6 +67,8 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceSnpe,
   kStatusCodeErrorInferenceQnn,
   kStatusCodeErrorInferenceSophon,
+  kStatusCodeErrorInferenceAxera,
+  kStatusCodeErrorInferenceLynxi,
   kStatusCodeErrorInferenceTorch,
   kStatusCodeErrorInferenceTensorFlow,
   kStatusCodeErrorInferenceNeuroPilot,
@@ -91,20 +95,20 @@ class NNDEPLOY_CC_API Status {
   Status(StatusCode code);
   ~Status();
 
-  Status(const Status &other);
-  Status &operator=(const Status &other);
-  Status &operator=(const StatusCode &other);
-  Status &operator=(int other);
+  Status(const Status& other);
+  Status& operator=(const Status& other);
+  Status& operator=(const StatusCode& other);
+  Status& operator=(int other);
 
-  Status(Status &&other);
-  Status &operator=(Status &&other);
+  Status(Status&& other);
+  Status& operator=(Status&& other);
 
-  bool operator==(const Status &other) const;
-  bool operator==(const StatusCode &other) const;
+  bool operator==(const Status& other) const;
+  bool operator==(const StatusCode& other) const;
   bool operator==(int other) const;
 
-  bool operator!=(const Status &other) const;
-  bool operator!=(const StatusCode &other) const;
+  bool operator!=(const Status& other) const;
+  bool operator!=(const StatusCode& other) const;
   bool operator!=(int other) const;
 
   operator int() const;
@@ -114,7 +118,7 @@ class NNDEPLOY_CC_API Status {
 
   StatusCode getStatusCode() const;
 
-  Status operator+(const Status &other);
+  Status operator+(const Status& other);
 
   static Status Ok();
   static Status Error();
@@ -128,14 +132,14 @@ extern NNDEPLOY_CC_API std::string statusCodeToString(StatusCode code);
 template <typename T>
 class NNDEPLOY_CC_API Maybe {
  public:
-  Maybe(const T &value, const Status &status)
+  Maybe(const T& value, const Status& status)
       : has_value_(true), value_(value), status_(status) {}
-  Maybe(const Status &status) : has_value_(false), status_(status) {}
+  Maybe(const Status& status) : has_value_(false), status_(status) {}
 
   virtual ~Maybe() {};
 
-  Maybe(const Maybe &other) = default;
-  Maybe &operator=(const Maybe &other) = default;
+  Maybe(const Maybe& other) = default;
+  Maybe& operator=(const Maybe& other) = default;
 
   bool hasValue() const { return has_value_; }
   T value() const { return value_; }

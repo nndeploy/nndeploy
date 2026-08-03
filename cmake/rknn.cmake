@@ -19,7 +19,9 @@ if (NOT DEFINED ENABLE_NNDEPLOY_INFERENCE_RKNN)
 else()
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_RKNN}/include)
   set(LIB_PATH ${ENABLE_NNDEPLOY_INFERENCE_RKNN}/${NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX})
-  set(LIBS "rknn_api")
+#   set(LIBS "rknn_api")
+  set(LIBS "rknnrt")   # librknnrt.so
+
   foreach(LIB ${LIBS})
     set(LIB_NAME ${NNDEPLOY_LIB_PREFIX}${LIB}${NNDEPLOY_LIB_SUFFIX})
     set(FULL_LIB_NAME ${LIB_PATH}/${LIB_NAME})

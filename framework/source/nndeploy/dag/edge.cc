@@ -96,7 +96,7 @@ device::Buffer *Edge::getBuffer(const Node *node) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
-  if (!type_info_->isType<device::Buffer>()) {
+  if (type_info_ == nullptr || !type_info_->isType<device::Buffer>()) {
     // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
     return nullptr;
   }
@@ -135,7 +135,7 @@ cv::Mat *Edge::getCvMat(const Node *node) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
-  if (!type_info_->isType<cv::Mat>()) {
+  if (type_info_ == nullptr || !type_info_->isType<cv::Mat>()) {
     // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
     return nullptr;
   }
@@ -182,7 +182,7 @@ device::Tensor *Edge::getTensor(const Node *node) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
-  if (!type_info_->isType<device::Tensor>()) {
+  if (type_info_ == nullptr || !type_info_->isType<device::Tensor>()) {
     // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
     return nullptr;
   }
@@ -216,6 +216,10 @@ base::Param *Edge::getParam(const Node *node) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
   }
+  if (type_info_ == nullptr) {
+    // 边上从未写入过数据（没有上游输出连接或上游未产生数据）
+    return nullptr;
+  }
   if (type_info_->getType() != EdgeTypeFlag::kParam) {
     // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
     return nullptr;
@@ -226,6 +230,9 @@ base::Param *Edge::getGraphOutputParam() {
   if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(type_info_mutex_);
     type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (type_info_ == nullptr) {
+    return nullptr;
   }
   if (type_info_->getType() != EdgeTypeFlag::kParam) {
     // NNDEPLOY_LOGE("typeid(T) is not *type_info_");

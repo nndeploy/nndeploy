@@ -146,5 +146,61 @@ base::Status fastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
   return base::kStatusCodeOk;
 }
 
+base::Status computeNMS(const BBoxResult &src, std::vector<int> &keep_idxs,
+                        const float iou_threshold) {
+  for (auto i = 0; i < src.bboxs_.size(); ++i) {
+    keep_idxs[i] = i;
+  }
+  for (auto i = 0; i < keep_idxs.size(); ++i) {
+    auto n = keep_idxs[i];
+    if (n < 0) {
+      continue;
+    }
+    for (auto j = i + 1; j < keep_idxs.size(); ++j) {
+      auto m = keep_idxs[j];
+      if (m < 0) {
+        continue;
+      }
+      float iou = computeIOU(src.bboxs_[n].bbox_, src.bboxs_[m].bbox_);
+
+      if (iou > iou_threshold) {
+        if (src.bboxs_[n].score_ > src.bboxs_[m].score_) {
+          keep_idxs[j] = -1;
+        } else {
+          keep_idxs[i] = -1;
+          break;
+        }
+      }
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status fastNMS(const BBoxResult &src, std::vector<int> &keep_idxs,
+                     const float iou_threshold) {
+  for (auto i = 0; i < src.bboxs_.size(); ++i) {
+    keep_idxs[i] = i;
+  }
+  for (int i = 0; i < src.bboxs_.size(); i++) {
+    BBox currentbbox = src.bboxs_[i];
+    for (int j = 0; j < src.bboxs_.size(); j++) {
+      BBox itembbox = src.bboxs_[j];
+      if (j == i || currentbbox.label_id_ != itembbox.label_id_) continue;
+
+      if (itembbox.score_ >= currentbbox.score_) {
+        if (itembbox.score_ == currentbbox.score_ && j < i) continue;
+
+        float iou = computeIOU(currentbbox.bbox_, itembbox.bbox_);
+
+        if (iou > iou_threshold) {
+          keep_idxs[i] = -1;
+        }
+      }
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+
 }  // namespace detect
 }  // namespace nndeploy

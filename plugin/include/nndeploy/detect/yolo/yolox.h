@@ -170,6 +170,10 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
                              base::ModelType model_type, bool is_path,
                              std::vector<std::string> &model_value) {
     auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+      if (param == nullptr) {
+        NNDEPLOY_LOGE("param is nullptr");
+        return base::kStatusCodeErrorInvalidParam;
+      }
     param->device_type_ = device_type;
     param->model_type_ = model_type;
     param->is_path_ = is_path;

@@ -17,6 +17,9 @@ if(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR)
     "${PLUGIN_ROOT_PATH}/source/nndeploy/detect/detr/*.cc"
   )
   set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${DETR_SOURCE})
+  message(STATUS "  + DETR detect backend")
+else()
+  message(STATUS "  - DETR detect backend (disabled)")
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO)
@@ -25,7 +28,35 @@ if(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO)
     "${PLUGIN_ROOT_PATH}/source/nndeploy/detect/yolo/*.cc"
   )
   set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${YOLO_SOURCE})
+  message(STATUS "  + YOLO detect backend")
+else()
+  message(STATUS "  - YOLO detect backend (disabled)")
 endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO_OBB)
+  file(GLOB_RECURSE OBB_SOURCE
+    "${PLUGIN_ROOT_PATH}/include/nndeploy/detect/yolo_obb/*.h"
+    "${PLUGIN_ROOT_PATH}/source/nndeploy/detect/yolo_obb/*.cc"
+  )
+  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${OBB_SOURCE})
+  message(STATUS "  + YOLO-OBB detect backend")
+else()
+  message(STATUS "  - YOLO-OBB detect backend (disabled)")
+endif()
+
+# YOLO-NAS is now part of the yolo/ directory (included by YOLO_SOURCE above)
+
+if(ENABLE_NNDEPLOY_PLUGIN_DETECT_RF_DETR)
+  file(GLOB_RECURSE RF_DETR_SOURCE
+    "${PLUGIN_ROOT_PATH}/include/nndeploy/detect/rf_detr/*.h"
+    "${PLUGIN_ROOT_PATH}/source/nndeploy/detect/rf_detr/*.cc"
+  )
+  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${RF_DETR_SOURCE})
+  message(STATUS "  + RF-DETR detect backend")
+else()
+  message(STATUS "  - RF-DETR detect backend (disabled)")
+endif()
+
 
 # # TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
@@ -34,21 +65,21 @@ add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJE
 set_property(TARGET ${PLUGIN_BINARY} PROPERTY FOLDER ${NNDEPLOY_PLUGIN_DIRECTORY})
 
 # # DEPEND_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_DEPEND_LIBRARY})
 
 # # SYSTEM_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_SYSTEM_LIBRARY})
 
 # # THIRD_PARTY_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 
 # # NNDEPLOY_FRAMEWORK_BINARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_FRAMEWORK_BINARY})
-target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_preprocess)
-target_link_libraries(${PLUGIN_BINARY} nndeploy_plugin_infer)
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_FRAMEWORK_BINARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE nndeploy_plugin_preprocess)
+target_link_libraries(${PLUGIN_BINARY} PRIVATE nndeploy_plugin_infer)
 
 # # NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
-target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
+target_link_libraries(${PLUGIN_BINARY} PRIVATE ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 
 # # install
 if(SYSTEM_Windows)

@@ -15,6 +15,8 @@ enum PixelType : int {
   kPixelTypeBGR,
   kPixelTypeRGBA,
   kPixelTypeBGRA,
+  kPixelTypeNV12,      // YUV420 semi-planar (common for HW video decode)
+  kPixelTypeYUV420P,   // YUV420 planar
 
   // not support
   kPixelTypeNotSupport,

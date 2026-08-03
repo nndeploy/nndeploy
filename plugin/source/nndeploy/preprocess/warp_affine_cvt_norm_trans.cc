@@ -13,6 +13,10 @@ base::Status WarpAffineCvtNormTrans::run() {
   unsigned char* input_mat = (*src).data;
 
   device::Device* device = device::getDefaultHostDevice();
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("getDefaultHostDevice failed, CPU architecture not registered.\n");
+    return base::kStatusCodeErrorDeviceCpu;
+  }
   device::TensorDesc desc;
   desc.data_type_ = tmp_param->data_type_;
   desc.data_format_ = tmp_param->data_format_;

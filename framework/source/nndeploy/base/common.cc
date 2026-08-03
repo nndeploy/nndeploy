@@ -17,27 +17,27 @@ DataType::DataType(uint8_t code, uint8_t bits, uint16_t lanes)
 
 DataType::~DataType() {}
 
-DataType::DataType(const DataType &other) = default;
-DataType &DataType::operator=(const DataType &other) = default;
+DataType::DataType(const DataType& other) = default;
+DataType& DataType::operator=(const DataType& other) = default;
 
-DataType::DataType(DataType &&other) = default;
-DataType &DataType::operator=(DataType &&other) = default;
+DataType::DataType(DataType&& other) = default;
+DataType& DataType::operator=(DataType&& other) = default;
 
-bool DataType::operator==(const DataType &other) const {
+bool DataType::operator==(const DataType& other) const {
   return code_ == other.code_ && bits_ == other.bits_ && lanes_ == other.lanes_;
 }
-bool DataType::operator==(const DataTypeCode &other) const {
+bool DataType::operator==(const DataTypeCode& other) const {
   return code_ == other;
 }
 
-bool DataType::operator!=(const DataType &other) const {
+bool DataType::operator!=(const DataType& other) const {
   return !(*this == other);
 }
-bool DataType::operator!=(const DataTypeCode &other) const {
+bool DataType::operator!=(const DataTypeCode& other) const {
   return !(*this == other);
 }
 
-bool DataType::operator<(const DataType &other) const {
+bool DataType::operator<(const DataType& other) const {
   if (code_ != other.code_) return code_ < other.code_;
   if (bits_ != other.bits_) return bits_ < other.bits_;
   return lanes_ < other.lanes_;
@@ -109,28 +109,28 @@ DeviceType::DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0) {}
 DeviceType::DeviceType(DeviceTypeCode code, int device_id)
     : code_(code), device_id_(device_id) {}
 
-DeviceType::DeviceType(const DeviceType &other) = default;
-DeviceType &DeviceType::operator=(const DeviceType &other) = default;
-DeviceType &DeviceType::operator=(const DeviceTypeCode &other) {
+DeviceType::DeviceType(const DeviceType& other) = default;
+DeviceType& DeviceType::operator=(const DeviceType& other) = default;
+DeviceType& DeviceType::operator=(const DeviceTypeCode& other) {
   code_ = other;
   device_id_ = 0;
   return *this;
 }
 
-DeviceType::DeviceType(DeviceType &&other) = default;
-DeviceType &DeviceType::operator=(DeviceType &&other) = default;
+DeviceType::DeviceType(DeviceType&& other) = default;
+DeviceType& DeviceType::operator=(DeviceType&& other) = default;
 
-bool DeviceType::operator==(const DeviceType &other) const {
+bool DeviceType::operator==(const DeviceType& other) const {
   return code_ == other.code_ && device_id_ == other.device_id_;
 }
-bool DeviceType::operator==(const DeviceTypeCode &other) const {
+bool DeviceType::operator==(const DeviceTypeCode& other) const {
   return code_ == other;
 }
 
-bool DeviceType::operator!=(const DeviceType &other) const {
+bool DeviceType::operator!=(const DeviceType& other) const {
   return !(*this == other);
 }
-bool DeviceType::operator!=(const DeviceTypeCode &other) const {
+bool DeviceType::operator!=(const DeviceTypeCode& other) const {
   return !(*this == other);
 }
 
@@ -151,7 +151,7 @@ std::string dataTypeCodeToString(DataTypeCode src) {
   }
 }
 
-DataTypeCode stringToDataTypeCode(const std::string &src) {
+DataTypeCode stringToDataTypeCode(const std::string& src) {
   if (src == "kDataTypeCodeUint") {
     return kDataTypeCodeUint;
   } else if (src == "kDataTypeCodeInt") {
@@ -189,7 +189,7 @@ std::string dataTypeToString(DataType data_type) {
   return dst;
 }
 
-DataType stringToDataType(const std::string &str) {
+DataType stringToDataType(const std::string& str) {
   DataType dst;
   std::string code_str;
   std::string bits_str;
@@ -264,7 +264,7 @@ DataType stringToDataType(const std::string &str) {
       dst.bits_ = 32;  // Default to 32 bits if not specified
     }
     dst.lanes_ = static_cast<uint16_t>(std::stoi(lanes_str));
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     NNDEPLOY_LOGI("Error parsing bits/lanes from string: %s\n", str.c_str());
     dst.code_ = kDataTypeCodeNotSupport;
   }
@@ -303,7 +303,7 @@ std::string dataFormatToString(DataFormat data_format) {
   return dst;
 }
 
-DataFormat stringToDataFormat(const std::string &str) {
+DataFormat stringToDataFormat(const std::string& str) {
   DataFormat data_format;
   if (str == "kDataFormatN") {
     data_format = kDataFormatN;
@@ -334,7 +334,7 @@ DataFormat stringToDataFormat(const std::string &str) {
   return data_format;
 }
 
-DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
+DeviceTypeCode stringToDeviceTypeCode(const std::string& src) {
   if (src == "kDeviceTypeCodeCpu") {
     return kDeviceTypeCodeCpu;
   } else if (src == "kDeviceTypeCodeArm") {
@@ -373,6 +373,10 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeMtkNpu;
   } else if (src == "kDeviceTypeCodeSophonNpu") {
     return kDeviceTypeCodeSophonNpu;
+  } else if (src == "kDeviceTypeCodeAxeraNpu") {
+    return kDeviceTypeCodeAxeraNpu;
+  } else if (src == "kDeviceTypeCodeLynxiNpu") {
+    return kDeviceTypeCodeLynxiNpu;
   } else {
     NNDEPLOY_LOGI("Unsupported device type: %s.\n", src.c_str());
     return kDeviceTypeCodeNotSupport;
@@ -419,12 +423,16 @@ std::string deviceTypeCodeToString(DeviceTypeCode src) {
       return "kDeviceTypeCodeMtkNpu";
     case kDeviceTypeCodeSophonNpu:
       return "kDeviceTypeCodeSophonNpu";
+    case kDeviceTypeCodeAxeraNpu:
+      return "kDeviceTypeCodeAxeraNpu";
+    case kDeviceTypeCodeLynxiNpu:
+      return "kDeviceTypeCodeLynxiNpu";
     default:
       return "kDeviceTypeCodeNotSupport";
   }
 }
 
-DeviceType stringToDeviceType(const std::string &src) {
+DeviceType stringToDeviceType(const std::string& src) {
   DeviceType dst;
   std::string::size_type pos1, pos2;
   pos2 = src.find(":");
@@ -501,6 +509,12 @@ std::string deviceTypeToString(DeviceType src) {
     case kDeviceTypeCodeSophonNpu:
       dst = "kDeviceTypeCodeSophonNpu";
       break;
+    case kDeviceTypeCodeAxeraNpu:
+      dst = "kDeviceTypeCodeAxeraNpu";
+      break;
+    case kDeviceTypeCodeLynxiNpu:
+      dst = "kDeviceTypeCodeLynxiNpu";
+      break;
     case kDeviceTypeCodeNotSupport:
       dst = "kDeviceTypeCodeNotSupport";
       break;
@@ -513,7 +527,7 @@ std::string deviceTypeToString(DeviceType src) {
   return dst;
 }
 
-ModelType stringToModelType(const std::string &src) {
+ModelType stringToModelType(const std::string& src) {
   if (src == "kModelTypeDefault") {
     return kModelTypeDefault;
   } else if (src == "kModelTypeOpenVino") {
@@ -548,6 +562,10 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeQnn;
   } else if (src == "kModelTypeSophon") {
     return kModelTypeSophon;
+  } else if (src == "kModelTypeAxera") {
+    return kModelTypeAxera;
+  } else if (src == "kModelTypeLynxi") {
+    return kModelTypeLynxi;
   } else if (src == "kModelTypeTorchScript") {
     return kModelTypeTorchScript;
   } else if (src == "kModelTypeTorchPth") {
@@ -602,6 +620,10 @@ std::string modelTypeToString(ModelType src) {
       return "kModelTypeQnn";
     case kModelTypeSophon:
       return "kModelTypeSophon";
+    case kModelTypeAxera:
+      return "kModelTypeAxera";
+    case kModelTypeLynxi:
+      return "kModelTypeLynxi";
     case kModelTypeTorchScript:
       return "kModelTypeTorchScript";
     case kModelTypeTorchPth:
@@ -620,7 +642,7 @@ std::string modelTypeToString(ModelType src) {
   }
 }
 
-InferenceType stringToInferenceType(const std::string &src) {
+InferenceType stringToInferenceType(const std::string& src) {
   if (src == "kInferenceTypeDefault") {
     return kInferenceTypeDefault;
   } else if (src == "kInferenceTypeOpenVino") {
@@ -655,6 +677,10 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeQnn;
   } else if (src == "kInferenceTypeSophon") {
     return kInferenceTypeSophon;
+  } else if (src == "kInferenceTypeAxera") {
+    return kInferenceTypeAxera;
+  } else if (src == "kInferenceTypeLynxi") {
+    return kInferenceTypeLynxi;
   } else if (src == "kInferenceTypeTorch") {
     return kInferenceTypeTorch;
   } else if (src == "kInferenceTypeTensorFlow") {
@@ -723,6 +749,10 @@ std::string inferenceTypeToString(InferenceType src) {
       return "kInferenceTypeQnn";
     case kInferenceTypeSophon:
       return "kInferenceTypeSophon";
+    case kInferenceTypeAxera:
+      return "kInferenceTypeAxera";
+    case kInferenceTypeLynxi:
+      return "kInferenceTypeLynxi";
     case kInferenceTypeTorch:
       return "kInferenceTypeTorch";
     case kInferenceTypeTensorFlow:
@@ -754,7 +784,7 @@ std::string inferenceTypeToString(InferenceType src) {
   }
 }
 
-EncryptType stringToEncryptType(const std::string &src) {
+EncryptType stringToEncryptType(const std::string& src) {
   if (src == "kEncryptTypeBase64") {
     return kEncryptTypeBase64;
   } else {
@@ -772,7 +802,7 @@ std::string encryptTypeToString(EncryptType src) {
   }
 }
 
-ShareMemoryType stringToShareMemoryType(const std::string &src) {
+ShareMemoryType stringToShareMemoryType(const std::string& src) {
   if (src == "kShareMemoryTypeNoShare") {
     return kShareMemoryTypeNoShare;
   } else if (src == "kShareMemoryTypeShareFromExternal") {
@@ -799,7 +829,7 @@ std::string shareMemoryTypeToString(ShareMemoryType src) {
   }
 }
 
-MemoryType stringToMemoryType(const std::string &src) {
+MemoryType stringToMemoryType(const std::string& src) {
   if (src == "kMemoryTypeNone") {
     return kMemoryTypeNone;
   } else if (src == "kMemoryTypeAllocate") {
@@ -830,7 +860,7 @@ std::string memoryTypeToString(MemoryType src) {
   }
 }
 
-MemoryPoolType stringToMemoryPoolType(const std::string &src) {
+MemoryPoolType stringToMemoryPoolType(const std::string& src) {
   if (src == "kMemoryPoolTypeEmbed") {
     return kMemoryPoolTypeEmbed;
   } else if (src == "kMemoryPoolTypeUnity") {
@@ -857,7 +887,7 @@ std::string memoryPoolTypeToString(MemoryPoolType src) {
   }
 }
 
-TensorType stringToTensorType(const std::string &src) {
+TensorType stringToTensorType(const std::string& src) {
   if (src == "kTensorTypeDefault") {
     return kTensorTypeDefault;
   } else if (src == "kTensorTypePipeline") {
@@ -880,7 +910,7 @@ std::string tensorTypeToString(TensorType src) {
   }
 }
 
-ForwardOpType stringToForwardOpType(const std::string &src) {
+ForwardOpType stringToForwardOpType(const std::string& src) {
   if (src == "kForwardOpTypeDefault") {
     return kForwardOpTypeDefault;
   } else if (src == "kForwardOpTypeOneDnn") {
@@ -919,7 +949,7 @@ std::string forwardOpTypeToString(ForwardOpType src) {
   }
 }
 
-InferenceOptLevel stringToInferenceOptLevel(const std::string &src) {
+InferenceOptLevel stringToInferenceOptLevel(const std::string& src) {
   if (src == "kInferenceOptLevel0") {
     return kInferenceOptLevel0;
   } else if (src == "kInferenceOptLevel1") {
@@ -946,7 +976,7 @@ std::string inferenceOptLevelToString(InferenceOptLevel src) {
   }
 }
 
-PrecisionType stringToPrecisionType(const std::string &src) {
+PrecisionType stringToPrecisionType(const std::string& src) {
   if (src == "kPrecisionTypeBFp16") {
     return kPrecisionTypeBFp16;
   } else if (src == "kPrecisionTypeFp16") {
@@ -977,7 +1007,7 @@ std::string precisionTypeToString(PrecisionType src) {
   }
 }
 
-PowerType stringToPowerType(const std::string &src) {
+PowerType stringToPowerType(const std::string& src) {
   if (src == "kPowerTypeNormal") {
     return kPowerTypeNormal;
   } else if (src == "kPowerTypeLow") {
@@ -1008,20 +1038,22 @@ std::string powerTypeToString(PowerType src) {
   }
 }
 
-CodecType stringToCodecType(const std::string &src) {
+CodecType stringToCodecType(const std::string& src) {
   if (src == "kCodecTypeOpenCV") {
     return kCodecTypeOpenCV;
   } else if (src == "kCodecTypeFFmpeg") {
     return kCodecTypeFFmpeg;
   } else if (src == "kCodecTypeStb") {
     return kCodecTypeStb;
+  } else if (src == "kCodecTypeGStreamer") {
+    return kCodecTypeGStreamer;
   } else {
     NNDEPLOY_LOGI("Unsupported codec type: %s.\n", src.c_str());
     return kCodecTypeNone;
   }
 }
 
-CodecFlag stringToCodecFlag(const std::string &src) {
+CodecFlag stringToCodecFlag(const std::string& src) {
   if (src == "kCodecFlagImage") {
     return kCodecFlagImage;
   } else if (src == "kCodecFlagImages") {
@@ -1030,6 +1062,8 @@ CodecFlag stringToCodecFlag(const std::string &src) {
     return kCodecFlagVideo;
   } else if (src == "kCodecFlagCamera") {
     return kCodecFlagCamera;
+  } else if (src == "kCodecFlagStreaming") {
+    return kCodecFlagStreaming;
   } else if (src == "kCodecFlagOther") {
     return kCodecFlagOther;
   } else {
@@ -1048,6 +1082,8 @@ std::string codecTypeToString(CodecType src) {
       return "kCodecTypeFFmpeg";
     case kCodecTypeStb:
       return "kCodecTypeStb";
+    case kCodecTypeGStreamer:
+      return "kCodecTypeGStreamer";
     default:
       NNDEPLOY_LOGI("Unsupported codec type.\n");
       return "kCodecTypeNone";
@@ -1064,11 +1100,59 @@ std::string codecFlagToString(CodecFlag src) {
       return "kCodecFlagVideo";
     case kCodecFlagCamera:
       return "kCodecFlagCamera";
+    case kCodecFlagStreaming:
+      return "kCodecFlagStreaming";
     case kCodecFlagOther:
       return "kCodecFlagOther";
     default:
       NNDEPLOY_LOGI("Unsupported codec flag: %d.\n", static_cast<int>(src));
       return "kCodecFlagImage";
+  }
+}
+
+FFmpegHWDeviceType stringToFFmpegHWDeviceType(const std::string& src) {
+  if (src == "kFFmpegHWDeviceQsv") {
+    return kFFmpegHWDeviceQsv;
+  } else if (src == "kFFmpegHWDeviceVaapi") {
+    return kFFmpegHWDeviceVaapi;
+  } else if (src == "kFFmpegHWDeviceCuda") {
+    return kFFmpegHWDeviceCuda;
+  } else if (src == "kFFmpegHWDeviceVideoToolbox") {
+    return kFFmpegHWDeviceVideoToolbox;
+  } else if (src == "kFFmpegHWDeviceV4l2M2m") {
+    return kFFmpegHWDeviceV4l2M2m;
+  } else if (src == "kFFmpegHWDeviceRkmpp") {
+    return kFFmpegHWDeviceRkmpp;
+  } else if (src == "kFFmpegHWDeviceAscend") {
+    return kFFmpegHWDeviceAscend;
+  } else if (src == "kFFmpegHWDeviceSophgo") {
+    return kFFmpegHWDeviceSophgo;
+  }
+  return kFFmpegHWDeviceNone;
+}
+
+std::string ffmpegHWDeviceTypeToString(FFmpegHWDeviceType src) {
+  switch (src) {
+    case kFFmpegHWDeviceNone:
+      return "kFFmpegHWDeviceNone";
+    case kFFmpegHWDeviceQsv:
+      return "kFFmpegHWDeviceQsv";
+    case kFFmpegHWDeviceVaapi:
+      return "kFFmpegHWDeviceVaapi";
+    case kFFmpegHWDeviceCuda:
+      return "kFFmpegHWDeviceCuda";
+    case kFFmpegHWDeviceVideoToolbox:
+      return "kFFmpegHWDeviceVideoToolbox";
+    case kFFmpegHWDeviceV4l2M2m:
+      return "kFFmpegHWDeviceV4l2M2m";
+    case kFFmpegHWDeviceRkmpp:
+      return "kFFmpegHWDeviceRkmpp";
+    case kFFmpegHWDeviceAscend:
+      return "kFFmpegHWDeviceAscend";
+    case kFFmpegHWDeviceSophgo:
+      return "kFFmpegHWDeviceSophgo";
+    default:
+      return "kFFmpegHWDeviceNone";
   }
 }
 
@@ -1087,7 +1171,7 @@ std::string parallelTypeToString(ParallelType src) {
   }
 }
 
-ParallelType stringToParallelType(const std::string &src) {
+ParallelType stringToParallelType(const std::string& src) {
   if (src == "kParallelTypeNone") {
     return kParallelTypeNone;
   } else if (src == "kParallelTypeSequential") {
@@ -1115,7 +1199,7 @@ std::string overflowPolicyToString(QueueOverflowPolicy src) {
   }
 }
 
-QueueOverflowPolicy stringToOverflowPolicy(const std::string &src) {
+QueueOverflowPolicy stringToOverflowPolicy(const std::string& src) {
   if (src == "kQueueOverflowPolicyNodeBackpressure") {
     return kQueueOverflowPolicyNodeBackpressure;
   } else if (src == "kQueueOverflowPolicyAllBackpressure") {
@@ -1128,7 +1212,7 @@ QueueOverflowPolicy stringToOverflowPolicy(const std::string &src) {
   }
 }
 
-EdgeType stringToEdgeType(const std::string &src) {
+EdgeType stringToEdgeType(const std::string& src) {
   if (src == "kEdgeTypeFixed") {
     return kEdgeTypeFixed;
   } else if (src == "kEdgeTypePipeline") {
@@ -1151,7 +1235,7 @@ std::string edgeTypeToString(EdgeType src) {
   }
 }
 
-EdgeUpdateFlag stringToEdgeUpdateFlag(const std::string &src) {
+EdgeUpdateFlag stringToEdgeUpdateFlag(const std::string& src) {
   if (src == "kEdgeUpdateFlagComplete") {
     return kEdgeUpdateFlagComplete;
   } else if (src == "kEdgeUpdateFlagTerminate") {
@@ -1178,7 +1262,7 @@ std::string edgeUpdateFlagToString(EdgeUpdateFlag src) {
   }
 }
 
-NodeColorType stringToNodeColorType(const std::string &src) {
+NodeColorType stringToNodeColorType(const std::string& src) {
   if (src == "kNodeColorWhite") {
     return kNodeColorWhite;
   } else if (src == "kNodeColorGray") {
@@ -1205,7 +1289,7 @@ std::string nodeColorTypeToString(NodeColorType src) {
   }
 }
 
-TopoSortType stringToTopoSortType(const std::string &src) {
+TopoSortType stringToTopoSortType(const std::string& src) {
   if (src == "kTopoSortTypeBFS") {
     return kTopoSortTypeBFS;
   } else if (src == "kTopoSortTypeDFS") {

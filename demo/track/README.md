@@ -82,7 +82,61 @@ encode_node run()               200         1966.076           9.830            
 
 ```
 
-### 效果示例
+---
+
+## 基于ByteTrack/BotSORT的检测+跟踪
+
+ByteTrack 和 BotSORT 是轻量级的跟踪算法，可与任意检测模型组合使用。
+
+### 架构说明
+
+| 算法 | 特点 | CMake 开关 |
+|------|------|-----------|
+| **ByteTrack** | 基于 IoU 的简单高效跟踪，不需要重识别特征 | `ENABLE_NNDEPLOY_PLUGIN_TRACK_BYTETRACK` |
+| **BotSORT** | 扩展 ByteTrack，加入 ORB 特征匹配的全局运动补偿 (GMC) | `ENABLE_NNDEPLOY_PLUGIN_TRACK_BOTSORT` |
+
+ByteTrack 和 BotSORT 都是 **独立的 DAG 节点**（不是完整图），与检测模型组合使用：
+
+```
+VideoDecode → Preprocess → Infer → PostProcess → ByteTrackNode → VisMOT → VideoEncode
+                                               ↘ MOTResult ↙
+```
+
+### 检测+跟踪 Workflow JSON
+
+```bash
+# ByteTrack + YOLO 检测
+./nndeploy_demo_track --json_file resources/workflow/track/Track_ByteTrack.json
+
+# BotSORT + YOLO 检测 (带GMC相机运动补偿)
+./nndeploy_demo_track --json_file resources/workflow/track/Track_BotSort.json
+```
+
+### 程序化 API (C++)
+
+```cpp
+#include "nndeploy/track/bytetrack/byte_track_node.h"
+#include "nndeploy/track/botsort/bot_sort_node.h"
+
+// 创建 ByteTrack 节点
+dag::Node *track_node = graph->createNode<ByteTrackNode>("bytetrack", {detect_edge}, {mot_edge});
+
+// 创建 BotSORT 节点 (需要额外帧输入用于GMC)
+dag::Node *track_node = graph->createNode<BotSortNode>("botsort", {frame_edge, detect_edge}, {mot_edge});
+```
+
+### 注册节点
+
+ByteTrackNode 和 BotSortNode 已通过 `REGISTER_NODE` 注册，可在 JSON 工作流中按如下 key 引用：
+
+| 节点 | 注册 Key |
+|------|---------|
+| ByteTrackNode | `nndeploy::track::ByteTrackNode` |
+| BotSortNode | `nndeploy::track::BotSortNode` |
+
+---
+
+## 效果示例
 
 #### 输入视频
 
