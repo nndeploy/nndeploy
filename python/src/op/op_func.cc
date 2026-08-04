@@ -17,9 +17,9 @@ device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
   return output;
 }
 
-device::Tensor* layerNormFunc(
-    device::Tensor* input, device::Tensor* weight, device::Tensor* bias,
-    std::shared_ptr<ir::LayerNormalizationParam> param) {
+device::Tensor* layerNormFunc(device::Tensor* input, device::Tensor* weight,
+                              device::Tensor* bias,
+                              std::shared_ptr<ir::LayerNormalizationParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("layer_norm.output");
