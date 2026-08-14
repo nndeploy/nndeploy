@@ -278,4 +278,4 @@ Test environment: Ubuntu 22.04, i7-12700, RTX3060
   <img src="https://contrib.rocks/image?repo=nndeploy/nndeploy" />
 </a>
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.com/#nndeploy/nndeploy)
+[![Star History Chart](https://star-history.dera.page/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.dera.page/#nndeploy/nndeploy&type=Date)
