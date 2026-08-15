@@ -82,6 +82,9 @@ endif()
 # # track
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_TRACK)
   add_definitions(-DENABLE_NNDEPLOY_PLUGIN_TRACK)
+  if(ENABLE_NNDEPLOY_PLUGIN_TRACK_BOXMOT)
+    add_definitions(-DENABLE_NNDEPLOY_PLUGIN_TRACK_BOXMOT)
+  endif()
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/track/config.cmake)
 endif()
 

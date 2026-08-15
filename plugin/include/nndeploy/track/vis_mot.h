@@ -20,7 +20,9 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#ifdef ENABLE_NNDEPLOY_PLUGIN_TRACK_BOXMOT
 #include "nndeploy/track/boxmot/result.h"
+#endif
 #include "nndeploy/track/result.h"
 
 namespace nndeploy {
@@ -116,6 +118,7 @@ class NNDEPLOY_CC_API VisMOT : public dag::Node {
  * Input:  cv::Mat + BoxMotResult
  * Output: cv::Mat
  */
+#ifdef ENABLE_NNDEPLOY_PLUGIN_TRACK_BOXMOT
 class NNDEPLOY_CC_API VisBoxMot : public dag::Node {
  public:
   VisBoxMot(const std::string& name) : Node(name) {
@@ -239,6 +242,7 @@ class NNDEPLOY_CC_API VisBoxMot : public dag::Node {
     return cv::Scalar((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255);
   }
 };
+#endif
 
 }  // namespace track
 }  // namespace nndeploy

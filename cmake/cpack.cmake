@@ -1,18 +1,12 @@
 # cpack.cmake
 
-# Copy all contents directly from install directory
-install(DIRECTORY ${NNDEPLOY_INSTALL_PATH}/
-        DESTINATION .
-        USE_SOURCE_PERMISSIONS
-        COMPONENT Complete)
-
 set(CPACK_PACKAGE_NAME "nndeploy")
 set(CPACK_PACKAGE_VERSION "${NNDEPLOY_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Workflow-based Multi-platform AI Deployment Tool")
 set(CPACK_PACKAGE_VENDOR "nndeploy Team")
 set(CPACK_PACKAGE_CONTACT "595961667@qq.com")
 
-# Use the defined installation path as the packaging source
+# Default directory name used by installer generators
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "nndeploy-${NNDEPLOY_VERSION}")
 
 # Choose packaging format based on platform

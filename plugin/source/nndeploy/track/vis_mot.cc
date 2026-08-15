@@ -156,7 +156,9 @@ namespace track {
 // }
 
 REGISTER_NODE("nndeploy::track::VisMOT", VisMOT);
+#ifdef ENABLE_NNDEPLOY_PLUGIN_TRACK_BOXMOT
 REGISTER_NODE("nndeploy::track::VisBoxMot", VisBoxMot);
+#endif
 
 }  // namespace track
 }  // namespace nndeploy

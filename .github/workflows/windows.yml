@@ -133,8 +133,11 @@ jobs:
         run: |
           cd build                                      # Enter build directory
           cmake --build . --config Release -j 4        # Compile in parallel using Release configuration
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --install . --config Release           # Install compiled files
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cpack -C Release                              # Use CPack to generate installation packages
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dir                                           # List all generated files and directories
           echo "Compilation, installation and packaging completed"                   # Output completion information
           

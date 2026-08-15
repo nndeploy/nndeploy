@@ -473,7 +473,7 @@ endif()
 
 # install
 if(SYSTEM_Windows)
-  install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+  nndeploy_install_target(${BINARY})
 else()
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
 endif()
@@ -489,7 +489,7 @@ install(CODE "
   else()
     set(LIB_EXTENSIONS \"*.so\" \"*.so.*\")
   endif()
-  set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}\")
+  set(SEARCH_PATHS \"\${CMAKE_INSTALL_PREFIX}\")
   
   # 确保目标目录存在
   file(MAKE_DIRECTORY \"${PROJECT_SOURCE_DIR}/python/nndeploy\")

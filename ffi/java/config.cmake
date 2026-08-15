@@ -344,7 +344,7 @@ endif()
 
 # install
 if(SYSTEM_Windows)
-  install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+  nndeploy_install_target(${BINARY})
 else()
   install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
 endif()

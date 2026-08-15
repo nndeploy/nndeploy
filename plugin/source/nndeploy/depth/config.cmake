@@ -62,7 +62,7 @@ if(PLUGIN_SOURCE)
 
   # # install
   if(SYSTEM_Windows)
-    install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+    nndeploy_install_target(${PLUGIN_BINARY})
     install(DIRECTORY ${PLUGIN_ROOT_PATH}/include/nndeploy/depth DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH}/nndeploy)
   else()
     install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
@@ -74,5 +74,4 @@ if(PLUGIN_SOURCE)
 else()
   message(STATUS "  - depth plugin (no backend enabled)")
 endif()
-
 

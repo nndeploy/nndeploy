@@ -67,8 +67,9 @@ extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
  * @param ymax1
  * @return float
  */
-float computeIOU(float xmin0, float ymin0, float xmax0, float ymax0,
-                 float xmin1, float ymin1, float xmax1, float ymax1);
+extern NNDEPLOY_CC_API float computeIOU(float xmin0, float ymin0, float xmax0,
+                                        float ymax0, float xmin1, float ymin1,
+                                        float xmax1, float ymax1);
 
 /**
  * @brief
@@ -77,8 +78,8 @@ float computeIOU(float xmin0, float ymin0, float xmax0, float ymax0,
  * @param box1 [xmin1, ymin1, xmax1, ymax1]
  * @return * float
  */
-float computeIOU(const std::array<float, 4>& box0,
-                 const std::array<float, 4>& box1);
+extern NNDEPLOY_CC_API float computeIOU(
+    const std::array<float, 4>& box0, const std::array<float, 4>& box1);
 
 /**
  * @brief
@@ -88,7 +89,7 @@ float computeIOU(const std::array<float, 4>& box0,
  * @param j
  * @return float
  */
-float computeIOU(const float* boxes, int i, int j);
+extern NNDEPLOY_CC_API float computeIOU(const float* boxes, int i, int j);
 
 /**
  * @brief
@@ -98,17 +99,21 @@ float computeIOU(const float* boxes, int i, int j);
  * @param iou_threshold
  * @return base::Status
  */
-base::Status computeNMS(const DetectResult& src, std::vector<int>& keep_idxs,
-                        const float iou_threshold);
+extern NNDEPLOY_CC_API base::Status computeNMS(
+    const DetectResult& src, std::vector<int>& keep_idxs,
+    const float iou_threshold);
 
-base::Status fastNMS(const DetectResult& src, std::vector<int>& keep_idxs,
-                     const float iou_threshold);
+extern NNDEPLOY_CC_API base::Status fastNMS(
+    const DetectResult& src, std::vector<int>& keep_idxs,
+    const float iou_threshold);
 
-base::Status computeNMS(const BBoxResult& src, std::vector<int>& keep_idxs,
-                        const float iou_threshold);
+extern NNDEPLOY_CC_API base::Status computeNMS(
+    const BBoxResult& src, std::vector<int>& keep_idxs,
+    const float iou_threshold);
 
-base::Status fastNMS(const BBoxResult& src, std::vector<int>& keep_idxs,
-                     const float iou_threshold);
+extern NNDEPLOY_CC_API base::Status fastNMS(
+    const BBoxResult& src, std::vector<int>& keep_idxs,
+    const float iou_threshold);
 
 }  // namespace detect
 }  // namespace nndeploy
