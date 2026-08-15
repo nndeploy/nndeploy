@@ -248,4 +248,4 @@ nndeploy 是一款简单易用和高性能的 AI 部署框架。解决的是 AI 
   <img src="https://contrib.rocks/image?repo=nndeploy/nndeploy" />
 </a>
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.com/#nndeploy/nndeploy)
+[![Star History Chart](https://star-history.dera.page/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.dera.page/#nndeploy/nndeploy&type=Date)
