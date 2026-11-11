@@ -137,7 +137,7 @@ class ModelDesc(_C.ir.ModelDesc):
         
     @property
     def weights(self):
-        return self.weights_
+        return super().weights()
     
     def set_weights(self, weights: dict):
         super().set_weights(weights)

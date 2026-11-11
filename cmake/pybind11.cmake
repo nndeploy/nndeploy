@@ -20,6 +20,8 @@ if (ENABLE_NNDEPLOY_PYBIND11)
 
   # 设置pybind11路径和库
   set(PYBIND11_ROOT ${PROJECT_SOURCE_DIR}/third_party/pybind11)
+  set(PYBIND11_FINDPYTHON ON)
+  find_package(Python COMPONENTS Interpreter Development REQUIRED)
   # set(LIBS pybind11)
 
   # 添加pybind11子目录
@@ -27,7 +29,7 @@ if (ENABLE_NNDEPLOY_PYBIND11)
   add_subdirectory(${PYBIND11_ROOT})
 
   # 添加头文件路径
-  include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+  include_directories(${pybind11_INCLUDE_DIR} ${Python_INCLUDE_DIRS})
 
   # 添加到第三方库列表
   # find_package(Python COMPONENTS Interpreter Development REQUIRED)

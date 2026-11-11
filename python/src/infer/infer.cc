@@ -1,3 +1,4 @@
+#include "dag/keep_node_edges.h"
 #include "nndeploy/infer/infer.h"
 
 #include <pybind11/stl.h>
@@ -98,10 +99,10 @@ NNDEPLOY_API_PYBIND11_MODULE("infer", m) {
   py::class_<Infer, dag::Node, PyInfer>(m, "Infer", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>>())
+                    std::vector<dag::Edge *>>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::InferenceType>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>, base::InferenceType>())
+                    std::vector<dag::Edge *>, base::InferenceType>(), KeepNodeEdges{})
       .def("set_input_name", &Infer::setInputName, py::arg("name"),
            py::arg("index") = 0)
       .def("set_output_name", &Infer::setOutputName, py::arg("name"),

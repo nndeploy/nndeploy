@@ -50,11 +50,11 @@ class NNDEPLOY_CC_API OpenCvImageDecode : public Decode {
 
   virtual ~OpenCvImageDecode() {};
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setPath(const std::string &path) override;
-  virtual base::Status run();
+  virtual base::Status run() override;
 };
 
 class NNDEPLOY_CC_API OpenCvImagesDecode : public Decode {
@@ -99,11 +99,11 @@ class NNDEPLOY_CC_API OpenCvImagesDecode : public Decode {
   }
   virtual ~OpenCvImagesDecode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setPath(const std::string &path) override;
-  virtual base::Status run();
+  virtual base::Status run() override;
 
  private:
   base::Status callOnce();
@@ -155,11 +155,11 @@ class NNDEPLOY_CC_API OpenCvVideoDecode : public Decode {
   }
   virtual ~OpenCvVideoDecode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setPath(const std::string &path) override;
-  virtual base::Status run();
+  virtual base::Status run() override;
 
  private:
   cv::VideoCapture *cap_ = nullptr;
@@ -207,11 +207,11 @@ class NNDEPLOY_CC_API OpenCvCameraDecode : public Decode {
   }
   virtual ~OpenCvCameraDecode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setPath(const std::string &path) override;
-  virtual base::Status run();
+  virtual base::Status run() override;
 
  private:
   cv::VideoCapture *cap_ = nullptr;
@@ -263,13 +263,13 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
   }
   virtual ~OpenCvImageEncode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setRefPath(const std::string &ref_path) override;
   virtual base::Status setPath(const std::string &path) override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 };
 
 class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
@@ -318,13 +318,13 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
   }
   virtual ~OpenCvImagesEncode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setRefPath(const std::string &ref_path) override;
   virtual base::Status setPath(const std::string &path) override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 };
 
 class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
@@ -373,13 +373,13 @@ class NNDEPLOY_CC_API OpenCvVideoEncode : public Encode {
   }
   virtual ~OpenCvVideoEncode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setRefPath(const std::string &ref_path) override;
   virtual base::Status setPath(const std::string &path) override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 
  private:
   cv::VideoCapture *cap_ = nullptr;
@@ -432,13 +432,13 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
   }
   virtual ~OpenCvCameraEncode() {}
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
   virtual base::Status setRefPath(const std::string &ref_path) override;
   virtual base::Status setPath(const std::string &path) override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 };
 
 extern NNDEPLOY_CC_API Decode *createOpenCvDecode(base::CodecFlag flag,

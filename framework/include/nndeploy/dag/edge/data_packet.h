@@ -203,7 +203,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     //   NNDEPLOY_LOGE("flag_ is not kAny");
     //   return nullptr;
     // }
-    if (typeid(T) != *type_info_) {
+    if (!type_info_ || typeid(T) != *type_info_) {
       // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
@@ -211,9 +211,18 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   }
 
   void *getDataPtr() { return anything_; }
+  EdgeTypeFlag getFlag() const { return flag_; }
+  bool matches(EdgeTypeFlag flag, const std::type_info *type) const {
+    return (flag == EdgeTypeFlag::kNone || flag == flag_) &&
+           (!type || (type_info_ && *type == *type_info_));
+  }
+  void *getWrapper() const { return wrapper_; }
+  bool ownsPayload() const { return !is_external_ && !wrapper_ && !payload_owner_; }
+  void borrowPayload() { is_external_ = true; }
+  void retainSamePayload(const std::shared_ptr<DataPacket> &previous);
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true, bool written = true) {
     base::Status status = base::kStatusCodeOk;
     if (anything_ == nullptr) {
       anything_ = (void *)(t);
@@ -237,7 +246,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     else {
       flag_ = EdgeTypeFlag::kAny;
     }
-    written_ = true;
+    written_ = written;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     type_info_ = const_cast<std::type_info *>(&typeid(T));
 
@@ -262,8 +271,9 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   bool written_ = false;
   void *anything_ = nullptr;
   std::function<void(void *)> deleter_;
-  std::type_info *type_info_;
+  const std::type_info *type_info_ = nullptr;
 
+  std::shared_ptr<DataPacket> payload_owner_;
   void *wrapper_ = nullptr;
   std::function<void(void *)> wrapper_deleter_;
 };
@@ -324,7 +334,8 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   template <typename T>
   T *get() {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_.wait(lock, [this] { return written_; });
+    cv_.wait(lock, [this] { return written_ || cancelled_; });
+    if (cancelled_) return nullptr;
     return DataPacket::get<T>();
   }
   template <typename T>
@@ -333,9 +344,9 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true, bool written = true) {
     std::unique_lock<std::mutex> lock(mutex_);
-    base::Status status = DataPacket::set4py(wrapper, t, is_external);
+    base::Status status = DataPacket::set4py(wrapper, t, is_external, written);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "DataPacket::set failed!\n");
     cv_.notify_all();
@@ -344,6 +355,9 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
 
   virtual base::Status takeDataPacket(DataPacket *packet);
 
+  bool isWritten();
+  bool waitUntilWritten();
+  void cancel();
   void increaseConsumersSize();
   void increaseConsumersCount();
 
@@ -353,6 +367,7 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
  protected:
   std::mutex mutex_;
   std::condition_variable cv_;
+  bool cancelled_ = false;
   int consumers_size_ = 0;
   int consumers_count_ = 0;
 };

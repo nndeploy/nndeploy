@@ -18,6 +18,7 @@ base::Status DefaultInterpret::interpret(
     const std::vector<ValueDesc>& input) {
   base::Status status = base::kStatusCodeOk;
 
+  if (model_value.empty()) return base::kStatusCodeErrorInvalidParam;
   // 读模型结构文件
   if (!model_value[0].empty()) {
     std::ifstream structure_stream(model_value[0],

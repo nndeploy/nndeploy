@@ -50,7 +50,7 @@ base::Status Op::setDeviceType(base::DeviceType device_type) {
 base::DeviceType Op::getDeviceType() { return device_type_; }
 
 void Op::setStream(device::Stream *stream) {
-  if (stream_ != nullptr) {
+  if (stream_ != stream && !is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
   }
   stream_ = stream;

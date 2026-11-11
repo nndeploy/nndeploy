@@ -28,6 +28,11 @@ base::Status SequentialRuntime::init(
   base::Status status = base::kStatusCodeOk;
   device::Device* device = device::getDevice(device_type_);
 
+  if (tensor_pool_) return base::kStatusCodeErrorInvalidValue;
+  tensor_repository_ = tensor_repository;
+  op_repository_ = op_repository;
+  is_dynamic_shape_ = is_dynamic_shape;
+  max_shape_ = max_shape;
   // 输入输出tensor
   input_tensors_ = input_tensors;
   output_tensors_ = output_tensors;
@@ -48,6 +53,7 @@ base::Status SequentialRuntime::init(
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
   is_external_tensor_pool_memory_ = is_external_tensor_pool_memory;
+  if (!tensor_pool_) return base::kStatusCodeErrorNotSupport;
   tensor_pool_->setIsExternal(is_external_tensor_pool_memory);
   /**
    * @brief
@@ -94,31 +100,23 @@ base::Status SequentialRuntime::init(
   return status;
 }
 base::Status SequentialRuntime::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  if (!workspace_is_external_ && workspace_ != nullptr && workspace_size_ > 0) {
-    device::Device* device = device::getDevice(device_type_);
-    device->deallocate(workspace_);
-    workspace_size_ = 0U;
-    workspace_is_external_ = false;
+  base::Status result = base::kStatusCodeOk;
+  if (!workspace_is_external_ && workspace_) device::getDevice(device_type_)->deallocate(workspace_);
+  workspace_ = nullptr; workspace_size_ = 0;
+  for (auto *entry : op_repository_) {
+    if (!entry->op_->getInitialized()) continue;
+    auto status = entry->op_->deinit();
+    if (result == base::kStatusCodeOk) result = status;
+    entry->op_->setInitializedFlag(false);
+    entry->op_->setWorkspace(nullptr);
   }
-  for (auto iter : op_repository_) {
-    status = iter->op_->deinit();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Node %s init failed\n", iter->op_->getName().c_str());
-      return status;
-    }
-    iter->op_->setInitializedFlag(false);
+  if (tensor_pool_) {
+    auto status = tensor_pool_->deallocate();
+    if (result == base::kStatusCodeOk) result = status;
+    delete tensor_pool_; tensor_pool_ = nullptr;
   }
-  bool flag = is_dynamic_shape_ && max_shape_.empty();
-  if (!flag) {
-    status = tensor_pool_->deallocate();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
-      return status;
-    }
-  }
-  delete tensor_pool_;
-  return status;
+  op_repository_.clear(); tensor_repository_.clear();
+  return result;
 }
 
 // 可以性能优化
@@ -127,6 +125,14 @@ base::Status SequentialRuntime::reshape(base::ShapeMap& shape_map) {
   if (!is_dynamic_shape_) {
     NNDEPLOY_LOGE("reshape is not supported in static shape\n");
     return base::kStatusCodeErrorInvalidParam;
+  }
+  // Validate every requested shape before releasing the current allocation.
+  for (const auto &entry : shape_map) {
+    auto *wrapper = findTensorWrapper(tensor_repository_, entry.first);
+    if (!wrapper) return base::kStatusCodeErrorInvalidParam;
+    device::Tensor descriptor(wrapper->tensor_->getDesc(), entry.first);
+    auto status = descriptor.reshape(entry.second);
+    if (status != base::kStatusCodeOk) return status;
   }
   bool change_flag = false;
   bool is_reallocate = false;
@@ -144,7 +150,8 @@ base::Status SequentialRuntime::reshape(base::ShapeMap& shape_map) {
         if (!max_shape_.empty()) {
           if (max_shape_.find(name) != max_shape_.end()) {
             base::IntVector max_shape = max_shape_[name];
-            for (int i = 0; i < shape.size(); ++i) {
+            if (shape.size() != max_shape.size()) is_reallocate = true;
+            for (size_t i = 0; !is_reallocate && i < shape.size(); ++i) {
               if (shape[i] > max_shape[i]) {
                 is_reallocate = true;
                 break;
@@ -173,7 +180,8 @@ base::Status SequentialRuntime::reshape(base::ShapeMap& shape_map) {
       for (auto tensor_wrapper : tensor_repository_) {
         auto tensor = tensor_wrapper->tensor_;
         if (tensor->getName() == name) {
-          tensor->reshape(shape);
+          status = tensor->reshape(shape);
+          if (status != base::kStatusCodeOk) return status;
         }
       }
     }
@@ -219,6 +227,7 @@ base::Status SequentialRuntime::run() {
   if (workspace_size_ == 0 || is_dynamic_shape_) {
     if (workspace_ != nullptr) {
       device->deallocate(workspace_);
+      workspace_ = nullptr;
     }
     workspace_size_ = 0;
     for (auto iter : op_repository_) {
@@ -229,8 +238,9 @@ base::Status SequentialRuntime::run() {
     }
     if (workspace_size_ > 0) {
       workspace_ = device->allocate(workspace_size_);
+      if (!workspace_) return base::kStatusCodeErrorOutOfMemory;
     } else {
-      workspace_size_ = -1;  // 所有算子不需要额外内存空间
+      workspace_size_ = 0;  // No allocation is needed.
     }
     for (auto iter : op_repository_) {
       iter->op_->setWorkspace(workspace_);
@@ -314,6 +324,7 @@ base::Status SequentialRuntime::postRun() {
 }
 
 base::Status SequentialRuntime::copyToInputTensor(device::Tensor* tensor) {
+  if (!tensor) return base::kStatusCodeErrorNullParam;
   device::Tensor* src_tensor = tensor;
   device::Tensor* dst_tensor = nullptr;
   for (auto input : input_tensors_) {
@@ -330,19 +341,42 @@ base::Status SequentialRuntime::copyToInputTensor(device::Tensor* tensor) {
     NNDEPLOY_LOGE("copyToInputTensor failed! input tensor not found!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  if (dst_tensor->getDesc() != src_tensor->getDesc()) {
-    base::IntVector shape = src_tensor->getShape();
-    shape_map_[src_tensor->getName()] = shape;
-    if (shape_map_.size() == input_tensors_.size()) {
-      this->reshape(shape_map_);
-      shape_map_.clear();
+  if (dst_tensor->getDataType() != src_tensor->getDataType())
+    return base::kStatusCodeErrorInvalidParam;
+  if (dst_tensor->getShape() != src_tensor->getShape()) {
+    // A pool resize may replace every input buffer, including inputs already copied.
+    std::vector<std::pair<device::Tensor*, device::Tensor>> other_inputs;
+    for (auto *input : input_tensors_) {
+      if (input != dst_tensor && input->getBuffer())
+        other_inputs.emplace_back(input, *input);
+    }
+    base::ShapeMap changed{{dst_tensor->getName(), src_tensor->getShape()}};
+    auto status = reshape(changed);
+    if (status != base::kStatusCodeOk) return status;
+    for (auto &saved : other_inputs) {
+      if (saved.second.getData() != saved.first->getData()) {
+        status = saved.second.copyTo(saved.first);
+        if (status != base::kStatusCodeOk) return status;
+      }
     }
   }
-  // device::Device *device = device::getDevice(device_type_);
-  // dst_tensor->allocate(device);
-
-  if (src_tensor->getData() != dst_tensor->getData()) {
-    base::Status status = src_tensor->copyTo(dst_tensor);
+  if (!dst_tensor->getBuffer() && is_pure_dynamic_shape_)
+    dst_tensor->allocate(device::getDevice(device_type_));
+  if (!dst_tensor->getBuffer() || !src_tensor->getBuffer())
+    return base::kStatusCodeErrorInvalidValue;
+  const size_t bytes = dst_tensor->getDevice()->toBufferDesc(dst_tensor->getDesc(), {}).getSize();
+  if (src_tensor->getSize() < bytes || dst_tensor->getSize() < bytes)
+    return base::kStatusCodeErrorInvalidValue;
+  if (bytes && src_tensor->getData() != dst_tensor->getData()) {
+    base::Status status;
+    if (src_tensor->getSize() == bytes || dst_tensor->getSize() == bytes) {
+      status = src_tensor->copyTo(dst_tensor);
+    } else {
+      // Both buffers contain spare capacity. Limit the copy to the input payload.
+      device::Buffer view(src_tensor->getDevice(), bytes, src_tensor->getData());
+      device::Tensor payload(src_tensor->getDesc(), &view);
+      status = payload.copyTo(dst_tensor);
+    }
     NNDEPLOY_RETURN_ON_NEQ(
         status, base::kStatusCodeOk,
         "copy external_input_tensor to internal_input_tensor failed!");

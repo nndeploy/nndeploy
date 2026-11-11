@@ -35,8 +35,8 @@ def cosine_similarity(array1: np.ndarray, array2: np.ndarray) -> float:
         float: 余弦相似度值,范围在[-1,1]之间
     """
     # 将数组展平为一维
-    array1_flat = array1.flatten()
-    array2_flat = array2.flatten()
+    array1_flat = np.asarray(array1, dtype=np.float64).ravel()
+    array2_flat = np.asarray(array2, dtype=np.float64).ravel()
     
     # 计算点积
     dot_product = np.dot(array1_flat, array2_flat)
@@ -53,6 +53,14 @@ def cosine_similarity(array1: np.ndarray, array2: np.ndarray) -> float:
     similarity = dot_product / (norm1 * norm2)
     
     return similarity
+
+def _flat_difference(a, b):
+    a, b = np.asarray(a).ravel(), np.asarray(b).ravel()
+    if a.dtype.kind in "iu" and b.dtype.kind in "iu" and max(a.itemsize, b.itemsize) == 8:
+        # Subtract as Python integers before rounding the difference to float64.
+        return (a.astype(object) - b.astype(object)).astype(np.float64)
+    return a.astype(np.float64, copy=False) - b.astype(np.float64, copy=False)
+
 
 def mse_similarity(array1: np.ndarray, array2: np.ndarray) -> float:
     """计算两个numpy数组的均方误差(MSE)相似度
@@ -75,11 +83,10 @@ def mse_similarity(array1: np.ndarray, array2: np.ndarray) -> float:
         float: MSE相似度值,范围在(0,1]之间
     """
     # 将数组展平为一维
-    array1_flat = array1.flatten()
-    array2_flat = array2.flatten()
+    delta = _flat_difference(array1, array2)
     
     # 计算MSE
-    mse = np.mean(np.square(array1_flat - array2_flat))
+    mse = np.mean(np.square(delta))
     
     # 将MSE转换为相似度分数
     similarity = np.exp(-mse)
@@ -106,11 +113,10 @@ def euclidean_similarity(array1: np.ndarray, array2: np.ndarray) -> float:
         float: 欧式距离相似度值,范围在(0,1]之间
     """
     # 将数组展平为一维
-    array1_flat = array1.flatten()
-    array2_flat = array2.flatten()
+    delta = _flat_difference(array1, array2)
     
     # 计算欧式距离
-    distance = np.sqrt(np.sum(np.square(array1_flat - array2_flat)))
+    distance = np.sqrt(np.sum(np.square(delta)))
     
     # 将距离转换为相似度分数
     similarity = np.exp(-distance)

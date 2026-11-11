@@ -326,10 +326,11 @@ base::Status Net::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime deinit failed!");
-  delete runtime_;
-  runtime_ = nullptr;
+  if (runtime_) {
+    status = runtime_->deinit();
+    delete runtime_;
+    runtime_ = nullptr;
+  }
 
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
@@ -346,6 +347,8 @@ base::Status Net::deinit() {
     delete tensor_wrapper;
   }
   tensor_repository_.clear();
+  inputs_.clear();
+  outputs_.clear();
 
   enable_pass_.clear();
   disable_pass_.clear();
@@ -447,7 +450,11 @@ base::Status Net::reshape(base::ShapeMap& shape_map) {
   return status;
 };
 
-int64_t Net::getMemorySize() { return runtime_->getMemorySize(); }
+base::Status Net::synchronize() {
+  return runtime_ ? runtime_->synchronize() : base::Status(base::kStatusCodeErrorInvalidValue);
+}
+
+int64_t Net::getMemorySize() { return runtime_ ? runtime_->getMemorySize() : -1; }
 base::Status Net::setMemory(device::Buffer* buffer) {
   return runtime_->setMemory(buffer);
 }
@@ -781,6 +788,10 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create runtime\n");
   // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type_ == base::kParallelTypeTask) {
+    NNDEPLOY_LOGE("Net task parallel runtime is not supported\n");
+    return base::kStatusCodeErrorNotSupport;
+  }
   runtime_ = createRuntime(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
   // if (parallel_type_ == base::kParallelTypePipeline) {

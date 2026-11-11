@@ -7,7 +7,11 @@ import threading
 import queue as _queue
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import multiprocessing as mp
+    from .server import NnDeployServer
 
 _MAX_HISTORY = 1000
 
@@ -43,6 +47,7 @@ class TaskQueue:
         self._mtx = threading.RLock()
         self._not_empty = threading.Condition(self._mtx)
         self._counter = 0
+        self._enqueue_counter = 0
         self._pq: List[Any] = []
         self._active: Dict[int, TaskRecord] = {}
         self._hist: Dict[str, Any] = {}
@@ -50,7 +55,8 @@ class TaskQueue:
     
     def put(self, payload, prio: int = 0):
         with self._mtx:
-            heapq.heappush(self._pq, (prio, time.time(), payload))
+            heapq.heappush(self._pq, (prio, self._enqueue_counter, time.time(), copy.deepcopy(payload)))
+            self._enqueue_counter += 1
             self._not_empty.notify()
     
     def get(self, timeout: Optional[float] = None):
@@ -58,7 +64,7 @@ class TaskQueue:
             while not self._pq:
                 if not self._not_empty.wait(timeout):
                     return None
-            prio, ts, payload = heapq.heappop(self._pq)
+            prio, sequence, ts, payload = heapq.heappop(self._pq)
             idx = self._counter
             rec = TaskRecord(idx=idx, payload=copy.deepcopy(payload), state=TaskState.PENDING, ts_submit=ts)
             self._active[idx] = rec
@@ -71,7 +77,10 @@ class TaskQueue:
             rec = self._active.get(idx)
             if not rec:
                 return
-            rec.state = TaskState.DISPATCHED
+            # A fast worker may report started before the scheduler returns
+            # from job_q.put(). Do not regress RUNNING back to DISPATCHED.
+            if rec.state == TaskState.PENDING:
+                rec.state = TaskState.DISPATCHED
             rec.ts_dispatch = time.time()
 
     def mark_started(self, task_id: str, worker_pid: Optional[int] = None):
@@ -134,17 +143,21 @@ class TaskQueue:
                     dispatched.append(data)
                 else:
                     pending.append(data)
-            pq_snapshot = [ (p, ts, copy.deepcopy(pl)) for (p, ts, pl) in self._pq ]
+            pq_snapshot = [
+                {"task": copy.deepcopy(pl), "state": TaskState.PENDING.name,
+                 "ts_submit": ts, "priority": p}
+                for p, sequence, ts, pl in sorted(self._pq)
+            ]
             return {
                 "RUNNING": running,
                 "DISPATCHED": dispatched,
-                "PENDING": pq_snapshot
+                "PENDING": pending + pq_snapshot
             }
 
     def get_history(self, max_items: int | None = None):
         with self._mtx:
             items = list(self._hist.items())[-max_items:] if max_items else self._hist.items()
-            return dict(items)
+            return copy.deepcopy(dict(items))
 
     def get_task_by_id(self, task_id: str) -> Optional[dict]:
         with self._mtx:
@@ -158,6 +171,11 @@ class TaskQueue:
                         "ts_start": rec.ts_start,
                         "worker_pid": rec.worker_pid,
                     }
+            for priority, sequence, ts, payload in self._pq:
+                if payload.get("id") == task_id:
+                    return {"task": copy.deepcopy(payload), "state": TaskState.PENDING.name,
+                            "ts_submit": ts, "ts_dispatch": None, "ts_start": None,
+                            "worker_pid": None}
             record = self._hist.get(task_id)
             return copy.deepcopy(record) if record else None
 

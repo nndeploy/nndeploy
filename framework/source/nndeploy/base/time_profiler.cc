@@ -215,7 +215,8 @@ void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
   std::string gflops = "gflops";
   int gflops_size = static_cast<int>(gflops.size());
   for (auto &it : records) {
-    if (it->type_ == kEnd) {
+    if (it->type_ == kEnd && index < it->call_times_ &&
+        it->call_times_ - index <= static_cast<uint64_t>(max_size_)) {
       if (it->key_.size() > name_size) {
         name_size = static_cast<int>(it->key_.size());
       }
@@ -224,7 +225,7 @@ void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
             static_cast<int>(std::to_string(it->call_times_).size());
       }
       std::string cost_time_str =
-          std::to_string(static_cast<float>(it->cost_time_[index]) / 1000.0f);
+          std::to_string(static_cast<float>(it->cost_time_[index % max_size_]) / 1000.0f);
       cost_time_str = cost_time_str.substr(0, cost_time_str.find(".") + 4);
       if (cost_time_str.size() > cost_time_size) {
         cost_time_size = static_cast<int>(cost_time_str.size());
@@ -254,19 +255,17 @@ void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
          static_cast<int>(gflops_size), "gflops");
   NNDEPLOY_LOGE("%s\n", line.c_str());
   for (auto &it : records) {
-    if (it->type_ == kEnd) {
-      if (index < it->call_times_) {
-        std::string name = it->key_;
-        index = index % max_size_;
-        NNDEPLOY_LOGE(
-            "%-*s  %-*d  %-*.3f  %-*.3f  %-*.3f\n", static_cast<int>(name_size),
-            name.c_str(), static_cast<int>(call_times_size), it->call_times_,
-            static_cast<int>(cost_time_size),
-            static_cast<float>(it->cost_time_[index]) / 1000.0f,
-            static_cast<int>(avg_cost_time_size),
-            static_cast<float>(it->cost_time_sum_) / 1000.0f / it->call_times_,
-            static_cast<int>(gflops_size), it->flops_);
-      }
+    if (it->type_ == kEnd && index < it->call_times_ &&
+        it->call_times_ - index <= static_cast<uint64_t>(max_size_)) {
+      std::string name = it->key_;
+      NNDEPLOY_LOGE(
+          "%-*s  %-*d  %-*.3f  %-*.3f  %-*.3f\n", static_cast<int>(name_size),
+          name.c_str(), static_cast<int>(call_times_size), it->call_times_,
+          static_cast<int>(cost_time_size),
+          static_cast<float>(it->cost_time_[index % max_size_]) / 1000.0f,
+          static_cast<int>(avg_cost_time_size),
+          static_cast<float>(it->cost_time_sum_) / 1000.0f / it->call_times_,
+          static_cast<int>(gflops_size), it->flops_);
     }
   }
   NNDEPLOY_LOGE("%s\n", line.c_str());

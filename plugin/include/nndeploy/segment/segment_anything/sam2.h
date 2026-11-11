@@ -107,7 +107,7 @@ class SAM2PointNode : public dag::Node {
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 };
 
 /**
@@ -172,7 +172,7 @@ class SAM2PostProcess : public dag::Node {
   }
   virtual ~SAM2PostProcess() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 };
 
@@ -205,7 +205,7 @@ class SAM2MemoryNode : public dag::Node {
   }
   virtual ~SAM2MemoryNode() {}
 
-  virtual base::Status run() { return base::kStatusCodeOk; }
+  virtual base::Status run() override { return base::kStatusCodeOk; }
   base::Status defaultParam() override { return base::kStatusCodeOk; }
 
   /// 存储解码器输出掩码（第一个通道，256x256）供下一帧使用
@@ -303,14 +303,14 @@ class NNDEPLOY_CC_API SAM2Graph : public dag::Graph {
    * encoder 输出 3 个特征（image_embeddings + high_res_feats_0/1）
    * 全部传入 decoder
    */
-  std::vector<dag::Edge*> forward(std::vector<dag::Edge*> inputs) {
+  std::vector<dag::Edge*> forward(std::vector<dag::Edge*> inputs) override {
     std::vector<dag::Edge*> encoder_input =
-        (*preprocess_image_node_)({inputs[0]});
+        (*preprocess_image_node_)(inputs[0]);
     std::vector<dag::Edge*> encoder_outputs =
         (*encoder_infer_node_)(encoder_input);
 
     std::vector<dag::Edge*> point_result =
-        (*preprocess_point_node_)({inputs[1]});
+        (*preprocess_point_node_)(inputs[1]);
     std::vector<dag::Edge*> mask_result = (*preprocess_mask_node_)();
 
     // SAM 2 decoder 输入:

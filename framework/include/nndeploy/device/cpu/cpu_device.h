@@ -33,12 +33,12 @@ class NNDEPLOY_CC_API CpuDevice : public Device {
 
  public:
   virtual BufferDesc toBufferDesc(const TensorDesc &desc,
-                                  const base::IntVector &config);
+                                  const base::IntVector &config) override;
 
-  virtual void *allocate(size_t size);
-  virtual void *allocate(const BufferDesc &desc);
+  virtual void *allocate(size_t size) override;
+  virtual void *allocate(const BufferDesc &desc) override;
 
-  virtual void deallocate(void *ptr);
+  virtual void deallocate(void *ptr) override;
 
   virtual base::Status copy(void *src, void *dst, size_t size,
                             Stream *stream = nullptr) override;
@@ -59,8 +59,8 @@ class NNDEPLOY_CC_API CpuDevice : public Device {
       : Device(device_type) {};
   virtual ~CpuDevice() {};
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 };
 
 }  // namespace device

@@ -436,15 +436,15 @@ device::Tensor* reshapeFunc(device::Tensor* input, device::Tensor* shape,
                             std::shared_ptr<ir::ReshapeParam> param) {
   std::stringstream ss;
 
-  device::Tensor* output = new device::Tensor("reshape.output");
-  base::Status status = op::reshape(input, shape, param, output);
+  auto output = std::make_unique<device::Tensor>("reshape.output");
+  base::Status status = op::reshape(input, shape, param, output.get());
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::reshape failed: error code "
        << base::statusCodeToString(status.getStatusCode());
     pybind11::pybind11_fail(ss.str());
   }
 
-  return output;
+  return output.release();
 }
 
 device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2) {
@@ -476,14 +476,14 @@ device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index,
                            std::shared_ptr<ir::GatherParam> param) {
   std::stringstream ss;
 
-  device::Tensor* output = new device::Tensor("gather.output");
-  base::Status status = op::gather(input, index, param, output);
+  auto output = std::make_unique<device::Tensor>("gather.output");
+  base::Status status = op::gather(input, index, param, output.get());
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::gather failed: error code "
        << base::statusCodeToString(status.getStatusCode());
     pybind11::pybind11_fail(ss.str());
   }
-  return output;
+  return output.release();
 }
 
 device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,

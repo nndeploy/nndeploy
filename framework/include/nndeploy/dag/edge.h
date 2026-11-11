@@ -441,14 +441,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   template <typename T>
   T *get(const Node *node) {
-    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-      std::unique_lock<std::mutex> lock(type_info_mutex_);
-      type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-    }
-    if (type_info_ != nullptr && !type_info_->isType<T>()) {
-      // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-      return nullptr;
-    }
     return abstact_edge_->get<T>(node);
   }
 
@@ -463,14 +455,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   template <typename T>
   T *getGraphOutput() {
-    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-      std::unique_lock<std::mutex> lock(type_info_mutex_);
-      type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-    }
-    if (type_info_ != nullptr && !type_info_->isType<T>()) {
-      // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-      return nullptr;
-    }
     return abstact_edge_->getGraphOutput<T>();
   }
 
@@ -484,10 +468,14 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @param is_external Whether it's external data
    * @return base::Status Operation status
    */
+  std::shared_ptr<DataPacket> acquirePacket(const Node *node, bool graph_output) {
+    return abstact_edge_->acquirePacket(node, graph_output);
+  }
+
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true, bool written = true) {
     this->setTypeInfo<T>();
-    return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
+    return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external, written);
   }
 
   /**
@@ -577,6 +565,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @return bool Whether request was successful
    */
   bool requestTerminate();
+  base::Status skipFrame();
 
   /**
    * @brief Set type information of Edge (template version)
@@ -586,15 +575,11 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    */
   template <typename T>
   base::Status setTypeInfo() {
-    if (type_info_ == nullptr) {
-      type_info_ = std::make_shared<EdgeTypeInfo>();
-      type_info_->setType<T>();
-    } else {
-      type_info_->setType<T>();
-    }
-    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-      type_info_cv_.notify_all();
-    }
+    std::lock_guard<std::mutex> lock(type_info_mutex_);
+    auto info = type_info_ ? std::make_shared<EdgeTypeInfo>(*type_info_)
+                           : std::make_shared<EdgeTypeInfo>();
+    info->setType<T>();
+    type_info_ = std::move(info);
     return base::kStatusCodeOk;
   }
 
@@ -637,7 +622,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   bool checkTypeInfo() {
     EdgeTypeInfo other_type_info;
     other_type_info.setType<T>();
-    return *type_info_ == other_type_info;
+    auto info = getTypeInfo();
+    return info && *info == other_type_info;
   }
 
   /**
@@ -653,8 +639,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   AbstractEdge *abstact_edge_ =
       nullptr;                  ///< Abstract edge implementation pointer
   std::mutex type_info_mutex_;  ///< Type information mutex
-  std::condition_variable
-      type_info_cv_;  ///< Type information condition variable
   std::shared_ptr<EdgeTypeInfo> type_info_;  ///< Type information object
   int queue_max_size_ = 16;  ///< Maximum queue capacity, default 16
   /// Queue overflow policy, default is node backpressure

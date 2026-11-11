@@ -11,6 +11,14 @@ namespace py = pybind11;
 namespace nndeploy {
 namespace ocr {
 
+static void setChannels(float (&channels)[3], const py::array_t<float>& arr) {
+  if (arr.ndim() != 1 || arr.shape(0) != 3) {
+    throw py::value_error("Expected three channel values");
+  }
+  auto values = arr.unchecked<1>();
+  for (int i = 0; i < 3; ++i) channels[i] = values(i);
+}
+
 NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
   py::class_<DetectorPreProcessParam, base::Param,
              std::shared_ptr<DetectorPreProcessParam>>(
@@ -39,15 +47,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](DetectorPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 3 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.scale_[i] = ptr[i];
-            }
+            setChannels(self.scale_, arr);
           })
       .def_property(
           "mean_",
@@ -56,15 +56,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](DetectorPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.mean_[i] = ptr[i];
-            }
+            setChannels(self.mean_, arr);
           })
       .def_property(
           "std_",
@@ -73,15 +65,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](DetectorPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.std_[i] = ptr[i];
-            }
+            setChannels(self.std_, arr);
           })
       .def_property(
           "border_val_",
@@ -186,8 +170,8 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
               throw std::runtime_error(
                   "Input array must be 1D with exactly 3 elements");
             }
-            int *ptr = static_cast<int *>(buf.ptr);
-            self.cls_image_shape_.assign(ptr, ptr + buf.shape[0]);
+            auto values = arr.unchecked<1>();
+            self.cls_image_shape_ = {values(0), values(1), values(2)};
           })
       .def_property(
           "scale_",
@@ -196,15 +180,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](ClassifierPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 3 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.scale_[i] = ptr[i];
-            }
+            setChannels(self.scale_, arr);
           })
       .def_property(
           "mean_",
@@ -213,15 +189,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](ClassifierPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.mean_[i] = ptr[i];
-            }
+            setChannels(self.mean_, arr);
           })
       .def_property(
           "std_",
@@ -230,15 +198,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](ClassifierPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.std_[i] = ptr[i];
-            }
+            setChannels(self.std_, arr);
           })
       .def_property(
           "border_val_",
@@ -325,8 +285,8 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
               throw std::runtime_error(
                   "Input array must be 1D with exactly 3 elements");
             }
-            int *ptr = static_cast<int *>(buf.ptr);
-            self.rec_image_shape_.assign(ptr, ptr + buf.shape[0]);
+            auto values = arr.unchecked<1>();
+            self.rec_image_shape_ = {values(0), values(1), values(2)};
           })
       .def_property(
           "scale_",
@@ -335,15 +295,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](RecognizerPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 3 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.scale_[i] = ptr[i];
-            }
+            setChannels(self.scale_, arr);
           })
       .def_property(
           "mean_",
@@ -352,15 +304,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](RecognizerPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.mean_[i] = ptr[i];
-            }
+            setChannels(self.mean_, arr);
           })
       .def_property(
           "std_",
@@ -369,15 +313,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ocr", m) {
                                       py::cast(self));
           },
           [](RecognizerPreProcessParam &self, py::array_t<float> arr) {
-            auto buf = arr.request();
-            if (buf.ndim != 1 || buf.shape[0] > 4) {
-              throw std::runtime_error(
-                  "Input array must be 1D with 4 elements");
-            }
-            float *ptr = static_cast<float *>(buf.ptr);
-            for (size_t i = 0; i < buf.shape[0]; i++) {
-              self.std_[i] = ptr[i];
-            }
+            setChannels(self.std_, arr);
           })
       .def_property(
           "border_val_",

@@ -44,20 +44,27 @@ base::Status DepthPostParam::deserialize(rapidjson::Value &json) {
 
 base::Status DepthPostProcess::run() {
   device::Tensor *tensor = inputs_[0]->getTensor(this);
-  float *data = (float *)tensor->getData();
-  int batch = tensor->getShapeIndex(0);
-  int channels = tensor->getShapeIndex(1);
-  int height = tensor->getShapeIndex(2);
-  int width = tensor->getShapeIndex(3);
+  if (!tensor || !tensor->getData() ||
+      tensor->getDataType() != base::dataTypeOf<float>() ||
+      !device::isHostDeviceType(tensor->getDeviceType())) return base::kStatusCodeErrorInvalidValue;
+  const auto shape = tensor->getShape();
+  // DepthResult describes one image and the drawing node consumes one plane.
+  if (shape.size() != 4 || shape[0] != 1 || shape[1] != 1 ||
+      shape[2] <= 0 || shape[3] <= 0) return base::kStatusCodeErrorInvalidValue;
+  int height = shape[2], width = shape[3];
+  if (static_cast<size_t>(height) > tensor->getSize() / sizeof(float) / width)
+    return base::kStatusCodeErrorInvalidValue;
+  size_t pixels = static_cast<size_t>(height) * width;
+  const float *data = static_cast<const float *>(tensor->getData());
 
   DepthResult *result = new DepthResult();
   result->height_ = height;
   result->width_ = width;
-  result->data_.resize(height * width);
+  result->data_.resize(pixels);
 
   float min_val = data[0];
   float max_val = data[0];
-  for (int i = 0; i < height * width; ++i) {
+  for (size_t i = 0; i < pixels; ++i) {
     float val = data[i];
     result->data_[i] = val;
     if (val < min_val) min_val = val;

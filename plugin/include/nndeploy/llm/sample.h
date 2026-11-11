@@ -134,6 +134,7 @@ class NNDEPLOY_CC_API Sampler : public dag::Node {
   void setIsPrefill(bool is_prefill);
 
  protected:
+  int sampleScores(const float *data, size_t vocab);
   bool is_prefill_ = true;
   bool is_first_ = true;
 };

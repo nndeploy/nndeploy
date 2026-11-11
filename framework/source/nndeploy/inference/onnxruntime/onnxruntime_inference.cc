@@ -83,7 +83,7 @@ base::Status OnnxRuntimeInference::init() {
 
   auto n_inputs = session_.GetInputCount();
   for (int i = 0; i < n_inputs; ++i) {
-    auto input_name = session_.GetInputNameAllocated(i, allocator).get();
+    std::string input_name = session_.GetInputNameAllocated(i, allocator).get();
 
     auto type_info = session_.GetInputTypeInfo(i);
     std::vector<int64_t> shape =
@@ -126,7 +126,7 @@ base::Status OnnxRuntimeInference::init() {
 
   auto n_outputs = session_.GetOutputCount();
   for (int i = 0; i < n_outputs; ++i) {
-    auto output_name = session_.GetOutputNameAllocated(i, allocator).get();
+    std::string output_name = session_.GetOutputNameAllocated(i, allocator).get();
 
     auto type_info = session_.GetOutputTypeInfo(i);
     std::vector<int64_t> shape =
@@ -219,7 +219,7 @@ base::Status OnnxRuntimeInference::reshape(base::ShapeMap &shape_map) {
   base::ShapeMap current_shape;
   auto n_inputs = session_.GetInputCount();
   for (int i = 0; i < n_inputs; ++i) {
-    auto input_name = session_.GetInputNameAllocated(i, allocator).get();
+    std::string input_name = session_.GetInputNameAllocated(i, allocator).get();
     auto type_info = session_.GetInputTypeInfo(i);
     auto src_shape = type_info.GetTensorTypeAndShapeInfo().GetShape();
     auto shape = OnnxRuntimeConvert::convertToShape(src_shape);

@@ -215,9 +215,11 @@ std::string openFile(const std::string &file_path) {
     return "";
   }
   fin.seekg(0, std::ios::end);
-  result.resize(fin.tellg());
+  auto length = fin.tellg();
+  if (length <= 0) return {};
+  result.resize(static_cast<size_t>(length));
   fin.seekg(0, std::ios::beg);
-  fin.read(&(result.at(0)), result.size());
+  if (!fin.read(&result[0], length)) return {};
   fin.close();
   return result;
 }

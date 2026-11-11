@@ -1222,7 +1222,7 @@ std::vector<dag::Edge*> Sam3SimpleGraph::forward(
   // inputs[2..4] = box_coords, box_labels, box_masks [optional]
 
   // Step 1: Preprocess image
-  std::vector<dag::Edge*> preproc_out = (*preprocess_node_)({inputs[0]});
+  std::vector<dag::Edge*> preproc_out = (*preprocess_node_)(inputs[0]);
 
   // Step 2: Image encoder
   std::vector<dag::Edge*> img_enc_out = (*image_encoder_node_)(preproc_out);
@@ -1242,7 +1242,7 @@ std::vector<dag::Edge*> Sam3SimpleGraph::forward(
 
   bool has_text = (inputs.size() > 1 && inputs[1] != nullptr);
   if (has_text) {
-    std::vector<dag::Edge*> lang_out = (*language_encoder_node_)({inputs[1]});
+    std::vector<dag::Edge*> lang_out = (*language_encoder_node_)(inputs[1]);
     lang_mask_edge = lang_out[0];
     lang_features_edge = lang_out[1];  // text_memory (index 1, post-transform output)
   } else if (!token_ids.empty()) {
@@ -1258,7 +1258,7 @@ std::vector<dag::Edge*> Sam3SimpleGraph::forward(
     dag::Edge* token_edge = this->createEdge("text_tokens");
     token_edge->set(tokens_tensor, true);
     std::vector<dag::Edge*> lang_out =
-        (*language_encoder_node_)({token_edge});
+        (*language_encoder_node_)(token_edge);
     lang_mask_edge = lang_out[0];
     lang_features_edge = lang_out[1];  // text_memory (index 1, post-transform output)
   }
@@ -2910,7 +2910,7 @@ std::vector<dag::Edge*> SAM3Graph::forward(std::vector<dag::Edge*> inputs) {
   //   [0]=image, [1]=text_concepts, [2]=exemplar_images (optional hybrid)
 
   // Step 1: Preprocess image
-  std::vector<dag::Edge*> preproc_out = (*preprocess_image_node_)({inputs[0]});
+  std::vector<dag::Edge*> preproc_out = (*preprocess_image_node_)(inputs[0]);
 
   // Step 2: Perception Encoder (shared ViT backbone)
   std::vector<dag::Edge*> pe_out = (*perception_encoder_node_)(preproc_out);
@@ -2918,11 +2918,11 @@ std::vector<dag::Edge*> SAM3Graph::forward(std::vector<dag::Edge*> inputs) {
   // Step 3: Encode concept prompts (text)
   dag::Edge* text_emb_edge = nullptr;
   if (inputs.size() > 1 && inputs[1] != nullptr) {
-    std::vector<dag::Edge*> concept_emb = (*concept_encode_node_)({inputs[1]});
+    std::vector<dag::Edge*> concept_emb = (*concept_encode_node_)(inputs[1]);
     text_emb_edge = concept_emb[0];
 
     if (language_encode_node_ != nullptr) {
-      concept_emb = (*language_encode_node_)({inputs[1]});
+      concept_emb = (*language_encode_node_)(inputs[1]);
       text_emb_edge = concept_emb[0];
     }
   }
@@ -3037,7 +3037,7 @@ base::Status SAM3Graph::processVideoFrame(cv::Mat& frame,
   frame_input->set(&frame, false);
 
   std::vector<dag::Edge*> preproc_outputs =
-      (*preprocess_image_node_)({frame_input});
+      (*preprocess_image_node_)(frame_input);
 
   std::vector<dag::Edge*> pe_outputs =
       (*perception_encoder_node_)(preproc_outputs);
@@ -3056,7 +3056,7 @@ base::Status SAM3Graph::processVideoFrame(cv::Mat& frame,
         (*memory_encoder_node_)({pe_outputs[0], prev_masks_edge});
 
     std::vector<dag::Edge*> mem_bank =
-        (*memory_manager_node_)({mem_outputs[0]});
+        (*memory_manager_node_)(mem_outputs[0]);
 
     std::vector<dag::Edge*> tracker_outputs =
         (*tracker_decoder_node_)({pe_outputs[0], mem_bank[0]});
@@ -3137,9 +3137,9 @@ std::vector<std::vector<dag::Edge*>> SAM3Graph::forwardVideoWithTextPrompt(
 
     std::vector<dag::Edge*> concept_emb;
     if (language_encode_node_ != nullptr) {
-      concept_emb = (*language_encode_node_)({concept_input});
+      concept_emb = (*language_encode_node_)(concept_input);
     } else {
-      concept_emb = (*concept_encode_node_)({concept_input});
+      concept_emb = (*concept_encode_node_)(concept_input);
     }
 
     device::Tensor* emb_tensor = concept_emb[0]->getTensor(this);

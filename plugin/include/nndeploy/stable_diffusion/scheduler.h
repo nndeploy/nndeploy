@@ -114,7 +114,7 @@ class NNDEPLOY_CC_API Scheduler {
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
-  SchedulerParam *scheduler_param_;
+  SchedulerParam *scheduler_param_ = nullptr;
 };
 
 /**

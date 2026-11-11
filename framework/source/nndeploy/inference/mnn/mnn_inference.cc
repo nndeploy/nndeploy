@@ -267,11 +267,15 @@ device::Tensor *MnnInference::getOutputTensorAfterRun(
   can_op_flag = can_op_flag && is_share_context_;
   device::Device *device = device::getDefaultHostDevice();
   if (is_copy || !can_op_flag) {
-    device::TensorDesc desc = this->getInputTensorAlignDesc(name);
+    device::TensorDesc desc = this->getOutputTensorAlignDesc(name);
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
     MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(output_tensor);
-    internal_tensor->copyToHostTensor(external_tensor);
+    const bool copied = external_tensor && internal_tensor->copyToHostTensor(external_tensor);
     delete external_tensor;
+    if (!copied) {
+      delete output_tensor;
+      return nullptr;
+    }
     return output_tensor;
   } else {
     device::Tensor *output_tensor =

@@ -195,13 +195,12 @@ base::Status KeypointPostProcess::run() {
     int channels = dim1;
     int num_predictions = dim2;
 
-    cv::Mat cv_mat_src(channels, num_predictions, CV_32FC1, data);
-    cv::Mat cv_mat_dst(num_predictions, channels, CV_32FC1);
-    cv::transpose(cv_mat_src, cv_mat_dst);
-    float* transposed_data = (float*)cv_mat_dst.data;
-
+    cv::Mat cv_mat_dst;
     for (int b = 0; b < batch; ++b) {
-      float* data_batch = transposed_data + b * num_predictions * channels;
+      auto offset = static_cast<size_t>(b) * channels * num_predictions;
+      cv::Mat cv_mat_src(channels, num_predictions, CV_32FC1, data + offset);
+      cv::transpose(cv_mat_src, cv_mat_dst);
+      float* data_batch = cv_mat_dst.ptr<float>();
       std::vector<Detection> candidates;
       for (int i = 0; i < num_predictions; ++i) {
         float* row = data_batch + i * channels;

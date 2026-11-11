@@ -449,8 +449,7 @@ class LatentBatch(nndeploy.dag.Node):
             # 收集所有有效的输入张量
             latent_tensors = []
             
-            for i in len(self.get_all_input()):
-                input_edge = self.get_input(i)
+            for input_edge in self.get_all_input():
                 latent = input_edge.get(self)
                 if latent is not None:
                     latent_tensors.append(latent)

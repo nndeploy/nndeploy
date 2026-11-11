@@ -730,19 +730,14 @@ base::Status Graph::deleteNode(Node* node) {
     NNDEPLOY_LOGE("can't find node_wrapper!");
     return base::kStatusCodeOk;
   }
-  // # 更新edge_repository_，将EdgeWrapper中的消费者生产者移除
-  for (auto edge_wrapper : edge_repository_) {
-    auto c_it = std::find(edge_wrapper->consumers_.begin(),
-                          edge_wrapper->consumers_.end(), node_wrapper);
-    if (c_it != edge_wrapper->consumers_.end()) {
-      edge_wrapper->consumers_.erase(c_it);
-    }
-    auto p_it = std::find(edge_wrapper->producers_.begin(),
-                          edge_wrapper->producers_.end(), node_wrapper);
-    if (p_it != edge_wrapper->producers_.end()) {
-      edge_wrapper->producers_.erase(p_it);
-    }
+  if (getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  for (auto *edge : edge_repository_) {
+    auto &consumers = edge->consumers_;
+    consumers.erase(std::remove(consumers.begin(), consumers.end(), node_wrapper), consumers.end());
+    auto &producers = edge->producers_;
+    producers.erase(std::remove(producers.begin(), producers.end(), node_wrapper), producers.end());
   }
+  node->setGraph(nullptr);
   // # 更新used_node_names_，将node的name从used_node_names_中删除
   used_node_names_.erase(node_wrapper->name_);
   // # 更新shared_node_repository_，将node从shared_node_repository_中删除
@@ -752,24 +747,18 @@ base::Status Graph::deleteNode(Node* node) {
   if (shared_it != shared_node_repository_.end()) {
     shared_node_repository_.erase(shared_it);
   }
-  // # 更新node_repository_，将NodeWrapper中的前驱和后继移除
-  for (auto node_wrapper : node_repository_) {
-    auto p_it = std::find(node_wrapper->predecessors_.begin(),
-                          node_wrapper->predecessors_.end(), node_wrapper);
-    if (p_it != node_wrapper->predecessors_.end()) {
-      node_wrapper->predecessors_.erase(p_it);
-    }
-    auto s_it = std::find(node_wrapper->successors_.begin(),
-                          node_wrapper->successors_.end(), node_wrapper);
-    if (s_it != node_wrapper->successors_.end()) {
-      node_wrapper->successors_.erase(s_it);
-    }
+  for (auto *other : node_repository_) {
+    auto &pred = other->predecessors_;
+    pred.erase(std::remove(pred.begin(), pred.end(), node_wrapper), pred.end());
+    auto &succ = other->successors_;
+    succ.erase(std::remove(succ.begin(), succ.end(), node_wrapper), succ.end());
   }
   // # 更新node_repository_，将NodeWrapper从node_repository_中删除
   node_repository_.erase(std::find(node_repository_.begin(),
                                    node_repository_.end(), node_wrapper));
 
   // # 删除NodeWrapper
+  if (!node_wrapper->is_external_) delete node_wrapper->node_;
   delete node_wrapper;
 
   return base::kStatusCodeOk;
@@ -1393,8 +1382,7 @@ base::Status Graph::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   if (executor_ != nullptr) {
     status = executor_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "executor deinit failed!");
+    // Cleanup may report the execution error; the graph is still deinitialized.
   } else {
     for (auto node_wrapper : node_repository_) {
       if (node_wrapper->node_->getInitialized()) {
@@ -1417,6 +1405,7 @@ base::Status Graph::deinit() {
 }
 
 base::Status Graph::run() {
+  if (!executor_ || !getInitialized()) return base::kStatusCodeErrorDag;
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("setRunningFlag true!\n");
@@ -1428,7 +1417,7 @@ base::Status Graph::run() {
   // NNDEPLOY_LOGI("Node run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = executor_->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+
 
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
   if (!is_inner_) {
@@ -1439,6 +1428,7 @@ base::Status Graph::run() {
 }
 
 bool Graph::synchronize() {
+  if (!executor_ || !getInitialized()) return false;
   bool is_synchronize = executor_->synchronize();
   if (!is_synchronize) {
     NNDEPLOY_LOGE("executor synchronize failed!");
@@ -1447,6 +1437,7 @@ bool Graph::synchronize() {
 }
 
 bool Graph::interrupt() {
+  if (!executor_ || !getInitialized()) return false;
   bool is_interrupt = executor_->interrupt();
   if (!is_interrupt) {
     NNDEPLOY_LOGE("executor interrupt failed.\n");

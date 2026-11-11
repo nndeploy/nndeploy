@@ -77,14 +77,8 @@ std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
  */
 BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
                                    const base::IntVector &config) {
-  size_t size = desc.data_type_.size();
-  if (desc.stride_.empty()) {
-    for (int i = 0; i < desc.shape_.size(); ++i) {
-      size *= desc.shape_[i];
-    }
-  } else {
-    size = desc.stride_[0] * desc.shape_[0];
-  }
+  size_t size;
+  if (!desc.getStorageSize(size)) throw std::invalid_argument("invalid tensor layout");
   return BufferDesc(size, config);
 }
 

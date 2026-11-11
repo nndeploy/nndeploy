@@ -88,6 +88,11 @@ int main(int argc, char* argv[]) {
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
       name, text, "", inference_type, scheduler_type, param, iter);
 
+  if (!graph) {
+    delete text2image_param;
+    delete ddim_param;
+    return -1;
+  }
   base::Status status = graph->setParallelType(pt);
 
   graph->setTimeProfileFlag(true);

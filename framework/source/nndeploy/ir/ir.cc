@@ -255,13 +255,16 @@ base::Status ValueDesc::serialize(
  * shape_: [1, 32, 16, 16]
  */
 base::Status ValueDesc::deserialize(rapidjson::Value &json) {
+  if (!json.IsObject()) return base::kStatusCodeErrorInvalidValue;
   // 解析名称
   if (json.HasMember("name_")) {
+    if (!json["name_"].IsString()) return base::kStatusCodeErrorInvalidValue;
     name_ = json["name_"].GetString();
   }
 
   // 解析数据类型
   if (json.HasMember("data_type_")) {
+    if (!json["data_type_"].IsString()) return base::kStatusCodeErrorInvalidValue;
     std::string data_type_str = json["data_type_"].GetString();
     data_type_ = base::stringToDataType(data_type_str);
   }
@@ -272,6 +275,7 @@ base::Status ValueDesc::deserialize(rapidjson::Value &json) {
     if (shape_array.IsArray()) {
       shape_.clear();
       for (rapidjson::SizeType i = 0; i < shape_array.Size(); i++) {
+        if (!shape_array[i].IsInt()) return base::kStatusCodeErrorInvalidValue;
         shape_.push_back(shape_array[i].GetInt());
       }
     }
@@ -466,70 +470,58 @@ base::Status ModelDesc::serializeStructureToJson(
  */
 base::Status ModelDesc::deserializeStructureFromJson(
     rapidjson::Value &json, const std::vector<ValueDesc> &input) {
-  // 反序列化模型名称
-  if (json.HasMember("name_") && json["name_"].IsString()) {
-    name_ = json["name_"].GetString();
-  }
+  if (!json.IsObject()) return base::kStatusCodeErrorInvalidValue;
 
-  // 反序列化元数据
+  // Publish the new structure only after every child has parsed successfully.
+  ModelDesc parsed;
+  parsed.name_ = name_;
+  parsed.metadata_ = metadata_;
+  if (json.HasMember("name_") && json["name_"].IsString())
+    parsed.name_ = json["name_"].GetString();
   if (json.HasMember("metadata_") && json["metadata_"].IsArray()) {
-    const rapidjson::Value &metadata_array = json["metadata_"];
-    for (rapidjson::SizeType i = 0; i < metadata_array.Size(); i++) {
-      if (metadata_array[i].IsObject()) {
-        for (auto it = metadata_array[i].MemberBegin();
-             it != metadata_array[i].MemberEnd(); ++it) {
-          metadata_.insert({it->name.GetString(), it->value.GetString()});
-        }
+    for (auto &entry : json["metadata_"].GetArray()) {
+      if (!entry.IsObject()) continue;
+      for (auto &field : entry.GetObject()) {
+        if (!field.value.IsString()) return base::kStatusCodeErrorInvalidValue;
+        parsed.metadata_.insert({field.name.GetString(), field.value.GetString()});
       }
     }
   }
 
-  // 反序列化输入
-  inputs_.clear();
-  if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
-    const rapidjson::Value &inputs_array = json["inputs_"];
-    for (rapidjson::SizeType i = 0; i < inputs_array.Size(); i++) {
-      auto value_desc = std::make_shared<ValueDesc>();
-      value_desc->deserialize(const_cast<rapidjson::Value &>(inputs_array[i]));
-      inputs_.push_back(value_desc);
+  auto read_descriptors = [&](const char *key, auto &descriptors) -> base::Status {
+    if (!json.HasMember(key)) return base::kStatusCodeOk;
+    if (!json[key].IsArray()) return base::kStatusCodeErrorInvalidValue;
+    using Ptr = typename std::decay<decltype(descriptors)>::type::value_type;
+    for (auto &entry : json[key].GetArray()) {
+      if (!entry.IsObject()) return base::kStatusCodeErrorInvalidValue;
+      auto desc = std::make_shared<typename Ptr::element_type>();
+      auto status = desc->deserialize(entry);
+      if (status != base::kStatusCodeOk) return status;
+      descriptors.push_back(std::move(desc));
     }
-  }
-  if (!input.empty()) {
-    inputs_.clear();
-    for (const auto &in : input) {
-      for (auto &existing_input : inputs_) {
-        if (existing_input->name_ == in.name_) {
-          existing_input->name_ = in.name_;
-          existing_input->data_type_ = in.data_type_;
-          existing_input->shape_ = in.shape_;
-          break;
-        }
+    return base::kStatusCodeOk;
+  };
+  auto status = read_descriptors("inputs_", parsed.inputs_);
+  if (status != base::kStatusCodeOk) return status;
+  status = read_descriptors("outputs_", parsed.outputs_);
+  if (status != base::kStatusCodeOk) return status;
+  status = read_descriptors("op_descs_", parsed.op_descs_);
+  if (status != base::kStatusCodeOk) return status;
+
+  for (const auto &override_input : input) {
+    for (auto &existing : parsed.inputs_) {
+      if (existing->name_ == override_input.name_) {
+        existing->data_type_ = override_input.data_type_;
+        existing->shape_ = override_input.shape_;
+        break;
       }
     }
   }
-
-  // 反序列化输出
-  outputs_.clear();
-  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
-    const rapidjson::Value &outputs_array = json["outputs_"];
-    for (rapidjson::SizeType i = 0; i < outputs_array.Size(); i++) {
-      auto value_desc = std::make_shared<ValueDesc>();
-      value_desc->deserialize(const_cast<rapidjson::Value &>(outputs_array[i]));
-      outputs_.push_back(value_desc);
-    }
-  }
-
-  // 反序列化算子描述
-  op_descs_.clear();
-  if (json.HasMember("op_descs_") && json["op_descs_"].IsArray()) {
-    const rapidjson::Value &op_descs_array = json["op_descs_"];
-    for (rapidjson::SizeType i = 0; i < op_descs_array.Size(); i++) {
-      auto op_desc = std::make_shared<OpDesc>();
-      op_desc->deserialize(const_cast<rapidjson::Value &>(op_descs_array[i]));
-      op_descs_.push_back(op_desc);
-    }
-  }
-
+  name_.swap(parsed.name_);
+  metadata_.swap(parsed.metadata_);
+  inputs_.swap(parsed.inputs_);
+  outputs_.swap(parsed.outputs_);
+  op_descs_.swap(parsed.op_descs_);
   return base::kStatusCodeOk;
 }
 

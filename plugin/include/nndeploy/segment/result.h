@@ -16,7 +16,9 @@ namespace segment {
  */
 class NNDEPLOY_CC_API SegmentResult : public base::Param {
  public:
-  SegmentResult(){};
+  SegmentResult() = default;
+  SegmentResult(const SegmentResult &) = delete;
+  SegmentResult &operator=(const SegmentResult &) = delete;
   virtual ~SegmentResult() {
     if (mask_ != nullptr) {
       delete mask_;
@@ -45,7 +47,7 @@ struct NNDEPLOY_CC_API SegMaskItem {
   int index_ = 0;
   int label_id_ = 0;
   float score_ = 0.0f;
-  device::Tensor* mask_ = nullptr;
+  std::shared_ptr<device::Tensor> mask_;
 };
 
 /**

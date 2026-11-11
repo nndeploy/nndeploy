@@ -1,3 +1,4 @@
+#include "dag/keep_node_edges.h"
 #include "nndeploy/preprocess/cvt_norm_trans.h"
 
 #include "nndeploy_api_registry.h"
@@ -10,7 +11,7 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
   py::class_<CvtNormTrans, dag::Node>(m, "CvtNormTrans")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>>())
+                    std::vector<dag::Edge *>>(), KeepNodeEdges{})
       .def("run", &CvtNormTrans::run);
 }
 

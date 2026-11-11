@@ -45,24 +45,11 @@ base::Status DataPacket::set(device::Buffer *buffer, bool is_external) {
 }
 device::Buffer *DataPacket::create(device::Device *device,
                                    const device::BufferDesc &desc) {
-  base::Status status = base::kStatusCodeOk;
-  device::Buffer *buffer = nullptr;
-  if (anything_ == nullptr) {
-    void *data = device->allocate(desc);
-    buffer = new device::Buffer(device, desc, data);
-  } else {
-    if (flag_ != EdgeTypeFlag::kBuffer) {
-      destory();
-      void *data = device->allocate(desc);
-      buffer = new device::Buffer(device, desc, data);
-    } else {
-      buffer = (device::Buffer *)(anything_);
-      if (buffer->getDesc() != desc) {
-        destory();
-        void *data = device->allocate(desc);
-        buffer = new device::Buffer(device, desc, data);
-      }
-    }
+  auto *buffer = static_cast<device::Buffer *>(anything_);
+  if (!buffer || flag_ != EdgeTypeFlag::kBuffer || is_external_ ||
+      buffer->getDesc() != desc || buffer->getDevice() != device) {
+    if (anything_) destory();
+    buffer = new device::Buffer(device, desc);
   }
   is_external_ = false;
   flag_ = EdgeTypeFlag::kBuffer;
@@ -231,15 +218,24 @@ bool DataPacket::notifyWritten(base::Param *param) {
   }
 }
 
+void DataPacket::retainSamePayload(const std::shared_ptr<DataPacket> &previous) {
+  if (!previous || !anything_ || anything_ != previous->anything_) return;
+  if (previous->payload_owner_) {
+    payload_owner_ = previous->payload_owner_;
+  } else if (!previous->is_external_ || (!wrapper_ && previous->wrapper_)) {
+    payload_owner_ = previous;
+  }
+  if (payload_owner_) is_external_ = true;
+}
+
 base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   base::Status status = base::kStatusCodeOk;
   if (packet == nullptr) {
     return base::kStatusCodeErrorInvalidParam;
   }
-  // TODO
-  if (anything_ != nullptr && anything_ != packet->anything_) {
-    destory();
-  }
+  // The payload can be reused, but each Python submission owns a new wrapper.
+  if (anything_ == packet->anything_) is_external_ = true;
+  destory();
   is_external_ = packet->is_external_;
   index_ = packet->index_;
   flag_ = packet->flag_;
@@ -247,6 +243,7 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   anything_ = packet->anything_;
   type_info_ = packet->type_info_;
   deleter_ = packet->deleter_;
+  payload_owner_ = std::move(packet->payload_owner_);
   wrapper_ = packet->wrapper_;
   wrapper_deleter_ = packet->wrapper_deleter_;
 
@@ -310,6 +307,7 @@ void DataPacket::destory() {
     NNDEPLOY_PYBIND_GIL_SCOPED_RELEASE gil_release;
   }
   wrapper_deleter_ = nullptr;
+  payload_owner_.reset();
 }
 
 PipelineDataPacket::PipelineDataPacket(int consumers_size)
@@ -339,7 +337,8 @@ bool PipelineDataPacket::notifyWritten(device::Buffer *buffer) {
 }
 device::Buffer *PipelineDataPacket::getBuffer() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] { return written_; });
+  cv_.wait(lock, [this] { return written_ || cancelled_; });
+  if (cancelled_) return nullptr;
   return DataPacket::getBuffer();
 }
 device::Buffer *PipelineDataPacket::getBufferDirect() {
@@ -366,7 +365,8 @@ bool PipelineDataPacket::notifyWritten(cv::Mat *cv_mat) {
 }
 cv::Mat *PipelineDataPacket::getCvMat() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] { return written_; });
+  cv_.wait(lock, [this] { return written_ || cancelled_; });
+  if (cancelled_) return nullptr;
   return DataPacket::getCvMat();
 }
 cv::Mat *PipelineDataPacket::getCvMatDirect() { return DataPacket::getCvMat(); }
@@ -390,7 +390,8 @@ bool PipelineDataPacket::notifyWritten(device::Tensor *tensor) {
 }
 device::Tensor *PipelineDataPacket::getTensor() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] { return written_; });
+  cv_.wait(lock, [this] { return written_ || cancelled_; });
+  if (cancelled_) return nullptr;
   return DataPacket::getTensor();
 }
 device::Tensor *PipelineDataPacket::getTensorDirect() {
@@ -415,7 +416,8 @@ bool PipelineDataPacket::notifyWritten(base::Param *param) {
 }
 base::Param *PipelineDataPacket::getParam() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] { return written_; });
+  cv_.wait(lock, [this] { return written_ || cancelled_; });
+  if (cancelled_) return nullptr;
   return DataPacket::getParam();
 }
 base::Param *PipelineDataPacket::getParamDirect() {
@@ -433,6 +435,23 @@ base::Status PipelineDataPacket::takeDataPacket(DataPacket *packet) {
     cv_.notify_all();
   }
   return status;
+}
+
+bool PipelineDataPacket::isWritten() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return written_;
+}
+
+bool PipelineDataPacket::waitUntilWritten() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] { return written_ || cancelled_; });
+  return !cancelled_;
+}
+
+void PipelineDataPacket::cancel() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  cancelled_ = true;
+  cv_.notify_all();
 }
 
 void PipelineDataPacket::increaseConsumersSize() {

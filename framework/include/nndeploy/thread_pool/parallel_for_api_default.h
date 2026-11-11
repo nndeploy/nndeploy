@@ -29,21 +29,17 @@ class ParallelPool {
   void parallelFor(const base::Range &range, const ParallelLoopBody &body,
                    double nstripes);
 
-  void stop() { setWorkThreads(0); }
+  void stop();
 
  private:
-  bool setWorkThreads(int num);
+  void setWorkThreads(int num);
 
- public:
-  std::mutex mutex_notify_;
-  std::condition_variable job_complete_;
-
- private:
-  std::mutex pool_mutex_;
+  bool stop_requested_ = false;
+  mutable std::mutex pool_mutex_;
   int thread_num_;
   std::vector<std::shared_ptr<WorkerThread>> work_threads_;
   std::shared_ptr<ParallelJob> job_ = nullptr;
-  const int active_wait_;
+
 };
 
 class ParallelForApiDefault : public ParallelForApi {

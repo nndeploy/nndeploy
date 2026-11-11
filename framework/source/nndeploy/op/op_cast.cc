@@ -20,6 +20,13 @@
 
 namespace nndeploy {
 namespace op {
+base::Status OpCast::inferDataType() {
+  auto *param = dynamic_cast<ir::CastParam *>(op_desc_.op_param_.get());
+  if (!param) return base::kStatusCodeErrorInvalidParam;
+  device::TensorDesc desc(param->to_, inputs_[0]->getDataFormat(), inputs_[0]->getShape());
+  return outputs_[0]->justModify(desc) ? base::kStatusCodeOk : base::kStatusCodeErrorInvalidValue;
+}
+
 base::Status OpCast::run() {
   base::Status status = base::kStatusCodeOk;
 
@@ -29,7 +36,10 @@ base::Status OpCast::run() {
   auto input_shape = input_tensor->getShape();
   size_t input_elements = 1;
   for (size_t i = 0; i < input_shape.size(); ++i) {
-    input_elements *= input_shape[i];
+    const int dim = input_shape[i];
+    if (dim < 0 || (dim && input_elements > SIZE_MAX / dim))
+      return base::kStatusCodeErrorInvalidValue;
+    input_elements *= dim;
   }
 
   base::DataType input_dtype = input_tensor->getDataType();
@@ -38,6 +48,17 @@ base::Status OpCast::run() {
   void* input_data = input_tensor->getData();
   void* output_data = output_tensor->getData();
 
+  if (input_dtype.lanes_ != 1 || output_dtype.lanes_ != 1)
+    return base::kStatusCodeErrorNotSupport;
+  if (!input_dtype.size() || !output_dtype.size() ||
+      input_elements > input_tensor->getSize() / input_dtype.size() ||
+      input_elements > output_tensor->getSize() / output_dtype.size())
+    return base::kStatusCodeErrorInvalidValue;
+  if (input_elements && (!input_data || !output_data)) return base::kStatusCodeErrorNullParam;
+  if (input_dtype == base::dataTypeOf<uint8_t>() && output_dtype == base::dataTypeOf<float>()) {
+    std::copy_n(static_cast<uint8_t *>(input_data), input_elements, static_cast<float *>(output_data));
+    return base::kStatusCodeOk;
+  }
   // 根据输入和输出数据类型进行转换
   if (input_dtype.code_ == base::kDataTypeCodeFp && input_dtype.bits_ == 32 && 
       output_dtype.code_ == base::kDataTypeCodeFp && output_dtype.bits_ == 16) {
@@ -96,7 +117,7 @@ base::Status cast(device::Tensor* input, std::shared_ptr<ir::CastParam> param,
                   device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeCast);
+  std::unique_ptr<Op> op(createOp(input->getDeviceType(), "", ir::kOpTypeCast));
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -120,7 +141,6 @@ base::Status cast(device::Tensor* input, std::shared_ptr<ir::CastParam> param,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
-  delete op;
 
   return status;
 }

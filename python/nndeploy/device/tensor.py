@@ -170,19 +170,13 @@ class Tensor(_C.device.Tensor):
         """
         return super().copy_to(dst)
 
-    def serialize(self, bin_str: str):
-        """
-        序列化Tensor到流。
-
-        Args:
-            stream: 输出流。
-
-        Returns:
-            None
-        """
+    def serialize(self, bin_str=None):
+        """Return binary data, or the legacy status when an argument is supplied."""
+        if bin_str is None:
+            return super().serialize()
         return super().serialize(bin_str)
 
-    def deserialize(self, bin_str: str):
+    def deserialize(self, bin_str: bytes):
         """
         从流反序列化Tensor。
 

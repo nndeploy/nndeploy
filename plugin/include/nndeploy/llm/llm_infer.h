@@ -53,11 +53,11 @@ class NNDEPLOY_CC_API LlmInfer : public dag::CompositeNode {
   virtual base::Status setPrefill(bool is_prefill);
   virtual int getMaxSeqLen();
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
-  virtual base::Status run();
-  virtual base::Status setIterInput(dag::Edge* input, int index);
+  virtual base::Status run() override;
+  virtual base::Status setIterInput(dag::Edge* input, int index) override;
 
   using dag::CompositeNode::serialize;
   virtual base::Status serialize(

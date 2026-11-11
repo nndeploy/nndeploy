@@ -13,11 +13,19 @@ class TorchInference(Inference):
         self.input_tensors_ = {}
         self.output_tensors = None
         self._index = 0
+        self._torch_param = None
     
     def set_param(self, param):
-        super().set_param(param)
-        
+        status = super().set_param(param)
+        if status:
+            # Native copyTo only copies C++ fields, not Python's nn_model.
+            self._torch_param = param
+            self.output_tensors = None
+        return status
+
     def get_param(self):
+        if self._torch_param is not None:
+            return self._torch_param
         return super().get_param()
         
     def set_stream(self, stream):
@@ -28,6 +36,7 @@ class TorchInference(Inference):
         return nndeploy.device.Stream(inner_stream)
           
     def init(self):
+        self._model()
         return nndeploy.base.Status("ok")
     
     def deinit(self):
@@ -56,6 +65,7 @@ class TorchInference(Inference):
         return nndeploy.base.Status("ok")
       
     def get_gflops(self):
+        import torch
         # 获取模型参数
         param = self.get_param()
         nn_model = param.nn_model
@@ -91,85 +101,52 @@ class TorchInference(Inference):
     def can_op_output(self):
         return False
       
+    def _model(self):
+        model = getattr(self.get_param(), "nn_model", None)
+        if model is None:
+            raise ValueError("Torch inference requires param.nn_model to be set")
+        return model
+
     def get_num_of_input_tensor(self):
-        # 获取模型参数
-        param = self.get_param()
-        if param.get_input_num() == 0:
-            nn_model = param.nn_model
-            # 获取forward方法的参数个数(排除self)
-            import inspect
-            signature = inspect.signature(nn_model.forward)
-            # 减去self参数
-            num_params = len(signature.parameters) - 1
-        else:
-            num_params = param.input_num_
-        
-        return num_params
-      
+        return self.get_param().get_input_num() or len(self.get_all_input_tensor_name())
+
     def get_num_of_output_tensor(self):
-      param = self.get_param()
-      if param.get_output_num() == 0:
-          nn_model = param.nn_model
-          # 获取forward方法的返回值个数
-          import inspect
-          signature = inspect.signature(nn_model.forward)
-          num_params = len(signature.return_annotations)
-      else:
-          num_params = param.output_num_
-          
-      return num_params
-    
-    def get_input_name(self, i):
         param = self.get_param()
-        input_name = ""
-        if len(param.get_input_name()) <= i:
-            nn_model = param.nn_model
-            # 获取forward方法的参数个数(排除self)
-            import inspect
-            signature = inspect.signature(nn_model.forward)
-            # 减去self参数
-            input_name = signature.parameters[i].name
-        else:
-            input_name = param.get_input_name()[i]
-          
-        return input_name
-    
-    def get_output_name(self, i):
-        param = self.get_param()
-        output_name = ""
-        if len(param.get_output_name()) <= i:
-            nn_model = param.nn_model
-            # 获取forward方法的返回值个数
-            import inspect
-            signature = inspect.signature(nn_model.forward)
-            output_name = signature.return_annotations[i].name
-        else:
-            output_name = param.get_output_name()[i]
-          
-        return output_name
-    
+        if param.get_output_num():
+            return param.get_output_num()
+        if param.get_output_name():
+            return len(param.get_output_name())
+        if self.output_tensors is not None:
+            if isinstance(self.output_tensors, (tuple, list, dict)):
+                return len(self.output_tensors)
+            return 1
+        # Python annotations do not reliably describe runtime output arity.
+        raise ValueError("Set output_num/output_name or run the model before querying outputs")
+
+    def get_input_name(self, i=0):
+        return self.get_all_input_tensor_name()[i]
+
+    def get_output_name(self, i=0):
+        return self.get_all_output_tensor_name()[i]
+
     def get_all_input_tensor_name(self):
-        param = self.get_param()
-        input_name = param.get_input_name()
-        if len(input_name) == 0:
-            nn_model = param.nn_model
-            # 获取forward方法的参数个数(排除self)
-            import inspect
-            signature = inspect.signature(nn_model.forward)
-            input_name = [signature.parameters[i].name for i in range(len(signature.parameters) - 1)]
-        return input_name
+        names = self.get_param().get_input_name()
+        if names:
+            return names
+        import inspect
+        parameters = inspect.signature(self._model().forward).parameters.values()
+        if any(p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD) for p in parameters):
+            raise ValueError("Set input_name for models with variadic inputs")
+        return [p.name for p in parameters]
 
     def get_all_output_tensor_name(self):
-        param = self.get_param()
-        output_name = param.get_output_name()
-        if len(output_name) == 0:
-            nn_model = param.nn_model
-            # 获取forward方法的返回值个数
-            import inspect
-            signature = inspect.signature(nn_model.forward)
-            output_name = [signature.return_annotations[i].name for i in range(len(signature.return_annotations))]
-        return output_name
-    
+        names = self.get_param().get_output_name()
+        if names:
+            return names
+        if isinstance(self.output_tensors, dict):
+            return list(self.output_tensors)
+        return [str(i) for i in range(self.get_num_of_output_tensor())]
+
     def get_input_shape(self, name):
         # 获取模型参数
         param = self.get_param()
@@ -203,6 +180,7 @@ class TorchInference(Inference):
         return input_shape
         
     def get_input_tensor_desc(self, name):
+        import torch
         param = self.get_param()
         input_shape = self.get_input_shape(name)
         # 尝试从nn.Module中获取输入数据类型
@@ -236,6 +214,7 @@ class TorchInference(Inference):
         return nndeploy.device.TensorDesc(input_shape, data_type, data_format)
         
     def get_output_tensor_desc(self, name):
+        import torch
         param = self.get_param()
         nn_model = param.nn_model
         
@@ -297,8 +276,12 @@ class TorchInference(Inference):
         inputs = []
         for key, value in self.input_tensors_.items():
             inputs.append(value)
-        self.output_tensors = self.nn_model(*inputs)
-        self._index = 0
+        self.output_tensors = None
+        try:
+            self.output_tensors = self._model()(*inputs)
+        finally:
+            self.input_tensors_.clear()
+            self._index = 0
         return nndeploy.base.Status("ok")
         
     def get_output(self):
@@ -308,7 +291,7 @@ class TorchInference(Inference):
         return nndeploy.base.Status("ok")
 
 
-class InferenceCreator(_C.inference.InferenceCreator):
+class TorchInferenceCreator(InferenceCreator):
     def __init__(self):
         super().__init__()
 
@@ -316,4 +299,5 @@ class InferenceCreator(_C.inference.InferenceCreator):
         return TorchInference(type)
 
 
-register_inference_creator(nndeploy.base.InferenceType.Torch, TorchInferenceCreator())
+_torch_creator = TorchInferenceCreator()
+register_inference_creator(nndeploy.base.InferenceType.Torch, _torch_creator)

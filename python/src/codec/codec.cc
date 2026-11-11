@@ -1,3 +1,4 @@
+#include "dag/keep_node_edges.h"
 #include "nndeploy/codec/codec.h"
 
 #include "nndeploy_api_registry.h"
@@ -16,7 +17,7 @@ class PyDecode : public Decode {
  public:
   using Decode::Decode;  // 继承构造函数
 
-  base::Status setPath(const std::string &path) {
+  base::Status setPath(const std::string &path) override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Decode, "set_path", setPath,
                                 path);
   }
@@ -36,12 +37,12 @@ class PyEncode : public Encode {
  public:
   using Encode::Encode;  // 继承构造函数
 
-  base::Status setRefPath(const std::string &ref_path) {
+  base::Status setRefPath(const std::string &ref_path) override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Encode, "set_ref_path",
                                 setRefPath, ref_path);
   }
 
-  base::Status setPath(const std::string &path) {
+  base::Status setPath(const std::string &path) override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Encode, "set_path", setPath,
                                 path);
   }
@@ -55,7 +56,7 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<Decode, PyDecode, dag::Node>(m, "Decode")
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>, base::CodecFlag>())
+                    std::vector<dag::Edge *>, base::CodecFlag>(), KeepNodeEdges{})
       .def("set_codec_flag", &Decode::setCodecFlag, py::arg("flag"))
       .def("get_codec_flag", &Decode::getCodecFlag)
       .def("set_path", &Decode::setPath, py::arg("path"))
@@ -70,7 +71,7 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<Encode, PyEncode, dag::Node>(m, "Encode")
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>, base::CodecFlag>())
+                    std::vector<dag::Edge *>, base::CodecFlag>(), KeepNodeEdges{})
       .def("set_codec_flag", &Encode::setCodecFlag, py::arg("flag"))
       .def("get_codec_flag", &Encode::getCodecFlag)
       .def("set_path", &Encode::setPath, py::arg("path"))
@@ -87,19 +88,19 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecode, py::arg("type"), py::arg("flag"),
         py::arg("name"), py::arg("output"),
-        py::return_value_policy::take_ownership);
+        py::return_value_policy::take_ownership, py::keep_alive<0, 4>());
   m.def("create_encode_node", &createEncode, py::arg("type"), py::arg("flag"),
         py::arg("name"), py::arg("input"),
-        py::return_value_policy::take_ownership);
+        py::return_value_policy::take_ownership, py::keep_alive<0, 4>());
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   py::class_<OpenCvImageDecode, Decode>(m, "OpenCvImageDecode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvImageDecode::init)
       .def("deinit", &OpenCvImageDecode::deinit)
       .def("set_path", &OpenCvImageDecode::setPath, py::arg("path"))
@@ -108,10 +109,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvImagesDecode, Decode>(m, "OpenCvImagesDecode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvImagesDecode::init)
       .def("deinit", &OpenCvImagesDecode::deinit)
       .def("set_path", &OpenCvImagesDecode::setPath, py::arg("path"))
@@ -120,10 +121,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvVideoDecode, Decode>(m, "OpenCvVideoDecode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvVideoDecode::init)
       .def("deinit", &OpenCvVideoDecode::deinit)
       .def("set_path", &OpenCvVideoDecode::setPath, py::arg("path"))
@@ -132,10 +133,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvCameraDecode, Decode>(m, "OpenCvCameraDecode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvCameraDecode::init)
       .def("deinit", &OpenCvCameraDecode::deinit)
       .def("set_path", &OpenCvCameraDecode::setPath, py::arg("path"))
@@ -144,10 +145,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvImageEncode, Encode>(m, "OpenCvImageEncode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvImageEncode::init)
       .def("deinit", &OpenCvImageEncode::deinit)
       .def("set_ref_path", &OpenCvImageEncode::setRefPath, py::arg("ref_path"))
@@ -157,10 +158,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvImagesEncode, Encode>(m, "OpenCvImagesEncode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvImagesEncode::init)
       .def("deinit", &OpenCvImagesEncode::deinit)
       .def("set_ref_path", &OpenCvImagesEncode::setRefPath, py::arg("ref_path"))
@@ -170,10 +171,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvVideoEncode, Encode>(m, "OpenCvVideoEncode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvVideoEncode::init)
       .def("deinit", &OpenCvVideoEncode::deinit)
       .def("set_ref_path", &OpenCvVideoEncode::setRefPath, py::arg("ref_path"))
@@ -183,10 +184,10 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<OpenCvCameraEncode, Encode>(m, "OpenCvCameraEncode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &>())
+                    std::vector<dag::Edge *> &>(), KeepNodeEdges{})
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &,
-                    std::vector<dag::Edge *> &, base::CodecFlag>())
+                    std::vector<dag::Edge *> &, base::CodecFlag>(), KeepNodeEdges{})
       .def("init", &OpenCvCameraEncode::init)
       .def("deinit", &OpenCvCameraEncode::deinit)
       .def("set_ref_path", &OpenCvCameraEncode::setRefPath, py::arg("ref_path"))
@@ -194,9 +195,9 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("run", &OpenCvCameraEncode::run);
 
   m.def("create_opencv_decode", &createOpenCvDecode, py::arg("flag"),
-        py::arg("name"), py::arg("output"));
+        py::arg("name"), py::arg("output"), py::keep_alive<0, 3>());
   m.def("create_opencv_encode", &createOpenCvEncode, py::arg("flag"),
-        py::arg("name"), py::arg("input"));
+        py::arg("name"), py::arg("input"), py::keep_alive<0, 3>());
 #endif
 }
 

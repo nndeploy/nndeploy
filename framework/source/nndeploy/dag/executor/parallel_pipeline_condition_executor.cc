@@ -1,72 +1,97 @@
-
 #include "nndeploy/dag/executor/parallel_pipeline_condition_executor.h"
 
 namespace nndeploy {
 namespace dag {
-
-ParallelPipelineConditionExecutor::ParallelPipelineConditionExecutor()
-    : ConditionExecutor() {};
-ParallelPipelineConditionExecutor::~ParallelPipelineConditionExecutor() {};
-
-base::Status ParallelPipelineConditionExecutor::init(
-    std::vector<EdgeWrapper *> &edge_repository,
-    std::vector<NodeWrapper *> &node_repository) {
-  base::Status status =
-      ConditionExecutor::init(edge_repository, node_repository);
-
-  all_task_count_ = static_cast<int>(node_repository.size());
-  thread_pool_ = new thread_pool::ThreadPool(all_task_count_);
-  status = thread_pool_->init();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "thread_pool_ init failed");
-  // 不要做无效边检测，需要的话交给graph做
-  edge_repository_ = edge_repository;
-
-  return status;
+ParallelPipelineConditionExecutor::ParallelPipelineConditionExecutor() = default;
+ParallelPipelineConditionExecutor::~ParallelPipelineConditionExecutor() {
+  if (thread_pool_) { interrupt(); deinit(); }
 }
 
-base::Status ParallelPipelineConditionExecutor::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto iter : edge_repository_) {
-    bool flag = iter->edge_->requestTerminate();
-    if (!flag) {
-      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
-      return base::kStatusCodeErrorDag;
-    }
+base::Status ParallelPipelineConditionExecutor::init(
+    std::vector<EdgeWrapper *> &edges, std::vector<NodeWrapper *> &nodes) {
+  if (thread_pool_) return base::kStatusCodeErrorInvalidValue;
+  auto status = ConditionExecutor::init(edges, nodes);
+  if (status != base::kStatusCodeOk) {
+    ConditionExecutor::deinit();
+    return status;
   }
-  thread_pool_->destroy();
-  delete thread_pool_;
-  for (auto iter : node_repository_) {
-    status = iter->node_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "failed iter->node_->deinit()");
-    iter->node_->setInitializedFlag(false);
-  }
+  node_mutexes_.clear();
+  for (auto *node : nodes) node_mutexes_.emplace_back(new std::mutex());
+  thread_pool_ = new thread_pool::ThreadPool(std::max<size_t>(1, nodes.size()));
+  status = thread_pool_->init();
+  if (status != base::kStatusCodeOk) { deinit(); return status; }
+  status_ = base::kStatusCodeOk;
+  accepting_ = true;
   return status;
 }
 
 base::Status ParallelPipelineConditionExecutor::run() {
-  base::Status status = base::kStatusCodeOk;
-  auto func = [this]() -> base::Status { return this->process(); };
-  thread_pool_->commit(std::bind(func));
-  return status;
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (status_ != base::kStatusCodeOk) return status_;
+  if (!accepting_) return base::kStatusCodeErrorInvalidValue;
+  const int selected = index_.load();
+  if (selected < 0 || static_cast<size_t>(selected) >= node_repository_.size())
+    return base::kStatusCodeErrorInvalidValue;
+  ++pending_;
+  thread_pool_->commit([this, selected] {
+    base::Status status;
+    try {
+      // A Node owns mutable inputs and scratch memory; don't re-enter it.
+      std::lock_guard<std::mutex> node_lock(*node_mutexes_[selected]);
+      status = processSelected(selected);
+    } catch (...) { status = base::kStatusCodeErrorDag; }
+    if (status != base::kStatusCodeOk) {
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (status_ == base::kStatusCodeOk) status_ = status;
+        accepting_ = false;
+      }
+      for (auto *edge : edge_repository_) edge->edge_->requestTerminate();
+    }
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      --pending_;
+    }
+    cv_.notify_all();
+  });
+  return base::kStatusCodeOk;
 }
 
 bool ParallelPipelineConditionExecutor::synchronize() {
-  for (auto iter : node_repository_) {
-    if (iter->node_->synchronize() == false) {
-      return false;
-    }
-  }
-  return true;
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] { return pending_ == 0; });
+  if (status_ != base::kStatusCodeOk) return false;
+  lock.unlock();
+  return ConditionExecutor::synchronize();
 }
 
 bool ParallelPipelineConditionExecutor::interrupt() {
-  for (auto e : edge_repository_) e->edge_->requestTerminate();
-  bool ok = true;
-  for (auto n : node_repository_) ok &= n->node_->interrupt();
-  return ok;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    accepting_ = false;
+    if (status_ == base::kStatusCodeOk) status_ = base::kStatusCodeNodeInterrupt;
+  }
+  for (auto *edge : edge_repository_) edge->edge_->requestTerminate();
+  return ConditionExecutor::interrupt();
 }
 
-}  // namespace dag
-}  // namespace nndeploy
+base::Status ParallelPipelineConditionExecutor::deinit() {
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    accepting_ = false;
+  }
+  if (thread_pool_) {
+    // Workers may be waiting for input or for space in a bounded output queue.
+    // Wake those edge operations before waiting, but keep nodes alive until all
+    // workers have stopped. Call synchronize() before deinit() to drain work.
+    for (auto *edge : edge_repository_) edge->edge_->requestTerminate();
+    synchronize();
+    thread_pool_->destroy();
+    delete thread_pool_;
+    thread_pool_ = nullptr;
+  }
+  auto status = ConditionExecutor::deinit();
+  return status_ != base::kStatusCodeOk ? status_ : status;
+}
+} // namespace dag
+} // namespace nndeploy

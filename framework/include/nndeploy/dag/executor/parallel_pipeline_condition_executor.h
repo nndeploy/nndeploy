@@ -24,8 +24,12 @@ class ParallelPipelineConditionExecutor : public ConditionExecutor {
 
  protected:
   thread_pool::ThreadPool *thread_pool_ = nullptr;
-  int all_task_count_ = 0;
-  std::vector<EdgeWrapper *> edge_repository_;
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  size_t pending_ = 0;
+  bool accepting_ = false;
+  base::Status status_ = base::kStatusCodeOk;
+  std::vector<std::unique_ptr<std::mutex>> node_mutexes_;
 };
 
 }  // namespace dag

@@ -12,7 +12,7 @@ DefaultInference::DefaultInference(base::InferenceType type) : Inference(type) {
   interpret_ = nullptr;
   net_ = nullptr;
 }
-DefaultInference::~DefaultInference() {}
+DefaultInference::~DefaultInference() { deinit(); }
 
 // 默认为init之前inference_param已经初始化，利用inference_param初始化DEFAULT的instance和其余各项参数
 base::Status DefaultInference::init() {
@@ -20,6 +20,10 @@ base::Status DefaultInference::init() {
 
   DefaultInferenceParam *default_inference_param =
       dynamic_cast<DefaultInferenceParam *>(inference_param_.get());
+  if (!default_inference_param || default_inference_param->model_value_.empty())
+    return base::kStatusCodeErrorInvalidParam;
+  if (net_ && net_->getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  if (interpret_ || net_) deinit();
   is_share_context_ = true;
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(default_inference_param->device_type_);
@@ -103,13 +107,15 @@ base::Status DefaultInference::deinit() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "deallocateInputOutputTensor failed!!\n");
 
-  net_->deinit();
-  delete net_;
-
-  // interpret_->deinit();
+  clearExternalInputs();
+  if (net_) {
+    status = net_->deinit();
+    delete net_;
+    net_ = nullptr;
+  }
   delete interpret_;
-
-  return base::kStatusCodeOk;
+  interpret_ = nullptr;
+  return status;
 }
 
 // 获取运行需要的memory大小
@@ -137,9 +143,10 @@ base::Status DefaultInference::reshape(base::ShapeMap &shape_map) {
   }
 
   if (flag) {
-    net_->reshape(shape_map);
+    auto status = net_->reshape(shape_map);
+    if (status != base::kStatusCodeOk) return status;
     deallocateInputOutputTensor();
-    allocateInputOutputTensor();
+    return allocateInputOutputTensor();
   }
 
   return base::kStatusCodeOk;
@@ -148,15 +155,24 @@ base::Status DefaultInference::reshape(base::ShapeMap &shape_map) {
 base::Status DefaultInference::run() {
   base::Status status = base::kStatusCodeOk;
 
-  for (auto external_input_tensor : external_input_tensors_) {
-    std::string name = external_input_tensor.first;
-    device::Tensor *src_tensor = external_input_tensor.second;
-    auto internal_input_tensor = input_tensors_.find(name);
-    if (internal_input_tensor == input_tensors_.end()) {
-      NNDEPLOY_LOGE("Not exsit input[%s].\n", name.c_str());
-      continue;
-    }
-    net_->copyToInputTensor(src_tensor);
+  base::ShapeMap changes;
+  for (const auto &entry : external_input_tensors_) {
+    auto it = input_tensors_.find(entry.first);
+    if (it == input_tensors_.end() || !entry.second ||
+        entry.second->getDataType() != it->second->getDataType())
+      return base::kStatusCodeErrorInvalidParam;
+    if (it->second->getShape() != entry.second->getShape())
+      changes[entry.first] = entry.second->getShape();
+  }
+  if (!changes.empty()) {
+    status = net_->reshape(changes);
+    if (status != base::kStatusCodeOk) return status;
+  }
+  for (const auto &entry : external_input_tensors_) {
+    device::Tensor source(*entry.second);
+    source.setName(entry.first);
+    status = net_->copyToInputTensor(&source);
+    if (status != base::kStatusCodeOk) return status;
   }
   status = net_->preRun();
   if (status != base::kStatusCodeOk) {

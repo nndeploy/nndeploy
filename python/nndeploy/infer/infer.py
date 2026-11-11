@@ -9,15 +9,13 @@ import nndeploy.dag
 
 
 class Infer(_C.infer.Infer):
-    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = [], type: nndeploy.base.InferenceType = None):
-        if inputs is [] and outputs is [] and type is None:
-            super().__init__(name)
-        elif inputs is not [] and outputs is not [] and type is None:
-            super().__init__(name, inputs, outputs)
-        elif inputs is [] and outputs is [] and type is not None:
-            super().__init__(name, type)
-        else:
-            super().__init__(name, inputs, outputs, type)
+    def __init__(self, name: str, inputs=None, outputs=None, type=None):
+        args = [name]
+        if inputs is not None or outputs is not None:
+            args.extend((inputs or [], outputs or []))
+        if type is not None:
+            args.append(type)
+        super().__init__(*args)
 
     def set_input_name(self, name, index=0):
         return super().set_input_name(name, index)

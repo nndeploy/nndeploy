@@ -5,68 +5,37 @@
 namespace nndeploy {
 namespace device {
 
-std::vector<long> calculateStridesBaseShape(const base::IntVector& shape) {
-  std::vector<long> strides(shape.size());
-  long total_size = 1;
-
-  // 从后往前计算每个维度的 stride
-  for (int i = shape.size() - 1; i >= 0; --i) {
-    strides[i] = total_size;
-    total_size *= shape[i];
+py::array tensorArray(Tensor &tensor) {
+  auto *buffer = tensor.getBuffer();
+  if (!buffer || !isHostDeviceType(buffer->getDeviceType()))
+    throw py::value_error("only tensors with host storage can be exported to NumPy");
+  auto desc = tensor.getDesc();
+  size_t span;
+  if (!desc.getStorageSize(span) || span > buffer->getRealSize() ||
+      span > static_cast<size_t>(PY_SSIZE_T_MAX) || (span && !buffer->getData()))
+    throw py::value_error("tensor layout exceeds its backing storage");
+  auto format = getPyBufferFormat(desc.data_type_);
+  if (format.empty() || desc.data_type_.lanes_ != 1)
+    throw py::type_error("unsupported tensor dtype");
+  std::vector<py::ssize_t> strides;
+  for (size_t stride : desc.stride_) {
+    if (stride > static_cast<size_t>(PY_SSIZE_T_MAX))
+      throw py::value_error("tensor stride exceeds Python's size limit");
+    strides.push_back(static_cast<py::ssize_t>(stride));
   }
-
-  return strides;
+  return py::array(py::dtype(format), desc.shape_, strides, buffer->getData(),
+                   py::cast(Buffer(*buffer)));
 }
 
-py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
-  base::DeviceType host_device_type = getDefaultHostDeviceType();
-  device::Tensor* host_tensor = nullptr;
-  base::DeviceType device_type = tensor->getDeviceType();
-  if (device::isHostDeviceType(
-          device_type)) {  // 如果是host，则直接将其传递给numpy
-                           // array
-    host_tensor = tensor;
-  } else {
-    std::stringstream ss;
-    ss << "convert nndeploy.device.Tensor to numpy array only support device"
-          ":host  but get device_code:"
-       << base::deviceTypeToString(device_type.code_);
-
-    pybind11::pybind11_fail(ss.str());
-    // 无法做内存管理
-    // host_tensor = moveTensorToDevice(tensor, host_device_type);
+static std::unique_ptr<Tensor> copyTensorToDevice(Tensor &src, Device *dst) {
+  auto result = std::make_unique<Tensor>(dst, src.getDesc());
+  if (src.getSize()) {
+    if (!result->getData() || result->getSize() < src.getSize())
+      throw std::runtime_error("failed to allocate destination tensor");
+    auto status = src.copyTo(result.get());
+    if (status != base::kStatusCodeOk) throw std::runtime_error(status.desc());
   }
-  void* data = host_tensor->getBuffer()->getData();
-  if (data == nullptr) {
-    std::stringstream ss;
-    ss << "Convert nndeploy Tensor to numpy.ndarray. Get data_ptr==nullptr";
-
-    py::pybind11_fail(ss.str());
-  }
-  auto elemsize = tensor->getDataType().size();
-  auto format = getPyBufferFormat(tensor->getDataType());
-  auto dims = tensor->getShape().size();
-  std::vector<long> strides;
-  for (auto stride : tensor->getStride()) {
-    strides.push_back((long)stride);
-  }
-  if (strides.empty()) {
-    strides = calculateStridesBaseShape(
-        tensor->getShape());  // nndeploy中的strides可能为空，根据shape重新计算
-    for (int i = 0; i < strides.size(); i++) {
-      strides[i] = strides[i] * elemsize;
-    }
-  }
-
-  // https://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
-  return py::buffer_info(data,     /* Pointer to buffer */
-                         elemsize, /* Size of one scalar */
-                         format,   /* Python struct-style format descriptor */
-                         dims,     /* Number of dimensions */
-                         tensor->getShape(), /* Buffer dimensions */
-                         strides /* Strides (in bytes) for each index */
-
-  );
+  return result;
 }
 
 device::Tensor* bufferInfoToTensorByDeviceTypeCode(
@@ -78,101 +47,42 @@ device::Tensor* bufferInfoToTensorByDeviceTypeCode(
 device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
                                    const base::DeviceType& device_type) {
 
-  py::buffer_info info = buffer.request();
-  if (info.ndim > 5) {
-    std::stringstream ss;
-    ss << "convert numpy.ndarray to nndeploy Tensor only dims <=4 support now, "
-          "but given "
-       << info.ndim;
-    pybind11::pybind11_fail(ss.str());
+  auto array = py::array::ensure(buffer);
+  if (!array) throw py::type_error("expected a NumPy-compatible buffer");
+  static const base::DataFormat formats[] = {
+      base::kDataFormatNotSupport, base::kDataFormatN, base::kDataFormatNC,
+      base::kDataFormatNCL, base::kDataFormatNCHW, base::kDataFormatNCDHW};
+  if (array.ndim() > 5) throw py::value_error("tensor rank must be at most 5");
+  TensorDesc desc;
+  desc.data_format_ = formats[array.ndim()];
+  for (py::ssize_t i = 0; i < array.ndim(); ++i) {
+    if (array.shape(i) > INT_MAX) throw py::value_error("tensor dimension exceeds INT_MAX");
+    desc.shape_.push_back(static_cast<int>(array.shape(i)));
   }
-
-  device::TensorDesc desc;
-
-  // 根据numpy中元素的空间大小，赋值一个默认数值类型
-  // base::DataType data_type;
-  char kind = info.format.front();
-  // int bits = info.itemsize * 8;
-  // switch (kind) {
-  //   case 'f':
-  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
-  //     break;
-  //   case 'i':
-  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-  //     break;
-  //   case 'u':
-  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint,
-  //     bits); break;
-  //   default:
-  //     std::stringstream ss;
-  //     ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
-  //           "f, i, u "
-  //           "now, "
-  //           "but given "
-  //        << kind;
-  //     pybind11::pybind11_fail(ss.str());
-  // }
-  desc.data_type_ = getDataTypeFromNumpy(kind, info.itemsize);
-
-  // 根据numpy中维度的大小，赋值一个默认格式
-  switch (info.ndim) {
-    case 1:
-      desc.data_format_ = base::kDataFormatN;
-      break;
-    case 2:
-      desc.data_format_ = base::kDataFormatNC;
-      break;
-    case 3:
-      desc.data_format_ = base::kDataFormatNCL;
-      break;
-    case 4:
-      desc.data_format_ = base::kDataFormatNCHW;
-      break;
-    case 5:
-      desc.data_format_ = base::kDataFormatNCDHW;
-      break;
-    default:
-      desc.data_format_ = base::kDataFormatNotSupport;
-      break;
+  auto dtype = array.dtype();
+  base::DataTypeCode code;
+  switch (dtype.kind()) {
+    case 'i': code = base::kDataTypeCodeInt; break;
+    case 'u': code = base::kDataTypeCodeUint; break;
+    case 'f': code = base::kDataTypeCodeFp; break;
+    default: throw py::type_error("unsupported NumPy tensor dtype");
   }
+  if (dtype.itemsize() > 8) throw py::type_error("unsupported NumPy tensor item size");
+  desc.data_type_ = base::DataType(code, dtype.itemsize() * 8);
+  if (getPyBufferFormat(desc.data_type_).empty()) throw py::type_error("unsupported tensor dtype");
+  if (!dtype.attr("isnative").cast<bool>())
+    array = array.attr("astype")(dtype.attr("newbyteorder")("=")).cast<py::array>();
 
-  desc.shape_ = std::vector<int>(info.shape.begin(), info.shape.end());
-  void* data_ptr = info.ptr;
+  Device *dst = getDevice(device_type);
+  if (!dst) throw py::value_error("requested tensor device is unavailable");
+  const bool host = isHostDeviceType(device_type);
+  auto storage = std::make_unique<Buffer>(bufferFromNumpy(array, host ? dst : getDefaultHostDevice()));
+  auto tensor = std::make_unique<Tensor>(desc);
+  tensor->justModify(storage.get(), false);
+  storage.release();
+  if (host) return tensor.release();
 
-  if (device::isHostDeviceType(device_type)) {
-    auto host_device = device::getDevice(device_type);
-    device::Tensor* host_tensor =
-        new device::Tensor(host_device, desc, data_ptr, "");
-    if (host_tensor == nullptr) {
-      return nullptr;
-    }
-    auto dst_tensor = host_tensor;
-    return dst_tensor;
-  } else {
-    auto host_device = device::getDefaultHostDevice();
-    device::Tensor* host_tensor =
-        new device::Tensor(host_device, desc, data_ptr, "");
-    if (host_tensor == nullptr) {
-      return nullptr;
-    }
-    auto dst_device = device::getDevice(device_type);
-    auto cur_buffer = host_tensor->getBuffer();
-
-    auto dst_tensor = new device::Tensor(dst_device, desc);
-    if (cur_buffer->copyTo(dst_tensor->getBuffer()) != base::kStatusCodeOk) {
-      // std::stringstream ss;
-      // ss << "move Tensor from "
-      //    << base::deviceTypeToString(cur_device->getDeviceType()) << " to "
-      //    << base::deviceTypeToString(dst_device->getDeviceType()) << "
-      //    failed!";
-      // pybind11::pybind11_fail(ss.str());
-      return nullptr;
-    }
-
-    delete host_tensor;
-
-    return dst_tensor;
-  }
+  return copyTensorToDevice(*tensor, dst).release();
 }
 
 device::Tensor* moveTensorToDeviceByDeviceTypeCode(
@@ -183,24 +93,12 @@ device::Tensor* moveTensorToDeviceByDeviceTypeCode(
 
 device::Tensor* moveTensorToDevice(device::Tensor* tensor,
                                    const base::DeviceType& device_type) {
-  auto cur_device = tensor->getDevice();
-  auto dst_device = device::getDevice(device_type);
-  if (cur_device->getDeviceType() != device_type) {
-    auto cur_desc = tensor->getDesc();
-    auto cur_buffer = tensor->getBuffer();
-
-    auto dst_tensor = new device::Tensor(dst_device, cur_desc);
-    if (cur_buffer->copyTo(dst_tensor->getBuffer()) != base::kStatusCodeOk) {
-      std::stringstream ss;
-      ss << "move Tensor from "
-         << base::deviceTypeToString(cur_device->getDeviceType()) << " to "
-         << base::deviceTypeToString(dst_device->getDeviceType()) << " failed!";
-      pybind11::pybind11_fail(ss.str());
-    }
-    return dst_tensor;
-  }
-
-  return tensor;
+  auto *src = tensor->getDevice();
+  if (!src) throw py::value_error("source tensor has no device");
+  if (src->getDeviceType() == device_type) return tensor;
+  auto *dst = getDevice(device_type);
+  if (!dst) throw py::value_error("requested tensor device is unavailable");
+  return copyTensorToDevice(*tensor, dst).release();
 }
 
 }  // namespace device

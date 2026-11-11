@@ -51,7 +51,7 @@ class AbstractLlmInfer : public dag::CompositeNode {
   }
   virtual ~AbstractLlmInfer() {}
 
-  virtual base::Status run() = 0;
+  virtual base::Status run() override = 0;
 
   virtual base::Status setPrefill(bool is_prefill) {
     is_prefill_ = is_prefill;

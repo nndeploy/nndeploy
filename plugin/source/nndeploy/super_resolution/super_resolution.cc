@@ -40,9 +40,9 @@ base::Status SuperResolutionPostProcess::run() {
 
   for (int frame = 0; frame < frame_num; frame++) {
     int index = 0;
-    for (int h = 0; h < h; ++h) {
-      for (int w = 0; w < w; ++w) {
-        temp.at<cv::Vec3f>(h, w) = {
+    for (int y = 0; y < h; ++y) {
+      for (int x = 0; x < w; ++x) {
+        temp.at<cv::Vec3f>(y, x) = {
             out_data[2 * pix_num + index + frame_pix_num * frame],
             out_data[pix_num + index + frame_pix_num * frame],
             out_data[index + frame_pix_num * frame]};

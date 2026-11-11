@@ -1,31 +1,29 @@
 
 #include "nndeploy/preprocess/convert_to.h"
+#include "nndeploy/op/op_cast.h"
 
 namespace nndeploy {
 namespace preprocess {
 
 base::Status ConvertTo::run() {
-  base::Status status = base::kStatusCodeOk;
-  ConvertToParam *param = (ConvertToParam *)(param_.get());
-
-  device::Tensor *src = inputs_[0]->getTensor(this);
-  device::TensorDesc src_desc = src->getDesc();
-  if (src_desc.data_type_ == param->dst_data_type_) {
-    if (parallel_type_ != base::kParallelTypePipeline) {
-      device::Tensor *dst = new device::Tensor(*src);
-      outputs_[0]->set(dst);
-    } else {
-      device::Tensor *dst = src->clone();
-      outputs_[0]->set(dst);
-    }
+  if (inputs_.empty() || outputs_.empty()) return base::kStatusCodeErrorInvalidParam;
+  auto *param = dynamic_cast<ConvertToParam *>(param_.get());
+  auto *src = inputs_[0]->getTensor(this);
+  if (!src || !param || !src->getData()) return base::kStatusCodeErrorInvalidParam;
+  std::unique_ptr<device::Tensor> dst;
+  if (src->getDataType() == param->dst_data_type_) {
+    dst.reset(parallel_type_ == base::kParallelTypePipeline
+                  ? src->clone() : new device::Tensor(*src));
   } else {
-    device::TensorDesc dst_desc = src_desc;
-    dst_desc.data_type_ = param->dst_data_type_;
-    device::Tensor *dst = outputs_[0]->create(src->getDevice(), dst_desc);
-    // status = op::cast(src, dst, src_desc.data_type_, dst_desc.data_type_);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "convertTo failed.");
+    auto cast_param = std::make_shared<ir::CastParam>();
+    cast_param->to_ = param->dst_data_type_;
+    dst = std::make_unique<device::Tensor>();
+    auto status = op::cast(src, cast_param, dst.get());
+    if (status != base::kStatusCodeOk) return status;
   }
-
+  if (!dst) return base::kStatusCodeErrorOutOfMemory;
+  auto status = outputs_[0]->set(dst.get(), false);
+  if (status == base::kStatusCodeOk) dst.release();
   return status;
 }
 

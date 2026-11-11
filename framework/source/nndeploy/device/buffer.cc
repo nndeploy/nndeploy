@@ -6,37 +6,31 @@
 namespace nndeploy {
 namespace device {
 
-namespace {
+struct Buffer::Storage {
+  int refs = 1;
+  std::shared_ptr<void> external_owner;
+};
 
-void releaseBufferState(Device *&device, MemoryPool *&memory_pool,
-                        BufferDesc &desc, base::MemoryType &memory_type,
-                        int *&ref_count, void *&data) {
-  if (data != nullptr && ref_count != nullptr &&
-      NNDEPLOY_XADD(ref_count, -1) == 1) {
-    if (memory_pool != nullptr && memory_type == base::kMemoryTypeAllocate) {
-      memory_pool->deallocate(data);
-    } else if (device != nullptr && memory_type == base::kMemoryTypeAllocate) {
-      device->deallocate(data);
+int Buffer::addRef() const { return NNDEPLOY_XADD(&storage_->refs, 1); }
+int Buffer::subRef() const { return NNDEPLOY_XADD(&storage_->refs, -1); }
+
+void Buffer::release() {
+  if (storage_ && subRef() == 1) {
+    if (data_ && memory_type_ == base::kMemoryTypeAllocate) {
+      if (memory_pool_) memory_pool_->deallocate(data_);
+      else if (device_) device_->deallocate(data_);
     }
-    delete ref_count;
+    delete storage_;
   }
-
-  device = nullptr;
-  memory_pool = nullptr;
-  desc.clear();
-  memory_type = base::kMemoryTypeNone;
-  ref_count = nullptr;
-  data = nullptr;
+  clear();
 }
-
-}  // namespace
 
 Buffer::Buffer(Device *device, size_t size) {
   device_ = device;
   memory_pool_ = nullptr;
   desc_ = size;
   memory_type_ = base::kMemoryTypeAllocate;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = device->allocate(desc_);
 }
 Buffer::Buffer(Device *device, const BufferDesc &desc) {
@@ -44,7 +38,7 @@ Buffer::Buffer(Device *device, const BufferDesc &desc) {
   memory_pool_ = nullptr;
   desc_ = desc;
   memory_type_ = base::kMemoryTypeAllocate;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = device->allocate(desc_);
 }
 
@@ -53,7 +47,7 @@ Buffer::Buffer(Device *device, size_t size, void *ptr) {
   memory_pool_ = nullptr;
   desc_ = size;
   memory_type_ = base::kMemoryTypeExternal;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
 }
 Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr) {
@@ -61,8 +55,13 @@ Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr) {
   memory_pool_ = nullptr;
   desc_ = desc;
   memory_type_ = base::kMemoryTypeExternal;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
+}
+
+Buffer::Buffer(Device *device, const BufferDesc &desc, std::shared_ptr<void> storage)
+    : Buffer(device, desc, storage.get()) {
+  storage_->external_owner = std::move(storage);
 }
 
 Buffer::Buffer(Device *device, size_t size, void *ptr,
@@ -71,7 +70,7 @@ Buffer::Buffer(Device *device, size_t size, void *ptr,
   memory_pool_ = nullptr;
   desc_ = size;
   memory_type_ = memory_type;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
 }
 Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
@@ -80,7 +79,7 @@ Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
   memory_pool_ = nullptr;
   desc_ = desc;
   memory_type_ = memory_type;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
 }
 
@@ -89,7 +88,7 @@ Buffer::Buffer(MemoryPool *memory_pool, size_t size) {
   memory_pool_ = memory_pool;
   desc_ = size;
   memory_type_ = base::kMemoryTypeAllocate;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = memory_pool->allocate(desc_);
 }
 Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc) {
@@ -97,7 +96,7 @@ Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc) {
   memory_pool_ = memory_pool;
   desc_ = desc;
   memory_type_ = base::kMemoryTypeAllocate;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = memory_pool->allocate(desc_);
 }
 Buffer::Buffer(MemoryPool *memory_pool, size_t size, void *ptr,
@@ -106,7 +105,7 @@ Buffer::Buffer(MemoryPool *memory_pool, size_t size, void *ptr,
   memory_pool_ = memory_pool;
   desc_ = size;
   memory_type_ = memory_type;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
 }
 Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc, void *ptr,
@@ -115,7 +114,7 @@ Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc, void *ptr,
   memory_pool_ = memory_pool;
   desc_ = desc;
   memory_type_ = memory_type;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   data_ = ptr;
 }
 
@@ -127,8 +126,8 @@ Buffer::Buffer(const Buffer &buffer) {
   memory_pool_ = buffer.memory_pool_;
   desc_ = buffer.desc_;
   memory_type_ = buffer.memory_type_;
-  ref_count_ = buffer.ref_count_;
-  if (ref_count_ != nullptr) {
+  storage_ = buffer.storage_;
+  if (storage_ != nullptr) {
     buffer.addRef();
   }
   data_ = buffer.data_;
@@ -137,14 +136,13 @@ Buffer &Buffer::operator=(const Buffer &buffer) {
   if (this == &buffer) {
     return *this;
   }
-  releaseBufferState(device_, memory_pool_, desc_, memory_type_, ref_count_,
-                     data_);
+  release();
   device_ = buffer.device_;
   memory_pool_ = buffer.memory_pool_;
   desc_ = buffer.desc_;
   memory_type_ = buffer.memory_type_;
-  ref_count_ = buffer.ref_count_;
-  if (ref_count_ != nullptr) {
+  storage_ = buffer.storage_;
+  if (storage_ != nullptr) {
     buffer.addRef();
   }
   data_ = buffer.data_;
@@ -159,7 +157,7 @@ Buffer::Buffer(Buffer &&buffer) noexcept {
   memory_pool_ = buffer.memory_pool_;
   desc_ = std::move(buffer.desc_);
   memory_type_ = buffer.memory_type_;
-  ref_count_ = buffer.ref_count_;
+  storage_ = buffer.storage_;
   data_ = buffer.data_;
   buffer.clear();
 }
@@ -167,21 +165,19 @@ Buffer &Buffer::operator=(Buffer &&buffer) noexcept {
   if (this == &buffer) {
     return *this;
   }
-  releaseBufferState(device_, memory_pool_, desc_, memory_type_, ref_count_,
-                     data_);
+  release();
   device_ = buffer.device_;
   memory_pool_ = buffer.memory_pool_;
   desc_ = std::move(buffer.desc_);
   memory_type_ = buffer.memory_type_;
-  ref_count_ = buffer.ref_count_;
+  storage_ = buffer.storage_;
   data_ = buffer.data_;
   buffer.clear();
   return *this;
 }
 
 Buffer::~Buffer() {
-  releaseBufferState(device_, memory_pool_, desc_, memory_type_, ref_count_,
-                     data_);
+  release();
 };
 
 Buffer *Buffer::clone() {
@@ -228,34 +224,21 @@ bool Buffer::justModify(const BufferDesc &desc) {
 
 // 序列化buffer为二进制文件
 base::Status Buffer::serialize(std::string &bin_str) {
-  std::stringstream stream;
-  uint64_t buffer_size = this->getRealSize();
-  if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
-                    sizeof(buffer_size))) {
-    return base::kStatusCodeErrorIO;
+  const uint64_t size = getRealSize();
+  std::string result(reinterpret_cast<const char *>(&size), sizeof(size));
+  if (size > result.max_size() - sizeof(size)) return base::kStatusCodeErrorInvalidValue;
+  if (size) {
+    if (!device_ || !data_) return base::kStatusCodeErrorNullParam;
+    result.resize(sizeof(size) + size);
+    char *dst = &result[sizeof(size)];
+    if (isHostDeviceType(getDeviceType())) {
+      std::memcpy(dst, data_, size);
+    } else {
+      auto status = device_->download(data_, dst, size);
+      if (status != base::kStatusCodeOk) return status;
+    }
   }
-  if (!isHostDeviceType(this->getDeviceType())) {
-    Device *host_device = getDefaultHostDevice();
-    Buffer *host_buffer = new Buffer(host_device, this->getDesc());
-    base::Status status = this->copyTo(host_buffer);
-    if (status != base::kStatusCodeOk) {
-      delete host_buffer;
-      return status;
-    }
-    const char *data = static_cast<const char *>(host_buffer->getData());
-    if (!stream.write(data, buffer_size)) {
-      return base::kStatusCodeErrorIO;
-    }
-    delete host_buffer;
-    return status;
-  } else {
-    const char *data = static_cast<const char *>(data_);
-    if (!stream.write(data, buffer_size)) {
-      return base::kStatusCodeErrorIO;
-    }
-    return base::kStatusCodeOk;
-  }
-  bin_str = stream.str();
+  bin_str.swap(result);
   return base::kStatusCodeOk;
 }
 
@@ -291,23 +274,19 @@ base::Status Buffer::serializeToSafetensors(
 
 // 从二进制文件反序列化回buffer
 base::Status Buffer::deserialize(const std::string &bin_str) {
-  std::stringstream stream(bin_str);
-  device_ = getDefaultHostDevice();
-  memory_pool_ = nullptr;
-  memory_type_ = base::kMemoryTypeAllocate;
-  ref_count_ = new int(1);
-  uint64_t buffer_size = 0;
-  if (!stream.read(reinterpret_cast<char *>(&buffer_size),
-                   sizeof(buffer_size))) {
-    return base::kStatusCodeErrorIO;
+  uint64_t size;
+  if (bin_str.size() < sizeof(size)) return base::kStatusCodeErrorIO;
+  std::memcpy(&size, bin_str.data(), sizeof(size));
+  if (size > bin_str.size() - sizeof(size)) return base::kStatusCodeErrorIO;
+  auto *host = getDefaultHostDevice();
+  if (!host) return base::kStatusCodeErrorNullParam;
+  Buffer replacement(host, static_cast<size_t>(size));
+  if (size) {
+    if (!replacement.data_) return base::kStatusCodeErrorOutOfMemory;
+    std::memcpy(replacement.data_, bin_str.data() + sizeof(size), size);
   }
-  desc_ = buffer_size;
-  data_ = device_->allocate(buffer_size);
-  if (!stream.read(reinterpret_cast<char *>(data_), buffer_size)) {
-    return base::kStatusCodeErrorIO;
-  } else {
-    return base::kStatusCodeOk;
-  }
+  *this = std::move(replacement);
+  return base::kStatusCodeOk;
 }
 
 // base::Status Buffer::serializeFromSafetensors(const char *storage,
@@ -315,7 +294,7 @@ base::Status Buffer::deserialize(const std::string &bin_str) {
 
 //   memory_pool_ = nullptr;
 //   memory_type_ = base::kMemoryTypeMapped;
-//   ref_count_ = new int(1);
+//   storage_ = new Storage();
 //   desc_ = data_size;  // still_need to
 //   data_ = (void *)storage;
 //   return base::kStatusCodeOk;
@@ -325,7 +304,7 @@ void Buffer::print(std::ostream &stream) const {
   stream << "Buffer: " << std::endl;
   stream << "device type: " << base::deviceTypeToString(this->getDeviceType())
          << std::endl;
-  stream << "ref_count: " << ref_count_[0] << std::endl;
+  stream << "ref_count: " << storage_->refs << std::endl;
   desc_.print(stream);
 }
 
@@ -371,7 +350,7 @@ void Buffer::clear() {
   memory_pool_ = nullptr;
   desc_.clear();
   memory_type_ = base::kMemoryTypeNone;
-  ref_count_ = nullptr;
+  storage_ = nullptr;
   data_ = nullptr;
 }
 

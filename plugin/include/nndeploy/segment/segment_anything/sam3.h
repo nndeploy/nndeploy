@@ -419,7 +419,7 @@ class NNDEPLOY_CC_API Sam3LanguageEncodeNode : public dag::Node {
 
   virtual ~Sam3LanguageEncodeNode() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 
   base::Status setTextEncoderInferParam(base::InferenceType inference_type,
                                         base::DeviceType device_type,
@@ -461,7 +461,7 @@ class NNDEPLOY_CC_API Sam3ConceptEncodeNode : public dag::Node {
   }
   virtual ~Sam3ConceptEncodeNode() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 
   base::Status setConcepts(const std::vector<std::string>& concepts) {
     Sam3ConceptParam* param = dynamic_cast<Sam3ConceptParam*>(param_.get());
@@ -513,7 +513,7 @@ class NNDEPLOY_CC_API Sam3ExemplarEncodeNode : public dag::Node {
   }
   virtual ~Sam3ExemplarEncodeNode() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   // Set the inference param to point to the shared PE model
@@ -567,7 +567,7 @@ class NNDEPLOY_CC_API Sam3PostProcess : public dag::Node {
   }
   virtual ~Sam3PostProcess() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 };
 
@@ -605,7 +605,7 @@ class NNDEPLOY_CC_API Sam3PerceptionEncoder : public dag::Node {
   }
   virtual ~Sam3PerceptionEncoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -659,7 +659,7 @@ class NNDEPLOY_CC_API Sam3DetectorDecoder : public dag::Node {
   }
   virtual ~Sam3DetectorDecoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -720,7 +720,7 @@ class NNDEPLOY_CC_API Sam3PresenceHead : public dag::Node {
   }
   virtual ~Sam3PresenceHead() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
  private:
@@ -767,7 +767,7 @@ class NNDEPLOY_CC_API Sam3ConceptMatcher : public dag::Node {
   }
   virtual ~Sam3ConceptMatcher() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 };
 
@@ -804,7 +804,7 @@ class NNDEPLOY_CC_API Sam3MemoryEncoder : public dag::Node {
   }
   virtual ~Sam3MemoryEncoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -855,7 +855,7 @@ class NNDEPLOY_CC_API Sam3TrackerMaskDecoder : public dag::Node {
   }
   virtual ~Sam3TrackerMaskDecoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -903,7 +903,7 @@ class NNDEPLOY_CC_API Sam3MemoryManager : public dag::Node {
   }
   virtual ~Sam3MemoryManager() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   void reset() {
@@ -1020,7 +1020,7 @@ class NNDEPLOY_CC_API Sam3SimpleImageEncoder : public dag::Node {
   }
   virtual ~Sam3SimpleImageEncoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -1082,7 +1082,7 @@ class NNDEPLOY_CC_API Sam3SimpleLanguageEncoder : public dag::Node {
   }
   virtual ~Sam3SimpleLanguageEncoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -1155,7 +1155,7 @@ class NNDEPLOY_CC_API Sam3SimpleDecoder : public dag::Node {
   }
   virtual ~Sam3SimpleDecoder() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 
   base::Status setInferParam(base::InferenceType inference_type,
@@ -1222,7 +1222,7 @@ class NNDEPLOY_CC_API Sam3SimplePostprocess : public dag::Node {
   }
   virtual ~Sam3SimplePostprocess() {}
 
-  virtual base::Status run();
+  virtual base::Status run() override;
   base::Status defaultParam() override;
 };
 

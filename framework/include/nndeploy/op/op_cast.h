@@ -2,8 +2,8 @@
  *   Copyright (c) 2025
  *   All rights reserved.
  */
-#ifndef _NNDEPLOY_OP_OP_ABS_H_
-#define _NNDEPLOY_OP_OP_ABS_H_
+#ifndef _NNDEPLOY_OP_OP_CAST_H_
+#define _NNDEPLOY_OP_OP_CAST_H_
 
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
@@ -17,7 +17,8 @@ class OpCast : public OpUnary {
   OpCast() : OpUnary() { is_inplace_ = false; }
   virtual ~OpCast() {}
 
-  virtual base::Status run();
+  base::Status inferDataType() override;
+  base::Status run() override;
 };
 
 NNDEPLOY_CC_API base::Status cast(device::Tensor* input,
@@ -27,4 +28,4 @@ NNDEPLOY_CC_API base::Status cast(device::Tensor* input,
 }  // namespace op
 }  // namespace nndeploy
 
-#endif  // _NNDEPLOY_OP_OP_ABS_H_
+#endif  // _NNDEPLOY_OP_OP_CAST_H_

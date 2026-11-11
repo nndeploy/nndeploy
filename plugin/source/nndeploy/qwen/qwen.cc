@@ -8,6 +8,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -448,15 +449,46 @@ base::Status PrefillEmbeddingNode::run() {
   return status;
 }
 
+static int sampleLastToken(device::Tensor* logits, const std::vector<int>& history) {
+  if (!logits || !logits->getData() || !device::isHostDeviceType(logits->getDeviceType()) ||
+      logits->getDataType() != base::dataTypeOf<float>()) return -1;
+  const auto shape = logits->getShape();
+  if (shape.empty()) return -1;
+  size_t count = 1;
+  for (int dim : shape) {
+    if (dim <= 0 || count > logits->getSize() / sizeof(float) / dim) return -1;
+    count *= dim;
+  }
+  int vocab = shape.back();
+  const float* scores = static_cast<const float*>(logits->getData()) + count - vocab;
+  std::unordered_set<int> seen(history.begin(), history.end());
+  for (int id : seen) {
+    if (id < 0 || id >= vocab) return -1;
+  }
+  int best = 0;
+  float maximum = -std::numeric_limits<float>::infinity();
+  for (int id = 0; id < vocab; ++id) {
+    float score = scores[id];
+    if (seen.count(id)) score = score < 0 ? score * 1.1f : score / 1.1f;
+    if (score > maximum) {
+      maximum = score;
+      best = id;
+    }
+  }
+  return best;
+}
+
 base::Status PrefillSampleNode::run() {
   base::Status status = base::kStatusCodeOk;
 
   device::Tensor* logits = inputs_[0]->getTensor(this);
   tokenizer::TokenizerIds* token_ids =
-      (tokenizer::TokenizerIds*)inputs_[1]->getParam(this);
-  std::vector<int32_t> history_ids = token_ids->ids_[0];
+      dynamic_cast<tokenizer::TokenizerIds*>(inputs_[1]->getParam(this));
+  if (!token_ids || token_ids->ids_.empty()) return base::kStatusCodeErrorInvalidValue;
+  const auto& history_ids = token_ids->ids_[0];
 
   int32_t out_token_id = sample(logits, history_ids);
+  if (out_token_id < 0) return base::kStatusCodeErrorInvalidValue;
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
 
   out_token->ids_.push_back({out_token_id});
@@ -469,30 +501,7 @@ base::Status PrefillSampleNode::run() {
 
 int32_t PrefillSampleNode::sample(device::Tensor* logits,
                                   const std::vector<int>& history_ids) {
-  std::unordered_set<int> ids_set(history_ids.begin(), history_ids.end());
-  auto scores = (float*)logits->getData();
-  auto shape = logits->getShape();
-  auto size = std::accumulate(shape.begin(), shape.end(), 1,
-                              std::multiplies<int64_t>());
-  // repetition penalty
-  const float repetition_penalty = 1.1;
-  for (auto id : ids_set) {
-    float score = scores[id];
-    scores[id] =
-        score < 0 ? score * repetition_penalty : score / repetition_penalty;
-  }
-  // argmax
-  float max_score = 0;
-  int token_id = 0;
-  for (int i = 0; i < size; i++) {
-    float score = scores[i];
-    if (score > max_score) {
-      max_score = score;
-      token_id = i;
-    }
-  }
-
-  return token_id;
+  return sampleLastToken(logits, history_ids);
 }
 
 // QwenPrefill
@@ -642,7 +651,7 @@ base::Status QwenPrefill::setConfigParam() {
   tokenizer::TokenizerPraram* token_param =
       dynamic_cast<tokenizer::TokenizerPraram*>(
           prefill_token_node_->getParam());
-  token_param->is_path_ = false;
+  token_param->is_path_ = true;
   token_param->tokenizer_type_ =
       nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
   token_param->json_blob_ = config.tokenizer_json_;
@@ -674,9 +683,12 @@ base::Status DecodeSampleNode::run() {
 
   DecodeSampleParam* sample_params =
       dynamic_cast<DecodeSampleParam*>(param_.get());
-  std::vector<int32_t> history_ids = sample_params->history_ids_.ids_[0];
+  if (!sample_params || sample_params->history_ids_.ids_.empty() ||
+      sample_params->history_ids_.ids_[0].empty()) return base::kStatusCodeErrorInvalidValue;
+  const auto& history_ids = sample_params->history_ids_.ids_[0];
 
-  int32_t out_token_id = sample(logits, history_ids_);
+  int32_t out_token_id = sample(logits, history_ids);
+  if (out_token_id < 0) return base::kStatusCodeErrorInvalidValue;
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
 
   /* when first time decode, append the prefill preditct token */
@@ -696,30 +708,7 @@ base::Status DecodeSampleNode::run() {
 
 int32_t DecodeSampleNode::sample(device::Tensor* logits,
                                  const std::vector<int>& history_ids) {
-  std::unordered_set<int> ids_set(history_ids.begin(), history_ids.end());
-  auto scores = (float*)logits->getData();
-  auto shape = logits->getShape();
-  auto size = std::accumulate(shape.begin(), shape.end(), 1,
-                              std::multiplies<int64_t>());
-  // repetition penalty
-  const float repetition_penalty = 1.1;
-  for (auto id : ids_set) {
-    float score = scores[id];
-    scores[id] =
-        score < 0 ? score * repetition_penalty : score / repetition_penalty;
-  }
-  // argmax
-  float max_score = 0;
-  int token_id = 0;
-  for (int i = 0; i < size; i++) {
-    float score = scores[i];
-    if (score > max_score) {
-      max_score = score;
-      token_id = i;
-    }
-  }
-
-  return token_id;
+  return sampleLastToken(logits, history_ids);
 }
 
 base::Status DecodeEmbeddingNode::run() {
@@ -1083,7 +1072,7 @@ base::Status QwenDecode::setConfigParam() {
 
   tokenizer::TokenizerPraram* token_param =
       dynamic_cast<tokenizer::TokenizerPraram*>(decode_node_->getParam());
-  token_param->is_path_ = false;
+  token_param->is_path_ = true;
   token_param->tokenizer_type_ =
       nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
   token_param->json_blob_ = config.tokenizer_json_;

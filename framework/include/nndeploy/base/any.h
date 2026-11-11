@@ -211,7 +211,8 @@ class Any {
   // constant to check if data can be stored on heap.
   template <typename T>
   struct data_on_stack {
-    static const bool value = alignof(T) <= kAlign && sizeof(T) <= kStack;
+    static const bool value = alignof(T) <= kAlign && sizeof(T) <= kStack &&
+                              std::is_trivially_copyable<T>::value;
   };
 
   // declare friend with
@@ -296,7 +297,6 @@ template <typename T, typename... Args>
 inline void Any::construct(Args&&... args) {
   clear();
   typedef typename std::decay<T>::type DT;
-  type_ = TypeInfo<DT>::getType();
   if (data_on_stack<DT>::value) {
 #pragma GCC diagnostic push
 #if 6 <= __GNUC__
@@ -307,6 +307,7 @@ inline void Any::construct(Args&&... args) {
   } else {
     data_.pheap = new DT(std::forward<Args>(args)...);
   }
+  type_ = TypeInfo<DT>::getType();
 }
 
 inline Any::~Any() { this->clear(); }
@@ -356,13 +357,13 @@ inline void Any::checkType() const {
   if (type_ == nullptr) {
     NNDEPLOY_LOGE("The Any container is empty\n");
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);
+    throw std::bad_cast();
   }
   if (*(type_->ptype_info) != typeid(T)) {
     NNDEPLOY_LOGE("The stored type mismatch\n");
     NNDEPLOY_LOGE(" stored=%s\n", type_->ptype_info->name());
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);
+    throw std::bad_cast();
   }
 }
 
@@ -371,13 +372,13 @@ inline void Any::checkTypeByName() const {
   if (type_ == nullptr) {
     NNDEPLOY_LOGE("The Any container is empty\n");
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);
+    throw std::bad_cast();
   }
   if (strcmp(type_->ptype_info->name(), typeid(T).name()) != 0) {
     NNDEPLOY_LOGE("The stored type name mismatch\n");
     NNDEPLOY_LOGE(" stored=%s\n", type_->ptype_info->name());
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);
+    throw std::bad_cast();
   }
 }
 

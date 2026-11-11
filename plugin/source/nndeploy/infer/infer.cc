@@ -2,9 +2,6 @@
 
 #include "nndeploy/infer/infer.h"
 
-#ifdef ENABLE_NNDEPLOY_INFERENCE_RKNN
-#include "nndeploy/base/dma_buf.h"
-#endif
 
 namespace nndeploy {
 namespace infer {
@@ -247,6 +244,7 @@ base::Status Infer::shareInference(Infer* infer) {
 }
 
 base::Status Infer::init() {
+  if (!inference_) return base::kStatusCodeErrorInvalidParam;
   base::Status status = base::kStatusCodeOk;
   if (own_inference_) {
     if (!is_external_stream_ && stream_ == nullptr) {
@@ -307,6 +305,7 @@ base::Status Infer::init() {
   return status;
 }
 base::Status Infer::deinit() {
+  if (!inference_) return base::kStatusCodeOk;
   base::Status status = base::kStatusCodeOk;
   if (own_inference_) {
     status = inference_->deinit();
@@ -315,79 +314,59 @@ base::Status Infer::deinit() {
   return status;
 }
 
-int64_t Infer::getMemorySize() { return inference_->getMemorySize(); }
+int64_t Infer::getMemorySize() { return inference_ ? inference_->getMemorySize() : -1; }
 base::Status Infer::setMemory(device::Buffer* buffer) {
+  if (!inference_) return base::kStatusCodeErrorInvalidParam;
   return inference_->setMemory(buffer);
 }
 
 base::Status Infer::run() {
+  if (!inference_) return base::kStatusCodeErrorInvalidParam;
   base::Status status = base::kStatusCodeOk;
 
-  // Zero-copy path: check if ALL input Edges carry DmaBufBuffer (RKNN only).
-  // When upstream RGA nodes pass dma-buf fds through Edges, we forward them
-  // directly to rknn_set_io_mem, avoiding any CPU-side data copy.
-#ifdef ENABLE_NNDEPLOY_INFERENCE_RKNN
-  bool use_dma_buf_path = (type_ == base::kInferenceTypeRknn);
-  std::vector<base::DmaBufBuffer*> dma_bufs;
-  if (use_dma_buf_path) {
-    for (auto input : inputs_) {
-      auto* db = input->get<base::DmaBufBuffer>(this);
-      if (db == nullptr || db->fd < 0) {
-        use_dma_buf_path = false;
-        break;
-      }
-      dma_bufs.push_back(db);
-    }
+  for (auto *input : inputs_) {
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input, "Infer input edge is null");
   }
 
-  if (use_dma_buf_path) {
-    NNDEPLOY_LOGI("Infer::run: zero-copy dma-buf path (%d input(s))\n",
-                  (int)dma_bufs.size());
-    for (int i = 0; i < (int)dma_bufs.size(); i++) {
-      std::string name = input_type_info_[i]->getEdgeName();
-      inference_->setInputTensorFromDmaBuf(name.c_str(), dma_bufs[i]->fd,
-                                           dma_bufs[i]->size);
-    }
-  } else
-#endif
-  {
-    std::vector<device::Tensor*> tensors;
-    for (auto input : inputs_) {
-      device::Tensor* tensor = input->getTensor(this);
-      tensors.emplace_back(tensor);
-    }
-    if (is_input_dynamic_) {
-      base::ShapeMap shape_map;
-      for (int i = 0; i < (int)tensors.size(); i++) {
-        std::string name = tensors[i]->getName();
-        if (inference_input_names_.find(name) == inference_input_names_.end()) {
-          name = input_type_info_[i]->getEdgeName();
-        }
-        shape_map[name] = tensors[i]->getShape();
-      }
-      NNDEPLOY_LOGI("shape_map: \n");
-      for (auto iter : shape_map) {
-        std::string shape_str = "[";
-        for (int i = 0; i < (int)iter.second.size(); i++) {
-          shape_str += std::to_string(iter.second[i]);
-          if (i < (int)iter.second.size() - 1) {
-            shape_str += ", ";
-          }
-        }
-        shape_str += "]";
-        NNDEPLOY_LOGI("shape_map[%s] = %s\n", iter.first.c_str(),
-                      shape_str.c_str());
-      }
-      inference_->reshape(shape_map);
-    }
+  std::vector<device::Tensor*> tensors;
+  for (auto input : inputs_) {
+    device::Tensor* tensor = input->getTensor(this);
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(tensor, "Infer input edge has no tensor");
+    tensors.emplace_back(tensor);
+  }
+  if (is_input_dynamic_) {
+    base::ShapeMap shape_map;
     for (int i = 0; i < (int)tensors.size(); i++) {
       std::string name = tensors[i]->getName();
       if (inference_input_names_.find(name) == inference_input_names_.end()) {
         name = input_type_info_[i]->getEdgeName();
       }
-      tensors[i]->setName(name);
-      inference_->setInputTensor(name, tensors[i]);
+      shape_map[name] = tensors[i]->getShape();
     }
+    NNDEPLOY_LOGI("shape_map: \n");
+    for (auto iter : shape_map) {
+      std::string shape_str = "[";
+      for (int i = 0; i < (int)iter.second.size(); i++) {
+        shape_str += std::to_string(iter.second[i]);
+        if (i < (int)iter.second.size() - 1) {
+          shape_str += ", ";
+        }
+      }
+      shape_str += "]";
+      NNDEPLOY_LOGI("shape_map[%s] = %s\n", iter.first.c_str(),
+                    shape_str.c_str());
+    }
+    status = inference_->reshape(shape_map);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape inputs failed");
+  }
+  for (int i = 0; i < (int)tensors.size(); i++) {
+    std::string name = tensors[i]->getName();
+    if (inference_input_names_.find(name) == inference_input_names_.end()) {
+      name = input_type_info_[i]->getEdgeName();
+    }
+    tensors[i]->setName(name);
+    status = inference_->setInputTensor(name, tensors[i]);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "set input tensor failed");
   }
 
   status = inference_->run();
@@ -409,10 +388,15 @@ base::Status Infer::run() {
     }
     auto* internal_output = inference_->getOutputTensor(name);
     if (internal_output != tensor) {
-      outputs_[i]->set(tensor, false);
+      // The edge takes ownership only after successful admission. Cancellation
+      // leaves the new output here, where RAII releases its device storage.
+      std::unique_ptr<device::Tensor> output(tensor);
+      status = outputs_[i]->set(output.get(), false);
+      if (status == base::kStatusCodeOk) output.release();
     } else {
-      outputs_[i]->set(tensor, true);
+      status = outputs_[i]->set(tensor, true);
     }
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "publish output failed");
   }
   return status;
 }

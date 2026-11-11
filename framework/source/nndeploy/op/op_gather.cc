@@ -1,5 +1,6 @@
 
 #include "nndeploy/op/op_gather.h"
+#include "nndeploy/base/shape.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -22,81 +23,59 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpGather::run() {
-  base::Status status = base::kStatusCodeOk;
-
-  auto param = dynamic_cast<ir::GatherParam*>(op_desc_.op_param_.get());
+  const auto shape = inputs_[0]->getShape();
+  const auto param = static_cast<ir::GatherParam *>(op_desc_.op_param_.get());
   int axis = param ? param->axis_ : 0;
+  const int rank = static_cast<int>(shape.size());
+  if (axis < 0) axis += rank;
+  if (axis < 0 || axis >= rank) return base::kStatusCodeErrorInvalidParam;
 
-  device::Tensor* data_tensor = inputs_[0];
-  device::Tensor* indices_tensor = inputs_[1];
-  device::Tensor* output_tensor = outputs_[0];
-
-  auto data_shape = data_tensor->getShape();
-  auto indices_shape = indices_tensor->getShape();
-  auto output_shape = output_tensor->getShape();
-
-  int data_rank = static_cast<int>(data_shape.size());
-  
-  // 处理负数axis
-  if (axis < 0) {
-    axis += data_rank;
+  const auto index_type = inputs_[1]->getDataType();
+  if (index_type != base::dataTypeOf<int32_t>() &&
+      index_type != base::dataTypeOf<int64_t>()) return base::kStatusCodeErrorInvalidParam;
+  const auto indices_shape = inputs_[1]->getShape();
+  size_t count = base::shapeCount(indices_shape);
+  size_t outer = base::shapeCount(shape, 0, axis);
+  size_t block = base::shapeCount(shape, axis + 1) * inputs_[0]->getDataType().size();
+  if (!outer || !count || !block) return base::kStatusCodeOk;
+  const auto *src = static_cast<const char *>(inputs_[0]->getData());
+  const void *indices = inputs_[1]->getData();
+  auto *dst = static_cast<char *>(outputs_[0]->getData());
+  if (!src || !indices || !dst) return base::kStatusCodeErrorNullParam;
+  if (count > inputs_[1]->getSize() / index_type.size() ||
+      outer > outputs_[0]->getSize() / block / count ||
+      static_cast<size_t>(shape[axis]) > inputs_[0]->getSize() / block / outer)
+    return base::kStatusCodeErrorInvalidValue;
+  for (size_t i = 0; i < count; ++i) {
+    int64_t index = index_type == base::dataTypeOf<int32_t>()
+        ? static_cast<const int32_t *>(indices)[i]
+        : static_cast<const int64_t *>(indices)[i];
+    if (index < 0) index += shape[axis];
+    if (index < 0 || index >= shape[axis]) return base::kStatusCodeErrorInvalidValue;
+    for (size_t j = 0; j < outer; ++j)
+      std::memcpy(dst + (j * count + i) * block,
+                  src + (j * shape[axis] + index) * block, block);
   }
-
-  float* data = static_cast<float*>(data_tensor->getData());
-  int64_t* indices = static_cast<int64_t*>(indices_tensor->getData());
-  float* output = static_cast<float*>(output_tensor->getData());
-
-  // 计算strides
-  std::vector<long> data_strides(data_rank);
-  data_strides[data_rank - 1] = 1;
-  for (int i = data_rank - 2; i >= 0; --i) {
-    data_strides[i] = data_strides[i + 1] * data_shape[i + 1];
-  }
-
-  long indices_elements = std::accumulate(indices_shape.begin(), indices_shape.end(),
-                                          1L, std::multiplies<long>());
-  long output_elements = std::accumulate(output_shape.begin(), output_shape.end(),
-                                         1L, std::multiplies<long>());
-
-  // 计算outer_size和inner_size
-  long outer_size = 1;
-  for (int i = 0; i < axis; ++i) {
-    outer_size *= data_shape[i];
-  }
-
-  long inner_size = 1;
-  for (int i = axis + 1; i < data_rank; ++i) {
-    inner_size *= data_shape[i];
-  }
-
-  long axis_size = data_shape[axis];
-
-  // Gather操作
-  for (long outer = 0; outer < outer_size; ++outer) {
-    for (long idx = 0; idx < indices_elements; ++idx) {
-      int64_t gather_idx = indices[idx];
-      // 处理负数索引
-      if (gather_idx < 0) {
-        gather_idx += axis_size;
-      }
-      
-      for (long inner = 0; inner < inner_size; ++inner) {
-        long data_idx = outer * axis_size * inner_size + 
-                       gather_idx * inner_size + inner;
-        long out_idx = outer * indices_elements * inner_size + 
-                       idx * inner_size + inner;
-        output[out_idx] = data[data_idx];
-      }
-    }
-  }
-
-  return status;
+  return base::kStatusCodeOk;
 }
 
 base::Status OpGather::inferShape() {
-  auto input_shape = inputs_[1]->getShape();
-  outputs_[0]->reshape(input_shape);
-  return base::kStatusCodeOk;
+  auto shape = inputs_[0]->getShape();
+  const auto indices = inputs_[1]->getShape();
+  auto param = static_cast<ir::GatherParam *>(op_desc_.op_param_.get());
+  int axis = param ? param->axis_ : 0;
+  const int rank = static_cast<int>(shape.size());
+  if (axis < 0) axis += rank;
+  if (axis < 0 || axis >= rank) return base::kStatusCodeErrorInvalidParam;
+  shape.erase(shape.begin() + axis);
+  shape.insert(shape.begin() + axis, indices.begin(), indices.end());
+  if (shape.empty()) {
+    auto desc = outputs_[0]->getDesc();
+    desc.shape_.clear();
+    desc.stride_.clear();
+    return outputs_[0]->justModify(desc) ? base::kStatusCodeOk : base::kStatusCodeErrorInvalidParam;
+  }
+  return outputs_[0]->reshape(shape);
 }
 
 base::Status gather(device::Tensor* input, device::Tensor* index,
@@ -104,7 +83,7 @@ base::Status gather(device::Tensor* input, device::Tensor* index,
                     device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeGather);
+  std::unique_ptr<Op> op(createOp(input->getDeviceType(), "", ir::kOpTypeGather));
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -131,7 +110,6 @@ base::Status gather(device::Tensor* input, device::Tensor* index,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
-  delete op;
 
   return status;
 }

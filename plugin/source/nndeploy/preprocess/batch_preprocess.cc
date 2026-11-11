@@ -60,42 +60,53 @@ std::shared_ptr<base::Param> BatchPreprocess::getParamSharedPtr() {
 // }
 
 base::Status BatchPreprocess::run() {
-  std::vector<cv::Mat> *input_data =
-      inputs_[0]->getGraphOutput<std::vector<cv::Mat>>();
-  int batch_size = input_data->size();
-  device::Tensor *dst_tensor = nullptr;
-  for (int i = 0; i < batch_size; i++) {
-    dag::Edge *input = node_->getInput();
-    input->set((*input_data)[i]);
-    node_->run();
-    dag::Edge *output = node_->getOutput();
-    device::Tensor *single_tensor = output->getTensor(node_);
-    if (single_tensor == nullptr) {
-      NNDEPLOY_LOGE("single_tensor is nullptr");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    device::Device *device = single_tensor->getDevice();
-    device::TensorDesc desc = single_tensor->getDesc();
-    if (i == 0) {
-      if (data_format_ == base::kDataFormatNDCHW ||
-          data_format_ == base::kDataFormatNDHWC) {
-        // 在这里，`desc.shape_`是一个表示张量形状的向量。`insert`函数用于在向量的指定位置插入一个元素。
-        // `desc.shape_.begin() + 1`表示在向量的第二个位置插入元素。
-        // `batch_size`是要插入的元素，表示批处理的大小。
-        // 这行代码的作用是将批处理大小插入到张量形状的第二个位置，从而调整张量的形状以适应批处理。
-        desc.shape_.insert(desc.shape_.begin() + 1, batch_size);
+  if (!node_ || inputs_.empty() || outputs_.empty()) return base::kStatusCodeErrorInvalidParam;
+  auto *images = inputs_[0]->get<std::vector<cv::Mat>>(this);
+  if (!images || images->empty() || images->size() > INT_MAX)
+    return base::kStatusCodeErrorInvalidParam;
+  std::unique_ptr<device::Tensor> batch;
+  device::TensorDesc sample_desc;
+  size_t sample_bytes = 0;
+  for (size_t i = 0; i < images->size(); ++i) {
+    auto status = node_->getInput()->set((*images)[i]);
+    if (status != base::kStatusCodeOk) return status;
+    status = node_->run();
+    if (status != base::kStatusCodeOk) return status;
+    auto *sample = node_->getOutput()->getTensor(node_);
+    if (!sample || !sample->getData()) return base::kStatusCodeErrorInvalidParam;
+    if (!batch) {
+      sample_desc = sample->getDesc();
+      sample_bytes = sample->getSize();
+      if (sample_desc.shape_.empty() || sample_desc.shape_[0] != 1 ||
+          !sample_bytes || images->size() > SIZE_MAX / sample_bytes)
+        return base::kStatusCodeErrorInvalidParam;
+      auto desc = sample_desc;
+      if (data_format_ == base::kDataFormatNDCHW || data_format_ == base::kDataFormatNDHWC) {
+        if (desc.shape_.size() != 4 ||
+            (!desc.stride_.empty() && desc.stride_.size() != 4))
+          return base::kStatusCodeErrorInvalidParam;
+        if (!desc.stride_.empty()) {
+          desc.stride_[0] = sample_bytes;
+          desc.stride_.insert(desc.stride_.begin(), images->size() * sample_bytes);
+        }
+        desc.shape_.insert(desc.shape_.begin() + 1, images->size());
         desc.data_format_ = data_format_;
       } else {
-        desc.shape_[0] = batch_size;
+        desc.shape_[0] = images->size();
       }
-      dst_tensor = outputs_[0]->create(device, desc);
+      batch = std::make_unique<device::Tensor>(sample->getDevice(), desc);
+      if (!batch->getData() || batch->getSize() < images->size() * sample_bytes)
+        return base::kStatusCodeErrorInvalidValue;
     }
-    void *single_data = single_tensor->getData();
-    void *data = ((char *)dst_tensor->getData()) + single_tensor->getSize() * i;
-    device->copy(data, single_data, single_tensor->getSize());
+    if (sample->getDesc() != sample_desc || sample->getDevice() != batch->getDevice() ||
+        sample->getSize() != sample_bytes) return base::kStatusCodeErrorInvalidParam;
+    auto *dst = static_cast<char *>(batch->getData()) + i * sample_bytes;
+    status = sample->getDevice()->copy(sample->getData(), dst, sample_bytes);
+    if (status != base::kStatusCodeOk) return status;
   }
-  outputs_[0]->notifyWritten(dst_tensor);
-  return base::kStatusCodeOk;
+  auto status = outputs_[0]->set(batch.get(), false);
+  if (status == base::kStatusCodeOk) batch.release();
+  return status;
 }
 
 base::Status BatchPreprocess::serialize(

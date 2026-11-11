@@ -1,0 +1,51 @@
+--- a/rust/src/lib.rs
++++ b/rust/src/lib.rs
+@@ -22,12 +22,12 @@
+ }
+ 
+ impl TokenizerWrapper {
+-    pub fn from_str(json: &str) -> TokenizerWrapper {
+-        TokenizerWrapper {
+-            tokenizer: Tokenizer::from_str(json).unwrap().into(),
++    pub fn from_str(json: &str) -> Option<TokenizerWrapper> {
++        Some(TokenizerWrapper {
++            tokenizer: Tokenizer::from_str(json).ok()?.into(),
+             decode_str: String::new(),
+             id_to_token_result: String::new(),
+-        }
++        })
+     }
+ 
+     pub fn byte_level_bpe_from_str(
+@@ -111,7 +111,8 @@
+ extern "C" fn tokenizers_new_from_str(input_cstr: *const u8, len: usize) -> *mut TokenizerWrapper {
+     unsafe {
+         let json = &String::from_utf8_lossy(std::slice::from_raw_parts(input_cstr, len));
+-        return Box::into_raw(Box::new(TokenizerWrapper::from_str(json)));
++        return TokenizerWrapper::from_str(json)
++            .map_or(std::ptr::null_mut(), |t| Box::into_raw(Box::new(t)));
+     }
+ }
+ 
+--- a/src/huggingface_tokenizer.cc
++++ b/src/huggingface_tokenizer.cc
+@@ -109,7 +109,8 @@
+ };
+ 
+ std::unique_ptr<Tokenizer> Tokenizer::FromBlobJSON(const std::string& json) {
+-  return std::make_unique<HFTokenizer>(tokenizers_new_from_str(json.data(), json.length()));
++  auto handle = tokenizers_new_from_str(json.data(), json.length());
++  return handle ? std::make_unique<HFTokenizer>(handle) : nullptr;
+ }
+ 
+ std::unique_ptr<Tokenizer> Tokenizer::FromBlobByteLevelBPE(const std::string& vocab,
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -143,6 +143,7 @@
+ # NOTE: need to use cmake -E env to be portable in win
+ add_custom_command(
+   OUTPUT ${TOKENIZERS_RUST_LIB}
++  DEPENDS ${TOKENIZERS_CPP_CARGO_SOURCE_PATH}/src/lib.rs
+   COMMAND
+   ${CMAKE_COMMAND} -E env
+   CARGO_TARGET_DIR=${TOKENIZERS_CPP_CARGO_TARGET_DIR}

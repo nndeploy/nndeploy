@@ -60,8 +60,8 @@ class NNDEPLOY_CC_API EmbeddingParam : public base::Param {
   EmbeddingParam() = default;
   virtual ~EmbeddingParam() = default;
 
-  PARAM_COPY(EmbeddingParam)
-  PARAM_COPY_TO(EmbeddingParam)
+  PARAM_COPY(EmbeddingParam, override)
+  PARAM_COPY_TO(EmbeddingParam, override)
 
   // 隐藏层维度
   int hidden_size_ = 4096;

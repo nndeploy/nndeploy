@@ -1,3 +1,5 @@
+import io
+from typing import Union
 
 import nndeploy._nndeploy_internal as _C
 

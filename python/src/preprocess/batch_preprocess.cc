@@ -1,3 +1,4 @@
+#include "dag/keep_node_edges.h"
 #include "nndeploy/preprocess/batch_preprocess.h"
 
 #include "nndeploy_api_registry.h"
@@ -65,7 +66,7 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
       m, "BatchPreprocess", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                    std::vector<dag::Edge *>>())
+                    std::vector<dag::Edge *>>(), KeepNodeEdges{})
       .def("set_node_key", &BatchPreprocess::setNodeKey)
       .def("set_data_format", &BatchPreprocess::setDataFormat)
       .def("get_data_format", &BatchPreprocess::getDataFormat)

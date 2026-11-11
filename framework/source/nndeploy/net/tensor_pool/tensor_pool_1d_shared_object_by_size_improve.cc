@@ -142,6 +142,8 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::deallocate() {
     }
   }
 
+  chunks_.clear();
+
   status = deinitPositionalMaximum();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deinitPositionalMaximum failed\n");

@@ -18,46 +18,50 @@ namespace net {
 
 class Runtime;
 
+// Each queue entry owns one immutable frame. A consumer keeps its lease while
+// copying/reading, independently of queue reclamation by other consumers.
 class PipelineTensor {
  public:
-  PipelineTensor() {};
-  virtual ~PipelineTensor() {};
-  std::vector<device::Tensor *> tensors_;
-  std::vector<Runtime *> producers_;
-  std::vector<Runtime *> consumers_;
-
-  // 添加互斥锁和条件变量，用于同步不同阶段之间的数据传递
+  using Packet = std::shared_ptr<device::Tensor>;
+  std::deque<Packet> tensors_;
+  std::vector<Runtime *> producers_, consumers_;
   std::mutex mutex_;
   std::condition_variable cv_;
-  std::map<Runtime *, int> current_index_;
+  std::map<Runtime *, size_t> current_index_;
   bool is_finish_ = false;
 
-  void push(device::Tensor *tensor) {
-    // NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
+  void push(Packet tensor) {
     std::lock_guard<std::mutex> lock(mutex_);
-    tensors_.push_back(tensor);
+    if (!is_finish_) tensors_.push_back(std::move(tensor));
     cv_.notify_all();
   }
-
+  // Compatibility for borrowed tensors; the pipeline itself publishes owners.
+  void push(device::Tensor *tensor) { push(Packet(tensor, [](device::Tensor *) {})); }
   void setFinish() {
     std::lock_guard<std::mutex> lock(mutex_);
     is_finish_ = true;
     cv_.notify_all();
   }
-
-  device::Tensor *pop(Runtime *runtime) {
+  Packet popShared(Runtime *runtime) {
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_.wait(lock, [this, runtime]() {
-      bool flag = current_index_[runtime] < tensors_.size();
-      return flag || is_finish_;
-    });
-    if (is_finish_) {
-      return nullptr;
-    }
-    device::Tensor *tensor = tensors_[current_index_[runtime]];
-    current_index_[runtime]++;
-    return tensor;
+    if (!current_index_.count(runtime)) return nullptr;
+    cv_.wait(lock, [&] { return is_finish_ || current_index_[runtime] < tensors_.size(); });
+    if (is_finish_) return nullptr;
+    auto result = tensors_[current_index_[runtime]++];
+    size_t consumed = tensors_.size();
+    for (const auto &cursor : current_index_) consumed = std::min(consumed, cursor.second);
+    for (size_t i = 0; i < consumed; ++i) tensors_.pop_front();
+    for (auto &cursor : current_index_) cursor.second -= consumed;
+    return result;
   }
+  device::Tensor *pop(Runtime *runtime) {
+    auto result = popShared(runtime);
+    std::lock_guard<std::mutex> lock(mutex_);
+    current_[runtime] = result;
+    return result.get();
+  }
+ private:
+  std::map<Runtime *, Packet> current_;
 };
 
 class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
@@ -72,7 +76,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
 
   void setStream(device::Stream *stream);
   device::Stream *getStream();
-  base::Status synchronize();
+  virtual base::Status synchronize();
 
   base::Status setWorkers(int worker_num,
                           std::vector<base::DeviceType> device_types =
@@ -141,7 +145,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   TensorPoolType tensor_pool_type_ =
       kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
   bool is_external_tensor_pool_memory_ = false;
-  TensorPool *tensor_pool_;
+  TensorPool *tensor_pool_ = nullptr;
   bool is_dynamic_shape_ = false;                // 是否是动态shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   bool is_pure_dynamic_shape_ = false;

@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.12)
 
+# The bundled dependencies support the CMake 3.10 policy baseline.
+if(NOT DEFINED CMAKE_POLICY_VERSION_MINIMUM OR
+   CMAKE_POLICY_VERSION_MINIMUM VERSION_LESS 3.10)
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
+endif()
+
+# Let CMake deduplicate archives only when the linker supports rescanning.
+foreach(link_policy CMP0156 CMP0179)
+  if(POLICY ${link_policy})
+    cmake_policy(SET ${link_policy} NEW)
+  endif()
+endforeach()
+
 project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
@@ -284,6 +297,11 @@ if(ENABLE_NNDEPLOY_PLUGIN)
     set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
     set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
     set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+  endif()
+
+  if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+    # ConvertTo uses op::cast, including when inference uses an external backend.
+    set(ENABLE_NNDEPLOY_OP ON)
   endif()
 endif()
 

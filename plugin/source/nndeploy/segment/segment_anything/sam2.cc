@@ -491,12 +491,12 @@ std::vector<dag::Edge*> SAM2Graph::forwardVideo(std::vector<dag::Edge*> inputs,
 
   // 1. Image encoder
   std::vector<dag::Edge*> encoder_input =
-      (*preprocess_image_node_)({inputs[0]});
+      (*preprocess_image_node_)(inputs[0]);
   std::vector<dag::Edge*> encoder_outputs =
       (*encoder_infer_node_)(encoder_input);
 
   // 2. Point prompt preprocessing
-  std::vector<dag::Edge*> point_result = (*preprocess_point_node_)({inputs[1]});
+  std::vector<dag::Edge*> point_result = (*preprocess_point_node_)(inputs[1]);
 
   // 3. Mask input: use stored mask from memory if available, else zero mask
   std::vector<dag::Edge*> mask_result;

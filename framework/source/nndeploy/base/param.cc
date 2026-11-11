@@ -8,10 +8,14 @@ Param::Param() {}
 Param::~Param() {}
 
 base::Status Param::set(const std::string &key, base::Any &any) {
+  values_[key] = any;
   return base::kStatusCodeOk;
 }
 
 base::Status Param::get(const std::string &key, base::Any &any) {
+  auto it = values_.find(key);
+  if (it == values_.end()) return kStatusCodeErrorInvalidParam;
+  any = it->second;
   return base::kStatusCodeOk;
 }
 
@@ -171,24 +175,37 @@ base::Status Param::saveFile(const std::string &path) {
 }
 // 反序列化：[rapidjson::Value\stream\path\string]->数据结构
 base::Status Param::deserialize(rapidjson::Value &json) {
-  // if (json.HasMember("required_params_") && json["required_params_"].IsArray()) {
-  //   required_params_.clear();
-  //   auto &required_params_array = json["required_params_"];
-  //   for (int i = 0; i < required_params_array.Size(); i++) {
-  //     if (required_params_array[i].IsString()) {
-  //       required_params_.emplace_back(required_params_array[i].GetString());
-  //     }
-  //   }
-  // }
-  if (json.HasMember("ui_params_") && json["ui_params_"].IsArray()) {
-    ui_params_.clear();
-    auto &ui_params_array = json["ui_params_"];
-    for (int i = 0; i < ui_params_array.Size(); i++) {
-      if (ui_params_array[i].IsString()) {
-        ui_params_.emplace_back(ui_params_array[i].GetString());
-      }
+  if (!json.IsObject()) return kStatusCodeErrorInvalidParam;
+  auto required = required_params_;
+  auto ui = ui_params_;
+  auto io = io_params_;
+  auto dropdown = dropdown_params_;
+  auto read_strings = [](const rapidjson::Value &value, std::vector<std::string> &out) {
+    if (!value.IsArray()) return false;
+    out.clear();
+    for (const auto &item : value.GetArray()) {
+      if (!item.IsString()) return false;
+      out.emplace_back(item.GetString(), item.GetStringLength());
+    }
+    return true;
+  };
+  if ((json.HasMember("required_params_") && !read_strings(json["required_params_"], required)) ||
+      (json.HasMember("ui_params_") && !read_strings(json["ui_params_"], ui)) ||
+      (json.HasMember("io_params_") && !read_strings(json["io_params_"], io)))
+    return kStatusCodeErrorInvalidParam;
+  if (json.HasMember("dropdown_params_")) {
+    const auto &values = json["dropdown_params_"];
+    if (!values.IsObject()) return kStatusCodeErrorInvalidParam;
+    dropdown.clear();
+    for (const auto &entry : values.GetObject()) {
+      if (!read_strings(entry.value, dropdown[entry.name.GetString()]))
+        return kStatusCodeErrorInvalidParam;
     }
   }
+  required_params_.swap(required);
+  ui_params_.swap(ui);
+  io_params_.swap(io);
+  dropdown_params_.swap(dropdown);
   return base::kStatusCodeOk;
 }
 base::Status Param::deserialize(const std::string &json_str) {

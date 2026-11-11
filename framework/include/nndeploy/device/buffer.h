@@ -2,6 +2,8 @@
 #ifndef _NNDEPLOY_DEVICE_BUFFER_H_
 #define _NNDEPLOY_DEVICE_BUFFER_H_
 
+#include <memory>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -25,6 +27,7 @@ class NNDEPLOY_CC_API Buffer {
 
   Buffer(Device *device, size_t size, void *ptr);
   Buffer(Device *device, const BufferDesc &desc, void *ptr);
+  Buffer(Device *device, const BufferDesc &desc, std::shared_ptr<void> storage);
 
   Buffer(Device *device, size_t size, void *ptr, base::MemoryType memory_type);
   Buffer(Device *device, const BufferDesc &desc, void *ptr,
@@ -113,11 +116,12 @@ class NNDEPLOY_CC_API Buffer {
   void *getData() const;
   base::MemoryType getMemoryType() const;
 
-  inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
-  inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }
+  int addRef() const;
+  int subRef() const;
 
  private:
   void clear();
+  void release();
 
  private:
   Device *device_ = nullptr;           // 内存对应的具体设备
@@ -125,7 +129,8 @@ class NNDEPLOY_CC_API Buffer {
   BufferDesc desc_;                    // BufferDesc
   // 内存类型，例如外部传入、内部分配、内存映射
   base::MemoryType memory_type_ = base::kMemoryTypeNone;
-  int *ref_count_ = nullptr;  // 引用计数
+  struct Storage;
+  Storage *storage_ = nullptr;
   /**
    * @brief
    * # 通常情况下，可以用指针表示（void *data_ptr_ = nullptr;）

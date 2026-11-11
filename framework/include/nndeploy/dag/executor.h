@@ -28,7 +28,7 @@ class NNDEPLOY_CC_API Executor : public base::NonCopyable {
   };
 
   void setStream(device::Stream *stream) {
-    if (stream_ != nullptr) {
+    if (stream_ != stream && !is_external_stream_ && stream_ != nullptr) {
       device::destroyStream(stream_);
     }
     stream_ = stream;

@@ -104,7 +104,7 @@ void RecSingleBatchPostprocessor(const float* out_data,
     if (argmax_idx > 0 && (!(n > 0 && argmax_idx == last_index))) {
       score += max_value;
       count += 1;
-      if (argmax_idx > label_list.size()) {
+      if (argmax_idx >= label_list.size()) {
         return;
       }
       str_res += label_list[argmax_idx];
@@ -312,24 +312,22 @@ base::Status RecognizerPostProcess::run() {
   label_list.emplace_back(std::string(" "));
   label_list.insert(label_list.begin(), "blank");
   device::Tensor* tensor = inputs_[0]->getTensor(this);
-  float* data = (float*)tensor->getData();
-
-  int batch = tensor->getShapeIndex(0);
-  int channel = tensor->getShapeIndex(1);
-  int height = tensor->getShapeIndex(2);  // DBNet输出 shape = [batch, 1, H, W]
-  int width = tensor->getShapeIndex(3);
-
-  int h = tensor->getShapeIndex(2) > 0 ? tensor->getShapeIndex(2) : 1;
-  int w = tensor->getShapeIndex(3) > 0 ? tensor->getShapeIndex(3) : 1;
-
+  if (!tensor || !tensor->getData()) return base::kStatusCodeErrorInvalidValue;
+  const auto shape = tensor->getShape();
+  const bool ctc_layout = shape.size() == 3 || (shape.size() == 4 && shape[3] == 1);
+  if (!ctc_layout || shape[0] <= 0 || shape[1] <= 0 ||
+      shape[2] <= 0 || static_cast<size_t>(shape[2]) > label_list.size()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  int batch = shape[0];
   const float* out_data = (const float*)tensor->getData();
 
   std::vector<std::string> texts(batch);
   std::vector<float> rec_scores(batch);
   std::vector<std::string> filtered_texts;
   std::vector<float> filtered_scores;
-  const std::vector<int64_t> output_shape = {batch, channel, height, width};
-  size_t length1 = channel * height;
+  const std::vector<int64_t> output_shape = {batch, shape[1], shape[2]};
+  size_t length1 = static_cast<size_t>(shape[1]) * shape[2];
 
   for (int i = 0; i < batch; i++) {
     const float* data_ptr = out_data + i * length1;

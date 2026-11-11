@@ -182,13 +182,17 @@ def _safe_remove(path: Path):
 
 def _atomic_write_from_stream(response: requests.Response, dst_path: Path):
     dst_path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(dir=str(dst_path.parent), delete=False) as tf:
-        tmp_name = tf.name
-        for chunk in response.iter_content(chunk_size=8192):
-            if chunk:  # avoid keep-alive empty blank
-                tf.write(chunk)
-    # atomic replace（Windows/Linux/macOS）
-    os.replace(tmp_name, dst_path)
+    tmp_name = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=str(dst_path.parent), delete=False) as tf:
+            tmp_name = tf.name
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    tf.write(chunk)
+        os.replace(tmp_name, dst_path)
+    finally:
+        if tmp_name is not None:
+            Path(tmp_name).unlink(missing_ok=True)
 
 
 def _download_with_retries(uri: str, save_path: Path, retries: int = 3, timeout=(10, 60)):
@@ -196,15 +200,14 @@ def _download_with_retries(uri: str, save_path: Path, retries: int = 3, timeout=
     for attempt in range(1, retries + 1):
         try:
             logging.info(f"Downloading {uri} to {save_path} (attempt {attempt}/{retries})")
-            r = requests.get(uri, stream=True, timeout=timeout)
-            r.raise_for_status()
-            _atomic_write_from_stream(r, save_path)
+            with requests.get(uri, stream=True, timeout=timeout) as r:
+                r.raise_for_status()
+                _atomic_write_from_stream(r, save_path)
             logging.info(f"Saved to {save_path}")
             return save_path
         except Exception as e:
             last_err = e
             logging.warning(f"Download failed (attempt {attempt}/{retries}) for {uri}: {e}")
-            _safe_remove(save_path)
             if attempt < retries:
                 sleep(1.5 * attempt)
     assert last_err is not None

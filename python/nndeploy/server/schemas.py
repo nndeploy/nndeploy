@@ -3,7 +3,7 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field, RootModel
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List, Tuple, Literal
 
 JsonDict = Dict[str, Any]
 

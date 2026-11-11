@@ -25,7 +25,8 @@ class ConditionExecutor : public Executor {
   virtual base::Status process();
 
  protected:
-  int index_ = -1;
+  base::Status processSelected(int index);
+  std::atomic<int> index_{-1};
   Node *condition_ = nullptr;
   std::vector<NodeWrapper *> node_repository_;
   std::vector<EdgeWrapper *> edge_repository_;

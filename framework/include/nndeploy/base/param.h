@@ -13,18 +13,18 @@
 namespace nndeploy {
 namespace base {
 
-#define PARAM_COPY(param_type)                                       \
+#define PARAM_COPY(param_type, ...)                                       \
  public:                                                             \
-  virtual std::shared_ptr<nndeploy::base::Param> copy() {            \
+  virtual std::shared_ptr<nndeploy::base::Param> copy() __VA_ARGS__ {            \
     std::shared_ptr<nndeploy::base::Param> param(new param_type());  \
     param_type *param_ptr = dynamic_cast<param_type *>(param.get()); \
     *param_ptr = *this;                                              \
     return param;                                                    \
   }
 
-#define PARAM_COPY_TO(param_type)                                       \
+#define PARAM_COPY_TO(param_type, ...)                                       \
  public:                                                                \
-  virtual nndeploy::base::Status copyTo(nndeploy::base::Param *param) { \
+  virtual nndeploy::base::Status copyTo(nndeploy::base::Param *param) __VA_ARGS__ { \
     param_type *param_ptr = dynamic_cast<param_type *>(param);          \
     if (nullptr == param_ptr) {                                         \
       NNDEPLOY_LOGE("dynamic cast to %s failed\n", #param_type);        \
@@ -92,6 +92,9 @@ class NNDEPLOY_CC_API Param {
   std::vector<std::string> ui_params_;
   std::vector<std::string> io_params_;
   std::map<std::string, std::vector<std::string>> dropdown_params_;
+
+ private:
+  std::map<std::string, Any> values_;
 };
 
 extern NNDEPLOY_CC_API std::string removeJsonBrackets(

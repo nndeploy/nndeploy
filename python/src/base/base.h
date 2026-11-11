@@ -9,6 +9,27 @@
 namespace nndeploy {
 namespace base {
 
+inline Any pythonToAny(py::handle value) {
+  Any any;
+  if (py::isinstance<py::bool_>(value)) any = value.cast<bool>();
+  else if (py::isinstance<py::int_>(value)) any = value.cast<int>();
+  else if (py::isinstance<py::float_>(value)) any = value.cast<double>();
+  else if (py::isinstance<py::str>(value)) any = value.cast<std::string>();
+  else if (py::isinstance<py::sequence>(value)) any = value.cast<std::vector<std::string>>();
+  else throw py::type_error("Unsupported parameter type");
+  return any;
+}
+
+inline py::object anyToPython(const Any &any) {
+  if (any.type() == typeid(bool)) return py::cast(get<bool>(any));
+  if (any.type() == typeid(int)) return py::cast(get<int>(any));
+  if (any.type() == typeid(double)) return py::cast(get<double>(any));
+  if (any.type() == typeid(std::string)) return py::cast(get<std::string>(any));
+  if (any.type() == typeid(std::vector<std::string>))
+    return py::cast(get<std::vector<std::string>>(any));
+  throw py::type_error("Unsupported parameter type");
+}
+
 template <typename BaseParam = Param>
 class PyParam : public BaseParam {
  public:
@@ -23,11 +44,18 @@ class PyParam : public BaseParam {
   }
 
   base::Status set(const std::string &key, base::Any &any) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "set", set, key, any);
+    py::gil_scoped_acquire gil;
+    auto override = py::get_override(static_cast<const BaseParam *>(this), "set");
+    if (override) return override(key, anyToPython(any)).template cast<base::Status>();
+    return BaseParam::set(key, any);
   }
 
   base::Status get(const std::string &key, base::Any &any) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "get", get, key, any);
+    py::gil_scoped_acquire gil;
+    auto override = py::get_override(static_cast<const BaseParam *>(this), "get");
+    if (!override) return BaseParam::get(key, any);
+    any = pythonToAny(override(key));
+    return kStatusCodeOk;
   }
 
   base::Status serialize(rapidjson::Value &json,

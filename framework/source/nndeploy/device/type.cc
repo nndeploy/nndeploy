@@ -1,3 +1,4 @@
+#include <limits>
 
 #include "nndeploy/device/type.h"
 
@@ -249,6 +250,37 @@ void BufferDesc::clear() {
 }
 
 // TensorDesc
+bool TensorDesc::getStorageSize(size_t &bytes) const {
+  if (!stride_.empty() && stride_.size() != shape_.size()) return false;
+  if (std::any_of(shape_.begin(), shape_.end(), [](int dim) { return dim < 0; }))
+    return false;
+  if (std::find(shape_.begin(), shape_.end(), 0) != shape_.end()) {
+    bytes = 0;
+    return true;
+  }
+  size_t span = data_type_.size();
+  const size_t limit = std::numeric_limits<size_t>::max();
+  for (size_t i = 0; i < shape_.size(); ++i) {
+    const size_t dim = shape_[i];
+    if (stride_.empty()) {
+      if (span > limit / dim) return false;
+      span *= dim;
+    } else {
+      if (dim > 1 && stride_[i] > (limit - span) / (dim - 1)) return false;
+      span += (dim - 1) * stride_[i];
+    }
+  }
+  if (!stride_.empty()) {
+    // Batched kernels copy the full outer pitch, including the last sample's
+    // padding. Inner strides can still extend beyond that pitch (e.g. transpose).
+    const size_t outer = shape_.front();
+    if (stride_.front() > limit / outer) return false;
+    span = std::max(span, stride_.front() * outer);
+  }
+  bytes = span;
+  return true;
+}
+
 TensorDesc::TensorDesc() {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
@@ -398,7 +430,8 @@ base::Status TensorDesc::deserialize(const std::string &bin_str) {
                    sizeof(data_type_size))) {
     return base::kStatusCodeErrorIO;
   }
-  std::string data_type_str(data_type_size + 1, '\0');
+  if (data_type_size > bin_str.size() - static_cast<size_t>(stream.tellg())) return base::kStatusCodeErrorIO;
+  std::string data_type_str(data_type_size, '\0');
   if (!stream.read(&data_type_str[0], data_type_size)) {
     return base::kStatusCodeErrorIO;
   }
@@ -409,7 +442,8 @@ base::Status TensorDesc::deserialize(const std::string &bin_str) {
                    sizeof(data_format_size))) {
     return base::kStatusCodeErrorIO;
   }
-  std::string data_format_str(data_format_size + 1, '\0');
+  if (data_format_size > bin_str.size() - static_cast<size_t>(stream.tellg())) return base::kStatusCodeErrorIO;
+  std::string data_format_str(data_format_size, '\0');
   if (!stream.read(&data_format_str[0], data_format_size)) {
     return base::kStatusCodeErrorIO;
   }
@@ -419,6 +453,7 @@ base::Status TensorDesc::deserialize(const std::string &bin_str) {
   if (!stream.read(reinterpret_cast<char *>(&shape_size), sizeof(shape_size))) {
     return base::kStatusCodeErrorIO;
   }
+  if (shape_size > (bin_str.size() - static_cast<size_t>(stream.tellg())) / sizeof(int)) return base::kStatusCodeErrorIO;
   shape_.resize(shape_size);
   for (uint64_t i = 0; i < shape_size; ++i) {
     int dim;
@@ -433,6 +468,7 @@ base::Status TensorDesc::deserialize(const std::string &bin_str) {
                    sizeof(stride_size))) {
     return base::kStatusCodeErrorIO;
   }
+  if (stride_size > (bin_str.size() - static_cast<size_t>(stream.tellg())) / sizeof(uint64_t)) return base::kStatusCodeErrorIO;
   stride_.resize(stride_size);
   for (uint64_t i = 0; i < stride_size; ++i) {
     uint64_t stride;

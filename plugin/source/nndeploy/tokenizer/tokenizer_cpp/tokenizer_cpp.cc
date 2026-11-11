@@ -8,20 +8,16 @@ namespace tokenizer {
 
 TokenizerEncodeCpp::~TokenizerEncodeCpp() {}
 
-std::string LoadBytesFromFile(const std::string& path) {
-  std::ifstream fs(path, std::ios::in | std::ios::binary);
-  if (fs.fail()) {
-    std::cerr << "Cannot open " << path << std::endl;
-    exit(1);
-  }
-  std::string data;
-  fs.seekg(0, std::ios::end);
-  size_t size = static_cast<size_t>(fs.tellg());
-  fs.seekg(0, std::ios::beg);
-  data.resize(size);
-  fs.read(data.data(), size);
-  return data;
+namespace {
+base::Status loadHuggingFace(const TokenizerPraram &param,
+                             std::shared_ptr<tokenizers::Tokenizer> &tokenizer) {
+  auto blob = param.is_path_ ? base::openFile(param.json_blob_) : param.json_blob_;
+  if (blob.empty()) return param.is_path_ ? base::kStatusCodeErrorIO
+                                          : base::kStatusCodeErrorInvalidParam;
+  tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
+  return tokenizer ? base::kStatusCodeOk : base::kStatusCodeErrorInvalidParam;
 }
+}  // namespace
 
 base::Status TokenizerEncodeCpp::init() {
   base::Status status = base::kStatusCodeOk;
@@ -48,16 +44,8 @@ base::Status TokenizerEncodeCpp::init() {
         NNDEPLOY_LOGE("json_blob_ is empty\n");
         return base::kStatusCodeErrorInvalidParam;
       }
-      // Read blob from file.
-      std::string blob;
-      // if (tokenizer_param->is_path_) {
-      //   blob = base::openFile(tokenizer_param->json_blob_);
-      // } else {
-      //   blob = tokenizer_param->json_blob_;
-      // }
-
-      blob = LoadBytesFromFile(tokenizer_param->json_blob_);
-      tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
+      status = loadHuggingFace(*tokenizer_param, tokenizer_);
+      if (status != base::kStatusCodeOk) return status;
     } else if (tokenizer_param->tokenizer_type_ ==
                TokenizerType::kTokenizerTypeBPE) {
       if (tokenizer_param->vocab_blob_.empty() ||
@@ -208,16 +196,8 @@ base::Status TokenizerDecodeCpp::init() {
         NNDEPLOY_LOGE("json_blob_ is empty\n");
         return base::kStatusCodeErrorInvalidParam;
       }
-      // Read blob from file.
-      std::string blob;
-      // if (tokenizer_param->is_path_) {
-      //   blob = base::openFile(tokenizer_param->json_blob_);
-      // } else {
-      //   blob = tokenizer_param->json_blob_;
-      // }
-
-      blob = LoadBytesFromFile(tokenizer_param->json_blob_);
-      tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
+      status = loadHuggingFace(*tokenizer_param, tokenizer_);
+      if (status != base::kStatusCodeOk) return status;
     } else if (tokenizer_param->tokenizer_type_ ==
                TokenizerType::kTokenizerTypeBPE) {
       if (tokenizer_param->vocab_blob_.empty() ||

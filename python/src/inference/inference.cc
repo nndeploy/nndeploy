@@ -9,14 +9,28 @@
 namespace nndeploy {
 namespace inference {
 
+// Keep the Python wrapper alive even when a native caller retains the engine.
+template <typename T>
+std::shared_ptr<T> retainPythonObject(py::object value) {
+  T *ptr = value.cast<T *>();
+  if (!ptr) return {};
+  auto owner = value.release().ptr();
+  return std::shared_ptr<T>(ptr, [owner](T *) {
+    py::gil_scoped_acquire gil;
+    Py_DECREF(owner);
+  });
+}
+
 class PyInferenceCreator : public InferenceCreator {
  public:
   using InferenceCreator::InferenceCreator;
 
   std::shared_ptr<Inference> createInference(
       base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Inference>, InferenceCreator,
-                                "create_inference", createInference, type);
+    py::gil_scoped_acquire gil;
+    auto factory = py::get_override(static_cast<const InferenceCreator *>(this), "create_inference");
+    if (!factory) py::pybind11_fail("InferenceCreator.create_inference is required");
+    return retainPythonObject<Inference>(factory(type));
   }
 };
 class PyInference : public Inference {
@@ -203,11 +217,17 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
       .def("set_param", &Inference::setParamSharedPtr, py::arg("param"))
       .def("get_param", &Inference::getParamSharedPtr)
       .def("get_device_type", &Inference::getDeviceType)
-      .def("set_stream", &Inference::setStream, py::arg("stream"))
+      .def("set_stream", [](Inference &self, py::object stream) {
+        self.setStreamSharedPtr(retainPythonObject<device::Stream>(std::move(stream)));
+      }, py::arg("stream"))
       .def("get_stream", &Inference::getStream,
            py::return_value_policy::reference)
       .def("init", &Inference::init)
-      .def("deinit", &Inference::deinit)
+      .def("deinit", [](Inference &self) {
+        auto status = self.deinit();
+        if (status == base::kStatusCodeOk) self.clearExternalInputs();
+        return status;
+      })
       .def("get_min_shape", &Inference::getMinShape)
       .def("get_opt_shape", &Inference::getOptShape)
       .def("get_max_shape", &Inference::getMaxShape)
@@ -252,13 +272,20 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
            py::return_value_policy::reference)
       .def("get_output_tensor", &Inference::getOutputTensor, py::arg("name"),
            py::return_value_policy::reference)
-      .def("set_input_tensor", &Inference::setInputTensor, py::arg("name"),
-           py::arg("input_tensor"))
+      .def("set_input_tensor", [](Inference &self, const std::string &name, py::object value) {
+        return self.setInputTensorSharedPtr(name, retainPythonObject<device::Tensor>(std::move(value)));
+      }, py::arg("name"), py::arg("input_tensor"))
       .def("run", &Inference::run)
-      .def("get_output_tensor_after_run", &Inference::getOutputTensorAfterRun,
-           py::arg("name"), py::arg("device_type"), py::arg("is_copy"),
-           py::arg("data_format") = base::kDataFormatAuto,
-           py::return_value_policy::take_ownership);
+      .def("get_output_tensor_after_run", [](Inference &self, const std::string &name,
+               base::DeviceType device, bool copy, base::DataFormat format) {
+        auto *tensor = self.getOutputTensorAfterRun(name, device, copy, format);
+        if (!tensor) return py::object(py::none());
+        if (tensor == self.getOutputTensor(name))
+          return py::cast(tensor, py::return_value_policy::reference_internal,
+                          py::cast(&self, py::return_value_policy::reference));
+        return py::cast(tensor, py::return_value_policy::take_ownership);
+      }, py::arg("name"), py::arg("device_type"), py::arg("is_copy"),
+         py::arg("data_format") = base::kDataFormatAuto, py::keep_alive<0, 1>());
 
   py::class_<InferenceCreator, PyInferenceCreator,
              std::shared_ptr<InferenceCreator>>(m, "InferenceCreator")

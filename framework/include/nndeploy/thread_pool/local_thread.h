@@ -115,7 +115,7 @@ class LocalThread {
   }
 
  protected:
-  bool done_;
+  std::atomic<bool> done_;
   std::thread thread_;
   int index_;
   int total_thread_size_;

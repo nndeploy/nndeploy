@@ -18,6 +18,7 @@ class NNDEPLOY_CC_API ThreadPool {
   explicit ThreadPool(int size = 4) { max_thread_size_ = size; }
 
   base::Status init() {
+    if (max_thread_size_ <= 0) return base::kStatusCodeErrorThreadPool;
     for (int i = 0; i < max_thread_size_; i++) {
       auto ptr = new LocalThread();  // 创建核心线程数
       ptr->setThreadPoolInfo(i, &threads_, max_thread_size_);
@@ -55,11 +56,8 @@ class NNDEPLOY_CC_API ThreadPool {
     std::packaged_task<ResultType()> task(func);
     std::future<ResultType> result(task.get_future());
 
-    cur_index_++;
-    if (cur_index_ >= max_thread_size_ || cur_index_ < 0) {
-      cur_index_ = 0;
-    }
-    threads_[cur_index_]->pushTask(std::move(task));
+    const auto ticket = cur_index_.fetch_add(1, std::memory_order_relaxed);
+    threads_[ticket % threads_.size()]->pushTask(std::move(task));
     return result;
   }
 
@@ -79,7 +77,7 @@ class NNDEPLOY_CC_API ThreadPool {
   }
 
  private:
-  std::atomic<int> cur_index_{0};
+  std::atomic<size_t> cur_index_{0};
   int max_thread_size_ = 0;
   std::vector<LocalThread *> threads_;
 };

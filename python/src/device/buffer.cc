@@ -1,7 +1,8 @@
 
 #include "nndeploy/device/buffer.h"
 
-#include "device/tensor_util.h"
+#include "device/buffer.h"
+#include "numpy_array.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
@@ -48,119 +49,44 @@ std::string getPyBufferFormat(base::DataType data_type) {
   return format;
 }
 
-base::DataType getDataTypeFromNumpy(char kind, int itemsize) {
-  base::DataType data_type;
-  int bits = itemsize * 8;
-  switch (kind) {
-    case 'B':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
-      break;
-    case 'H':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
-      break;
-    case 'I':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
-    case 'Q':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
-      break;
-    case 'b':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    case 'h':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    case 'i':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    case 'q':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    case 'e':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
-      break;
-    case 'f':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
-      break;
-    case 'd':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
-      break;
-    case 'l':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    default:
-      std::stringstream ss;
-      ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
-            "f, i, u now, but given "
-         << kind;
-      pybind11::pybind11_fail(ss.str());
-  }
-  return data_type;
+static void checkRawDtype(const py::dtype &dtype) {
+  if (dtype.attr("hasobject").cast<bool>())
+    throw py::type_error("raw buffers cannot contain Python object references");
+  if (dtype.itemsize() <= 0) throw py::value_error("dtype must have a fixed positive size");
 }
 
-py::buffer_info bufferToBufferInfo(device::Buffer *buffer,
-                                   const py::dtype &dt) {
-  void *data = nullptr;
-  if (device::isHostDeviceType(
-          buffer->getDeviceType())) {  // 如果是host，则直接将其传递给numpy
-                                       // array
-    data = buffer->getData();
-  } else {
-    std::stringstream ss;
-    ss << "convert nndeploy.device.Buffer to numpy array only support device "
-          ":host but get device_code:"
-       << base::deviceTypeToString(buffer->getDeviceType().code_);
-
-    pybind11::pybind11_fail(ss.str());
+static py::array bufferArray(Buffer &buffer, const py::dtype &dtype,
+                             py::handle owner = {}) {
+  checkRawDtype(dtype);
+  if (!isHostDeviceType(buffer.getDeviceType()))
+    throw py::value_error("only host buffers can be exported to NumPy");
+  auto sizes = buffer.getSizeVector();
+  std::vector<py::ssize_t> shape;
+  for (size_t size : sizes) {
+    if (size > static_cast<size_t>(PY_SSIZE_T_MAX))
+      throw py::value_error("buffer dimension exceeds Python's size limit");
+    shape.push_back(static_cast<py::ssize_t>(size));
   }
-
-  if (data == nullptr) {
-    std::ostringstream ss;
-    ss << "Convert nndeploy Buffer to numpy.ndarray. Get data_ptr==nullptr";
-
-    py::pybind11_fail(ss.str());
-  }
-  auto elemsize = dt.itemsize();
-  //   std::string format = dt.char_() + std::to_string(dt.itemsize());
-  std::string format(1, dt.char_());
-
-  auto size_vector = buffer->getSizeVector();
-  base::IntVector shape;
-  for (auto i = 0; i < size_vector.size(); i++) {
-    int32_t size_int = (int32_t)size_vector[i];
-    if (i == size_vector.size() - 1) {
-      size_int /= elemsize;
-    }
-    shape.push_back(size_int);
-  }
-  auto dims = shape.size();
-  auto strides = calculateStridesBaseShape(
-      shape);  // nndeploy中的strides可能为空，根据shape重新计算
-  for (int i = 0; i < strides.size(); i++) {
-    strides[i] = strides[i] * elemsize;
-  }
-
-  // https://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
-  return py::buffer_info(data,     /* Pointer to buffer */
-                         elemsize, /* Size of one scalar */
-                         format,   /* Python struct-style format descriptor */
-                         dims,     /* Number of dimensions */
-                         shape,    /* Buffer dimensions */
-                         strides   /* Strides (in bytes) for each index */
-
-  );
+  if (shape.empty()) shape.push_back(0);
+  if (shape.back() % dtype.itemsize() != 0)
+    throw py::value_error("buffer size is not divisible by dtype itemsize");
+  shape.back() /= dtype.itemsize();
+  if (buffer.getSize() && !buffer.getData()) throw py::value_error("buffer has no storage");
+  return py::array(dtype, shape, buffer.getData(), owner);
 }
 
-Buffer bufferFromNumpy(const py::array &array) {
-  auto shape = array.shape();
-  auto dtype = array.dtype();
-  auto size = array.size();
-  auto strides = array.strides();
-  auto data = array.data();
-  size_t elemsize = dtype.itemsize();
-  size = size * elemsize;
-  BufferDesc desc(size);
-  Device *device = getDefaultHostDevice();
-  return Buffer(device, desc, const_cast<void *>(data));
+Buffer bufferFromNumpy(const py::array &array, Device *device) {
+  checkRawDtype(array.dtype());
+  auto storage = writableContiguousArray(array);
+  if (!device) throw py::value_error("host device is unavailable");
+  const size_t bytes = static_cast<size_t>(storage.nbytes());
+  void *ptr = storage.mutable_data();
+  // Keep the normalized ndarray (and its base exporter) with every C++ alias.
+  std::shared_ptr<void> data(ptr, [owner = storage.release().ptr()](void *) {
+    py::gil_scoped_acquire acquire;
+    Py_DECREF(owner);
+  });
+  return Buffer(device, BufferDesc(bytes), std::move(data));
 }
 
 NNDEPLOY_API_PYBIND11_MODULE("device", m) {
@@ -194,6 +120,12 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            "Clone the buffer")
       .def("copy_to", &Buffer::copyTo, py::arg("dst"),
            "Copy the buffer to the destination buffer")
+      .def("serialize", [](Buffer &self) {
+        std::string data;
+        auto status = self.serialize(data);
+        if (status != base::kStatusCodeOk) throw std::runtime_error(status.desc());
+        return py::bytes(data);
+      })
       .def("serialize", py::overload_cast<std::string&>(&Buffer::serialize), py::arg("bin_str"),
            "Serialize the buffer to a binary string")
       .def("deserialize", py::overload_cast<const std::string&>(&Buffer::deserialize), py::arg("bin_str"),
@@ -249,30 +181,19 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
              return os.str();
            })
       .def_buffer([](Buffer &self) {
-        return bufferToBufferInfo(&self, py::dtype::of<uint8_t>());
+        return bufferArray(self, py::dtype::of<uint8_t>(), py::cast(Buffer(self))).request();
       })
-      .def("__array__",
-           [](Buffer &self) {
-             return bufferToBufferInfo(&self, py::dtype::of<uint8_t>());
-           })
-      .def(
-          "to_numpy_v0",
-          [](Buffer &self, const py::dtype &dtype) {
-            py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
-            return py::array(buffer_info);
-          },
-          py::arg("dtype"),
-          "Convert buffer to numpy array with specified dtype")
-      .def(
-          "to_numpy_v1",
-          [](Buffer &self, py::object dtype_obj) {
-            py::dtype dtype = py::dtype::from_args(dtype_obj);
-            py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
-            return py::array(buffer_info);
-          },
-          py::arg("dtype"), "Convert buffer to numpy array with dtype object")
+      .def("__array__", [](Buffer &self) {
+        return bufferArray(self, py::dtype::of<uint8_t>(), py::cast(Buffer(self)));
+      })
+      .def("to_numpy_v0", [](Buffer &self, const py::dtype &dtype) {
+        return bufferArray(self, dtype);
+      }, py::arg("dtype"))
+      .def("to_numpy_v1", [](Buffer &self, py::object dtype) {
+        return bufferArray(self, py::dtype::from_args(dtype));
+      }, py::arg("dtype"))
       .def_static("from_numpy", [](const py::array &array) {
-        return bufferFromNumpy(array);
+        return bufferFromNumpy(array, getDefaultHostDevice());
       });
 }
 

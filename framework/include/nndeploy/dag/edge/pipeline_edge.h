@@ -37,71 +37,70 @@ class PipelineEdge : public AbstractEdge {
   PipelineEdge(base::ParallelType paralle_type);
   virtual ~PipelineEdge();
 
-  virtual base::Status setQueueMaxSize(int queue_max_size);
+  virtual base::Status setQueueMaxSize(int queue_max_size) override;
   virtual base::Status setQueueOverflowPolicy(base::QueueOverflowPolicy policy,
-                                              int drop_count);
+                                              int drop_count) override;
 
-  virtual bool empty();
+  virtual bool empty() override;
 
-  virtual base::Status construct();
+  virtual base::Status construct() override;
 
-  virtual base::Status set(device::Buffer *buffer, bool is_external);
+  virtual base::Status set(device::Buffer *buffer, bool is_external) override;
   virtual device::Buffer *create(device::Device *device,
-                                 const device::BufferDesc &desc);
-  virtual bool notifyWritten(device::Buffer *buffer);
-  virtual device::Buffer *getBuffer(const Node *node);
-  virtual device::Buffer *getGraphOutputBuffer();
+                                 const device::BufferDesc &desc) override;
+  virtual bool notifyWritten(device::Buffer *buffer) override;
+  virtual device::Buffer *getBuffer(const Node *node) override;
+  virtual device::Buffer *getGraphOutputBuffer() override;
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
-  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
-  virtual bool notifyWritten(cv::Mat *cv_mat);
-  virtual cv::Mat *getCvMat(const Node *node);
-  virtual cv::Mat *getGraphOutputCvMat();
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external) override;
+  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value) override;
+  virtual bool notifyWritten(cv::Mat *cv_mat) override;
+  virtual cv::Mat *getCvMat(const Node *node) override;
+  virtual cv::Mat *getGraphOutputCvMat() override;
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, bool is_external);
+  virtual base::Status set(device::Tensor *tensor, bool is_external) override;
   virtual device::Tensor *create(device::Device *device,
                                  const device::TensorDesc &desc,
-                                 const std::string &name);
-  virtual bool notifyWritten(device::Tensor *tensor);
-  virtual device::Tensor *getTensor(const Node *node);
-  virtual device::Tensor *getGraphOutputTensor();
+                                 const std::string &name) override;
+  virtual bool notifyWritten(device::Tensor *tensor) override;
+  virtual device::Tensor *getTensor(const Node *node) override;
+  virtual device::Tensor *getGraphOutputTensor() override;
 
-  virtual base::Status takeDataPacket(DataPacket *data_packet);
-  virtual bool notifyWritten(void *anything);
-  virtual DataPacket *getDataPacket(const Node *node);
-  virtual DataPacket *getGraphOutputDataPacket();
+  virtual base::Status takeDataPacket(DataPacket *data_packet) override;
+  virtual bool notifyWritten(void *anything) override;
+  std::shared_ptr<DataPacket> acquirePacket(const Node *node, bool graph_output,
+      EdgeTypeFlag expected = EdgeTypeFlag::kNone, const std::type_info *type = nullptr) override;
+  virtual DataPacket *getDataPacket(const Node *node) override;
+  virtual DataPacket *getGraphOutputDataPacket() override;
 
-  virtual base::Status set(base::Param *param, bool is_external);
-  virtual bool notifyWritten(base::Param *param);
-  virtual base::Param *getParam(const Node *node);
-  virtual base::Param *getGraphOutputParam();
+  virtual base::Status set(base::Param *param, bool is_external) override;
+  virtual bool notifyWritten(base::Param *param) override;
+  virtual base::Param *getParam(const Node *node) override;
+  virtual base::Param *getGraphOutputParam() override;
 
-  virtual void *getGraphOutputPtr();
+  virtual void *getGraphOutputPtr() override;
 
-  virtual int64_t getIndex(const Node *node);
-  virtual int64_t getGraphOutputIndex();
+  virtual int64_t getIndex(const Node *node) override;
+  virtual int64_t getGraphOutputIndex() override;
 
-  virtual int getPosition(const Node *node);
-  virtual int getGraphOutputPosition();
+  virtual int getPosition(const Node *node) override;
+  virtual int getGraphOutputPosition() override;
 
-  virtual base::EdgeUpdateFlag update(const Node *node);
+  virtual base::EdgeUpdateFlag update(const Node *node) override;
 
-  virtual bool requestTerminate();
+  virtual bool requestTerminate() override;
+  base::Status skipFrame() override;
 
  private:
-  PipelineDataPacket *getPipelineDataPacket(const Node *node);
-
-  void pushBackUnlocked(PipelineDataPacket *dp);
-  PipelineDataPacket *atUnlocked(size_t index) const;
-  PipelineDataPacket *frontUnlocked() const;
-  PipelineDataPacket *backUnlocked() const;
-  PipelineDataPacket *popFrontUnlocked();
-  size_t queueSizeUnlocked() const;
+  using Packet = std::shared_ptr<PipelineDataPacket>;
+  Packet currentPacket(const Node *node);
+  base::EdgeUpdateFlag nextPacket(const Node *node, Packet &packet, EdgeTypeFlag expected,
+                                  const std::type_info *type);
+  base::Status enqueue(Packet packet, DataPacket *source = nullptr);
+  size_t dropOldestUnlocked(size_t count, std::vector<Packet> &retired);
   size_t queueLimit() const;
-  void waitForSpaceLocked(std::unique_lock<std::mutex> &lock);
-  size_t dropOldestUnlocked(size_t count);
   bool hasGraphOutputConsumer() const;
 
  private:
@@ -109,17 +108,18 @@ class PipelineEdge : public AbstractEdge {
   std::mutex mutex_;
   std::condition_variable cv_;
   // 有多少个消费者
-  int consumers_size_;
+  int consumers_size_ = 0;
   // 队列最大值
   // std::mutex queue_mutex_;
   std::condition_variable queue_cv_;
   int queue_max_size_ = 16;
   // 数据包
-  base::RingQueue<PipelineDataPacket *> data_queue_;
+  base::RingQueue<Packet> data_queue_;
   // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
   std::map<Node *, int> to_consume_index_;
+  std::map<Node *, int64_t> next_sequence_;
   // 每个消费者 消费 的当前数据包
-  std::map<Node *, PipelineDataPacket *> consuming_dp_;
+  std::map<Node *, Packet> consuming_dp_;
   base::QueueOverflowPolicy overflow_policy_ =
       base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure;
   int drop_count_ = 1;

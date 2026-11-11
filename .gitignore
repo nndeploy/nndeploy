@@ -306,3 +306,5 @@ temp/
 .omo/
 .opencode/
 .specstory/
+.agents/
+.claude/

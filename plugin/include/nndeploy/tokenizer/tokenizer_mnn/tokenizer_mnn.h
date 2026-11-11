@@ -55,10 +55,10 @@ class NNDEPLOY_CC_API TokenizerEncodeMnn
                      std::vector<dag::Edge*> outputs);
   virtual ~TokenizerEncodeMnn();
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 
   /*!
    * \brief encode text into ids.
@@ -110,10 +110,10 @@ class NNDEPLOY_CC_API TokenizerDecodeMnn
                      std::vector<dag::Edge*> outputs);
   virtual ~TokenizerDecodeMnn();
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  virtual base::Status init() override;
+  virtual base::Status deinit() override;
 
-  virtual base::Status run();
+  virtual base::Status run() override;
 
   /*!
    * \brief decode token ids into text.

@@ -124,6 +124,25 @@ class BufferTensorLifetimeTest : public testing::Test {
   CountingDevice device_;
 };
 
+TEST_F(BufferTensorLifetimeTest, ExternalOwnerFollowsCopiesAndMoves) {
+  using namespace nndeploy::device;
+  auto data = std::make_shared<int>(42);
+  std::weak_ptr<int> lifetime = data;
+  {
+    Buffer survivor(&device_, 1);
+    {
+      Buffer original(&device_, BufferDesc(sizeof(int)), data);
+      data.reset();
+      Buffer copy(original);
+      survivor = std::move(copy);
+    }
+    ASSERT_FALSE(lifetime.expired());
+    EXPECT_EQ(*static_cast<int *>(survivor.getData()), 42);
+  }
+  EXPECT_TRUE(lifetime.expired());
+  EXPECT_EQ(device_.deallocateCount(), 1);  // Only survivor's original allocation.
+}
+
 TEST_F(BufferTensorLifetimeTest, BufferCopyAssignmentReleasesOldStorage) {
   {
     nndeploy::device::Buffer lhs(&device_, 16);
@@ -247,6 +266,66 @@ TEST_F(BufferTensorLifetimeTest, TensorSharedDeallocateReleasesStorageOnce) {
   copy.deallocate();
   EXPECT_EQ(device_.deallocateCount(), 1);
   EXPECT_EQ(device_.liveAllocationCount(), 0U);
+}
+
+TEST_F(BufferTensorLifetimeTest, BufferRoundTripAndTruncatedInput) {
+  const unsigned char bytes[] = {0xff, 0, 0x81, 42};
+  nndeploy::device::Buffer original(&device_, sizeof(bytes));
+  std::memcpy(original.getData(), bytes, sizeof(bytes));
+  std::string wire;
+  ASSERT_TRUE(original.serialize(wire));
+  ASSERT_EQ(sizeof(uint64_t) + sizeof(bytes), wire.size());
+
+  void *ptr = original.getData();
+  for (size_t len = 0; len < wire.size(); ++len) {
+    ASSERT_FALSE(original.deserialize(wire.substr(0, len)));
+    ASSERT_EQ(ptr, original.getData());
+    ASSERT_EQ(&device_, original.getDevice());
+    ASSERT_EQ(sizeof(bytes), original.getSize());
+    ASSERT_EQ(0, std::memcmp(bytes, ptr, sizeof(bytes)));
+  }
+  nndeploy::device::Buffer restored(&device_, 1);
+  ASSERT_TRUE(restored.deserialize(wire));
+  ASSERT_EQ(sizeof(bytes), restored.getSize());
+  EXPECT_EQ(0, std::memcmp(bytes, restored.getData(), sizeof(bytes)));
+}
+
+TEST_F(BufferTensorLifetimeTest, TensorRoundTripPreservesDescriptorAndBytes) {
+  nndeploy::device::TensorDesc desc(nndeploy::base::dataTypeOf<uint8_t>(),
+                                    nndeploy::base::kDataFormatNC, {2, 3}, {3, 1});
+  nndeploy::device::Tensor original(&device_, desc, "features");
+  const unsigned char bytes[] = {0, 17, 255, 1, 128, 9};
+  std::memcpy(original.getData(), bytes, sizeof(bytes));
+  std::string wire;
+  ASSERT_TRUE(original.serialize(wire));
+  nndeploy::device::Tensor restored;
+  ASSERT_TRUE(restored.deserialize(wire));
+  EXPECT_EQ(original.getName(), restored.getName());
+  EXPECT_EQ(desc.data_type_, restored.getDesc().data_type_);
+  EXPECT_EQ(desc.data_format_, restored.getDesc().data_format_);
+  EXPECT_EQ(desc.shape_, restored.getDesc().shape_);
+  EXPECT_EQ(desc.stride_, restored.getDesc().stride_);
+  ASSERT_EQ(sizeof(bytes), restored.getBuffer()->getRealSize());
+  EXPECT_EQ(0, std::memcmp(bytes, restored.getData(), sizeof(bytes)));
+}
+
+TEST(TensorLayout, ChecksByteStridesWithoutReadingTensorData) {
+  using namespace nndeploy;
+  device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCHW,
+                          {1, 3, 2, 5});
+  EXPECT_TRUE(device::Tensor(desc).isContinue());
+  desc.stride_[0] = 0;
+  EXPECT_TRUE(device::Tensor(desc).isContinue());
+  desc.stride_[2] += sizeof(float);
+  EXPECT_FALSE(device::Tensor(desc).isContinue());
+  desc.stride_.push_back(1);
+  EXPECT_FALSE(device::Tensor(desc).isContinue());
+  desc.stride_.clear();
+  EXPECT_TRUE(device::Tensor(desc).isContinue());
+  desc.shape_[1] = -1;
+  EXPECT_FALSE(device::Tensor(desc).isContinue());
+  desc.shape_[1] = 0;
+  EXPECT_TRUE(device::Tensor(desc).isContinue());
 }
 
 }  // namespace

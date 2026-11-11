@@ -25,8 +25,11 @@ class NNDEPLOY_CC_API CvtTokenIds2Tensor : public dag::Node {
 
   virtual base::Status run() {
     tokenizer::TokenizerIds *input =
-        (tokenizer::TokenizerIds *)(this->getInput(0)->getParam(this));
-    std::vector<std::vector<int32_t>> ids = input->ids_;
+        dynamic_cast<tokenizer::TokenizerIds *>(this->getInput(0)->getParam(this));
+    if (!input || input->ids_.size() != 1) return base::kStatusCodeErrorInvalidValue;
+    const auto &ids = input->ids_.front();
+    // Reserve one slot each for the start and end tokens.
+    size_t count = std::min(ids.size(), static_cast<size_t>(max_length_ - 2));
 
     device::Device *device = device::getDefaultHostDevice();
     if (device == nullptr) {
@@ -36,13 +39,12 @@ class NNDEPLOY_CC_API CvtTokenIds2Tensor : public dag::Node {
     device::TensorDesc desc(base::dataTypeOf<int32_t>(), base::kDataFormatNC,
                             {1, max_length_});
     device::Tensor *output = this->getOutput(0)->create(device, desc);
-    output->set(49407);
+    if (!output || !output->getData()) return base::kStatusCodeErrorOutOfMemory;
 
     int32_t *value = (int32_t *)output->getData();
     value[0] = 49406;
-    for (int i = 0; i < ids[0].size(); i++) {
-      value[i + 1] = ids[0][i];
-    }
+    std::copy_n(ids.begin(), count, value + 1);
+    std::fill(value + 1 + count, value + max_length_, 49407);
     this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
@@ -268,7 +270,8 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             dag::Edge *negative_prompt, dag::Edge *output,
                             base::InferenceType inference_type,
                             std::vector<base::Param *> &param) {
-  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
+  auto *text2image_param = getText2ImageParam(param, 0, 1);
+  if (!text2image_param) return nullptr;
   auto tokenizer_param = std::make_shared<tokenizer::TokenizerPraram>();
   tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
   tokenizer_param->is_path_ = true;

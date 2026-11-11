@@ -394,6 +394,7 @@ enum EdgeUpdateFlag : int {
   kEdgeUpdateFlagComplete = 0x0001,
   kEdgeUpdateFlagTerminate = 0x0001 << 1,
   kEdgeUpdateFlagError = 0x0001 << 2,
+  kEdgeUpdateFlagSkip = 0x0001 << 3,  ///< This frame was dropped upstream.
 };
 
 enum NodeColorType : int {

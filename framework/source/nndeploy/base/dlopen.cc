@@ -18,13 +18,17 @@ class NNDEPLOY_CC_API DlopenSingleton {
 
   bool loadLibraryFromPath(const std::string &path, bool update) {
     std::lock_guard<std::mutex> lock(mutex_);
+    return loadLibraryFromPathLocked(path, update);
+  }
+
+  bool loadLibraryFromPathLocked(const std::string &path, bool update) {
     auto iter = handle_map_.find(path);
     if (iter != handle_map_.end()) {
       if (!update) {
         return true;
       }
       // 如果需要更新，先释放旧的库
-      this->freeLibrary(path);
+      if (!freeLibraryLocked(path)) return false;
     }
     
     // 检查文件是否存在
@@ -59,6 +63,10 @@ class NNDEPLOY_CC_API DlopenSingleton {
 
   bool freeLibrary(const std::string &path) {
     std::lock_guard<std::mutex> lock(mutex_);
+    return freeLibraryLocked(path);
+  }
+
+  bool freeLibraryLocked(const std::string &path) {
     auto iter = handle_map_.find(path);
     if (iter == handle_map_.end()) {
       NNDEPLOY_LOGI("free library from path(%s) not found!\n", path.c_str());
@@ -95,7 +103,7 @@ class NNDEPLOY_CC_API DlopenSingleton {
     }
     
     // 加载或重新加载库
-    bool ret = this->loadLibraryFromPath(path, update);
+    bool ret = loadLibraryFromPathLocked(path, update);
     if (!ret) {
       NNDEPLOY_LOGE("get library handle from path(%s) failed!\n", path.c_str());
       return nullptr;
@@ -113,8 +121,12 @@ class NNDEPLOY_CC_API DlopenSingleton {
   DlopenSingleton() = default;
   ~DlopenSingleton() {
     // std::lock_guard<std::mutex> lock(mutex_);
-    for (auto &item : handle_map_) {
-      this->freeLibrary(item.first);
+    while (!handle_map_.empty()) {
+      auto it = handle_map_.begin();
+      if (!freeLibraryLocked(it->first)) {
+        delete it->second;
+        handle_map_.erase(it);
+      }
     }
     handle_map_.clear();
   }
@@ -131,7 +143,7 @@ bool loadLibraryFromPath(const std::string &path, bool update) {
     NNDEPLOY_LOGE("path is empty");
     return false;
   }
-  return DlopenSingleton::GetInstance()->loadLibraryFromPath(path, false);
+  return DlopenSingleton::GetInstance()->loadLibraryFromPath(path, update);
 }
 
 bool freeLibrary(const std::string &path) {

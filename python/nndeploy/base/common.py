@@ -133,7 +133,7 @@ class DataType(_C.base.DataType):
         elif name == "uint32":
             return cls(DataTypeCode.Uint, 32, 1)
         elif name == "uint64":
-            return _C.base.DataType(_C.base.DataTypeCode.Uint, 64)
+            return cls(DataTypeCode.Uint, 64, 1)
         elif name == "int8":
             return cls(DataTypeCode.Int, 8, 1)
         elif name == "int16":
@@ -143,7 +143,7 @@ class DataType(_C.base.DataType):
         elif name == "int64":
             return cls(DataTypeCode.Int, 64, 1)
         elif name == "float16":
-            return _C.base.DataType(_C.base.DataTypeCode.Fp, 16)
+            return cls(DataTypeCode.Fp, 16, 1)
         elif name == "float32":
             return cls(DataTypeCode.Fp, 32, 1)
         elif name == "float64":
@@ -1195,6 +1195,9 @@ name_to_edge_update_flag = {
 }
 
 
+if hasattr(_C.base.EdgeUpdateFlag, "Skip"):
+    name_to_edge_update_flag["Skip"] = _C.base.EdgeUpdateFlag.Skip
+
 edge_update_flag_to_name = {v: k for k, v in name_to_edge_update_flag.items()}
 
 
@@ -1216,6 +1219,8 @@ class EdgeUpdateFlag(_C.base.EdgeUpdateFlag):
     Complete = _C.base.EdgeUpdateFlag.Complete
     Terminate = _C.base.EdgeUpdateFlag.Terminate
     Error = _C.base.EdgeUpdateFlag.Error
+    if hasattr(_C.base.EdgeUpdateFlag, "Skip"):
+        Skip = _C.base.EdgeUpdateFlag.Skip
     
     @classmethod
     def from_name(cls, edge_update_flag_name: str):

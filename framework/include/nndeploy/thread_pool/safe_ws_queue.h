@@ -33,7 +33,7 @@ class SafeWSQueue {
    */
   bool tryPop(T &task) {
     bool result = false;
-    if (!deque_.empty() && lock_.try_lock()) {
+    if (lock_.try_lock()) {
       if (!deque_.empty()) {
         task = std::forward<T>(deque_.front());  // 从前方弹出
         deque_.pop_front();
@@ -52,7 +52,7 @@ class SafeWSQueue {
    */
   bool trySteal(T &task) {
     bool result = false;
-    if (!deque_.empty() && lock_.try_lock()) {
+    if (lock_.try_lock()) {
       if (!deque_.empty()) {
         task = std::forward<T>(deque_.back());  // 从后方窃取
         deque_.pop_back();

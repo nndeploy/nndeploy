@@ -1240,6 +1240,8 @@ EdgeUpdateFlag stringToEdgeUpdateFlag(const std::string& src) {
     return kEdgeUpdateFlagComplete;
   } else if (src == "kEdgeUpdateFlagTerminate") {
     return kEdgeUpdateFlagTerminate;
+  } else if (src == "kEdgeUpdateFlagSkip") {
+    return kEdgeUpdateFlagSkip;
   } else if (src == "kEdgeUpdateFlagError") {
     return kEdgeUpdateFlagError;
   } else {
@@ -1254,6 +1256,8 @@ std::string edgeUpdateFlagToString(EdgeUpdateFlag src) {
       return "kEdgeUpdateFlagComplete";
     case kEdgeUpdateFlagTerminate:
       return "kEdgeUpdateFlagTerminate";
+    case kEdgeUpdateFlagSkip:
+      return "kEdgeUpdateFlagSkip";
     case kEdgeUpdateFlagError:
       return "kEdgeUpdateFlagError";
     default:

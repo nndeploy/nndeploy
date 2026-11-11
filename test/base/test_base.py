@@ -241,17 +241,14 @@ def test_param():
     print(param.get("value"))
 
     param = nndeploy.base.Param()
-    param.serialize({"value": 1})
-    print(param)
-    param.set({"value": 2})
-    print(param)
-
-    vaule = {"value.json": {"value": 1}}
-    param.deserialize(vaule)
-    
-    # vaule = "/home/ascenduserdg01/github/nndeploy/build/value.json"
-    # param.deserialize(vaule)
-    # print(param)
+    assert param.set("value", 2)
+    assert param.get("value") == 2
+    param.add_io_param("input")
+    param.add_dropdown_param("precision", ["fp16", "fp32"])
+    restored = nndeploy.base.Param()
+    assert restored.deserialize(param.serialize())
+    assert restored.get_io_params() == ["input"]
+    assert restored.get_dropdown_params() == {"precision": ["fp16", "fp32"]}
 
 
 if __name__ == "__main__":
@@ -263,3 +260,12 @@ if __name__ == "__main__":
     test_time_profiler()
     test_param()
     print("test_base end")
+def test_integer_similarity_preserves_small_differences_near_limits():
+    from nndeploy.base.similarity import euclidean_similarity, mse_similarity
+    for dtype in (np.int64, np.uint64):
+        hi = np.iinfo(dtype).max
+        for metric in (euclidean_similarity, mse_similarity):
+            assert np.isclose(metric(np.array([hi], dtype=dtype),
+                                     np.array([hi - 1], dtype=dtype)), np.exp(-1))
+            assert metric(np.array([hi], dtype=dtype),
+                          np.array([np.iinfo(dtype).min], dtype=dtype)) == 0

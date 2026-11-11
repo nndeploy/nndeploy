@@ -857,7 +857,7 @@ std::shared_ptr<RunStatus> Node::getRunStatus() {
 }
 
 void Node::setStream(device::Stream *stream) {
-  if (stream_ != nullptr) {
+  if (stream_ != stream && !is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
   }
   stream_ = stream;
@@ -911,16 +911,13 @@ base::Status Node::setMemory(device::Buffer *buffer) {
 }
 
 base::EdgeUpdateFlag Node::updateInput() {
-  base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
-  for (auto input : inputs_) {
-    flag = input->update(this);
-    if (flag != base::kEdgeUpdateFlagComplete) {
-      // NNDEPLOY_LOGI("node[%s] updateInput() flag: %s\n", name_.c_str(),
-      //               base::edgeUpdateFlagToString(flag).c_str());
-      break;
-    }
+  bool skipped = false;
+  for (auto *input : inputs_) {
+    auto flag = input->update(this);
+    if (flag == base::kEdgeUpdateFlagSkip) skipped = true;
+    else if (flag != base::kEdgeUpdateFlagComplete) return flag;
   }
-  return flag;
+  return skipped ? base::kEdgeUpdateFlagSkip : base::kEdgeUpdateFlagComplete;
 }
 
 bool Node::synchronize() { return true; }

@@ -45,14 +45,12 @@ class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
     scalar_desc.data_type_ = base::dataTypeOf<float>();
     scalar_desc.data_format_ = base::kDataFormatNC;
     scalar_desc.shape_ = {1};
-    scalar_ = new device::Tensor(device, scalar_desc);
+    scalar_.reset(new device::Tensor(device, scalar_desc));
     return base::kStatusCodeOk;
   }
 
   virtual base::Status deinit() {
-    if (scalar_ != nullptr) {
-      delete scalar_;
-    }
+    scalar_.reset();
     return base::kStatusCodeOk;
   }
 
@@ -61,13 +59,14 @@ class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
     ScaleLatentsParam *param = (ScaleLatentsParam *)param_.get();
     vae_scale_factor_ = param->vae_scale_factor_;
     float scale_factor = 1 / vae_scale_factor_;
+    if (!scalar_) return base::kStatusCodeErrorInvalidValue;
     scalar_->set(scale_factor);
 
     device::Tensor *latents = this->getInput(0)->getTensor(this);
     device::Tensor *latents_scale =
         this->getOutput(0)->create(device, latents->getDesc());
 
-    op::muls(scalar_, latents, latents_scale);
+    op::muls(scalar_.get(), latents, latents_scale);
 
     this->getOutput(0)->notifyWritten(latents_scale);
 
@@ -76,7 +75,7 @@ class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
 
  private:
   float vae_scale_factor_ = 0.18215;
-  device::Tensor *scalar_;
+  std::unique_ptr<device::Tensor> scalar_;
 };
 
 class NNDEPLOY_CC_API VaeGraph : public dag::Graph {
@@ -135,7 +134,9 @@ dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
                            dag::Edge *output,
                            base::InferenceType inference_type,
                            std::vector<base::Param *> &param) {
-  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
+  auto *text2image_param = getText2ImageParam(param, 3, 3);
+  auto *scheduler_param = param.size() < 2 ? nullptr : dynamic_cast<DDIMSchedulerParam *>(param[1]);
+  if (!text2image_param || !scheduler_param) return nullptr;
   auto infer_param = std::make_shared<inference::InferenceParam>();
   infer_param->device_type_ = text2image_param->device_type_;
   infer_param->model_type_ = text2image_param->model_type_;
@@ -143,7 +144,6 @@ dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
   std::vector<std::string> onnx_path = {text2image_param->model_value_[3]};
   infer_param->model_value_ = onnx_path;
 
-  DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
   auto scale_param = std::make_shared<ScaleLatentsParam>();
   scale_param->vae_scale_factor_ = scheduler_param->vae_scale_factor_;
 

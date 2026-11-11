@@ -64,6 +64,7 @@ class NNDEPLOY_CC_API Inference {
   base::DeviceType getDeviceType() { return inference_param_->device_type_; }
 
   void setStream(device::Stream* stream);
+  void setStreamSharedPtr(std::shared_ptr<device::Stream> stream);
   device::Stream* getStream();
 
   /**
@@ -309,6 +310,9 @@ class NNDEPLOY_CC_API Inference {
    * @details
    * 传入外部的tensor
    */
+  base::Status setInputTensorSharedPtr(const std::string& name,
+                                       std::shared_ptr<device::Tensor> tensor);
+  void clearExternalInputs();
   virtual base::Status setInputTensor(const std::string& name,
                                       device::Tensor* input_tensor);
 
@@ -375,6 +379,10 @@ class NNDEPLOY_CC_API Inference {
    * 外部输入tensor的map，也可以是input_tensors_
    */
   std::map<std::string, device::Tensor*> external_input_tensors_;
+
+ private:
+  std::map<std::string, std::shared_ptr<device::Tensor>> input_owners_;
+  std::shared_ptr<device::Stream> stream_owner_;
 };
 
 /**

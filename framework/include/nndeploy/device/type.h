@@ -100,6 +100,9 @@ struct NNDEPLOY_CC_API TensorDesc {
 
   virtual ~TensorDesc();
 
+  // Checked storage extent in bytes, including trailing outer-stride padding.
+  bool getStorageSize(size_t &bytes) const;
+
   bool operator==(const TensorDesc &other) const;
   bool operator!=(const TensorDesc &other) const;
 

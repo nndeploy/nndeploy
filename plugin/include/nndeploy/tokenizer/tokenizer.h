@@ -71,8 +71,8 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   TokenizerPraram() : base::Param() {}
   virtual ~TokenizerPraram() {}
 
-  PARAM_COPY(TokenizerPraram)
-  PARAM_COPY_TO(TokenizerPraram)
+  PARAM_COPY(TokenizerPraram, override)
+  PARAM_COPY_TO(TokenizerPraram, override)
 
   TokenizerPraram &operator=(const TokenizerPraram &tp) {
     if (this == &tp) {
@@ -130,7 +130,7 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   int max_length_ = 77;
 
   std::string getShareKey() {
-    std::string key = "";
+    std::string key = is_path_ ? "path:" : "blob:";
     key += tokenizerTypeToString(tokenizer_type_);
     key += json_blob_;
     key += model_blob_;

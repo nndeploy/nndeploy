@@ -295,7 +295,7 @@ base::Status RfDetrSegPostProcess::run() {
       item.index_ = candidates[idx].index_;
       item.label_id_ = candidates[idx].label_id_;
       item.score_ = candidates[idx].score_;
-      item.mask_ = mask_tensors[idx];
+      item.mask_.reset(mask_tensors[idx]);
       mask_tensors[idx] = nullptr;  // ownership transferred to SegMaskItem
       mask_results->masks_.push_back(item);
     }

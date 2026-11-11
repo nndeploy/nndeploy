@@ -118,6 +118,7 @@ def run(task_q, result_q, progress_q, log_q, plugin_update_q, cancel_event_q, re
         except Exception:
             pass
 
+        results = {}
         result_holder = {}
         done_evt = threading.Event()
         cancel_requested = False

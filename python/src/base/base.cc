@@ -12,153 +12,6 @@
 namespace nndeploy {
 namespace base {
 
-// 辅助函数:将Python dict转换为rapidjson::Value
-rapidjson::Value pyDict2Json(const py::dict& dict,
-                             rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value json(rapidjson::kObjectType);
-
-  for (const auto& item : dict) {
-    std::string key = py::str(item.first);
-    py::handle value = item.second;
-
-    if (py::isinstance<py::str>(value)) {
-      std::string str_val = value.cast<std::string>();
-      json.AddMember(rapidjson::StringRef(key.c_str()),
-                     rapidjson::StringRef(str_val.c_str()), allocator);
-    } else if (py::isinstance<py::int_>(value)) {
-      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<int>(),
-                     allocator);
-    } else if (py::isinstance<py::float_>(value)) {
-      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<float>(),
-                     allocator);
-    } else if (py::isinstance<py::bool_>(value)) {
-      json.AddMember(rapidjson::StringRef(key.c_str()), value.cast<bool>(),
-                     allocator);
-    } else if (py::isinstance<py::dict>(value)) {
-      json.AddMember(rapidjson::StringRef(key.c_str()),
-                     pyDict2Json(value.cast<py::dict>(), allocator), allocator);
-    } else if (py::isinstance<py::list>(value) ||
-               py::isinstance<py::tuple>(value)) {
-      rapidjson::Value array(rapidjson::kArrayType);
-      py::sequence seq = value.cast<py::sequence>();
-      for (size_t i = 0; i < seq.size(); i++) {
-        py::handle item = seq[i];
-        if (py::isinstance<py::str>(item)) {
-          std::string str_val = item.cast<std::string>();
-          array.PushBack(rapidjson::StringRef(str_val.c_str()), allocator);
-        } else if (py::isinstance<py::int_>(item)) {
-          array.PushBack(item.cast<int>(), allocator);
-        } else if (py::isinstance<py::float_>(item)) {
-          array.PushBack(item.cast<float>(), allocator);
-        } else if (py::isinstance<py::bool_>(item)) {
-          array.PushBack(item.cast<bool>(), allocator);
-        } else if (py::isinstance<py::dict>(item)) {
-          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
-                         allocator);
-        } else if (py::isinstance<py::list>(item) ||
-                   py::isinstance<py::tuple>(item)) {
-          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
-                         allocator);
-        } else if (item.is_none()) {
-          array.PushBack(rapidjson::Value(), allocator);
-        }
-      }
-      json.AddMember(rapidjson::StringRef(key.c_str()), array, allocator);
-    } else if (value.is_none()) {
-      json.AddMember(rapidjson::StringRef(key.c_str()), rapidjson::Value(),
-                     allocator);
-    }
-  }
-  return json;
-}
-
-// 辅助函数:将rapidjson::Value转换为Python dict
-py::dict json2PyDict(const rapidjson::Value& json) {
-  py::dict dict;
-
-  for (auto it = json.MemberBegin(); it != json.MemberEnd(); ++it) {
-    std::string key = it->name.GetString();
-    const auto& value = it->value;
-
-    if (value.IsString()) {
-      dict[key.c_str()] = value.GetString();
-    } else if (value.IsInt()) {
-      dict[key.c_str()] = value.GetInt();
-    } else if (value.IsInt64()) {
-      dict[key.c_str()] = value.GetInt64();
-    } else if (value.IsUint()) {
-      dict[key.c_str()] = value.GetUint();
-    } else if (value.IsUint64()) {
-      dict[key.c_str()] = value.GetUint64();
-    } else if (value.IsFloat()) {
-      dict[key.c_str()] = value.GetFloat();
-    } else if (value.IsDouble()) {
-      dict[key.c_str()] = value.GetDouble();
-    } else if (value.IsBool()) {
-      dict[key.c_str()] = value.GetBool();
-    } else if (value.IsObject()) {
-      dict[key.c_str()] = json2PyDict(value);
-    } else if (value.IsArray()) {
-      py::list list;
-      for (rapidjson::SizeType i = 0; i < value.Size(); i++) {
-        const auto& item = value[i];
-        if (item.IsString()) {
-          list.append(item.GetString());
-        } else if (item.IsInt()) {
-          list.append(item.GetInt());
-        } else if (item.IsInt64()) {
-          list.append(item.GetInt64());
-        } else if (item.IsUint()) {
-          list.append(item.GetUint());
-        } else if (item.IsUint64()) {
-          list.append(item.GetUint64());
-        } else if (item.IsFloat()) {
-          list.append(item.GetFloat());
-        } else if (item.IsDouble()) {
-          list.append(item.GetDouble());
-        } else if (item.IsBool()) {
-          list.append(item.GetBool());
-        } else if (item.IsObject()) {
-          list.append(json2PyDict(item));
-        } else if (item.IsArray()) {
-          py::list sublist;
-          for (rapidjson::SizeType j = 0; j < item.Size(); j++) {
-            const auto& subitem = item[j];
-            if (subitem.IsObject()) {
-              sublist.append(json2PyDict(subitem));
-            } else if (subitem.IsString()) {
-              sublist.append(subitem.GetString());
-            } else if (subitem.IsInt()) {
-              sublist.append(subitem.GetInt());
-            } else if (subitem.IsInt64()) {
-              sublist.append(subitem.GetInt64());
-            } else if (subitem.IsUint()) {
-              sublist.append(subitem.GetUint());
-            } else if (subitem.IsUint64()) {
-              sublist.append(subitem.GetUint64());
-            } else if (subitem.IsFloat()) {
-              sublist.append(subitem.GetFloat());
-            } else if (subitem.IsDouble()) {
-              sublist.append(subitem.GetDouble());
-            } else if (subitem.IsBool()) {
-              sublist.append(subitem.GetBool());
-            } else if (subitem.IsNull()) {
-              sublist.append(py::none());
-            }
-          }
-          list.append(sublist);
-        } else if (item.IsNull()) {
-          list.append(py::none());
-        }
-      }
-      dict[key.c_str()] = list;
-    } else if (value.IsNull()) {
-      dict[key.c_str()] = py::none();
-    }
-  }
-  return dict;
-}
-
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode export as base.DataTypeCode
   py::enum_<base::DataTypeCode>(m, "DataTypeCode")
@@ -447,6 +300,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("Complete", EdgeUpdateFlag::kEdgeUpdateFlagComplete)
       .value("Terminate", EdgeUpdateFlag::kEdgeUpdateFlagTerminate)
       .value("Error", EdgeUpdateFlag::kEdgeUpdateFlagError)
+      .value("Skip", EdgeUpdateFlag::kEdgeUpdateFlagSkip)
       .export_values();
 
   // export as base.NodeColorType
@@ -920,8 +774,15 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def(py::init<>())
       .def("copy", &Param::copy)
       .def("copy_to", &Param::copyTo)
-      .def("set", &Param::set)
-      .def("get", &Param::get)
+      .def("set", [](Param &self, const std::string &key, py::object value) {
+        Any any = pythonToAny(value);
+        return self.set(key, any);
+      })
+      .def("get", [](Param &self, const std::string &key) -> py::object {
+        Any any;
+        if (self.get(key, any) != kStatusCodeOk) throw py::key_error(key);
+        return anyToPython(any);
+      })
 
       .def("set_required_params", &Param::setRequiredParams)
       .def("add_required_param", &Param::addRequiredParam)
@@ -976,7 +837,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "Free a library from a path");
 
   // export as base.get_library_handle
-  m.def("get_library_handle", &getLibraryHandle, py::arg("path"),
+  m.def("get_library_handle", &getLibraryHandle, py::return_value_policy::reference, py::arg("path"),
         py::arg("update"), "Get a library handle from a path");
 }
 

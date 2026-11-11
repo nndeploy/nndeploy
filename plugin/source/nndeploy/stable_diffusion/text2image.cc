@@ -7,6 +7,7 @@
 
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/stable_diffusion/clip.h"
+#include "nndeploy/stable_diffusion/ddim_scheduler.h"
 #include "nndeploy/stable_diffusion/denoise.h"
 #include "nndeploy/stable_diffusion/vae.h"
 #include "nndeploy/tokenizer/tokenizer.h"
@@ -111,52 +112,36 @@ class NNDEPLOY_CC_API TensorToMat : public dag::Node {
   virtual ~TensorToMat() {}
 
   virtual base::Status run() {
-    setRunningFlag(true);
-    device::Tensor *input =
-        (device::Tensor *)(this->getInput(0)->getTensor(this));
-    float *ptr = (float *)(input->getData());
-    int n = input->getBatch();
-    int c = input->getChannel();
-    int h = input->getHeight();
-    int w = input->getWidth();
-    cv::Mat *mat = new cv::Mat(ToImages(ptr, n, c, h, w)[0]);
-    this->getOutput(0)->set(mat, false);
-
-    setRunningFlag(false);
-    return base::kStatusCodeOk;
-  }
-
-  std::vector<cv::Mat> ToImages(float *images, int N, int C, int H, int W) {
-    std::vector<cv::Mat> result;
-
-    for (int n = 0; n < N; ++n) {
-      cv::Mat img(H, W, (C == 1) ? CV_8UC1 : CV_8UC3);
-
-      for (int c = 0; c < C; ++c) {
-        for (int h = 0; h < H; ++h) {
-          for (int w = 0; w < W; ++w) {
-            int idx = n * C * H * W + c * H * W + h * W + w;
-            float val = (images[idx] + 1.0f) * 255.0f / 2.0f;
-            val = std::min(std::max(val, 0.0f), 255.0f);
-            uint8_t pixelValue = static_cast<uint8_t>(std::round(val));
-
-            if (C == 1) {
-              img.at<uint8_t>(h, w) = pixelValue;
-            } else {
-              img.at<cv::Vec3b>(h, w)[c] = pixelValue;
-            }
-          }
-        }
-      }
-
-      if (C == 3) {
-        cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
-      }
-
-      result.push_back(img);
+    auto *input = getInput(0)->getTensor(this);
+    if (!input || !input->getData() ||
+        input->getDataType() != base::dataTypeOf<float>() ||
+        !device::isHostDeviceType(input->getDeviceType()) || input->getShape().size() != 4 ||
+        (input->getDataFormat() != base::kDataFormatNCHW &&
+         input->getDataFormat() != base::kDataFormatNHWC)) {
+      return base::kStatusCodeErrorInvalidValue;
     }
-
-    return result;
+    const int channels = input->getChannel();
+    const int height = input->getHeight();
+    const int width = input->getWidth();
+    if (input->getBatch() != 1 || (channels != 1 && channels != 3) ||
+        height <= 0 || width <= 0 ||
+        static_cast<size_t>(height) > std::min(input->getSize(), input->getRealSize()) /
+                                          sizeof(float) / channels / width) {
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    if (!input->isContinue()) return base::kStatusCodeErrorInvalidValue;
+    const size_t pixels = static_cast<size_t>(height) * width;
+    const auto *src = static_cast<const float *>(input->getData());
+    const bool planar = input->getDataFormat() == base::kDataFormatNCHW;
+    auto *image = new cv::Mat(height, width, CV_8UC(channels));
+    for (size_t pixel = 0; pixel < pixels; ++pixel) {
+      for (int c = 0; c < channels; ++c) {
+        float val = src[planar ? c * pixels + pixel : pixel * channels + c];
+        val = std::min(std::max((val + 1.0f) * 127.5f, 0.0f), 255.0f);
+        image->data[pixel * channels + channels - 1 - c] = static_cast<uint8_t>(std::round(val));
+      }
+    }
+    return getOutput(0)->set(image, false);
   }
 };
 
@@ -164,6 +149,11 @@ dag::Graph *createStableDiffusionText2ImageGraph(
     const std::string name, std::string prompt_str,
     std::string negative_prompt_str, base::InferenceType inference_type,
     SchedulerType scheduler_type, std::vector<base::Param *> &param, int iter) {
+  auto *text2image_param = getText2ImageParam(param, 0, 3);
+  if (!text2image_param || param.size() < 2 || !dynamic_cast<DDIMSchedulerParam *>(param[1])) {
+    NNDEPLOY_LOGE("Expected tokenizer, CLIP, UNet and VAE models and DDIM parameters.\n");
+    return nullptr;
+  }
   dag::Graph *graph = new dag::Graph(name, {}, {});
 
   dag::Edge *prompt = graph->createEdge("prompt");
@@ -199,7 +189,6 @@ dag::Graph *createStableDiffusionText2ImageGraph(
       "tensor_to_mat", std::vector<dag::Edge *>{output},
       std::vector<dag::Edge *>{encode_input});
 
-  Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
   std::string output_path = text2image_param->output_path_;
   codec::Encode *encode_node =
       codec::createEncode(base::kCodecTypeOpenCV, base::kCodecFlagImage,

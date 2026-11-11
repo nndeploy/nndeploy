@@ -72,6 +72,11 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
   // init scheduler param
   const DDIMSchedulerParam *ddim_param =
       dynamic_cast<DDIMSchedulerParam *>(param);
+  if (!ddim_param || ddim_param->num_train_timesteps_ < 1 ||
+      ddim_param->num_inference_steps_ < 1 ||
+      ddim_param->num_inference_steps_ > ddim_param->num_train_timesteps_) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
   scheduler_param_ = ddim_param->clone();
   ddim_scheduler_param_ = dynamic_cast<DDIMSchedulerParam *>(scheduler_param_);
 
@@ -83,14 +88,14 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
   if (ddim_scheduler_param_->beta_schedule_ == "linear") {
     for (int i = 0; i < num_train_timesteps; i++) {
       betas_[i] =
-          beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1);
+          beta_start + (beta_end - beta_start) * i / std::max(1, num_train_timesteps - 1);
     }
   } else if (ddim_scheduler_param_->beta_schedule_ == "scaled_linear") {
     float sqrt_beta_start = std::sqrt(beta_start);
     float sqrt_beta_end = std::sqrt(beta_end);
     for (int i = 0; i < num_train_timesteps; i++) {
       float temp = sqrt_beta_start + (sqrt_beta_end - sqrt_beta_start) * i /
-                                         (num_train_timesteps - 1);
+                                         std::max(1, num_train_timesteps - 1);
       betas_[i] = temp * temp;
     }
   } else {
@@ -129,25 +134,21 @@ base::Status DDIMScheduler::deinit() {
   if (scheduler_param_ != nullptr) {
     delete scheduler_param_;
     scheduler_param_ = nullptr;
+    ddim_scheduler_param_ = nullptr;
   }
   return base::kStatusCodeOk;
 }
 
 base::Status DDIMScheduler::setTimesteps() {
-  int num_train_timesteps = ddim_scheduler_param_->num_train_timesteps_;
-  int num_inference_steps = ddim_scheduler_param_->num_inference_steps_;
-
-  // 整除运算：确定步长
-  int step_ratio = num_train_timesteps / num_inference_steps;
-  // 生成 [0, num_train_timesteps) 间隔为 step_ratio 的序列
-  std::vector<int> ts;
-  for (int i = 0; i < num_train_timesteps; i += step_ratio) {
-    ts.push_back(i);
+  if (!ddim_scheduler_param_) return base::kStatusCodeErrorInvalidValue;
+  int train = ddim_scheduler_param_->num_train_timesteps_;
+  int steps = ddim_scheduler_param_->num_inference_steps_;
+  if (steps < 1 || steps > train) return base::kStatusCodeErrorInvalidValue;
+  int ratio = train / steps;
+  timesteps_.resize(steps);
+  for (int i = 0; i < steps; ++i) {
+    timesteps_[i] = (steps - 1 - i) * ratio;
   }
-  // 反转序列，按降序排列
-  std::reverse(ts.begin(), ts.end());
-  timesteps_ = ts;
-
   return base::kStatusCodeOk;
 }
 
@@ -160,37 +161,41 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
                                  device::Tensor *timestep,
                                  device::Tensor *sample,
                                  device::Tensor *pre_sample) {
-  float *sample_ = (float *)(sample->getData());
-  size_t sample_size = sample->getSize() / sizeof(float);
-  std::vector<float> sample_v(sample_, sample_ + sample_size);
-
-  float *timestep_ = (float *)(timestep->getData());
-  size_t timestep_size = timestep->getSize() / sizeof(float);
-  std::vector<float> timestep_v(timestep_, timestep_ + timestep_size);
-
-  float *model_output_ = (float *)(model_output->getData());
-  size_t model_output_size = model_output->getSize() / sizeof(float);
-  std::vector<float> model_output_v(model_output_,
-                                    model_output_ + model_output_size);
-
-  float *pre_sample_ = (float *)(pre_sample->getData());
-  size_t pre_sample_size = pre_sample->getSize() / sizeof(float);
-  std::vector<float> pre_sample_v(pre_sample_, pre_sample_ + pre_sample_size);
-
-  base::Status status =
-      step_inner(model_output_v, timestep_v[0], sample_v, pre_sample_v);
+  for (auto *tensor : {model_output, timestep, sample, pre_sample}) {
+    if (!tensor || !tensor->getData() ||
+        !device::isHostDeviceType(tensor->getDeviceType()) ||
+        tensor->getDataType() != base::dataTypeOf<float>() ||
+        tensor->getSize() < sizeof(float) || tensor->getRealSize() < tensor->getSize()) {
+      return base::kStatusCodeErrorInvalidValue;
+    }
+  }
+  if (!ddim_scheduler_param_ || model_output->getSize() != sample->getSize() ||
+      pre_sample->getSize() != sample->getSize()) return base::kStatusCodeErrorInvalidValue;
+  const float step = *static_cast<const float *>(timestep->getData());
+  if (!(step >= 0 && step < static_cast<double>(ddim_scheduler_param_->num_train_timesteps_))
+      || std::floor(step) != step) return base::kStatusCodeErrorInvalidValue;
+  const size_t count = sample->getSize() / sizeof(float);
+  auto *values = static_cast<const float *>(sample->getData());
+  auto *prediction = static_cast<const float *>(model_output->getData());
+  std::vector<float> sample_v(values, values + count);
+  std::vector<float> model_output_v(prediction, prediction + count);
+  std::vector<float> pre_sample_v(count);
+  base::Status status = step_inner(model_output_v, static_cast<int>(step), sample_v, pre_sample_v);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("ddim scheduler step failed.\n");
     return status;
   }
 
-  memcpy(pre_sample_, pre_sample_v.data(), pre_sample_size * sizeof(float));
+  memcpy(pre_sample->getData(), pre_sample_v.data(), count * sizeof(float));
   return base::kStatusCodeOk;
 }
 
 base::Status DDIMScheduler::step_inner(std::vector<float> &model_output,
                                        int timestep, std::vector<float> &sample,
                                        std::vector<float> &prev_sample) {
+  if (!ddim_scheduler_param_ || prev_sample.size() != sample.size()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
   int step_index = -1;
   for (size_t i = 0; i < timesteps_.size(); i++) {
     if (timesteps_[i] == timestep) {

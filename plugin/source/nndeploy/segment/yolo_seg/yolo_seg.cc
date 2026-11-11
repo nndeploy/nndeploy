@@ -278,7 +278,7 @@ base::Status YoloSegPostProcess::run() {
       mask_item.index_ = candidates_result.bboxs_[n].index_;
       mask_item.label_id_ = candidates_result.bboxs_[n].label_id_;
       mask_item.score_ = candidates_result.bboxs_[n].score_;
-      mask_item.mask_ = mask_tensor;
+      mask_item.mask_.reset(mask_tensor);
       mask_result->masks_.push_back(std::move(mask_item));
     }
   }

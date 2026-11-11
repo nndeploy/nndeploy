@@ -688,7 +688,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
       const rapidjson::Value& model_value_array = json["model_value_"];
       model_value_.clear();
       if (model_value_array.Size() == 1 &&
-          model_value_array[0].GetString() == "") {
+          model_value_array[0].GetStringLength() == 0) {
         ;
       } else {
         for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
@@ -701,7 +701,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
       const rapidjson::Value& model_data_array = json["external_model_data_"];
       external_model_data_.clear();
       if (model_data_array.Size() == 1 &&
-          model_data_array[0].GetString() == "") {
+          model_data_array[0].GetStringLength() == 0) {
         ;
       } else {
         for (rapidjson::SizeType i = 0; i < model_data_array.Size(); i++) {

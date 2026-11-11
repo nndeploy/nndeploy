@@ -57,13 +57,12 @@ class NNDEPLOY_CC_API DrawDepth : public dag::Node {
       NNDEPLOY_LOGE("result is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
-    if (result->data_.empty()) {
-      NNDEPLOY_LOGE("depth data is empty\n");
+    const int h = result->height_;
+    const int w = result->width_;
+    if (h <= 0 || w <= 0 ||
+        static_cast<size_t>(h) > result->data_.size() / w) {
       return base::kStatusCodeErrorInvalidParam;
     }
-
-    int h = result->height_;
-    int w = result->width_;
     float min_val = result->min_val_;
     float max_val = result->max_val_;
     float range = max_val - min_val;
@@ -73,7 +72,7 @@ class NNDEPLOY_CC_API DrawDepth : public dag::Node {
     cv::Mat depth_map(h, w, CV_8UC1);
     for (int y = 0; y < h; ++y) {
       for (int x = 0; x < w; ++x) {
-        float val = (result->data_[y * w + x] - min_val) / range;
+        float val = (result->data_[static_cast<size_t>(y) * w + x] - min_val) / range;
         depth_map.at<uchar>(y, x) = static_cast<uchar>(val * 255.0f);
       }
     }

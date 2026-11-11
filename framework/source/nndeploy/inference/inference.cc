@@ -39,11 +39,18 @@ std::shared_ptr<base::Param> Inference::getParamSharedPtr() {
 }
 
 void Inference::setStream(device::Stream* stream) {
-  if (stream_ != nullptr) {
+  if (stream_ == stream) return;
+  if (!is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
   }
+  stream_owner_.reset();
   stream_ = stream;
-  is_external_stream_ = true;
+  is_external_stream_ = stream != nullptr;
+}
+
+void Inference::setStreamSharedPtr(std::shared_ptr<device::Stream> stream) {
+  setStream(stream.get());
+  if (is_external_stream_) stream_owner_ = std::move(stream);
 }
 
 device::Stream* Inference::getStream() { return stream_; }
@@ -314,7 +321,7 @@ device::Tensor* Inference::getOutputTensor(const std::string& name) {
 
 base::Status Inference::setInputTensor(const std::string& name,
                                        device::Tensor* input_tensor) {
-  base::Status status = base::kStatusCodeOk;
+  if (!input_tensor) return base::kStatusCodeErrorNullParam;
 
   std::string new_name = "";
   if (!name.empty()) {
@@ -326,16 +333,38 @@ base::Status Inference::setInputTensor(const std::string& name,
   }
 
   if (input_tensors_.count(new_name) > 0) {
+    auto owner = input_owners_.find(new_name);
+    if (owner != input_owners_.end() && owner->second.get() != input_tensor)
+      input_owners_.erase(owner);
     if (input_tensor != input_tensors_[new_name]) {
       external_input_tensors_[new_name] = input_tensor;
+    } else {
+      external_input_tensors_.erase(new_name);
     }
   } else {
     NNDEPLOY_LOGI("input_tensor name: %s not exist!\n", new_name.c_str());
+    return base::kStatusCodeErrorInvalidParam;
   }
 
-  return status;
+  return base::kStatusCodeOk;
 }
 //
+base::Status Inference::setInputTensorSharedPtr(
+    const std::string& name, std::shared_ptr<device::Tensor> tensor) {
+  if (!tensor) return base::kStatusCodeErrorNullParam;
+  std::string key = name.empty() ? tensor->getName() : name;
+  if (key.empty()) key = getInputName(0);
+  auto status = setInputTensor(key, tensor.get());
+  if (status == base::kStatusCodeOk && external_input_tensors_.count(key))
+    input_owners_[key] = std::move(tensor);
+  return status;
+}
+
+void Inference::clearExternalInputs() {
+  external_input_tensors_.clear();
+  input_owners_.clear();
+}
+
 // base::Status Inference::setOutputTensor(const std::string &name,
 //                                         device::Tensor *output_tensor) {
 //   base::Status status = base::kStatusCodeOk;

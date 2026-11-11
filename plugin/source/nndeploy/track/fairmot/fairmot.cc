@@ -87,21 +87,23 @@ base::Status FairMotPreParam::deserialize(rapidjson::Value &json) {
   if (json.HasMember("normalize_") && json["normalize_"].IsBool()) {
     normalize_ = json["normalize_"].GetBool();
   }
-  if (json.HasMember("scale_") && json["scale_"].IsArray()) {
-    for (int i = 0; i < 4; i++) {
-      scale_[i] = json["scale_"][i].GetFloat();
-    }
+  for (auto key : {"scale_", "mean_", "std_"}) {
+    if (!json.HasMember(key)) continue;
+    const auto &array = json[key];
+    if (!array.IsArray() || (array.Size() != 3 && array.Size() != 4))
+      return base::kStatusCodeErrorInvalidParam;
+    for (const auto &value : array.GetArray())
+      if (!value.IsNumber()) return base::kStatusCodeErrorInvalidParam;
   }
-  if (json.HasMember("mean_") && json["mean_"].IsArray()) {
-    for (int i = 0; i < 4; i++) {
-      mean_[i] = json["mean_"][i].GetFloat();
-    }
-  }
-  if (json.HasMember("std_") && json["std_"].IsArray()) {
-    for (int i = 0; i < 4; i++) {
-      std_[i] = json["std_"][i].GetFloat();
-    }
-  }
+  auto read_channels = [&](const char *key, float (&channels)[4]) {
+    if (!json.HasMember(key)) return;
+    const auto &array = json[key];
+    for (rapidjson::SizeType i = 0; i < array.Size(); ++i)
+      channels[i] = array[i].GetFloat();
+  };
+  read_channels("scale_", scale_);
+  read_channels("mean_", mean_);
+  read_channels("std_", std_);
   return base::kStatusCodeOk;
 }
 

@@ -7,9 +7,6 @@
 
 #include "nndeploy/llm/sample.h"
 
-#include "nndeploy/op/op.h"
-#include "nndeploy/op/op_mul.h"
-#include "nndeploy/op/op_softmax.h"
 
 namespace nndeploy {
 namespace llm {
@@ -28,118 +25,26 @@ struct IndexScoreCmpGreater {
 };
 // a series of index and their corresponding logits
 struct SubsetLogits {
-  SubsetLogits()
-      : logits(nullptr), index(std::vector<int>()), is_subset(false) {}
-  SubsetLogits(device::Tensor* logits, std::vector<int> index, bool is_subset)
-      : logits(logits), index(index), is_subset(is_subset) {}
-  ~SubsetLogits() {
-    if (logits != nullptr && is_external == false) {
-      delete logits;
-    }
-  }
-
-  // 拷贝构造函数
-  SubsetLogits(const SubsetLogits& other)
-      : index(other.index),
-        is_external(true),
-        logits(other.logits),
-        is_subset(other.is_subset) {}
-
-  // 赋值运算符重载
-  SubsetLogits& operator=(const SubsetLogits& other) {
-    if (this != &other) {
-      index = other.index;
-      logits = other.logits;
-      is_external = true;
-      is_subset = other.is_subset;
-    }
-    return *this;
-  }
-
+  std::vector<float> scores;
   std::vector<int> index;
-  bool is_external = true;
-  device::Tensor* logits;
-  bool is_subset;
+  bool is_subset = false;
 };
-// sampler compute struct end
 
-// sampler compute functions start
-device::Tensor* tempratureSoftmax(device::Tensor* logits, float temperature,
-                                  int axis = -1) {
-  // create temperature tensor
-  base::DataType data_type = logits->getDataType();
-  base::DataFormat data_format = logits->getDataFormat();
-  base::IntVector shape = logits->getShape();
-  for (int i = 0; i < shape.size(); i++) {
-    shape[i] = 1;
+static std::vector<float> probabilities(const std::vector<float>& scores,
+                                        float temperature) {
+  std::vector<float> probs(scores.size());
+  float maximum = *std::max_element(scores.begin(), scores.end());
+  double sum = 0;
+  for (size_t i = 0; i < scores.size(); ++i) {
+    probs[i] = std::exp((scores[i] - maximum) / temperature);
+    sum += probs[i];
   }
-  device::TensorDesc temperature_tensor_desc(data_type, data_format, shape);
-  device::Tensor* temperature_tensor = new device::Tensor(
-      logits->getDevice(), temperature_tensor_desc, "temperature");
-  temperature_tensor->set(1.0f / temperature);
-  device::Tensor* result = new device::Tensor("temprature_softmax.output");
-  op::mul(logits, temperature_tensor, result);
-  delete temperature_tensor;
-
-  // create softmax param
-  std::shared_ptr<ir::SoftmaxParam> param =
-      std::make_shared<ir::SoftmaxParam>();
-  param->axis_ = axis;
-  op::softmax(result, param, result);
-
-  return result;
+  for (auto& p : probs) p /= sum;
+  return probs;
 }
 
-SubsetLogits createSubsetLogits(device::Tensor* logits) {
-  struct SubsetLogits subset;
-  subset.logits = logits;
-  subset.is_subset = false;
-  return subset;
-}
-
-SubsetLogits createSubsetLogits(device::Tensor* logits,
-                                const std::vector<int>& index) {
-  struct SubsetLogits subset;
-  subset.logits = logits;
-  subset.index = index;
-  subset.is_subset = true;
-  return subset;
-}
-
-SubsetLogits createSubsetLogits(int size) {
-  struct SubsetLogits subset;
-  // TODO,暂时不能确定具体的类型
-  base::DataType data_type = base::dataTypeOf<int>();
-  base::DataFormat data_format = base::kDataFormatNC;
-  base::IntVector shape = {1, size};
-  device::TensorDesc logits_tensor_desc(data_type, data_format, shape);
-  subset.logits = new device::Tensor(logits_tensor_desc);
-  subset.is_external = false;
-  subset.index.resize(size);
-  subset.is_subset = true;
-  return subset;
-}
-
-SubsetLogits createSubsetLogits(const std::vector<float>& scores,
-                                const std::vector<int>& index) {
-  int size = (int)(index.size());
-  struct SubsetLogits subset;
-
-  // TODO,暂时不能确定具体的类型
-  base::DataType data_type = base::dataTypeOf<int>();
-  base::DataFormat data_format = base::kDataFormatNC;
-  base::IntVector shape = {1, size};
-  device::TensorDesc logits_tensor_desc(data_type, data_format, shape);
-  subset.logits = new device::Tensor(logits_tensor_desc);
-  subset.is_external = false;
-  auto pointer = (float*)(subset.logits->getData());
-  for (int i = 0; i < size; ++i) {
-    pointer[i] = scores[i];
-  }
-
-  subset.index = index;
-  subset.is_subset = true;
-  return subset;
+static SubsetLogits createSubsetLogits(std::vector<float> scores, std::vector<int> index) {
+  return {std::move(scores), std::move(index), true};
 }
 
 void transformIndex(struct SubsetLogits& superset,
@@ -150,19 +55,16 @@ void transformIndex(struct SubsetLogits& superset,
   }
 }
 
-int select(struct SubsetLogits& subset, int id) {
+int select(const SubsetLogits& subset, int id) {
   if (!(subset.is_subset)) {
     return id;
   }
   return subset.index[id];
 }
 
-int argmaxSelect(struct SubsetLogits superset) {
-  auto scores = (float*)(superset.logits->getData());
-  // get last dimension index
-  int lastIndex = superset.logits->getShape().size() - 1;
-  // argmax size is last dimension size
-  auto size = superset.logits->getShape()[lastIndex];
+int argmaxSelect(const SubsetLogits& superset) {
+  const auto& scores = superset.scores;
+  auto size = scores.size();
   float max_score = scores[0];
   int token_id = 0;
   for (int i = 0; i < size; i++) {
@@ -190,21 +92,15 @@ int randomSelect(float* probs, size_t size) {
   return size - 1;
 }
 
-int randomSelect(device::Tensor* probs) {
-  return randomSelect((float*)(probs->getData()), probs->getSize());
+int reSoftmaxSelect(const SubsetLogits& subset, float temperature) {
+  auto probs = probabilities(subset.scores, temperature);
+  return select(subset, randomSelect(probs.data(), probs.size()));
 }
 
-int reSoftmaxSelect(struct SubsetLogits subset, float temperature) {
-  int token_index_id =
-      randomSelect(tempratureSoftmax(subset.logits, temperature));
-  return ((subset.is_subset) ? subset.index[token_index_id] : token_index_id);
-}
-
-int packSoftmax(device::Tensor* logits, std::vector<IndexScore>& index_scores,
+int packSoftmax(const std::vector<float>& scores, std::vector<IndexScore>& index_scores,
                 float temperature) {
-  auto prob_varp = tempratureSoftmax(logits, temperature);
-  auto probs = (float*)(prob_varp->getData());
-  auto size = prob_varp->getSize();
+  auto probs = probabilities(scores, temperature);
+  int size = static_cast<int>(scores.size());
   index_scores.resize(size);
   for (int i = 0; i < size; i++) {
     IndexScore m;
@@ -333,31 +229,48 @@ Sampler::Sampler(const std::string& name, std::vector<dag::Edge*> inputs,
 Sampler::~Sampler() {}
 
 base::Status Sampler::run() {
-  auto logits = inputs_[0]->get<device::Tensor>(this);
-  int batch_size = logits->getShape()[0];
-
-  tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
-  out_token->ids_.resize(batch_size);
-
-  auto sampled_token_id = sample(logits);
-
-  if (!is_prefill_ && is_first_) {
-    std::vector<int>* history_tokens = this->getResourceWithState<std::vector<int>>("history_tokens");
-    int prefill_token_id = history_tokens->back();
-    out_token->ids_[0].push_back(prefill_token_id);
-    is_first_ = false;
+  if (inputs_.empty() || outputs_.empty()) return base::kStatusCodeErrorInvalidParam;
+  auto logits = inputs_[0]->getTensor(this);
+  if (!logits || !logits->getBuffer() || !logits->getData() ||
+      logits->getDataType() != base::dataTypeOf<float>() ||
+      !device::isHostDeviceType(logits->getDeviceType())) return base::kStatusCodeErrorInvalidParam;
+  const auto shape = logits->getShape();
+  if (shape.empty() || shape.back() <= 0) return base::kStatusCodeErrorInvalidParam;
+  size_t count = 1;
+  for (int dim : shape) {
+    if (dim <= 0 || count > logits->getSize() / sizeof(float) / dim)
+      return base::kStatusCodeErrorInvalidParam;
+    count *= dim;
   }
-  out_token->ids_[0].push_back(sampled_token_id);
-
-  outputs_[0]->set(out_token, false);
-  outputs_[0]->notifyWritten(out_token);
-  return base::kStatusCodeOk;
+  const size_t batch = shape.size() == 1 ? 1 : shape.front();
+  const size_t vocab = shape.back();
+  const float *data = static_cast<const float *>(logits->getData());
+  auto out_token = std::make_unique<tokenizer::TokenizerIds>();
+  out_token->ids_.resize(batch);
+  if (!is_prefill_ && is_first_) {
+    auto *history = getResourceWithState<std::vector<int>>("history_tokens");
+    if (!history || history->empty()) return base::kStatusCodeErrorInvalidParam;
+    out_token->ids_[0].push_back(history->back());
+  }
+  for (size_t b = 0; b < batch; ++b) {
+    const float *last = data + (b + 1) * (count / batch) - vocab;
+    int id = sampleScores(last, vocab);
+    if (id < 0) return base::kStatusCodeErrorInvalidParam;
+    out_token->ids_[b].push_back(id);
+  }
+  auto status = outputs_[0]->set(out_token.get(), false);
+  if (status == base::kStatusCodeOk) {
+    out_token.release();
+    if (!is_prefill_) is_first_ = false;
+  }
+  return status;
 }
 
 struct SubsetLogits Sampler::topK(struct SubsetLogits superset) {
   int K = (dynamic_cast<SampleParam*>(param_.get()))->topK;
-  auto scores = (float*)(superset.logits->getData());
-  auto size = superset.logits->getSize();
+  const auto& scores = superset.scores;
+  int size = static_cast<int>(scores.size());
+  K = std::max(1, std::min(K, size));
   // 1. time complexity: O(nlogk)
   std::priority_queue<IndexScore, std::vector<IndexScore>, IndexScoreCmpGreater>
       heap;
@@ -375,8 +288,8 @@ struct SubsetLogits Sampler::topK(struct SubsetLogits superset) {
     }
   }
   // 2. store top K results
-  auto subset = createSubsetLogits(K);
-  float* topKscores = (float*)(subset.logits->getData());
+  auto subset = createSubsetLogits(std::vector<float>(K), std::vector<int>(K));
+  auto& topKscores = subset.scores;
   for (int i = 0; i < K; i++) {
     subset.index[K - i - 1] = heap.top().index;
     topKscores[K - i - 1] = heap.top().score;
@@ -390,15 +303,15 @@ struct SubsetLogits Sampler::topP(struct SubsetLogits superset) {
   float p = (dynamic_cast<SampleParam*>(param_.get()))->topP,
         temperature = (dynamic_cast<SampleParam*>(param_.get()))->temperature;
   std::vector<IndexScore> index_scores;
-  int size = packSoftmax(superset.logits, index_scores, temperature);
+  int size = packSoftmax(superset.scores, index_scores, temperature);
   // 1. make max heap
   std::make_heap(index_scores.begin(), index_scores.end(), IndexScoreCmpLess());
   // 2. top p algorithm
-  auto scores = (float*)(superset.logits->getData());
+  const auto& scores = superset.scores;
   std::vector<int> index;
   std::vector<float> subset_logits;
   float cumulative = 0.0f;
-  while (cumulative < p && !index_scores.empty()) {
+  while ((index.empty() || cumulative < p) && !index_scores.empty()) {
     std::pop_heap(index_scores.begin(), index_scores.end(),
                   IndexScoreCmpLess());
     IndexScore m = index_scores.back();
@@ -416,11 +329,11 @@ struct SubsetLogits Sampler::minP(struct SubsetLogits superset) {
   float p = (dynamic_cast<SampleParam*>(param_.get()))->minP,
         temperature = (dynamic_cast<SampleParam*>(param_.get()))->temperature;
   std::vector<IndexScore> index_scores;
-  int size = packSoftmax(superset.logits, index_scores, temperature);
+  int size = packSoftmax(superset.scores, index_scores, temperature);
   // 1. make max heap
   std::make_heap(index_scores.begin(), index_scores.end(), IndexScoreCmpLess());
   // 2. min p algorithm
-  auto scores = (float*)(superset.logits->getData());
+  const auto& scores = superset.scores;
   std::vector<int> index;
   std::vector<float> subset_logits;
   for (int i = 0; i < size; ++i) {
@@ -443,11 +356,12 @@ struct SubsetLogits Sampler::tfs(struct SubsetLogits superset) {
   // tfs algorithm
   // 1. softmax
   std::vector<IndexScore> index_scores;
-  int size = packSoftmax(superset.logits, index_scores, temperature);
+  int size = packSoftmax(superset.scores, index_scores, temperature);
   // 2. sort
   std::sort(index_scores.begin(), index_scores.end(), IndexScoreCmpGreater());
-  auto scores = (float*)(superset.logits->getData());
+  const auto& scores = superset.scores;
   // 3. calculate derivatives
+  if (size < 3) return superset;
   std::vector<float> derivatives(size - 2, 0.0f);
   float first = index_scores[0].score - index_scores[1].score;
   float second = index_scores[1].score - index_scores[2].score;
@@ -459,6 +373,7 @@ struct SubsetLogits Sampler::tfs(struct SubsetLogits superset) {
   // 4. normalize derivatives
   float derivatives_sum = 0.0;
   for (int i = 0; i < size - 2; ++i) derivatives_sum += derivatives[i];
+  if (derivatives_sum == 0) return superset;
   float derivatives_sum_rec = 1.0f / derivatives_sum;
   for (int i = 0; i < size - 2; ++i) derivatives[i] *= derivatives_sum_rec;
   // 5. cumulate, discard last 2 for sure.
@@ -480,14 +395,15 @@ struct SubsetLogits Sampler::tfs(struct SubsetLogits superset) {
 struct SubsetLogits Sampler::typical(struct SubsetLogits superset) {
   float p = (dynamic_cast<SampleParam*>(param_.get()))->typical,
         temperature = (dynamic_cast<SampleParam*>(param_.get()))->temperature;
-  auto prob_varp = tempratureSoftmax(superset.logits, temperature);
-  auto probs = (float*)(prob_varp->getData());
-  auto size = prob_varp->getSize();
+  auto probs = probabilities(superset.scores, temperature);
+  int size = static_cast<int>(probs.size());
   std::vector<IndexScore> index_scores;
   index_scores.resize(size);
   // 1. calcaluate dist
   float entropy = 0.0f;
-  for (int i = 0; i < size; i++) entropy -= probs[i] * std::log(probs[i]);
+  for (float prob : probs) {
+    if (prob > 0) entropy -= prob * std::log(prob);
+  }
   for (int i = 0; i < size; i++) {
     IndexScore m;
     m.index = i;
@@ -498,7 +414,7 @@ struct SubsetLogits Sampler::typical(struct SubsetLogits superset) {
   std::make_heap(index_scores.begin(), index_scores.end(),
                  IndexScoreCmpGreater());
   // 3. typical p algorithm
-  auto scores = (float*)(superset.logits->getData());
+  const auto& scores = superset.scores;
   float cumulative = 0.0f;
   std::vector<int> index;
   std::vector<float> subset_logits;
@@ -529,8 +445,10 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
   penalty = std::min(penalty,
                      (dynamic_cast<SampleParam*>(param_.get()))->max_penalty);
   // initialization
-  std::vector<int>& prev =
-      *(this->getResourceWithState<std::vector<int>>("history_tokens"));
+  auto *history = getResourceWithState<std::vector<int>>("history_tokens");
+  if (!history || history->empty()) return subset;
+  const auto &prev = *history;
+  ngram = std::max(1, std::min(ngram, static_cast<int>(prev.size()) + 1));
   std::unordered_map<int, float> penalty_map;
   // 1. local ngram info, reversed order
   std::vector<int> ngram_info(ngram - 1);
@@ -558,11 +476,12 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
     }
   }
   // 3. penalize logits according to penalty_map
-  auto scoresMap = (float*)(subset.logits->getData());
-  for (auto it = penalty_map.begin(); it != penalty_map.end(); ++it) {
-    scoresMap[it->first] = (scoresMap[it->first] >= 0.0f)
-                               ? (scoresMap[it->first] / it->second)
-                               : (scoresMap[it->first] * it->second);
+  for (size_t i = 0; i < subset.scores.size(); ++i) {
+    int token = subset.is_subset ? subset.index[i] : static_cast<int>(i);
+    auto it = penalty_map.find(token);
+    if (it == penalty_map.end()) continue;
+    auto &score = subset.scores[i];
+    score = score >= 0 ? score / it->second : score * it->second;
   }
   return subset;
 }
@@ -570,7 +489,7 @@ struct SubsetLogits Sampler::penalty(struct SubsetLogits subset) {
 struct SubsetLogits Sampler::mixed(struct SubsetLogits subset) {
   for (auto sampler :
        (dynamic_cast<SampleParam*>(param_.get()))->mixed_samplers) {
-    subset = subsetSampler(sampler, subset);
+    if (sampler != "mixed") subset = subsetSampler(sampler, std::move(subset));
   }
   return subset;
 }
@@ -582,43 +501,43 @@ struct SubsetLogits Sampler::subsetSampler(std::string sampler_type,
   if (sampler_type == "penalty") {
     // 重复惩罚采样器：对历史出现过的token进行惩罚，降低其概率
     // 通过penalty参数控制惩罚强度，支持n-gram级别的惩罚机制
-    subset = penalty(subset);
+    subset = penalty(std::move(subset));
   }
 
   if (sampler_type == "topK") {
     // Top-K采样器：只保留概率最高的K个token，过滤掉其余token
     // 通过topK参数控制保留的token数量，减少采样空间
-    subset = topK(subset);
+    subset = topK(std::move(subset));
   }
 
   if (sampler_type == "topP") {
     // Top-P (Nucleus)采样器：保留累积概率达到P的最小token集合
     // 通过topP参数控制累积概率阈值，动态调整采样空间大小
-    subset = topP(subset);
+    subset = topP(std::move(subset));
   }
 
   if (sampler_type == "minP") {
     // Min-P采样器：过滤掉概率低于最高概率*minP倍数的token
     // 通过minP参数设置相对概率阈值，保持与最高概率的相对关系
-    subset = minP(subset);
+    subset = minP(std::move(subset));
   }
 
   if (sampler_type == "tfs") {
     // Tail Free Sampling采样器：基于概率分布的尾部特征进行过滤
     // 通过tfsZ参数控制尾部截断程度，去除低质量的长尾token
-    subset = tfs(subset);
+    subset = tfs(std::move(subset));
   }
 
   if (sampler_type == "typical") {
     // Typical采样器：保留"典型"概率范围内的token，过滤极高和极低概率
     // 通过typical参数控制典型性阈值，平衡创造性和一致性
-    subset = typical(subset);
+    subset = typical(std::move(subset));
   }
 
   if (sampler_type == "mixed") {
     // 混合采样器：按顺序应用多种采样策略的组合
     // 根据mixed_samplers配置依次执行多个采样器，实现复合过滤效果
-    subset = mixed(subset);
+    subset = mixed(std::move(subset));
   }
   // if greedy and temperate, just let the Selector handle it.
   return subset;
@@ -632,15 +551,27 @@ int Sampler::handleSelect(struct SubsetLogits subset) {
     return reSoftmaxSelect(
         subset, (dynamic_cast<SampleParam*>(param_.get()))->temperature);
   }
-  return 0;
+  return reSoftmaxSelect(subset, static_cast<SampleParam*>(param_.get())->temperature);
 }
 
 int Sampler::sample(device::Tensor* logits) {
-  // create subset logits
-  struct SubsetLogits subset = createSubsetLogits(logits);
-  // process subsetSampler
-  SampleParam* sample_param = dynamic_cast<SampleParam*>(param_.get());
-  subset = subsetSampler(sample_param->sampler, subset);
+  auto *sample_param = dynamic_cast<SampleParam*>(param_.get());
+  if (!logits || !logits->getBuffer() || !logits->getData() || !sample_param ||
+      logits->getDataType() != base::dataTypeOf<float>() ||
+      !device::isHostDeviceType(logits->getDeviceType())) return -1;
+  const auto shape = logits->getShape();
+  if (shape.empty() || shape.back() <= 0 ||
+      logits->getSize() / sizeof(float) < static_cast<size_t>(shape.back())) return -1;
+  const float *data = static_cast<const float*>(logits->getData());
+  return sampleScores(data, shape.back());
+}
+
+int Sampler::sampleScores(const float *data, size_t vocab) {
+  auto *sample_param = static_cast<SampleParam *>(param_.get());
+  if (sample_param->sampler != "greedy" && !(sample_param->temperature > 0)) return -1;
+  SubsetLogits subset;
+  subset.scores.assign(data, data + vocab);
+  subset = subsetSampler(sample_param->sampler, std::move(subset));
   // select token from the subset
   int res = handleSelect(subset);
   return res;

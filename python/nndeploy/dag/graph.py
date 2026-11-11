@@ -662,7 +662,7 @@ class Graph(_C.dag.Graph):
         """
         with open(path, "r") as f:
             json_str = f.read()
-            self.deserialize(json_str)
+            return self.deserialize(json_str)
             
     def set_node_value(self, *args):
         """Set node value

@@ -97,7 +97,7 @@ bool convertFromFloatToFp16(float *fp32, void *fp16, int count) {
               fp32[i]);
     }
   }
-  return exceedUplimits;
+  return !exceedUplimits;
 #endif
 }
 

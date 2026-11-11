@@ -9,6 +9,17 @@
 namespace nndeploy {
 namespace device {
 
+// Keep the Python handle with the native storage so Tensor copies made by
+// plugins retain the Buffer object as well as the bytes it references.
+static std::shared_ptr<Buffer> retainPythonBuffer(Buffer *buffer) {
+  if (!buffer) return {};
+  auto owner = py::cast(buffer, py::return_value_policy::reference);
+  return std::shared_ptr<Buffer>(buffer, [ref = owner.release().ptr()](Buffer *) {
+    py::gil_scoped_acquire acquire;
+    Py_DECREF(ref);
+  });
+}
+
 NNDEPLOY_API_PYBIND11_MODULE("device", m) {
   // py::class_<device::Tensor>(m, "Tensor", py::buffer_protocol())
   //     .def(py::init<>())
@@ -39,7 +50,11 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def(py::init<const std::string &>(), py::arg("name"))
       .def(py::init<const TensorDesc &, const std::string &>(), py::arg("desc"),
            py::arg("name") = "")
-      .def(py::init<const TensorDesc &, Buffer *, const std::string &>(),
+      .def(py::init([](const TensorDesc &desc, Buffer *buffer, const std::string &name) {
+             auto tensor = std::make_unique<Tensor>(desc, name);
+             tensor->justModify(retainPythonBuffer(buffer), true);
+             return tensor;
+           }),
            py::arg("desc"), py::arg("buffer"), py::arg("name") = "")
       .def(py::init<Device *, const TensorDesc &, const std::string &,
                     const base::IntVector &>(),
@@ -65,8 +80,13 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
                &Tensor::create),
            py::arg("desc"), py::arg("name") = "")
       .def("create",
-           py::overload_cast<const TensorDesc &, Buffer *, const std::string &>(
-               &Tensor::create),
+           [](Tensor &self, const TensorDesc &desc, Buffer *buffer, const std::string &name) {
+             if (self.empty()) {
+               Tensor replacement(desc, name);
+               replacement.justModify(retainPythonBuffer(buffer), true);
+               self = std::move(replacement);
+             }
+           },
            py::arg("desc"), py::arg("buffer"), py::arg("name") = "")
       .def("create",
            py::overload_cast<Device *, const TensorDesc &, const std::string &,
@@ -104,13 +124,19 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def(
           "set",
           [](Tensor &self, py::object value) {
-            if (py::isinstance<py::int_>(value)) {
-              return self.set(value.cast<int>());
-            } else if (py::isinstance<py::float_>(value)) {
-              return self.set(value.cast<float>());
-            } else {
-              throw py::type_error("Unsupported type for Tensor::set");
+            if (!self.getBuffer()) return base::Status(base::kStatusCodeErrorNullParam);
+            if (isHostDeviceType(self.getDeviceType())) {
+              tensorArray(self).attr("fill")(value);
+              return base::Status(base::kStatusCodeOk);
             }
+            Tensor host(getDefaultHostDevice(), self.getDesc());
+            // Preserve padding between strided elements on the destination.
+            if (!self.isContinue()) {
+              auto status = self.copyTo(&host);
+              if (status != base::kStatusCodeOk) return status;
+            }
+            tensorArray(host).attr("fill")(value);
+            return host.copyTo(&self);
           },
           py::arg("value"))
       .def("reshape", &Tensor::reshape, py::arg("shape"))
@@ -118,10 +144,18 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::overload_cast<const TensorDesc &>(&Tensor::justModify),
            py::arg("desc"))
       .def("just_modify",
-           py::overload_cast<Buffer *, bool>(&Tensor::justModify),
+           [](Tensor &self, Buffer *buffer, bool external) {
+             return self.justModify(retainPythonBuffer(buffer), external);
+           },
            py::arg("buffer"), py::arg("is_external") = true)
       .def("clone", &Tensor::clone, py::return_value_policy::take_ownership)
       .def("copy_to", &Tensor::copyTo, py::arg("dst"))
+      .def("serialize", [](Tensor &self) {
+        std::string data;
+        auto status = self.serialize(data);
+        if (status != base::kStatusCodeOk) throw std::runtime_error(status.desc());
+        return py::bytes(data);
+      })
       .def("serialize", py::overload_cast<std::string&>(&Tensor::serialize), py::arg("bin_str"),
            "Serialize the tensor to a binary string")
       .def("deserialize", py::overload_cast<const std::string&>(&Tensor::deserialize), py::arg("bin_str"),
@@ -156,7 +190,12 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def("get_width", &Tensor::getWidth)
       .def("get_stride", &Tensor::getStride)
       .def("get_stride_index", &Tensor::getStrideIndex, py::arg("index"))
-      .def("get_buffer", &Tensor::getBuffer, py::return_value_policy::reference)
+      .def("get_buffer", [](Tensor &self) -> py::object {
+        if (!self.getBuffer()) return py::none();
+        // Pin this allocation even if the original Tensor is later cleared.
+        return py::cast(self.getBuffer(), py::return_value_policy::reference_internal,
+                        py::cast(Tensor(self)));
+      })
       .def("get_device_type", &Tensor::getDeviceType)
       .def("get_device", &Tensor::getDevice, py::return_value_policy::reference)
       .def("get_memory_pool", &Tensor::getMemoryPool,
@@ -180,21 +219,20 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
              self.print(os);
              return os.str();
            })
-      .def_buffer([](Tensor &self) { return tensorToBufferInfo(&self); })
-      .def("__array__", [](Tensor &self) { return tensorToBufferInfo(&self); })
+      .def_buffer([](Tensor &self) { return tensorArray(self).request(); })
+      .def("__array__", &tensorArray)
       .def("to",
            [](Tensor &self, const base::DeviceType &device_type) {
              return moveTensorToDevice(&self, device_type);
            })
       .def("to_numpy",
            [](Tensor &self) {
-             py::buffer_info buffer_info = tensorToBufferInfo(&self);
-             return py::array(buffer_info);
+             return tensorArray(self).attr("copy")();
            })
       .def_static("from_numpy", [](const py::buffer &buffer,
                                    const base::DeviceType &device_type) {
         return bufferInfoToTensor(buffer, device_type);
-      }, py::keep_alive<0, 1>(), py::return_value_policy::take_ownership);
+      }, py::return_value_policy::take_ownership);
 
   m.def("create_tensor", [](base::TensorType type = base::kTensorTypeDefault) {
     return createTensor(type);

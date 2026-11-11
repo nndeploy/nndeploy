@@ -1,6 +1,8 @@
 
 
 #include "nndeploy/op/op_reshape.h"
+#include "nndeploy/base/shape.h"
+#include <climits>
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -23,114 +25,65 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpReshape::inferShape() {
-  base::Status status = base::kStatusCodeOk;
-  // 参数
-  auto param = dynamic_cast<ir::ReshapeParam *>(op_desc_.op_param_.get());
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
-  int allowzero = param->allowzero_;
-  inputs_[1]->print();
-  int target_shape_size = inputs_[1]->getShapeIndex(0);
-  int64_t *target_shape_data = (int64_t *)inputs_[1]->getData();
-  if (target_shape_data == nullptr) {
-    NNDEPLOY_LOGE("target_shape_data is nullptr\n");
+  const auto *param = static_cast<ir::ReshapeParam *>(op_desc_.op_param_.get());
+  const auto &input_shape = inputs_[0]->getShape();
+  const auto target = inputs_[1]->getShape();
+  if (!param || target.size() != 1 || target[0] < 0 ||
+      inputs_[1]->getDataType() != base::dataTypeOf<int64_t>())
+    return base::kStatusCodeErrorInvalidParam;
+  const auto *dims = static_cast<const int64_t *>(inputs_[1]->getData());
+  if (target[0] && (!dims || inputs_[1]->getSize() / sizeof(*dims) < target[0]))
+    return base::kStatusCodeErrorInvalidValue;
+  base::IntVector output;
+  int inferred = -1;
+  size_t product = 1;
+  for (int i = 0; i < target[0]; ++i) {
+    auto dim = dims[i];
+    if (dim == 0 && !param->allowzero_) {
+      if (i >= input_shape.size()) return base::kStatusCodeErrorInvalidValue;
+      dim = input_shape[i];
+    }
+    if (dim == -1 && inferred < 0) {
+      inferred = i;
+    } else {
+      if (dim < 0 || dim > INT_MAX || (dim && product > SIZE_MAX / dim))
+        return base::kStatusCodeErrorInvalidValue;
+      product *= dim;
+    }
+    output.push_back(static_cast<int>(dim));
+  }
+  const size_t elements = base::shapeCount(input_shape);
+  if (inferred >= 0) {
+    if (!product || elements % product || elements / product > INT_MAX)
+      return base::kStatusCodeErrorInvalidValue;
+    output[inferred] = static_cast<int>(elements / product);
+  } else if (product != elements) {
     return base::kStatusCodeErrorInvalidValue;
   }
-  inputs_[0]->print();
-  inputs_[1]->print();
-  base::IntVector output_shape;
-  for (int i = 0; i < target_shape_size; i++) {
-    output_shape.push_back((int)target_shape_data[i]);
+  if (output.empty()) {
+    auto desc = outputs_[0]->getDesc();
+    desc.shape_.clear();
+    desc.stride_.clear();
+    return outputs_[0]->justModify(desc) ? base::kStatusCodeOk : base::kStatusCodeErrorInvalidParam;
   }
-  std::vector<bool> unresolvedZeros(target_shape_size, false);
-  int negativeOneDim = -1;
-  int64_t outputProduct = 1;
-  bool outputProductValid = true;
-  for (int i = 0; i < static_cast<int>(target_shape_size); ++i) {
-    const auto dim_value = target_shape_data[i];
-    NNDEPLOY_LOGI("dim_value[%d] = %ld\n", i, dim_value);
-
-    if (dim_value == -1) {
-      negativeOneDim = i;
-    } else if (dim_value == 0) {
-      // Check if data input has a shape and if the index i is within
-      // its bounds. If these conditions are satisfied, any dimension
-      // value/param should be propagated. If dimension value cannot be
-      // inferred, set the corresponding  unresolvedZeros flag to true.
-      // If allowzero is set however, do not propagate values, since output
-      // dimension is explicitly zero.
-      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
-    } else if (dim_value > 0) {
-      // Set the dimension value to dim_value
-      output_shape[i] = dim_value;
-      outputProduct *= dim_value;
-    } else {
-      // Check if value is less than -1; fail if so
-      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
-    }
-  }
-  std::string shape_str1 = base::vectorToString(output_shape);   
-  std::cout << "output_shape: " << shape_str1 << std::endl; 
-  // If negativeOneDim has been set, we attempt to infer its value. This
-  // can be done if all dimension values for the data input tensor shape
-  // are known other than the ones corresponding to unresolvedZeros
-  // flags.
-  if (negativeOneDim > -1 && outputProductValid) {
-    // First, attempt to compute product of data input shape dimensions
-    // that are not marked by unresolvedZeros. If not possible, set the
-    // inputProductValid flag to false.
-    if (!outputProduct) {
-      NNDEPLOY_LOGE(
-          "Invalid Target shape product of 0. Product cannot be 0 in "
-          "combination with -1");
-    }
-    int64_t inputProduct = 1;
-    bool inputProductValid = true;
-    base::IntVector dataInputTensorShape = inputs_[0]->getShape();
-    for (int i = 0; i < dataInputTensorShape.size(); ++i) {
-      inputProduct *= dataInputTensorShape[i];
-    }
-    if (inputProductValid) {
-      if (inputProduct % outputProduct != 0) {
-        NNDEPLOY_LOGE("Dimension could not be inferred: incompatible shapes");
-      }
-      output_shape[negativeOneDim] = (inputProduct / outputProduct);
-    }
-  }
-  for (int i = 0; i < output_shape.size(); ++i) {
-    NNDEPLOY_LOGE("output_shape[%d] = %d\n", i, output_shape[i]);
-  }
-  outputs_[0]->reshape(output_shape);
-
-  return status;
+  return outputs_[0]->reshape(output);
 }
 
 base::Status OpReshape::inferDataFormat() {
-  base::Status status = base::kStatusCodeOk;
-  auto output_shape = outputs_[0]->getShape();
-  auto input_shape = inputs_[0]->getShape();
-  if (output_shape.size() != input_shape.size()) {
-    outputs_[0]->setDataFormat(inputs_[0]->getDataFormat());
-  } else {
-    // if (output_shape.size() == 1) {
-    //   outputs_[0]->setDataFormat(base::kDataFormatN);
-    // } else if (output_shape.size() == 2) {
-    //   outputs_[0]->setDataFormat(base::kDataFormatNC);
-    // } else if (output_shape.size() == 3) {
-    //   outputs_[0]->setDataFormat(base::kDataFormatNCL);
-    // } else if (output_shape.size() == 4) {
-    //   outputs_[0]->setDataFormat(base::kDataFormatNCHW);
-    // } else if (output_shape.size() == 5) {
-    //   outputs_[0]->setDataFormat(base::kDataFormatNCDHW);
-    // } else {
-    //   outputs_[0]->setDataFormat(base::kDataFormatAuto);
-    // }
-    outputs_[0]->setDataFormat(base::kDataFormatAuto);
-  }
-  return status;
+  outputs_[0]->setDataFormat(outputs_[0]->getShape().size() == inputs_[0]->getShape().size()
+      ? inputs_[0]->getDataFormat() : base::kDataFormatAuto);
+  return base::kStatusCodeOk;
 }
 
 base::Status OpReshape::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  size_t bytes = base::shapeCount(inputs_[0]->getShape()) * inputs_[0]->getDataType().size();
+  if (!bytes) return base::kStatusCodeOk;
+  if (inputs_[0]->getSize() < bytes || outputs_[0]->getSize() < bytes)
+    return base::kStatusCodeErrorInvalidValue;
+  auto src = inputs_[0]->getData();
+  auto dst = outputs_[0]->getData();
+  if (!src || !dst) return base::kStatusCodeErrorNullParam;
+  if (src != dst) std::memmove(dst, src, bytes);
   return base::kStatusCodeOk;
 }
 
@@ -139,7 +92,7 @@ base::Status reshape(device::Tensor *input, device::Tensor *shape,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeReshape);
+  std::unique_ptr<Op> op(createOp(input->getDeviceType(), "", ir::kOpTypeReshape));
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -165,7 +118,6 @@ base::Status reshape(device::Tensor *input, device::Tensor *shape,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
-  delete op;
   return status;
 }
 

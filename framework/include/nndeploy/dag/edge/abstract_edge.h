@@ -63,6 +63,8 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
 
   virtual base::Status takeDataPacket(DataPacket* data_packet) = 0;
   virtual bool notifyWritten(void* anything) = 0;
+  virtual std::shared_ptr<DataPacket> acquirePacket(const Node *node, bool graph_output,
+      EdgeTypeFlag expected = EdgeTypeFlag::kNone, const std::type_info *type = nullptr) = 0;
   virtual DataPacket* getDataPacket(const Node* node) = 0;
   virtual DataPacket* getGraphOutputDataPacket() = 0;
 
@@ -76,8 +78,6 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       NNDEPLOY_LOGE("Failed to create param.\n");
       return nullptr;
     }
-    this->increaseIndex();
-    data_packet->setIndex(index_);
     base::Param* param = data_packet->create<T>(std::forward<Args>(args)...);
     if (param == nullptr) {
       NNDEPLOY_LOGE("Failed to create param.\n");
@@ -104,8 +104,6 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       NNDEPLOY_LOGE("Failed to create any.\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
-    this->increaseIndex();
-    data_packet->setIndex(index_);
     base::Status status = data_packet->set<T>(t, is_external);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set any.\n");
@@ -115,6 +113,7 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
     status = this->takeDataPacket(data_packet);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set data packet.\n");
+      data_packet->borrowPayload();
       delete data_packet;
       return status;
     }
@@ -132,8 +131,6 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       NNDEPLOY_LOGE("Failed to create any.\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
-    this->increaseIndex();
-    data_packet->setIndex(index_);
     base::Status status = data_packet->set<T>(t, deleter);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set any.\n");
@@ -143,6 +140,7 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
     status = this->takeDataPacket(data_packet);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set data packet.\n");
+      data_packet->borrowPayload();
       delete data_packet;
       return status;
     }
@@ -160,8 +158,6 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       NNDEPLOY_LOGE("Failed to create any.\n");
       return nullptr;
     }
-    this->increaseIndex();
-    data_packet->setIndex(index_);
     T* t = data_packet->create<T>(std::forward<Args>(args)...);
     if (t == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
@@ -181,73 +177,24 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   }
   template <typename T>
   T* get(const Node* node) {
-    DataPacket* data_packet = this->getDataPacket(node);
-    if (data_packet == nullptr) {
-      NNDEPLOY_LOGE("Failed to get data packet.\n");
-      return nullptr;
-    }
-    if (parallel_type_ == base::kParallelTypePipeline) {
-      Node* tmp_node = const_cast<Node*>(node);
-      if (std::find(producers_.begin(), producers_.end(), tmp_node) !=
-          producers_.end()) {
-        T* t = ((PipelineDataPacket*)data_packet)->getDirect<T>();
-        if (t == nullptr) {
-          NNDEPLOY_LOGE("Failed to get any.\n");
-          return nullptr;
-        }
-        return t;
-      } else {
-        T* t = ((PipelineDataPacket*)data_packet)->get<T>();
-        if (t == nullptr) {
-          NNDEPLOY_LOGE("Failed to get any.\n");
-          return nullptr;
-        }
-        return t;
-      }
-    } else {
-      T* t = data_packet->get<T>();
-      if (t == nullptr) {
-        NNDEPLOY_LOGE("Failed to get any.\n");
-        return nullptr;
-      }
-      return t;
-    }
+    auto packet = acquirePacket(node, false);
+    return packet ? packet->get<T>() : nullptr;
   }
   template <typename T>
   T* getGraphOutput() {
-    DataPacket* data_packet = this->getGraphOutputDataPacket();
-    if (data_packet == nullptr) {
-      NNDEPLOY_LOGE("Failed to get data packet.\n");
-      return nullptr;
-    }
-    if (parallel_type_ == base::kParallelTypePipeline) {
-      T* t = ((PipelineDataPacket*)data_packet)->get<T>();
-      if (t == nullptr) {
-        NNDEPLOY_LOGE("Failed to get any.\n");
-        return nullptr;
-      }
-      return t;
-    } else {
-      T* t = data_packet->get<T>();
-      if (t == nullptr) {
-        NNDEPLOY_LOGE("Failed to get any.\n");
-        return nullptr;
-      }
-      return t;
-    }
+    auto packet = acquirePacket(nullptr, true, EdgeTypeFlag::kNone, &typeid(T));
+    return packet ? packet->get<T>() : nullptr;
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER* wrapper, T* t, bool is_external = true) {
+  base::Status set4py(PY_WRAPPER* wrapper, T* t, bool is_external = true, bool written = true) {
     DataPacket* data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
-    this->increaseIndex();
-    data_packet->setIndex(index_);
     base::Status status =
-        data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
+        data_packet->set4py<PY_WRAPPER, T>(wrapper, t, is_external, written);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set any.\n");
       delete data_packet;
@@ -287,6 +234,7 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   base::Status increaseConsumers(std::vector<Node*>& consumers);
 
   virtual bool requestTerminate() = 0;
+  virtual base::Status skipFrame() { return base::kStatusCodeErrorNotSupport; }
 
  protected:
   bool checkNode(const Node* node);

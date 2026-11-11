@@ -4,23 +4,24 @@ namespace dag {
 
 ParallelTaskExecutor::ParallelTaskExecutor() : Executor() {};
 
-ParallelTaskExecutor::~ParallelTaskExecutor() {};
+ParallelTaskExecutor::~ParallelTaskExecutor() {
+  if (thread_pool_) { interrupt(); deinit(); }
+}
 
 base::Status ParallelTaskExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
     std::vector<NodeWrapper*>& node_repository) {
+  if (thread_pool_) return base::kStatusCodeErrorInvalidValue;
   // TODO:
   // 计算图的最大并行度，决定线程的数量
-  thread_pool_ = new thread_pool::ThreadPool();
-  thread_pool_->init();
+  topo_sort_node_.clear();
   start_nodes_ = findStartNodes(node_repository);
   base::Status status = topoSortBFS(node_repository, topo_sort_node_);
-  all_task_count_ = static_cast<int>(topo_sort_node_.size());
-  if (start_nodes_.empty()) {
-    NNDEPLOY_LOGE("No start node found in graph");
-    return base::kStatusCodeErrorInvalidValue;
-  }
+  if (status != base::kStatusCodeOk) return status;
 
+  thread_pool_ = new thread_pool::ThreadPool();
+  status = thread_pool_->init();
+  if (status != base::kStatusCodeOk) { delete thread_pool_; thread_pool_ = nullptr; return status; }
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
     if (iter->node_->getInitialized()) {
@@ -28,11 +29,12 @@ base::Status ParallelTaskExecutor::init(
     }
     if (iter->node_->checkInterruptStatus() == true) {
       iter->node_->setRunningFlag(false);
+      deinit();
       return base::kStatusCodeNodeInterrupt;
     }
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
+    if (status != base::kStatusCodeOk) { deinit(); return status; }
     iter->node_->setInitializedFlag(true);
   }
 
@@ -41,174 +43,80 @@ base::Status ParallelTaskExecutor::init(
 }
 
 base::Status ParallelTaskExecutor::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto iter : edge_repository_) {
-    bool flag = iter->edge_->requestTerminate();
-    if (!flag) {
-      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
-      return base::kStatusCodeErrorDag;
-    }
+  base::Status result = base::kStatusCodeOk;
+  for (auto *edge : edge_repository_)
+    if (!edge->edge_->requestTerminate()) result = base::kStatusCodeErrorDag;
+  if (thread_pool_) {
+    thread_pool_->destroy();
+    delete thread_pool_;
+    thread_pool_ = nullptr;
   }
-  thread_pool_->destroy();
-  delete thread_pool_;
-  for (auto iter : topo_sort_node_) {
-    status = iter->node_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node deinit failure");
-    iter->node_->setInitializedFlag(false);
+  for (auto *entry : topo_sort_node_) {
+    if (!entry->node_->getInitialized()) continue;
+    auto status = entry->node_->deinit();
+    if (result == base::kStatusCodeOk) result = status;
+    entry->node_->setInitializedFlag(false);
   }
-  return status;
+  return result;
 }
 
 base::Status ParallelTaskExecutor::run() {
-  for (auto iter : start_nodes_) {
-    process(iter);
-  }
-  wait();
-
-  for (auto iter : topo_sort_node_) {
-    if (iter->color_ != base::kNodeColorBlack) {
-      std::string info{"exist node not finish!\n"};
-      info.append(iter->name_);
-      // NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack,
-      // info.c_str());
-      NNDEPLOY_LOGE("%s\n", info.c_str());
-      return base::kStatusCodeErrorDag;
-    }
-  }
-
-  afterGraphRun();
-  return base::kStatusCodeOk;
-}
-
-void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
-  node_wrapper->color_ = base::kNodeColorGray;
-  const auto& func = [this, node_wrapper] {
-    if (node_wrapper->node_->checkInterruptStatus() == true) {
-      node_wrapper->node_->setRunningFlag(false);
-      afterNodeEarlyExit(node_wrapper);
-      return;
-    }
-    base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updateInput();
-    if (node_wrapper->node_->checkInterruptStatus() == true) {
-      node_wrapper->node_->setRunningFlag(false);
-      afterNodeEarlyExit(node_wrapper);
-      return;
-    }
-
-    if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
-      node_wrapper->node_->setRunningFlag(true);
-      // NNDEPLOY_LOGE("node[%s] execute start.\n",
-      //                 node_wrapper->node_->getName().c_str());
-      base::Status status = node_wrapper->node_->run();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("node[%s] execute failed!.\n",
-                      node_wrapper->node_->getName().c_str());
-        return;
-      }
-      node_wrapper->node_->setRunningFlag(false);
-      afterNodeRun(node_wrapper);
-      // NNDEPLOY_LOGE("node[%s] execute end.\n",
-      //               node_wrapper->node_->getName().c_str());
-    } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
-      return;
-    } else {
-      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
-                    node_wrapper->node_->getName().c_str());
-      return;
-    }
-  };
-  thread_pool_->commit(func);
-}
-
-void ParallelTaskExecutor::afterNodeEarlyExit(NodeWrapper* node_wrapper) {
-  {
-    std::lock_guard<std::mutex> lock(main_lock_);
-    early_exit_task_count_++;
-  }
-  node_wrapper->color_ = base::kNodeColorBlack;
-
-  for (auto successor : node_wrapper->successors_) {
-    bool all_pre_done = true;
-    for (auto iter : successor->predecessors_) {
-      all_pre_done &= (iter->color_ == base::kNodeColorBlack);
-    }
-    if (all_pre_done && successor->color_ == base::kNodeColorWhite) {
-      if (successor->predecessors_.size() <= 1) {
-        process(successor);
-      } else {
-        submitTaskSynchronized(successor);
-      }
-    }
-  }
-
-  if (!node_wrapper->successors_.empty()) return;
-
-  {
-    std::lock_guard<std::mutex> lock(main_lock_);
-    if ((completed_task_count_ + early_exit_task_count_) >= all_task_count_) {
-      cv_.notify_one();
-    }
-  }
-}
-
-void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
-  {
-    std::lock_guard<std::mutex> lock(main_lock_);
-    completed_task_count_++;
-  }
-  node_wrapper->color_ = base::kNodeColorBlack;
-  for (auto successor : node_wrapper->successors_) {
-    bool all_pre_done = true;
-    for (auto iter : successor->predecessors_) {
-      all_pre_done &= (iter->color_ == base::kNodeColorBlack);
-    }
-    if (all_pre_done && successor->color_ == base::kNodeColorWhite) {
-      if (successor->predecessors_.size() <= 1) {
-        process(successor);
-      } else {
-        submitTaskSynchronized(successor);
-      }
-    }
-  }
-
-  // 如果不是尾部节点，则不用通知主线程进行检查
-  if (!node_wrapper->successors_.empty()) {
-    return;
-  }
-
-  {
-    std::lock_guard<std::mutex> lock(main_lock_);
-
-    if (completed_task_count_ >= all_task_count_) {
-      cv_.notify_one();
-    }
-  }
-}
-
-void ParallelTaskExecutor::submitTaskSynchronized(NodeWrapper* node_wrapper) {
-  std::lock_guard<std::mutex> lock(commit_lock_);
-  if (node_wrapper->color_ == base::kNodeColorWhite) {
-    process(node_wrapper);
-  }
-}
-
-void ParallelTaskExecutor::wait() {
+  std::lock_guard<std::mutex> run_lock(run_mutex_);
   std::unique_lock<std::mutex> lock(main_lock_);
-  cv_.wait(lock, [this] {
-    return (completed_task_count_ + early_exit_task_count_) >= all_task_count_;
+  if (!thread_pool_) return base::kStatusCodeErrorDag;
+  run_status_ = base::kStatusCodeOk;
+  for (auto *node : start_nodes_) submitLocked(node);
+  cv_.wait(lock, [this] { return pending_ == 0; });
+  for (auto *node : topo_sort_node_) {
+    node->node_->clearInterrupt();
+    node->color_ = base::kNodeColorWhite;
+  }
+  return run_status_;
+}
+
+void ParallelTaskExecutor::submitLocked(NodeWrapper *node) {
+  node->color_ = base::kNodeColorGray;
+  ++pending_;
+  thread_pool_->commit([this, node] {
+    base::Status status = base::kStatusCodeNodeInterrupt;
+    try {
+      if (!node->node_->checkInterruptStatus()) {
+        auto update = node->node_->updateInput();
+        if (!node->node_->checkInterruptStatus()) {
+          if (update == base::kEdgeUpdateFlagComplete) {
+            node->node_->setRunningFlag(true);
+            status = node->node_->run();
+          } else {
+            status = update == base::kEdgeUpdateFlagTerminate
+                         ? base::kStatusCodeNodeInterrupt : base::kStatusCodeErrorDag;
+          }
+        }
+      }
+    } catch (...) {
+      status = base::kStatusCodeErrorDag;
+    }
+    node->node_->setRunningFlag(false);
+
+    std::lock_guard<std::mutex> lock(main_lock_);
+    if (run_status_ == base::kStatusCodeOk) run_status_ = status;
+    node->color_ = base::kNodeColorBlack;
+    if (run_status_ == base::kStatusCodeOk) {
+      for (auto *next : node->successors_) {
+        if (next->color_ == base::kNodeColorWhite &&
+            std::all_of(next->predecessors_.begin(), next->predecessors_.end(),
+                        [](NodeWrapper *p) { return p->color_ == base::kNodeColorBlack; }))
+          submitLocked(next);
+      }
+    }
+    if (--pending_ == 0) cv_.notify_all();
   });
 }
 
-void ParallelTaskExecutor::afterGraphRun() {
-  completed_task_count_ = 0;
-  early_exit_task_count_ = 0;
-  for (auto iter : topo_sort_node_) {
-    iter->node_->clearInterrupt();
-    iter->color_ = base::kNodeColorWhite;
-  }
-}
-
 bool ParallelTaskExecutor::synchronize() {
+  std::unique_lock<std::mutex> lock(main_lock_);
+  cv_.wait(lock, [this] { return pending_ == 0; });
+  if (run_status_ != base::kStatusCodeOk) return false;
+  lock.unlock();
   for (auto iter : topo_sort_node_) {
     if (iter->node_->synchronize() == false) {
       return false;
@@ -221,7 +129,7 @@ bool ParallelTaskExecutor::interrupt() {
   for (auto e : edge_repository_) e->edge_->requestTerminate();
   bool ok = true;
   for (auto n : topo_sort_node_) ok &= n->node_->interrupt();
-  cv_.notify_one();
+  cv_.notify_all();
   return ok;
 }
 

@@ -92,25 +92,9 @@ bool Edge::notifyWritten(device::Buffer *buffer) {
   return abstact_edge_->notifyWritten(buffer);
 }
 device::Buffer *Edge::getBuffer(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (type_info_ == nullptr || !type_info_->isType<device::Buffer>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getBuffer(node);
 }
 device::Buffer *Edge::getGraphOutputBuffer() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (!type_info_->isType<device::Buffer>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getGraphOutputBuffer();
 }
 
@@ -131,25 +115,9 @@ bool Edge::notifyWritten(cv::Mat *cv_mat) {
   return abstact_edge_->notifyWritten(cv_mat);
 }
 cv::Mat *Edge::getCvMat(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (type_info_ == nullptr || !type_info_->isType<cv::Mat>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getCvMat(node);
 }
 cv::Mat *Edge::getGraphOutputCvMat() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (!type_info_->isType<cv::Mat>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getGraphOutputCvMat();
 }
 #endif
@@ -178,25 +146,9 @@ bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);
 }
 device::Tensor *Edge::getTensor(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (type_info_ == nullptr || !type_info_->isType<device::Tensor>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getTensor(node);
 }
 device::Tensor *Edge::getGraphOutputTensor() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (!type_info_->isType<device::Tensor>()) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getGraphOutputTensor();
 }
 
@@ -212,40 +164,13 @@ bool Edge::notifyWritten(base::Param *param) {
   return abstact_edge_->notifyWritten(param);
 }
 base::Param *Edge::getParam(const Node *node) {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (type_info_ == nullptr) {
-    // 边上从未写入过数据（没有上游输出连接或上游未产生数据）
-    return nullptr;
-  }
-  if (type_info_->getType() != EdgeTypeFlag::kParam) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getParam(node);
 }
 base::Param *Edge::getGraphOutputParam() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
-  if (type_info_ == nullptr) {
-    return nullptr;
-  }
-  if (type_info_->getType() != EdgeTypeFlag::kParam) {
-    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-    return nullptr;
-  }
   return abstact_edge_->getGraphOutputParam();
 }
 
 void *Edge::getGraphOutputPtr() {
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    std::unique_lock<std::mutex> lock(type_info_mutex_);
-    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
-  }
   return abstact_edge_->getGraphOutputPtr();
 }
 
@@ -319,25 +244,34 @@ std::vector<Node *> Edge::getConsumers() {
   return result;
 }
 
+base::Status Edge::skipFrame() { return abstact_edge_->skipFrame(); }
+
 bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
 
 base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
-  type_info_ = type_info;
-  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
-    type_info_cv_.notify_all();
-  }
+  std::lock_guard<std::mutex> lock(type_info_mutex_);
+  type_info_ = std::move(type_info);
   return base::kStatusCodeOk;
 }
-std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() { return type_info_; }
-void Edge::setTypeName(const std::string &type_name) {
-  if (type_info_ != nullptr) {
-    type_info_->setTypeName(type_name);
+std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() {
+  std::lock_guard<std::mutex> lock(type_info_mutex_);
+  return type_info_;
+}
+void Edge::setTypeName(const std::string &name) {
+  std::lock_guard<std::mutex> lock(type_info_mutex_);
+  if (type_info_) {
+    auto info = std::make_shared<EdgeTypeInfo>(*type_info_);
+    info->setTypeName(name);
+    type_info_ = std::move(info);
   }
 }
-std::string Edge::getTypeName() { return type_info_->getTypeName(); }
-
-bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
-  return *type_info_ == *type_info;
+std::string Edge::getTypeName() {
+  auto info = getTypeInfo();
+  return info ? info->getTypeName() : std::string();
+}
+bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> other) {
+  auto info = getTypeInfo();
+  return info && other && *info == *other;
 }
 
 }  // namespace dag

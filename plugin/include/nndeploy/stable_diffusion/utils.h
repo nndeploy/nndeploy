@@ -25,6 +25,16 @@ class NNDEPLOY_CC_API Text2ImageParam : public base::Param {
   base::ParallelType pt_ = base::kParallelTypePipeline;
 };
 
+inline Text2ImageParam *getText2ImageParam(const std::vector<base::Param *> &params,
+                                           size_t first, size_t last) {
+  auto *config = params.empty() ? nullptr : dynamic_cast<Text2ImageParam *>(params[0]);
+  if (!config || config->model_value_.size() <= last) return nullptr;
+  for (size_t i = first; i <= last; ++i) {
+    if (config->model_value_[i].empty()) return nullptr;
+  }
+  return config;
+}
+
 // 美观的进度条插件封装成一个类
 class ProgressBar {
  public:

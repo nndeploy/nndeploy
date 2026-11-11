@@ -30,6 +30,7 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
       .def("preRun", &Net::preRun)
       .def("run", &Net::run)
       .def("postRun", &Net::postRun)
+      .def("synchronize", &Net::synchronize, py::call_guard<py::gil_scoped_release>())
       .def("deinit", &Net::deinit)
       .def("getAllOutput", &Net::getAllOutput,
            py::return_value_policy::reference)

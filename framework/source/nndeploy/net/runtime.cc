@@ -6,7 +6,7 @@ namespace nndeploy {
 namespace net {
 
 void Runtime::setStream(device::Stream *stream) {
-  if (stream_ != nullptr) {
+  if (stream_ != stream && !is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
   }
   stream_ = stream;
@@ -16,7 +16,7 @@ device::Stream *Runtime::getStream() { return stream_; }
 
 base::Status Runtime::synchronize() {
   // NNDEPLOY_LOGI("Runtime[%p]::synchronize\n", this);
-  return stream_->synchronize();
+  return stream_ ? stream_->synchronize() : base::Status(base::kStatusCodeOk);
 }
 
 base::Status Runtime::setWorkers(int worker_num,
@@ -26,9 +26,9 @@ base::Status Runtime::setWorkers(int worker_num,
   return base::kStatusCodeOk;
 }
 
-int64_t Runtime::getMemorySize() { return tensor_pool_->getMemorySize(); }
+int64_t Runtime::getMemorySize() { return tensor_pool_ ? tensor_pool_->getMemorySize() : -1; }
 base::Status Runtime::setMemory(device::Buffer *buffer) {
-  return tensor_pool_->setMemory(buffer);
+  return tensor_pool_ ? tensor_pool_->setMemory(buffer) : base::Status(base::kStatusCodeErrorNotSupport);
 }
 
 std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>> &

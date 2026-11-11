@@ -319,6 +319,8 @@ class FaceIdMap(nndeploy.dag.Node):
         input_size = len(self.get_all_input())
         for i in range(input_size - 1):
             face = self.get_input(i + 1).get(self)
+            if len(face) == 0:
+                continue
             if i < len(self.map_ids_) and self.map_ids_[i] != -1:
                 source_face_id.append({'source': face[0], 'id': self.map_ids_[i]})
             else:

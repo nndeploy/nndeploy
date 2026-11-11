@@ -2,6 +2,7 @@
 
 #include "nndeploy/device/tensor.h"
 
+#include <limits>
 #include <memory>
 
 #include "nndeploy/base/shape.h"
@@ -14,21 +15,13 @@ namespace device {
 static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
-namespace {
+struct Tensor::Storage {
+  int refs = 1;
+  std::shared_ptr<Buffer> owner;
+};
 
-void releaseTensorBuffer(Buffer *&buffer, int *&ref_count, bool is_external) {
-  if (buffer != nullptr && ref_count != nullptr &&
-      NNDEPLOY_XADD(ref_count, -1) == 1) {
-    if (!is_external) {
-      delete buffer;
-    }
-    delete ref_count;
-  }
-  buffer = nullptr;
-  ref_count = nullptr;
-}
-
-}  // namespace
+int Tensor::addRef() const { return NNDEPLOY_XADD(&storage_->refs, 1); }
+int Tensor::subRef() const { return NNDEPLOY_XADD(&storage_->refs, -1); }
 
 Tensor::Tensor() {}
 Tensor::Tensor(const std::string &name) : name_(name){};
@@ -36,7 +29,7 @@ Tensor::Tensor(const TensorDesc &desc, const std::string &name)
     : name_(name), desc_(desc){};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 Tensor::Tensor(Device *device, const TensorDesc &desc, const std::string &name,
                const base::IntVector &config)
@@ -44,7 +37,7 @@ Tensor::Tensor(Device *device, const TensorDesc &desc, const std::string &name,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = device->allocate(buffer_desc);
   buffer_ = new Buffer(device, buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 Tensor::Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
                const std::string &name, const base::IntVector &config)
@@ -52,7 +45,7 @@ Tensor::Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(device, buffer_desc, data_ptr, base::kMemoryTypeExternal);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
                const std::string &name, const base::IntVector &config)
@@ -62,7 +55,7 @@ Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
   void *ptr = memory_pool->allocate(buffer_desc);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc, void *data_ptr,
                const std::string &name, const base::IntVector &config)
@@ -71,7 +64,7 @@ Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc, void *data_ptr,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, data_ptr, base::kMemoryTypeExternal);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 
 Tensor::Tensor(const Tensor &tensor) {
@@ -81,8 +74,8 @@ Tensor::Tensor(const Tensor &tensor) {
   name_ = tensor.name_;
   desc_ = tensor.desc_;
   is_external_ = tensor.is_external_;
-  ref_count_ = tensor.ref_count_;
-  if (ref_count_ != nullptr) {
+  storage_ = tensor.storage_;
+  if (storage_ != nullptr) {
     tensor.addRef();
   }
   buffer_ = tensor.buffer_;
@@ -95,8 +88,8 @@ Tensor &Tensor::operator=(const Tensor &tensor) {
   name_ = tensor.name_;
   desc_ = tensor.desc_;
   is_external_ = tensor.is_external_;
-  ref_count_ = tensor.ref_count_;
-  if (ref_count_ != nullptr) {
+  storage_ = tensor.storage_;
+  if (storage_ != nullptr) {
     tensor.addRef();
   }
   buffer_ = tensor.buffer_;
@@ -110,7 +103,7 @@ Tensor::Tensor(Tensor &&tensor) noexcept {
   name_ = std::move(tensor.name_);
   desc_ = std::move(tensor.desc_);
   is_external_ = tensor.is_external_;
-  ref_count_ = tensor.ref_count_;
+  storage_ = tensor.storage_;
   buffer_ = tensor.buffer_;
   tensor.name_.clear();
   tensor.desc_.data_type_ = base::dataTypeOf<float>();
@@ -118,7 +111,7 @@ Tensor::Tensor(Tensor &&tensor) noexcept {
   tensor.desc_.shape_.clear();
   tensor.desc_.stride_.clear();
   tensor.is_external_ = false;
-  tensor.ref_count_ = nullptr;
+  tensor.storage_ = nullptr;
   tensor.buffer_ = nullptr;
 }
 Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
@@ -129,7 +122,7 @@ Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
   name_ = std::move(tensor.name_);
   desc_ = std::move(tensor.desc_);
   is_external_ = tensor.is_external_;
-  ref_count_ = tensor.ref_count_;
+  storage_ = tensor.storage_;
   buffer_ = tensor.buffer_;
   tensor.name_.clear();
   tensor.desc_.data_type_ = base::dataTypeOf<float>();
@@ -137,7 +130,7 @@ Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
   tensor.desc_.shape_.clear();
   tensor.desc_.stride_.clear();
   tensor.is_external_ = false;
-  tensor.ref_count_ = nullptr;
+  tensor.storage_ = nullptr;
   tensor.buffer_ = nullptr;
   return *this;
 }
@@ -170,7 +163,7 @@ void Tensor::create(const TensorDesc &desc, Buffer *buffer,
   name_ = name;
   desc_ = desc;
   is_external_ = true;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
   buffer_ = buffer;
 }
 void Tensor::create(Device *device, const TensorDesc &desc,
@@ -185,7 +178,7 @@ void Tensor::create(Device *device, const TensorDesc &desc,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = device->allocate(buffer_desc);
   buffer_ = new Buffer(device, buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
                     const std::string &name, const base::IntVector &config) {
@@ -199,7 +192,7 @@ void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(device, buffer_desc, data_ptr, base::kMemoryTypeExternal);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
                     const std::string &name, const base::IntVector &config) {
@@ -215,7 +208,7 @@ void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
   void *ptr = memory_pool->allocate(buffer_desc);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
                     void *data_ptr, const std::string &name,
@@ -231,7 +224,7 @@ void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
   BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, data_ptr, base::kMemoryTypeExternal);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 
 void Tensor::clear() {
@@ -259,7 +252,7 @@ void Tensor::allocate(Device *device, const base::IntVector &config) {
   is_external_ = false;
   void *ptr = device->allocate(dst_buffer_desc);
   buffer_ = new Buffer(device, dst_buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 void Tensor::allocate(MemoryPool *memory_pool, const base::IntVector &config) {
   Device *device = memory_pool->getDevice();
@@ -275,10 +268,17 @@ void Tensor::allocate(MemoryPool *memory_pool, const base::IntVector &config) {
   void *ptr = memory_pool->allocate(dst_buffer_desc);
   buffer_ =
       new Buffer(memory_pool, dst_buffer_desc, ptr, base::kMemoryTypeAllocate);
-  ref_count_ = new int(1);
+  storage_ = new Storage();
 }
 void Tensor::deallocate() {
-  releaseTensorBuffer(buffer_, ref_count_, is_external_);
+  auto *storage = storage_;
+  auto *buffer = buffer_;
+  storage_ = nullptr;
+  buffer_ = nullptr;
+  if (storage && NNDEPLOY_XADD(&storage->refs, -1) == 1) {
+    if (!is_external_ && !storage->owner) delete buffer;
+    delete storage;
+  }
 }
 
 base::Status Tensor::reshape(base::IntVector shape) {
@@ -289,44 +289,15 @@ base::Status Tensor::reshape(base::IntVector shape) {
   if (base::shapeEqual(desc_.shape_, shape, 0, -1)) {
     return base::kStatusCodeOk;
   }
-  if (buffer_ == nullptr) {
-    desc_.shape_ = shape;
-    return base::kStatusCodeOk;
-  }
-  // if (desc_.shape_.size() != shape.size()) {
-  //   NNDEPLOY_LOGE("shape size is not equal.\n");
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
-  // bool max_flag = true;
-  // for (int i = 0; i < desc_.shape_.size(); ++i) {
-  //   if (desc_.shape_[i] < shape[i]) {
-  //     max_flag = false;
-  //     break;
-  //   }
-  // }
-  // if (max_flag) {
-  //   auto device = getDevice();
-  //   auto buffer_desc = device->toBufferDesc(desc_, base::IntVector());
-  //   if (!buffer_->justModify(buffer_desc)) {
-  //     NNDEPLOY_LOGE("buffer_->justModify(buffer_desc) failed.\n");
-  //     return base::kStatusCodeErrorInvalidParam;
-  //   }
-  //   desc_.shape_ = shape;
-  //   return base::kStatusCodeOk;
-  // } else {
-  //   NNDEPLOY_LOGE("new shape is greater than old shape.\n");
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
-  auto device = getDevice();
-  auto buffer_desc = device->toBufferDesc(desc_, base::IntVector());
-  if (!buffer_->justModify(buffer_desc)) {
-    NNDEPLOY_LOGE("buffer_->justModify(buffer_desc) failed.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-  desc_.shape_ = shape;
-  return base::kStatusCodeOk;
+  TensorDesc next(desc_.data_type_, desc_.data_format_, shape);
+  if (desc_.stride_.empty()) next.stride_.clear();
+  return justModify(next) ? base::kStatusCodeOk : base::kStatusCodeErrorInvalidParam;
 }
 bool Tensor::justModify(const TensorDesc &desc) {
+  size_t span;
+  if (!desc.getStorageSize(span) || (buffer_ && span > buffer_->getRealSize())) {
+    return false;
+  }
   if (buffer_ == nullptr) {
     desc_ = desc;
     return true;
@@ -350,7 +321,14 @@ bool Tensor::justModify(Buffer *buffer, bool is_external) {
   deallocate();
   is_external_ = is_external;
   buffer_ = buffer;
-  ref_count_ = new int(1);
+  storage_ = new Storage();
+  return true;
+}
+
+bool Tensor::justModify(std::shared_ptr<Buffer> buffer, bool is_external) {
+  auto *ptr = buffer.get();
+  justModify(ptr, is_external);
+  storage_->owner = std::move(buffer);
   return true;
 }
 
@@ -705,61 +683,46 @@ base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
 #endif
 // 序列化为字符串
 base::Status Tensor::deserialize(const std::string &bin_str) {
-  std::stringstream stream(bin_str);
-  uint64_t name_size = 0;
-  if (!stream.read(reinterpret_cast<char *>(&name_size), sizeof(name_size))) {
+  size_t offset = 0;
+  auto read_size = [&](uint64_t &size) {
+    if (bin_str.size() - offset < sizeof(size)) return false;
+    std::memcpy(&size, bin_str.data() + offset, sizeof(size));
+    offset += sizeof(size);
+    return true;
+  };
+  auto read_field = [&](std::string &field) {
+    uint64_t size;
+    if (!read_size(size) || size > bin_str.size() - offset) return false;
+    field.assign(bin_str, offset, size);
+    offset += size;
+    return true;
+  };
+  Tensor replacement;
+  std::string descriptor;
+  if (!read_field(replacement.name_) || !read_field(descriptor))
     return base::kStatusCodeErrorIO;
-  }
-  char *name_data = new char[name_size + 1];
-  if (!stream.read(name_data, name_size)) {
-    delete[] name_data;
-    return base::kStatusCodeErrorIO;
-  }
-  name_data[name_size] = '\0';
-  name_ = name_data;
-  delete[] name_data;
-
-  uint64_t desc_size = 0;
-  if (!stream.read(reinterpret_cast<char *>(&desc_size),
-                   sizeof(desc_size))) {
-    return base::kStatusCodeErrorIO;
-  }
-  std::string desc_str(desc_size + 1, '\0');
-  if (!stream.read(const_cast<char *>(desc_str.data()), desc_size)) {
-    return base::kStatusCodeErrorIO;
-  }
-  desc_.deserialize(desc_str);
-
-  uint64_t buffer_size = 0;
-  if (!stream.read(reinterpret_cast<char *>(&buffer_size),
-                   sizeof(buffer_size))) {
-    return base::kStatusCodeErrorIO;
-  }
-  // NNDEPLOY_LOGE("%s,%ld.\n", name_.c_str(), buffer_size);
-  if (buffer_size > 0) {
-    Device *device = getDefaultHostDevice();
-    buffer_ = new Buffer(device, buffer_size);
-    uint64_t buffer_str_size = 0;
-    if (!stream.read(reinterpret_cast<char *>(&buffer_str_size),
-                     sizeof(buffer_str_size))) {
-      return base::kStatusCodeErrorIO;
-    }
-    std::string buffer_str(buffer_str_size + 1, '\0');
-    if (!stream.read(const_cast<char *>(buffer_str.data()),
-                     buffer_str_size)) {
-      return base::kStatusCodeErrorIO;
-    }
-    base::Status status = buffer_->deserialize(buffer_str);
-    if (status != base::kStatusCodeOk) {
-      delete buffer_;
-      NNDEPLOY_LOGE("buffer_->deserialize(stream) failed!\n");
-      return base::kStatusCodeErrorIO;
+  auto status = replacement.desc_.deserialize(descriptor);
+  if (status != base::kStatusCodeOk) return status;
+  // Tensors without a buffer were written without a buffer-size field.
+  if (offset < bin_str.size()) {
+    uint64_t size;
+    if (!read_size(size)) return base::kStatusCodeErrorIO;
+    if (size) {
+      std::string payload;
+      if (!read_field(payload) || size > payload.size() ||
+          payload.size() - size != sizeof(uint64_t)) return base::kStatusCodeErrorIO;
+      uint64_t inner_size;
+      std::memcpy(&inner_size, payload.data(), sizeof(inner_size));
+      if (inner_size != size) return base::kStatusCodeErrorIO;
+      auto buffer = std::make_unique<Buffer>(getDefaultHostDevice(), 0, nullptr);
+      status = buffer->deserialize(payload);
+      if (status != base::kStatusCodeOk) return status;
+      replacement.storage_ = new Storage();
+      replacement.buffer_ = buffer.release();
+      replacement.is_external_ = false;
     }
   }
-
-  is_external_ = false;
-  ref_count_ = new int(1);
-
+  *this = std::move(replacement);
   return base::kStatusCodeOk;
 }
 
@@ -771,13 +734,9 @@ base::Status Tensor::serializeFromSafetensors(
   st.tensors.at(name_, &t_t);
   safetensorsShape2Shape(t_t.shape, this->desc_.shape_);
   safetensorsDtype2Dtype(t_t.dtype, this->desc_.data_type_);
-  if (this->ref_count_) {
-    delete this->ref_count_;
-  }
-  if (this->buffer_) {
-    delete this->buffer_;
-  }
-  this->ref_count_ = new int(1);
+  deallocate();
+  is_external_ = false;
+  this->storage_ = new Storage();
   const char *data_ptr = reinterpret_cast<const char *>(
       st.databuffer_addr);  // NOTE: cause it is loaded by mmap
   // const char *data_ptr = reinterpret_cast<const char *>(st.storage.data());
@@ -802,8 +761,8 @@ void Tensor::print(std::ostream &stream) const {
   desc_.print(stream);
   stream << std::endl;
 
-  if (ref_count_ != nullptr && buffer_ != nullptr) {
-    stream << "ref_count: " << ref_count_[0] << std::endl;
+  if (storage_ != nullptr && buffer_ != nullptr) {
+    stream << "ref_count: " << storage_->refs << std::endl;
     Device *host_device = getDefaultHostDevice();
     std::unique_ptr<Buffer> host_buffer_owner;
     Buffer *host_buffer = buffer_;
@@ -897,22 +856,28 @@ bool Tensor::isSameDesc(Tensor *tensor) const {
 bool Tensor::empty() const {
   bool name_flag = name_.empty();
   bool desc_flag = desc_.shape_.empty();
-  bool buffer_flag = (ref_count_ == nullptr) && (buffer_ == nullptr);
+  bool buffer_flag = (storage_ == nullptr) && (buffer_ == nullptr);
   bool flag = name_flag && desc_flag && buffer_flag;
   return flag;
 }
 bool Tensor::isContinue() const {
-  if (desc_.stride_.size() == 0) {
-    return true;
-  } else {
-    int size = static_cast<int>(desc_.stride_.size());
-    size_t acc = 1;
-    for (int i = size - 1; i >= 0; --i) {
-      acc *= desc_.shape_[i];
-      if (desc_.stride_[i] != acc) {
-        return false;
-      }
-    }
+  const auto &shape = desc_.shape_;
+  const auto &stride = desc_.stride_;
+  if (!stride.empty() && stride.size() != shape.size()) return false;
+  bool empty = false;
+  for (int dim : shape) {
+    if (dim < 0) return false;
+    if (dim == 0) empty = true;
+  }
+  if (empty || stride.empty()) return true;
+
+  size_t expected = desc_.data_type_.size();
+  for (size_t i = shape.size(); i > 0; --i) {
+    const size_t dim = shape[i - 1];
+    // A singleton axis never advances the data pointer.
+    if (dim > 1 && stride[i - 1] != expected) return false;
+    if (expected > std::numeric_limits<size_t>::max() / dim) return false;
+    expected *= dim;
   }
   return true;
 }

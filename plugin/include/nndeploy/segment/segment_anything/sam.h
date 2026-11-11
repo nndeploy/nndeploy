@@ -222,16 +222,16 @@ class NNDEPLOY_CC_API SAMGraph : public dag::Graph {
 
   base::Status defaultParam() override;
 
-  std::vector<dag::Edge*> forward(std::vector<dag::Edge*> inputs) {
+  std::vector<dag::Edge*> forward(std::vector<dag::Edge*> inputs) override {
     std::vector<dag::Edge*> encoder_input =
-        (*preprocess_image_node_)({inputs[0]});
+        (*preprocess_image_node_)(inputs[0]);
     std::vector<dag::Edge*> encoder_reshaped =
         (*encoder_input_reshape_node_)(encoder_input);
     std::vector<dag::Edge*> image_embedding =
         (*encoder_infer_node_)(encoder_reshaped);
 
     std::vector<dag::Edge*> point_result =
-        (*preprocess_point_node_)({inputs[1]});
+        (*preprocess_point_node_)(inputs[1]);
     std::vector<dag::Edge*> mask_result = (*preprocess_mask_node_)();
 
     // std::vector<dag::Edge *> decoder_input = {

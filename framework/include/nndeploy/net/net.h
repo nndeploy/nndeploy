@@ -77,6 +77,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   virtual base::Status run();
   virtual base::Status postRun();
+  base::Status synchronize();
 
   base::Status dump(std::ostream &oss);
 

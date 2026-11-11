@@ -20,25 +20,12 @@ PipelineEdge::PipelineEdge(base::ParallelType paralle_type)
 }
 
 bool PipelineEdge::empty() {
-  if (queueSizeUnlocked() == 0) {
-    return true;
-  }
-  PipelineDataPacket *latest = backUnlocked();
-  return latest == nullptr || latest->empty();
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto latest = data_queue_.back();
+  return !latest || latest->empty();
 }
 
-PipelineEdge::~PipelineEdge() {
-  consumers_size_ = 0;
-
-  while (queueSizeUnlocked() > 0) {
-    PipelineDataPacket *dp = popFrontUnlocked();
-    delete dp;
-  }
-  data_queue_.clear();
-
-  consuming_dp_.clear();
-  to_consume_index_.clear();
-}
+PipelineEdge::~PipelineEdge() = default;
 
 base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -46,8 +33,9 @@ base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
     queue_max_size = 1;
   }
   queue_max_size_ = queue_max_size;
-  size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked());
+  size_t required_capacity = std::max(queueLimit(), data_queue_.size());
   data_queue_.reserve(required_capacity);
+  queue_cv_.notify_all();
   return base::kStatusCodeOk;
 }
 
@@ -56,12 +44,23 @@ base::Status PipelineEdge::setQueueOverflowPolicy(
   std::lock_guard<std::mutex> lock(mutex_);
   overflow_policy_ = policy;
   drop_count_ = drop_count <= 0 ? 1 : drop_count;
+  queue_cv_.notify_all();
   return base::kStatusCodeOk;
 }
 
 base::Status PipelineEdge::construct() {
+  std::vector<Packet> retired;
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (terminate_flag_) {
+    while (!data_queue_.empty()) retired.push_back(data_queue_.popFront());
+    for (auto &entry : consuming_dp_) retired.push_back(std::move(entry.second));
+    consuming_dp_.clear(); to_consume_index_.clear(); next_sequence_.clear();
+    index_ = -1;
+    terminate_flag_ = false;
+  }
   consumers_size_ = static_cast<int>(consumers_.size());
   for (auto iter : consumers_) {
+    next_sequence_.emplace(iter, 0);
     if (to_consume_index_.find(iter) == to_consume_index_.end()) {
       to_consume_index_.insert({iter, 0});
     }
@@ -73,436 +72,138 @@ base::Status PipelineEdge::construct() {
 }
 
 base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  // set
-  base::Status status = dp->set(buffer, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-
-  // 上锁
-  {
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-
-    this->increaseIndex();
-    dp->setIndex(index_);
-
-    pushBackUnlocked(dp);
-  }
-
-  cv_.notify_all();
-
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  packet->set(buffer, is_external);
+  auto status = enqueue(packet);
+  if (status != base::kStatusCodeOk) packet->borrowPayload();
   return status;
 }
 device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-
-  // create
-  device::Buffer *ret_value = dp->create(device, desc);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
-                                     "PipelineDataPacket create error.\n");
-
-  cv_.notify_all();
-
-  return ret_value;
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  auto *result = packet->create(device, desc);
+  return result && enqueue(packet) == base::kStatusCodeOk ? result : nullptr;
 }
 bool PipelineEdge::notifyWritten(device::Buffer *buffer) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  bool is_notify = false;
-  size_t queue_size = queueSizeUnlocked();
-  for (size_t i = 0; i < queue_size; ++i) {
-    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
-    if (dp != nullptr && dp->notifyWritten(buffer)) {
-      is_notify = true;
-      break;
-    }
-  }
-  if (!is_notify) {
-    NNDEPLOY_LOGE("This buffer[%p] is error.\n", buffer);
-  }
-  return is_notify;
+  return notifyWritten(static_cast<void *>(buffer));
 }
 device::Buffer *PipelineEdge::getBuffer(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getPipelineDataPacket error.\n");
-
-  Node *tmp_node = const_cast<Node *>(node);
-  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
-    return dp->getBuffer();
-  } else {
-    return dp->getBufferDirect();
-  }
+  auto packet = acquirePacket(node, false);
+  return packet ? packet->DataPacket::getBuffer() : nullptr;
 }
 device::Buffer *PipelineEdge::getGraphOutputBuffer() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return dp->getBuffer();
+  auto packet = acquirePacket(nullptr, true, EdgeTypeFlag::kBuffer);
+  return packet ? packet->DataPacket::getBuffer() : nullptr;
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  // set
-  base::Status status = dp->set(cv_mat, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-
-    pushBackUnlocked(dp);
-  }
-
-  cv_.notify_all();
-
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  packet->set(cv_mat, is_external);
+  auto status = enqueue(packet);
+  if (status != base::kStatusCodeOk) packet->borrowPayload();
   return status;
 }
 cv::Mat *PipelineEdge::create(int rows, int cols, int type,
                               const cv::Vec3b &value) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-
-  // create
-  cv::Mat *ret_value = dp->create(rows, cols, type, value);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
-                                     "PipelineDataPacket create error.\n");
-  cv_.notify_all();
-
-  return ret_value;
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  auto *result = packet->create(rows, cols, type, value);
+  return result && enqueue(packet) == base::kStatusCodeOk ? result : nullptr;
 }
 bool PipelineEdge::notifyWritten(cv::Mat *cv_mat) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  bool is_notify = false;
-  size_t queue_size = queueSizeUnlocked();
-  for (size_t i = 0; i < queue_size; ++i) {
-    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
-    if (dp != nullptr && dp->notifyWritten(cv_mat)) {
-      is_notify = true;
-      break;
-    }
-  }
-  if (!is_notify) {
-    NNDEPLOY_LOGE("This cv_mat[%p] is error.\n", cv_mat);
-  }
-  return is_notify;
+  return notifyWritten(static_cast<void *>(cv_mat));
 }
 cv::Mat *PipelineEdge::getCvMat(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getPipelineDataPacket error.\n");
-
-  Node *tmp_node = const_cast<Node *>(node);
-  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
-    return dp->getCvMat();
-  } else {
-    return dp->getCvMatDirect();
-  }
+  auto packet = acquirePacket(node, false);
+  return packet ? packet->DataPacket::getCvMat() : nullptr;
 }
 cv::Mat *PipelineEdge::getGraphOutputCvMat() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return dp->getCvMat();
+  auto packet = acquirePacket(nullptr, true, EdgeTypeFlag::kCvMat);
+  return packet ? packet->DataPacket::getCvMat() : nullptr;
 }
 #endif
 
 base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  // set
-  base::Status status = dp->set(tensor, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-
-  cv_.notify_all();
-
-  return base::kStatusCodeOk;
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  packet->set(tensor, is_external);
+  auto status = enqueue(packet);
+  if (status != base::kStatusCodeOk) packet->borrowPayload();
+  return status;
 }
 device::Tensor *PipelineEdge::create(device::Device *device,
                                      const device::TensorDesc &desc,
                                      const std::string &name) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-
-  // create
-  device::Tensor *ret_value = dp->create(device, desc, name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
-                                     "PipelineDataPacket create error.\n");
-  cv_.notify_all();
-
-  return ret_value;
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  auto *result = packet->create(device, desc, name);
+  return result && enqueue(packet) == base::kStatusCodeOk ? result : nullptr;
 }
 bool PipelineEdge::notifyWritten(device::Tensor *tensor) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  bool is_notify = false;
-  size_t queue_size = queueSizeUnlocked();
-  for (size_t i = 0; i < queue_size; ++i) {
-    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
-    if (dp != nullptr && dp->notifyWritten(tensor)) {
-      is_notify = true;
-      break;
-    }
-  }
-  if (!is_notify) {
-    NNDEPLOY_LOGE("This tensor[%p] is error.\n", tensor);
-  }
-  return is_notify;
+  return notifyWritten(static_cast<void *>(tensor));
 }
 device::Tensor *PipelineEdge::getTensor(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getPipelineDataPacket error.\n");
-
-  Node *tmp_node = const_cast<Node *>(node);
-  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
-    return dp->getTensor();
-  } else {
-    return dp->getTensorDirect();
-  }
+  auto packet = acquirePacket(node, false);
+  return packet ? packet->DataPacket::getTensor() : nullptr;
 }
 device::Tensor *PipelineEdge::getGraphOutputTensor() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return dp->getTensor();
+  auto packet = acquirePacket(nullptr, true, EdgeTypeFlag::kTensor);
+  return packet ? packet->DataPacket::getTensor() : nullptr;
 }
 
 base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  // take
-  base::Status status = dp->takeDataPacket(data_packet);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket take error.\n");
-  // take
-  // base::Status status = dp->takeDataPacket(data_packet);
-  // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //                        "PipelineDataPacket take error.\n");
-
-  // 上锁
-  {
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-
-  cv_.notify_all();
-
-  return status;
+  if (!data_packet) return base::kStatusCodeErrorInvalidParam;
+  return enqueue(std::make_shared<PipelineDataPacket>(consumers_size_), data_packet);
 }
 bool PipelineEdge::notifyWritten(void *anything) {
   std::lock_guard<std::mutex> lock(mutex_);
-  bool is_notify = false;
-  size_t queue_size = queueSizeUnlocked();
-  for (size_t i = 0; i < queue_size; ++i) {
-    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
-    if (dp != nullptr && dp->notifyWritten(anything)) {
-      is_notify = true;
-      break;
-    }
+  bool notified = false;
+  for (size_t i = 0; i < data_queue_.size(); ++i) {
+    auto packet = data_queue_.at(i);
+    // Reposted aliases refer to the same write, so wake every matching packet.
+    notified = packet->notifyWritten(anything) || notified;
   }
-  if (!is_notify) {
-    NNDEPLOY_LOGE("This anything[%p] is error.\n", anything);
+  if (notified) {
+    // Wake both overflow writers and consumers that skipped this packet and
+    // are waiting to retire it before another producer can enter the queue.
+    queue_cv_.notify_all();
+    cv_.notify_all();
+  } else {
+    NNDEPLOY_LOGE("This payload[%p] is error.\n", anything);
   }
-  return is_notify;
+  return notified;
 }
 DataPacket *PipelineEdge::getDataPacket(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getPipelineDataPacket error.\n");
-
-  return static_cast<DataPacket *>(dp);
+  return currentPacket(node).get();
 }
 DataPacket *PipelineEdge::getGraphOutputDataPacket() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return static_cast<DataPacket *>(dp);
+  return acquirePacket(nullptr, true).get();
 }
 
 base::Status PipelineEdge::set(base::Param *param, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  // set
-  base::Status status = dp->set(param, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-
-  {
-    // 上锁
-    std::unique_lock<std::mutex> lock(mutex_);
-    waitForSpaceLocked(lock);
-    this->increaseIndex();
-    dp->setIndex(index_);
-    pushBackUnlocked(dp);
-  }
-  cv_.notify_all();
-
+  auto packet = std::make_shared<PipelineDataPacket>(consumers_size_);
+  packet->set(param, is_external);
+  auto status = enqueue(packet);
+  if (status != base::kStatusCodeOk) packet->borrowPayload();
   return status;
 }
 bool PipelineEdge::notifyWritten(base::Param *param) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  bool is_notify = false;
-  size_t queue_size = queueSizeUnlocked();
-  for (size_t i = 0; i < queue_size; ++i) {
-    PipelineDataPacket *dp = atUnlocked(queue_size - 1 - i);
-    if (dp != nullptr && dp->notifyWritten(param)) {
-      is_notify = true;
-      break;
-    }
-  }
-  if (!is_notify) {
-    NNDEPLOY_LOGE("This param[%p] is error.\n", param);
-  }
-  return is_notify;
+  return notifyWritten(static_cast<void *>(param));
 }
 base::Param *PipelineEdge::getParam(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getPipelineDataPacket error.\n");
-
-  Node *tmp_node = const_cast<Node *>(node);
-  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
-    return dp->getParam();
-  } else {
-    return dp->getParamDirect();
-  }
+  auto packet = acquirePacket(node, false);
+  return packet ? packet->DataPacket::getParam() : nullptr;
 }
 base::Param *PipelineEdge::getGraphOutputParam() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return dp->getParam();
+  auto packet = acquirePacket(nullptr, true, EdgeTypeFlag::kParam);
+  return packet ? packet->DataPacket::getParam() : nullptr;
 }
 
 void *PipelineEdge::getGraphOutputPtr() {
-  PipelineDataPacket *dp = nullptr;
-  base::EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == base::kEdgeUpdateFlagTerminate) {
-    NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == base::kEdgeUpdateFlagError) {
-    NNDEPLOY_LOGI("getGraphOutput update error.\n");
-  } else {
-    dp = getPipelineDataPacket(nullptr);
-  }
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE(
-        "PipelineDataPacket is null, this edge is not output edge.\n");
-    return nullptr;
-  }
-  return dp->getDataPtr();
+  auto packet = acquirePacket(nullptr, true);
+  return packet ? packet->getDataPtr() : nullptr;
 }
 
 int64_t PipelineEdge::getIndex(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
+  auto dp = currentPacket(node);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getPipelineDataPacket error.\n");
     return -1;
@@ -511,7 +212,7 @@ int64_t PipelineEdge::getIndex(const Node *node) {
   return index;
 }
 int64_t PipelineEdge::getGraphOutputIndex() {
-  PipelineDataPacket *dp = getPipelineDataPacket(nullptr);
+  auto dp = currentPacket(nullptr);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getPipelineDataPacket error.\n");
     return -1;
@@ -521,15 +222,17 @@ int64_t PipelineEdge::getGraphOutputIndex() {
 }
 
 int PipelineEdge::getPosition(const Node *node) {
-  PipelineDataPacket *dp = getPipelineDataPacket(node);
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto found = consuming_dp_.find(const_cast<Node *>(node));
+  auto dp = found == consuming_dp_.end() ? data_queue_.back() : found->second;
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getPipelineDataPacket error.\n");
     return -1;
   }
   int position = 0;
-  size_t queue_size = queueSizeUnlocked();
+  size_t queue_size = data_queue_.size();
   for (size_t i = 0; i < queue_size; ++i) {
-    if (dp == atUnlocked(i)) {
+    if (dp == data_queue_.at(i)) {
       break;
     }
     position++;
@@ -541,6 +244,8 @@ int PipelineEdge::getGraphOutputPosition() { return getPosition(nullptr); }
 bool PipelineEdge::requestTerminate() {
   std::unique_lock<std::mutex> lock(mutex_);
   terminate_flag_ = true;
+  for (size_t i = 0; i < data_queue_.size(); ++i) data_queue_.at(i)->cancel();
+  queue_cv_.notify_all();
   cv_.notify_all();
   return true;
 }
@@ -552,211 +257,152 @@ bool PipelineEdge::requestTerminate() {
  * @return PipelineDataPacket*
  * @note 用于获取消费者节点的数据包，对应节点的输入边
  */
+base::Status PipelineEdge::skipFrame() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (terminate_flag_) return base::kStatusCodeNodeInterrupt;
+  increaseIndex();
+  cv_.notify_all();
+  return base::kStatusCodeOk;
+}
+
 base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
-  Node *tmp_node = const_cast<Node *>(node);
-  if (!checkNode(tmp_node)) {
-    NNDEPLOY_LOGE("This node is error.\n");
-    return base::kEdgeUpdateFlagError;
-  }
+  Packet packet;
+  return nextPacket(node, packet, EdgeTypeFlag::kNone, nullptr);
+}
+
+base::EdgeUpdateFlag PipelineEdge::nextPacket(const Node *node, Packet &packet,
+                                             EdgeTypeFlag expected, const std::type_info *type) {
+  auto *consumer = const_cast<Node *>(node);
+  std::vector<Packet> retired;
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this, tmp_node] {
-    auto iter = to_consume_index_.find(tmp_node);
-    int index_value = iter != to_consume_index_.end() ? iter->second : 0;
-    size_t index = index_value < 0 ? 0 : static_cast<size_t>(index_value);
-    return index < queueSizeUnlocked() ||
-           terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据
-                             // || 数据被消耗结束
-  });
-  if (terminate_flag_) {
-    return base::kEdgeUpdateFlagTerminate;
-  }
+  if (!checkNode(node)) return base::kEdgeUpdateFlagError;
 
-  // find
-  PipelineDataPacket *dp = nullptr;
-  int index = to_consume_index_[tmp_node];
-  if (index < 0) {
-    index = 0;
+  // Release the previous slot before waiting for a producer on a bounded queue.
+  consuming_dp_[consumer].reset();
+  while (true) {
+    while (!data_queue_.empty() &&
+           data_queue_.front()->getConsumersCount() == consumers_size_) {
+      if (dropOldestUnlocked(1, retired) == 0) break;
+    }
+    queue_cv_.notify_all();
+    if (!retired.empty()) {
+      lock.unlock();
+      retired.clear();  // Payload finalizers can re-enter the edge.
+      lock.lock();
+    }
+    if (terminate_flag_) return base::kEdgeUpdateFlagTerminate;
+    auto position = static_cast<size_t>(to_consume_index_[consumer]);
+    auto &sequence = next_sequence_[consumer];
+    // Gaps represent dropped frames. They carry no payload and consume no
+    // queue capacity, but downstream nodes must still settle each frame.
+    if (sequence <= index_ &&
+        (position >= data_queue_.size() || data_queue_.at(position)->getIndex() > sequence)) {
+      ++sequence;
+      return base::kEdgeUpdateFlagSkip;
+    }
+    if (position < data_queue_.size()) break;
+    // A write completion can make an already consumed packet reclaimable.
+    // Recheck retirement on wakeup, not just whether a new packet arrived.
+    cv_.wait(lock);
   }
-  int count = 0;
-  for (int i = 0; i < index; i++) {
-    PipelineDataPacket *candidate = atUnlocked(static_cast<size_t>(i));
-    if (candidate != nullptr &&
-        candidate->getConsumersCount() == consumers_size_) {
-      count++;
-    }
-  }
-  dp = atUnlocked(static_cast<size_t>(index));
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE("PipelineDataPacket is null!\n");
-    return base::kEdgeUpdateFlagError;
-  }
-  dp->increaseConsumersCount();
-  consuming_dp_[tmp_node] = dp;
-
-  // update
-  size_t real_count = 0;
-  for (int i = 0; i < count; i++) {
-    PipelineDataPacket *candidate = frontUnlocked();
-    if (candidate == nullptr) {
-      break;
-    }
-    bool delete_flag = true;
-    for (auto consuming_dp : consuming_dp_) {
-      if (consuming_dp.second == candidate) {
-        delete_flag = false;
-        break;
-      }
-    }
-    if (delete_flag) {
-      PipelineDataPacket *removed = popFrontUnlocked();
-      if (removed != nullptr) {
-        delete removed;
-      }
-      real_count++;
-    } else {
-      break;
-    }
-  }
-
-  if (real_count > 0) {
-    for (auto &iter : to_consume_index_) {
-      iter.second -= static_cast<int>(real_count);
-    }
-    size_t new_size = queueSizeUnlocked();
-    size_t prev_size = new_size + real_count;
-    size_t limit = queueLimit();
-    if (prev_size >= limit && new_size < limit) {
-      queue_cv_.notify_all();
-    }
-  }
-  // 让下一次数据没有的时候线程一直在等待
-  to_consume_index_[tmp_node]++;
-
+  auto &index = to_consume_index_[consumer];
+  auto next = data_queue_.at(index);
+  // A typed probe must not consume a different kind of graph output.
+  if (!next->matches(expected, type)) return base::kEdgeUpdateFlagError;
+  ++index;
+  ++next_sequence_[consumer];
+  packet = std::move(next);
+  packet->increaseConsumersCount();
+  consuming_dp_[consumer] = packet;
   return base::kEdgeUpdateFlagComplete;
 }
 
-PipelineDataPacket *PipelineEdge::getPipelineDataPacket(const Node *node) {
-  Node *tmp_node = const_cast<Node *>(node);
-  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
-    auto iter = consuming_dp_.find(tmp_node);
-    if (iter->second == nullptr) {
-      NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
-      NNDEPLOY_LOGE("dp is nullptr!\n");
-      return nullptr;
-    }
-    return iter->second;
-  } else if (std::find(producers_.begin(), producers_.end(), tmp_node) !=
-             producers_.end()) {
-    return backUnlocked();
+PipelineEdge::Packet PipelineEdge::currentPacket(const Node *node) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto *key = const_cast<Node *>(node);
+  auto consumer = consuming_dp_.find(key);
+  if (consumer != consuming_dp_.end()) return consumer->second;
+  if (std::find(producers_.begin(), producers_.end(), key) != producers_.end())
+    return data_queue_.back();
+  return nullptr;
+}
+
+std::shared_ptr<DataPacket> PipelineEdge::acquirePacket(const Node *node, bool graph_output,
+                                                        EdgeTypeFlag expected, const std::type_info *type) {
+  Packet packet;
+  if (graph_output) {
+    base::EdgeUpdateFlag flag;
+    do { flag = nextPacket(nullptr, packet, expected, type); }
+    while (flag == base::kEdgeUpdateFlagSkip);
+    if (flag != base::kEdgeUpdateFlagComplete) return nullptr;
   } else {
-    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
-    return nullptr;
+    packet = currentPacket(node);
+    if (packet && std::find(consumers_.begin(), consumers_.end(), node) == consumers_.end()) return packet;  // Producer filling a new packet.
   }
+  return packet && packet->waitUntilWritten() ? packet : nullptr;
 }
 
-void PipelineEdge::pushBackUnlocked(PipelineDataPacket *dp) {
-  size_t required_capacity = std::max(queueLimit(), queueSizeUnlocked() + 1);
-  data_queue_.reserve(required_capacity);
-  data_queue_.pushBack(dp);
-}
+size_t PipelineEdge::queueLimit() const { return static_cast<size_t>(queue_max_size_); }
 
-PipelineDataPacket *PipelineEdge::atUnlocked(size_t index) const {
-  return data_queue_.at(index);
-}
-
-PipelineDataPacket *PipelineEdge::frontUnlocked() const {
-  return data_queue_.front();
-}
-
-PipelineDataPacket *PipelineEdge::backUnlocked() const {
-  return data_queue_.back();
-}
-
-PipelineDataPacket *PipelineEdge::popFrontUnlocked() {
-  return data_queue_.popFront();
-}
-
-size_t PipelineEdge::queueSizeUnlocked() const { return data_queue_.size(); }
-
-size_t PipelineEdge::queueLimit() const {
-  return static_cast<size_t>(queue_max_size_ <= 0 ? 1 : queue_max_size_);
-}
-
-void PipelineEdge::waitForSpaceLocked(std::unique_lock<std::mutex> &lock) {
-  size_t limit = queueLimit();
-  if (limit == 0) {
-    return;
-  }
-
-  switch (overflow_policy_) {
-    case base::QueueOverflowPolicy::kQueueOverflowPolicyNodeBackpressure:
-      if (!hasGraphOutputConsumer()) {
-        queue_cv_.wait(lock,
-                       [this]() { return queueSizeUnlocked() < queueLimit(); });
-      }
-      break;
-    case base::QueueOverflowPolicy::kQueueOverflowPolicyAllBackpressure:
-      queue_cv_.wait(lock,
-                     [this]() { return queueSizeUnlocked() < queueLimit(); });
-      break;
-    case base::QueueOverflowPolicy::kQueueOverflowPolicyDropOldest: {
-      size_t normalized_drop = drop_count_ <= 0
-                                   ? static_cast<size_t>(1)
-                                   : static_cast<size_t>(drop_count_);
-      while (queueSizeUnlocked() >= limit) {
-        size_t dropped = dropOldestUnlocked(normalized_drop);
-        if (dropped == 0) {
-          queue_cv_.wait(
-              lock, [this]() { return queueSizeUnlocked() < queueLimit(); });
-          break;
-        }
-      }
-      break;
+base::Status PipelineEdge::enqueue(Packet packet, DataPacket *source) {
+  std::vector<Packet> retired;
+  // Pin an existing owner before backpressure or dropping can retire it.
+  // Declared before the lock so payload finalizers always run outside it.
+  Packet previous;
+  std::unique_lock<std::mutex> lock(mutex_);
+  auto *payload = source ? source->getDataPtr() : packet->getDataPtr();
+  auto find_previous = [&] {
+    for (size_t i = data_queue_.size(); i > 0; --i) {
+      auto candidate = data_queue_.at(i - 1);
+      if (candidate->getDataPtr() == payload) return candidate;
     }
-    default:
-      break;
+    return Packet{};
+  };
+  previous = find_previous();
+  while (!terminate_flag_ && data_queue_.size() >= queueLimit()) {
+    if (overflow_policy_ == base::kQueueOverflowPolicyNodeBackpressure &&
+        hasGraphOutputConsumer()) break;
+    if (overflow_policy_ == base::kQueueOverflowPolicyDropOldest &&
+        dropOldestUnlocked(drop_count_, retired)) continue;
+    if (!retired.empty()) {
+      lock.unlock();
+      retired.clear();
+      lock.lock();
+      continue;
+    }
+    queue_cv_.wait(lock);
   }
+  if (terminate_flag_) return base::kStatusCodeErrorInvalidValue;
+  data_queue_.reserve(data_queue_.size() + 1);
+  if (source) packet->takeDataPacket(source);  // Ownership transfers on admission.
+  // Another producer may have admitted the same payload while we were waiting.
+  if (!previous) previous = find_previous();
+  packet->retainSamePayload(previous);
+  increaseIndex();
+  packet->setIndex(index_);
+  data_queue_.pushBack(std::move(packet));
+  lock.unlock();
+  cv_.notify_all();
+  return base::kStatusCodeOk;
 }
 
-size_t PipelineEdge::dropOldestUnlocked(size_t count) {
-  if (count == 0) {
-    count = 1;
-  }
+size_t PipelineEdge::dropOldestUnlocked(size_t count, std::vector<Packet> &retired) {
   size_t dropped = 0;
-  while (dropped < count && queueSizeUnlocked() > 0) {
-    PipelineDataPacket *candidate = frontUnlocked();
-    if (candidate == nullptr) {
-      break;
-    }
-    bool in_use = false;
-    for (auto &consuming_dp : consuming_dp_) {
-      if (consuming_dp.second == candidate) {
-        in_use = true;
-        break;
-      }
-    }
-    if (in_use) {
-      break;
-    }
-    PipelineDataPacket *removed = popFrontUnlocked();
-    if (removed != nullptr) {
-      delete removed;
-    }
+  while (dropped < count && !data_queue_.empty()) {
+    auto candidate = data_queue_.front();
+    bool in_use = std::any_of(consuming_dp_.begin(), consuming_dp_.end(),
+        [&](const auto &entry) { return entry.second == candidate; });
+    // create() returns a writable raw pointer. It remains live until the
+    // producer publishes it with notifyWritten(), even if nobody has read it.
+    if (in_use || !candidate->isWritten()) break;
+    retired.push_back(data_queue_.popFront());
     ++dropped;
   }
-
-  if (dropped > 0) {
-    for (auto &iter : to_consume_index_) {
-      iter.second -= static_cast<int>(dropped);
-      if (iter.second < 0) {
-        iter.second = 0;
-      }
-    }
-    if (queueSizeUnlocked() < queueLimit()) {
-      queue_cv_.notify_all();
-    }
+  if (dropped) {
+    for (auto &entry : to_consume_index_)
+      entry.second = std::max(0, entry.second - static_cast<int>(dropped));
+    queue_cv_.notify_all();
   }
-
   return dropped;
 }
 

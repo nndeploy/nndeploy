@@ -54,7 +54,8 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def(
           "weights",
           [](ModelDesc &self) {
-            return py::cast(self.weights_, py::return_value_policy::reference);
+            return py::cast(self.weights_, py::return_value_policy::reference_internal,
+                            py::cast(&self, py::return_value_policy::reference));
           },
           py::return_value_policy::reference)
       // 定义如何设置weights_的值

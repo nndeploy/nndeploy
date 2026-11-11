@@ -26,109 +26,56 @@ namespace net {
  * 这些阶段可以并行执行以提高吞吐量。
  */
 struct PipelineRuntimeStage {
-  std::vector<OpWrapper *> op_wrappers_;  ///< 该阶段包含的Op包装器列表
-  std::vector<TensorWrapper *>
-      tensor_wrappers_;                          ///< 该阶段使用的张量包装器列表
-  std::vector<device::Tensor *> input_tensors_;  ///< 该阶段的输入张量列表
-  std::vector<device::Tensor *> output_tensors_;  ///< 该阶段的输出张量列表
+  std::vector<OpWrapper *> op_wrappers_;
+  std::vector<TensorWrapper *> tensor_wrappers_;
+  std::vector<device::Tensor *> input_tensors_, output_tensors_;
+  std::vector<std::unique_ptr<TensorWrapper>> owned_wrappers_;
+  std::vector<std::unique_ptr<device::Tensor>> owned_tensors_;
+  std::map<device::Tensor *, device::Tensor *> tensor_map_;
+  std::vector<std::pair<PipelineTensor *, device::Tensor *>> inputs_, outputs_;
 };
 
 class PipelineRuntime : public Runtime {
  public:
-  PipelineRuntime(const base::DeviceType &device_type);
-  virtual ~PipelineRuntime();
-
-  // 设置流水线并行数量
-  base::Status setWorkers(int worker_num,
-                          std::vector<base::DeviceType> device_types =
-                              std::vector<base::DeviceType>());
-
-  virtual base::Status init(
-      std::vector<TensorWrapper *> &tensor_repository,
-      std::vector<OpWrapper *> &op_repository,
-      std::vector<device::Tensor *> &input_tensors,
-      std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
-      base::ShapeMap max_shape,
-      TensorPoolType tensor_pool_type =
-          kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
-      bool is_external_tensor_pool_memory = false);
-  virtual base::Status deinit();
-
-  virtual base::Status reshape(base::ShapeMap &shape_map);
-
-  virtual base::Status preRun();
-  virtual base::Status run();
-  virtual base::Status postRun();
-
+  explicit PipelineRuntime(const base::DeviceType &device_type);
+  ~PipelineRuntime() override;
+  base::Status setWorkers(int worker_num, std::vector<base::DeviceType> device_types = {});
+  base::Status init(std::vector<TensorWrapper *> &tensor_repository,
+                    std::vector<OpWrapper *> &op_repository,
+                    std::vector<device::Tensor *> &input_tensors,
+                    std::vector<device::Tensor *> &output_tensors,
+                    bool is_dynamic_shape, base::ShapeMap max_shape,
+                    TensorPoolType tensor_pool_type = kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
+                    bool is_external_tensor_pool_memory = false) override;
+  base::Status deinit() override;
+  base::Status reshape(base::ShapeMap &shape_map) override;
+  base::Status preRun() override;
+  base::Status run() override;
+  base::Status postRun() override;
+  base::Status synchronize() override;
+  int64_t getMemorySize() override { return -1; }
+  base::Status setMemory(device::Buffer *) override { return base::kStatusCodeErrorNotSupport; }
   void commitThreadPool();
-
-  virtual base::Status copyToInputTensor(device::Tensor *tensor);
-  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
-                                                  base::DeviceType device_type,
-                                                  bool is_copy,
-                                                  base::DataFormat data_format);
+  base::Status copyToInputTensor(device::Tensor *tensor) override;
+  device::Tensor *getOutputTensorAfterRun(const std::string &name,
+      base::DeviceType device_type, bool is_copy, base::DataFormat data_format) override;
 
  private:
-  /**
-   * @brief 顺序运行时实例列表，每个实例负责流水线中的一个阶段
-   *
-   * 流水线运行时将计算任务分解为多个顺序执行的阶段，每个阶段由一个SequentialRuntime实例管理
-   */
+  void stop(base::Status status);
   std::vector<SequentialRuntime *> sequential_runtimes_;
-
-  /**
-   * @brief 顺序运行时与对应流水线阶段的映射关系
-   *
-   * 将每个SequentialRuntime实例映射到其负责的PipelineRuntimeStage，
-   * 包含该阶段的所有操作和张量信息
-   */
-  std::map<SequentialRuntime *, std::shared_ptr<PipelineRuntimeStage>>
-      sequential_runtime_stage_stages_;
-
-  /**
-   * @brief 输入输出张量映射表
-   *
-   * 将原始设备张量映射到流水线专用张量，用于管理跨阶段的数据传输和同步
-   */
-  std::map<device::Tensor *, PipelineTensor *> input_output_tensors_;
-
-  /**
-   * @brief 线程池实例，用于并行执行各流水线阶段
-   *
-   * 管理工作线程，实现流水线各阶段的并行调度执行
-   */
+  std::vector<std::unique_ptr<PipelineRuntimeStage>> stages_;
+  std::map<device::Tensor *, std::unique_ptr<PipelineTensor>> queues_;
+  std::map<device::Tensor *, PipelineTensor::Packet> pending_inputs_;
+  std::map<std::string, PipelineTensor::Packet> borrowed_outputs_;
   thread_pool::ThreadPool *thread_pool_ = nullptr;
-
-  /**
-   * @brief 流水线同步互斥锁
-   *
-   * 保护流水线共享状态，确保线程安全的状态更新
-   */
   std::mutex pipeline_mutex_;
-
-  /**
-   * @brief 流水线同步条件变量
-   *
-   * 用于线程间的同步通知，协调各阶段的执行顺序和依赖关系
-   */
   std::condition_variable pipeline_cv_;
-
-  /**
-   * @brief 当前提交到流水线的任务数量
-   *
-   * 记录已提交但尚未完全处理完的任务总数
-   */
-  int run_size_ = 0;
-
-  /**
-   * @brief 已完成处理的任务数量
-   *
-   * 记录已经完成处理的任务数，用于跟踪流水线进度和同步
-   */
-  int completed_size_ = 0;
+  size_t run_size_ = 0;
+  std::vector<size_t> completed_;
+  base::Status status_ = base::kStatusCodeOk;
+  bool accepting_ = false, stopping_ = false;
 };
 
-}  // namespace net
-}  // namespace nndeploy
-
-#endif /* D98B9E43_6DEF_4878_822C_D1EA706E79EF */
+} // namespace net
+} // namespace nndeploy
+#endif

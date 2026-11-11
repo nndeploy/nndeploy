@@ -5,6 +5,28 @@
 namespace nndeploy {
 namespace codec {
 
+namespace {
+base::Status readImage(const std::string &path, std::unique_ptr<cv::Mat> &image) {
+  try {
+    image = std::make_unique<cv::Mat>(cv::imread(path));
+    if (!image->empty()) return base::kStatusCodeOk;
+  } catch (const cv::Exception &e) {
+    NNDEPLOY_LOGE("%s\n", e.what());
+  }
+  return base::kStatusCodeErrorIO;
+}
+
+base::Status writeImage(const std::string &path, cv::Mat *image) {
+  if (!image || image->empty()) return base::kStatusCodeErrorInvalidParam;
+  try {
+    if (cv::imwrite(path, *image)) return base::kStatusCodeOk;
+  } catch (const cv::Exception &e) {
+    NNDEPLOY_LOGE("%s\n", e.what());
+  }
+  return base::kStatusCodeErrorIO;
+}
+}  // namespace
+
 base::Status OpenCvImageDecode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvImageDecode::deinit() { return base::kStatusCodeOk; }
 
@@ -46,16 +68,14 @@ base::Status OpenCvImageDecode::run() {
     path_cv_.wait(lock, [this] { return path_ready_; });
   }
   // NNDEPLOY_LOGI("OpenCvImageDecode::run() path_[%s]\n", path_.c_str());
-  cv::Mat *mat = new cv::Mat(cv::imread(path_));
-  if (mat == nullptr) {
-    NNDEPLOY_LOGE("cv::imread failed! path[%s]\n", path_.c_str());
-    return base::kStatusCodeErrorInvalidParam;
-  }
+  std::unique_ptr<cv::Mat> mat;
+  auto status = readImage(path_, mat);
+  if (status != base::kStatusCodeOk) return status;
   width_ = mat->cols;
   height_ = mat->rows;
-  // NNDEPLOY_LOGE("OpenCvImageDecode::run() width_[%d] height_[%d]\n",
-  // width_, height_);
-  outputs_[0]->set(mat, false);
+  status = outputs_[0]->set(mat.get(), false);
+  if (status != base::kStatusCodeOk) return status;
+  mat.release();
   index_++;
   return base::kStatusCodeOk;
 }
@@ -153,8 +173,12 @@ base::Status OpenCvImagesDecode::run() {
   }
   if (index_ < size_) {
     std::string image_path = images_[index_];
-    cv::Mat *mat = new cv::Mat(cv::imread(image_path));
-    outputs_[0]->set(mat, false);
+    std::unique_ptr<cv::Mat> mat;
+    auto status = readImage(image_path, mat);
+    if (status != base::kStatusCodeOk) return status;
+    status = outputs_[0]->set(mat.get(), false);
+    if (status != base::kStatusCodeOk) return status;
+    mat.release();
     index_++;
   } else {
     NNDEPLOY_LOGI("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
@@ -447,8 +471,7 @@ base::Status OpenCvImageEncode::setPath(const std::string &path) {
 
 base::Status OpenCvImageEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
-  cv::imwrite(path_, *mat);
-  return base::kStatusCodeOk;
+  return writeImage(path_, mat);
 }
 
 base::Status OpenCvImagesEncode::init() { return base::kStatusCodeOk; }
@@ -477,7 +500,8 @@ base::Status OpenCvImagesEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   std::string name = std::to_string(index_) + ".jpg";
   std::string full_path = base::joinPath(path_, name);
-  cv::imwrite(full_path, *mat);
+  auto status = writeImage(full_path, mat);
+  if (status != base::kStatusCodeOk) return status;
   index_++;
   return base::kStatusCodeOk;
 }

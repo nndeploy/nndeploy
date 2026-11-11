@@ -50,7 +50,6 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
   bool workspace_is_external_ = false;
   uint64_t workspace_size_ = 0;
   void *workspace_ = nullptr;
-  base::ShapeMap shape_map_;
 };
 
 }  // namespace net

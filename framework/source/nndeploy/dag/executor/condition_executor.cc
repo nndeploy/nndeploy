@@ -32,21 +32,16 @@ base::Status ConditionExecutor::init(
   return status;
 }
 base::Status ConditionExecutor::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto iter : edge_repository_) {
-    bool flag = iter->edge_->requestTerminate();
-    if (!flag) {
-      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
-      return base::kStatusCodeErrorDag;
-    }
+  base::Status result = base::kStatusCodeOk;
+  for (auto *edge : edge_repository_)
+    if (!edge->edge_->requestTerminate()) result = base::kStatusCodeErrorDag;
+  for (auto *entry : node_repository_) {
+    if (!entry->node_->getInitialized()) continue;
+    auto status = entry->node_->deinit();
+    if (result == base::kStatusCodeOk) result = status;
+    entry->node_->setInitializedFlag(false);
   }
-  for (auto iter : node_repository_) {
-    status = iter->node_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "failed iter->node_->deinit()");
-    iter->node_->setInitializedFlag(false);
-  }
-  return status;
+  return result;
 }
 
 void ConditionExecutor::setCondition(Node *condition) {
@@ -56,9 +51,13 @@ void ConditionExecutor::select(int index) { index_ = index; }
 
 base::Status ConditionExecutor::run() { return this->process(); }
 
-base::Status ConditionExecutor::process() {
+base::Status ConditionExecutor::process() { return processSelected(index_.load()); }
+
+base::Status ConditionExecutor::processSelected(int index) {
+  if (index < 0 || static_cast<size_t>(index) >= node_repository_.size())
+    return base::kStatusCodeErrorInvalidValue;
   base::Status status = base::kStatusCodeOk;
-  Node *cur_node = this->node_repository_[index_]->node_;
+  Node *cur_node = this->node_repository_[index]->node_;
   if (cur_node->checkInterruptStatus() == true) {
     cur_node->setRunningFlag(false);
     return base::kStatusCodeNodeInterrupt;
@@ -77,13 +76,13 @@ base::Status ConditionExecutor::process() {
         if (flag == base::kEdgeUpdateFlagComplete) {
           continue;
         } else if (flag == base::kEdgeUpdateFlagTerminate) {
-          return base::kStatusCodeOk;
+          return base::kStatusCodeNodeInterrupt;
         } else {
           return base::kStatusCodeErrorDag;
         }
       }
     } else if (flag == base::kEdgeUpdateFlagTerminate) {
-      return base::kStatusCodeOk;
+      return base::kStatusCodeNodeInterrupt;
     } else {
       NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                     cur_node->getName().c_str());
@@ -91,9 +90,10 @@ base::Status ConditionExecutor::process() {
     }
   }
   cur_node->setRunningFlag(true);
-  status = cur_node->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");
+  try { status = cur_node->run(); }
+  catch (...) { status = base::kStatusCodeErrorDag; }
   cur_node->setRunningFlag(false);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");
   return status;
 }
 

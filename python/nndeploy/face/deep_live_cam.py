@@ -7,7 +7,6 @@ from typing import Any
 import cv2
 import json
 import numpy as np
-import insightface
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -39,6 +38,13 @@ def find_cluster_centroids(embeddings, max_k=10) -> Any:
         - 使用肘部法则(Elbow Method)来确定最优聚类数目
         - random_state=0确保结果的可重复性
     """
+    if max_k < 1:
+        raise ValueError("max_k must be positive")
+    if len(embeddings) == 0:
+        return np.asarray(embeddings)
+    max_k = min(max_k, len(embeddings))
+    if max_k == 1:
+        return np.mean(embeddings, axis=0, keepdims=True)
     inertia = []  # 存储每个k值对应的惯性值
     cluster_centroids = []  # 存储每个k值对应的聚类信息
     K = range(1, max_k+1)  # 聚类数目范围

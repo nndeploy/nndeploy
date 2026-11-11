@@ -11,7 +11,7 @@ from typing import Dict, List
 from typing import Optional
 from uuid import NAMESPACE_URL, uuid5
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from .schemas import (UploadResponse, DeleteResponse, FileListResponse, FileInfoResponse)
@@ -61,14 +61,25 @@ def parent_path_to_id(path: Path, root: Path | None = None) -> str:
         return ""
     return path_to_id(parent)
 
-def _save(file: UploadFile, target_dir: str) -> UploadResponse:
+def _resource_path(target_path: str, workdir: Path) -> Path:
+    # API paths historically include the resource prefix and are cwd-relative.
+    root = workdir.resolve()
+    path = Path(target_path).resolve()
+    if not path.is_relative_to(root):
+        raise HTTPException(status_code=403, detail="Path is outside the resource directory")
+    return path
+
+
+def _save(file: UploadFile, target_dir: str, workdir: Path) -> UploadResponse:
     """
     upload file to target path
     """
-    folder = Path(target_dir)
+    folder = _resource_path(target_dir, workdir)
+    filename = file.filename
+    if not filename or filename in {".", ".."} or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid upload filename")
+    dst = _resource_path(str(folder / filename), workdir)
     folder.mkdir(parents=True, exist_ok=True)
-
-    dst = folder / file.filename
     with dst.open("wb") as w:
         w.write(file.file.read())
 
@@ -108,20 +119,33 @@ def _save(file: UploadFile, target_dir: str) -> UploadResponse:
 #     message = f"file {filename}.json has been deleted"
 #     return DeleteResponse(flag=flag, message=message)
 
-def _delete(target_path: str) -> DeleteResponse:
+def _delete(target_path: str, workdir: Path) -> DeleteResponse:
     """
     delete file according to target path
     """
-    path = Path(target_path)
+    resolved = _resource_path(target_path, workdir)
+    root = workdir.resolve()
+    if resolved == root:
+        raise HTTPException(status_code=403, detail="Cannot delete the resource directory")
 
-    if not path.exists():
+    # Resolve parent aliases for containment, but unlink the requested entry
+    # itself when it is a symlink, rather than deleting its target.
+    requested = Path(target_path)
+    path = requested.parent.resolve() / requested.name
+    if not path.is_relative_to(root):
+        raise HTTPException(status_code=403, detail="Path is outside the resource directory")
+
+    if not path.exists() and not path.is_symlink():
         return DeleteResponse(
             flag="failed",
             message=f"path {path} does not exist",
         )
 
     try:
-        if path.is_file():
+        if path.is_symlink():
+            path.unlink()
+            message = f"symlink {path.name} has been deleted"
+        elif path.is_file():
             size = path.stat().st_size
             path.unlink()
             message = f"file {path.name} has been deleted (size={size} bytes)"
@@ -316,9 +340,8 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
     status_code=status.HTTP_201_CREATED,
     summary="delete images/videos/models",
 )
-async def delete_file(file_path: str
-):
-    return _delete(file_path)
+async def delete_file(file_path: str, workdir: Path = Depends(get_workdir)):
+    return _delete(file_path, workdir)
 
 # ──────────────────────────────────────────────
 # node: upload file
@@ -331,9 +354,10 @@ async def delete_file(file_path: str
 )
 async def upload_file(
     file_path: str,
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    workdir: Path = Depends(get_workdir),
 ):
-    return _save(file, file_path)
+    return _save(file, file_path, workdir)
 
 # ──────────────────────────────────────────────
 # node: get file info by path (no workdir)

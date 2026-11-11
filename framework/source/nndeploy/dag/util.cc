@@ -316,30 +316,20 @@ base::Status TopoSortDFSRecursive(NodeWrapper *node_wrapper,
 
 base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
                          std::vector<NodeWrapper *> &topo_sort_node) {
-  base::Status status = base::kStatusCodeOk;
-  std::vector<NodeWrapper *> start_nodes = findStartNodes(node_repository);
-  if (start_nodes.empty()) {
-    NNDEPLOY_LOGE("No start node found in graph");
-    return base::kStatusCodeErrorInvalidValue;
+  topo_sort_node.clear();
+  // Visit state belongs to this sort, including disconnected components.
+  for (auto *node : node_repository) node->color_ = base::kNodeColorWhite;
+  std::stack<NodeWrapper *> sorted;
+  for (auto *node : node_repository) {
+    if (node->color_ != base::kNodeColorWhite) continue;
+    auto status = TopoSortDFSRecursive(node, sorted);
+    if (status != base::kStatusCodeOk) return status;
   }
-  std::stack<NodeWrapper *> dst;
-  for (auto node_wrapper : start_nodes) {
-    if (node_wrapper->color_ == base::kNodeColorWhite) {
-      status = TopoSortDFSRecursive(node_wrapper, dst);
-    } else if (node_wrapper->color_ == base::kNodeColorGray) {
-      NNDEPLOY_LOGE("Cycle detected in graph");
-      status = base::kStatusCodeErrorInvalidValue;
-    } else {
-      continue;
-    }
+  if (sorted.size() != node_repository.size()) return base::kStatusCodeErrorInvalidValue;
+  while (!sorted.empty()) {
+    topo_sort_node.push_back(sorted.top());
+    sorted.pop();
   }
-  while (!dst.empty()) {
-    topo_sort_node.emplace_back(dst.top());
-    dst.pop();
-  }
-
-  checkUnuseNode(node_repository);
-
   return base::kStatusCodeOk;
 }
 

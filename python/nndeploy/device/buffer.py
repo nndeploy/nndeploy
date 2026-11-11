@@ -24,13 +24,15 @@ class Buffer(_C.device.Buffer):
     
     def copy_to(self, dst):
         """Copy the buffer to the destination buffer"""
-        return super().copyTo(dst)
+        return super().copy_to(dst)
     
-    def serialize(self, bin_str: str):
-        """Serialize the buffer to a binary string"""
+    def serialize(self, bin_str=None):
+        """Return binary data, or the legacy status when an argument is supplied."""
+        if bin_str is None:
+            return super().serialize()
         return super().serialize(bin_str)
-    
-    def deserialize(self, bin_str: str):
+
+    def deserialize(self, bin_str: bytes):
         """Deserialize the buffer from a binary string"""
         return super().deserialize(bin_str)
     
@@ -40,7 +42,7 @@ class Buffer(_C.device.Buffer):
     
     def just_modify(self, size):
         """Modify the buffer size"""
-        return super().justModify(size)
+        return super().just_modify(size)
     
     def empty(self):
         """Check if the buffer is empty"""
@@ -48,61 +50,61 @@ class Buffer(_C.device.Buffer):
     
     def get_device_type(self):
         """Get the device type of the buffer"""
-        return super().getDeviceType()
+        return super().get_device_type()
     
     def get_device(self):
         """Get the device of the buffer"""
-        c_device = super().getDevice()
+        c_device = super().get_device()
         return Device(c_device)
     
     def get_memory_pool(self):
         """Get the memory pool of the buffer"""
-        c_memory_pool = super().getMemoryPool()
-        return MemoryPool(c_memory_pool)
+        c_memory_pool = super().get_memory_pool()
+        return MemoryPool(c_memory_pool) if c_memory_pool is not None else None
     
     def is_memory_pool(self):
         """Check if the buffer is from a memory pool"""
-        return super().isMemoryPool()
+        return super().is_memory_pool()
     
     def get_desc(self):
         """Get the buffer descriptor"""
-        return super().getDesc()
+        return super().get_desc()
     
     def get_size(self):
         """Get the size of the buffer"""
-        return super().getSize()
+        return super().get_size()
     
     def get_size_vector(self):
         """Get the size vector of the buffer"""
-        return super().getSizeVector()
+        return super().get_size_vector()
     
     def get_real_size(self):
         """Get the real size of the buffer"""
-        return super().getRealSize()
+        return super().get_real_size()
     
     def get_real_size_vector(self):
         """Get the real size vector of the buffer"""
-        return super().getRealSizeVector()
+        return super().get_real_size_vector()
     
     def get_config(self):
         """Get the configuration of the buffer"""
-        return super().getConfig()
+        return super().get_config()
     
     def get_data(self):
         """Get the data pointer of the buffer"""
-        return super().getData()
+        return super().get_data()
     
     def get_memory_type(self):
         """Get the memory type of the buffer"""
-        return super().getMemoryType()
+        return super().get_memory_type()
     
     def add_ref(self):
         """Increase the reference count of the buffer"""
-        return super().addRef()
+        return super().add_ref()
     
     def sub_ref(self):
         """Decrease the reference count of the buffer"""
-        return super().subRef()
+        return super().sub_ref()
     
     def to_numpy(self, *args, **kwargs):
         """Convert the buffer to numpy array
@@ -118,5 +120,5 @@ class Buffer(_C.device.Buffer):
     @staticmethod
     def from_numpy(array):
         """Convert numpy array to buffer"""
-        return _C.device.Buffer.from_numpy(array)   
+        return Buffer(_C.device.Buffer.from_numpy(array))
 

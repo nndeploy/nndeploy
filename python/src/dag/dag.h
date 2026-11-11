@@ -15,6 +15,10 @@ namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
 
+base::Status setPythonEdgeData(Edge &edge, const py::object &obj);
+
+py::object getPythonEdgeData(Edge &edge, const Node *node, bool graph_output);
+
 struct PyObjectWrapper {
   PyObject *obj;  // 指向Python对象的指针
 

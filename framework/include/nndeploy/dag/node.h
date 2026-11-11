@@ -1327,9 +1327,9 @@ class NNDEPLOY_CC_API Node {
   bool parallel_type_set_ = false;  ///< Whether parallel type is set
   base::ParallelType parallel_type_ = base::kParallelTypeNone;  ///< Parallel type
   bool initialized_ = false;  ///< Whether initialized
-  bool is_running_ = false;   ///< Whether running
-  size_t run_size_ = 0;       ///< Run count
-  size_t completed_size_ = 0; ///< Completed count
+  std::atomic<bool> is_running_{false};   ///< Whether running
+  std::atomic<size_t> run_size_{0};       ///< Run count
+  std::atomic<size_t> completed_size_{0}; ///< Completed count
   bool is_time_profile_ = false;  ///< Whether time profiling is enabled
   bool is_debug_ = false;         ///< Whether debugging is enabled
   bool is_trace_ = false;         ///< Whether tracing is enabled (when serialized to json, it must be static graph)

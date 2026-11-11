@@ -109,6 +109,7 @@ class NNDEPLOY_CC_API Tensor {
   base::Status reshape(base::IntVector shape);
   bool justModify(const TensorDesc &desc);
   bool justModify(Buffer *buffer, bool is_external = true);
+  bool justModify(std::shared_ptr<Buffer> buffer, bool is_external);
 
   // clone and copy
   Tensor *clone();
@@ -220,14 +221,15 @@ class NNDEPLOY_CC_API Tensor {
       base::IntVector &shape);
 #endif
 
-  inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
-  inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }
+  int addRef() const;
+  int subRef() const;
 
  private:
   std::string name_ = "";     // tensor name
   TensorDesc desc_;           // tensor desc
   bool is_external_ = false;  // is external
-  int *ref_count_ = nullptr;  // 引用计数
+  struct Storage;
+  Storage *storage_ = nullptr;
   Buffer *buffer_ = nullptr;  // buffer
   // bool is_quant_ = false;
   // Buffer *scale_ = nullptr;
