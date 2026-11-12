@@ -15,6 +15,8 @@ namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
 
+py::object getPythonState(const Node& node);
+
 base::Status setPythonEdgeData(Edge &edge, const py::object &obj);
 
 py::object getPythonEdgeData(Edge &edge, const Node *node, bool graph_output);
@@ -701,6 +703,22 @@ class PyLoop : public Base {
 
   base::Status deinit() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Loop, "deinit", deinit);
+  }
+
+  base::Status initStart() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "init_start", initStart);
+  }
+
+  base::Status initEnd() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "init_end", initEnd);
+  }
+
+  base::Status iterBefore() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "iter_before", iterBefore);
+  }
+
+  base::Status iterAfter() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "iter_after", iterAfter);
   }
 
   int loops() override {

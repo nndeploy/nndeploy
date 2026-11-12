@@ -813,6 +813,15 @@ class NNDEPLOY_CC_API Graph : public Node {
    */
   virtual Edge *getResourceWithState(const std::string &key);
 
+  // Control relations are merged with data dependencies at construction.
+  base::Status addControlDependency(const std::string& predecessor,
+                                    const std::string& successor);
+  base::Status removeControlDependency(const std::string& predecessor,
+                                       const std::string& successor);
+  base::Status setExecutionOrder(const std::vector<std::string>& node_names);
+  base::Status runWithState(std::shared_ptr<State> state);
+  std::shared_ptr<State> getState() const override;
+
   // Helper functions
   /**
    * @brief Add node's input and output
@@ -1382,6 +1391,23 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return Operation status
    */
   virtual base::Status executor();
+
+  // Shared execution guard for Graph, Condition and Loop run implementations.
+  base::Status runGuarded(const std::function<base::Status()>& body);
+
+ private:
+  bool hasControlDependencies() const;
+  base::Status validateControlDependencies();
+  base::Status rebuildDependencies();
+  base::Status deserializeControlDependencies(rapidjson::Value& json);
+  void removeControlReferences(const std::string& name);
+  bool collectStateGraphs(std::vector<Graph*>& graphs);
+  base::Status validateControlTree(bool pipeline);
+  std::set<std::pair<std::string, std::string>> control_dependencies_;
+  std::vector<std::string> execution_order_;
+  std::shared_ptr<State> active_state_;
+  std::mutex execution_mutex_;
+  std::atomic<bool> executing_body_{false};
 
  protected:
   // URL storage related member variables

@@ -64,7 +64,7 @@ base::Status SequentialExecutor::run() {
       iter->node_->setRunningFlag(true);
       // NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());
       try {
-        status = iter->node_->run();
+        status = detail::invokeNode(iter->node_);
       } catch (...) {
         status = base::kStatusCodeErrorDag;
       }

@@ -60,55 +60,21 @@ base::Status Condition::init() {
   return status;
 }
 
-base::Status Condition::deinit() {
-  base::Status status = base::kStatusCodeOk;
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "executor deinit failed!");
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  if (!is_inner_) {
-    setInitializedFlag(false);
-  }
-
-  return status;
-}
+base::Status Condition::deinit() { return Graph::deinit(); }
 
 base::Status Condition::run() {
-  base::Status status = base::kStatusCodeOk;
-
-  if (!is_inner_) {
-    setRunningFlag(true);
-  }
-
-  int index = this->choose();
-  if (index < 0 || index >= node_repository_.size()) {
-    NNDEPLOY_LOGE("choose index is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-  // NNDEPLOY_LOGI("choose index is %d!\n", index);
-  // for (auto iter : node_repository_) {
-  //   NNDEPLOY_LOGE("Node %s run\n", iter->node_->getName().c_str());
-  // }
-
-  ConditionExecutor *condition_executor =
-      dynamic_cast<ConditionExecutor *>(executor_.get());
-  condition_executor->select(index);
-  status = condition_executor->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "condition executor run failed!");
-
-  if (!is_inner_) {
-    setRunningFlag(false);
-  }
-
-  return status;
+  return runGuarded([this]() -> base::Status {
+    const int index = choose();
+    if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+    if (index < 0 || static_cast<size_t>(index) >= node_repository_.size()) {
+      NNDEPLOY_LOGE("choose index is invalid!\n");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    auto* executor = dynamic_cast<ConditionExecutor*>(executor_.get());
+    if (!executor) return base::kStatusCodeErrorDag;
+    executor->select(index);
+    return executor->run();
+  });
 }
 
 base::Status Condition::executor() {

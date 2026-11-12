@@ -90,7 +90,7 @@ base::Status ConditionExecutor::processSelected(int index) {
     }
   }
   cur_node->setRunningFlag(true);
-  try { status = cur_node->run(); }
+  try { status = detail::invokeNode(cur_node); }
   catch (...) { status = base::kStatusCodeErrorDag; }
   cur_node->setRunningFlag(false);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");

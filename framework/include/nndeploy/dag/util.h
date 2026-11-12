@@ -33,6 +33,12 @@ class NNDEPLOY_CC_API EdgeWrapper {
   std::vector<NodeWrapper *> consumers_;
 };
 
+namespace detail {
+// Executor invocation scope distinguishes scheduled subgraphs from reentrant calls.
+NNDEPLOY_CC_API base::Status invokeNode(Node* node, const State* state = nullptr);
+NNDEPLOY_CC_API bool isInvokingNode(const Node* node);
+}  // namespace detail
+
 extern NNDEPLOY_CC_API Edge *getEdge(
     std::vector<EdgeWrapper *> &edge_repository, const std::string &edge_name);
 extern NNDEPLOY_CC_API EdgeWrapper *findEdgeWrapper(

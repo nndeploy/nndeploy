@@ -1,6 +1,7 @@
 
 
 #include "nndeploy/dag/graph.h"
+#include "nndeploy/dag/composite_node.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -737,6 +738,7 @@ base::Status Graph::deleteNode(Node* node) {
     auto &producers = edge->producers_;
     producers.erase(std::remove(producers.begin(), producers.end(), node_wrapper), producers.end());
   }
+  removeControlReferences(node_wrapper->name_);
   node->setGraph(nullptr);
   // # 更新used_node_names_，将node的name从used_node_names_中删除
   used_node_names_.erase(node_wrapper->name_);
@@ -1322,6 +1324,16 @@ std::vector<std::string> Graph::getDisabledOptimizationPasses() const {
 }
 
 base::Status Graph::optimizeGraph() {
+  // A subgraph may share state with a control-scheduled ancestor.
+  for (Node* owner = this; owner;) {
+    auto* graph = dynamic_cast<Graph*>(owner);
+    if (graph && graph->hasControlDependencies()) {
+      NNDEPLOY_LOGI("Skip dataflow optimizations for graph with control dependencies.\n");
+      return base::kStatusCodeOk;
+    }
+    owner = owner->getGraph() ? static_cast<Node*>(owner->getGraph())
+                              : static_cast<Node*>(owner->getCompositeNode());
+  }
   DagOptimizer optimizer;
   base::Status status =
       optimizer.init(enabled_opt_passes_, disabled_opt_passes_);
@@ -1337,6 +1349,178 @@ base::Status Graph::optimizeGraph() {
                          "Graph::optimizeGraph optimize failed");
   optimizer.deinit();
   return status;
+}
+
+bool Graph::hasControlDependencies() const {
+  return !control_dependencies_.empty() || !execution_order_.empty();
+}
+
+base::Status Graph::addControlDependency(const std::string& predecessor,
+                                          const std::string& successor) {
+  if (getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  if (is_condition_) return base::kStatusCodeErrorNotSupport;
+  if (predecessor == successor || !getNode(predecessor) || !getNode(successor))
+    return base::kStatusCodeErrorInvalidValue;
+  control_dependencies_.emplace(predecessor, successor);
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::removeControlDependency(const std::string& predecessor,
+                                             const std::string& successor) {
+  if (getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  control_dependencies_.erase({predecessor, successor});
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::setExecutionOrder(const std::vector<std::string>& names) {
+  if (getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  if (is_condition_) return base::kStatusCodeErrorNotSupport;
+  std::set<std::string> seen;
+  for (const auto& name : names)
+    if (!getNode(name) || !seen.insert(name).second)
+      return base::kStatusCodeErrorInvalidValue;
+  execution_order_ = names;
+  return base::kStatusCodeOk;
+}
+
+void Graph::removeControlReferences(const std::string& name) {
+  for (auto it = control_dependencies_.begin(); it != control_dependencies_.end();) {
+    if (it->first == name || it->second == name) it = control_dependencies_.erase(it);
+    else ++it;
+  }
+  execution_order_.erase(std::remove(execution_order_.begin(), execution_order_.end(), name),
+                         execution_order_.end());
+}
+
+base::Status Graph::validateControlDependencies() {
+  if (hasControlDependencies()) {
+    for (auto* node : node_repository_)
+      if (node->name_ != node->node_->getName()) return base::kStatusCodeErrorInvalidValue;
+  }
+  if (hasControlDependencies() &&
+      (is_condition_ || parallel_type_ == base::kParallelTypePipeline))
+    return base::kStatusCodeErrorNotSupport;
+  for (const auto& relation : control_dependencies_)
+    if (relation.first == relation.second || !getNode(relation.first) || !getNode(relation.second))
+      return base::kStatusCodeErrorInvalidValue;
+  std::set<std::string> seen;
+  for (const auto& name : execution_order_)
+    if (!getNode(name) || !seen.insert(name).second)
+      return base::kStatusCodeErrorInvalidValue;
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::rebuildDependencies() {
+  auto status = validateControlDependencies();
+  if (status != base::kStatusCodeOk) return status;
+  for (auto* node : node_repository_) {
+    node->predecessors_.clear();
+    node->successors_.clear();
+  }
+  auto link = [](NodeWrapper* from, NodeWrapper* to) {
+    insertUnique(from->successors_, to);
+    insertUnique(to->predecessors_, from);
+  };
+  std::set<NodeWrapper*> enabled;
+  for (auto* edge : edge_repository_) {
+    for (auto* producer : edge->producers_) {
+      enabled.insert(producer);
+      for (auto* consumer : edge->consumers_) link(producer, consumer);
+    }
+    enabled.insert(edge->consumers_.begin(), edge->consumers_.end());
+  }
+  for (const auto& relation : control_dependencies_) {
+    auto* from = getNodeWrapper(relation.first);
+    auto* to = getNodeWrapper(relation.second);
+    link(from, to);
+    enabled.insert(from);
+    enabled.insert(to);
+  }
+  NodeWrapper* previous = nullptr;
+  for (const auto& name : execution_order_) {
+    auto* node = getNodeWrapper(name);
+    enabled.insert(node);
+    if (previous) link(previous, node);
+    previous = node;
+  }
+  run_node_repository_.clear();
+  for (auto* node : node_repository_)
+    if (enabled.count(node)) run_node_repository_.push_back(node);
+  std::vector<NodeWrapper*> sorted;
+  return topoSortDFS(run_node_repository_, sorted);
+}
+
+std::shared_ptr<State> Graph::getState() const {
+  auto state = std::atomic_load(&active_state_);
+  return state ? state : Node::getState();
+}
+
+base::Status Graph::validateControlTree(bool pipeline) {
+  pipeline = pipeline || parallel_type_ == base::kParallelTypePipeline;
+  if (hasControlDependencies() && (pipeline || is_condition_))
+    return base::kStatusCodeErrorNotSupport;
+  std::function<base::Status(Node*, bool)> visit = [&](Node* node, bool inherited) -> base::Status {
+    inherited = inherited || node->getParallelType() == base::kParallelTypePipeline;
+    if (auto* graph = dynamic_cast<Graph*>(node))
+      return graph->validateControlTree(inherited);
+    if (auto* composite = dynamic_cast<CompositeNode*>(node))
+      for (auto* child : composite->getNodes()) {
+        auto status = visit(child, inherited);
+        if (status != base::kStatusCodeOk) return status;
+      }
+    return base::kStatusCodeOk;
+  };
+  for (auto* entry : node_repository_) {
+    auto status = visit(entry->node_, pipeline);
+    if (status != base::kStatusCodeOk) return status;
+  }
+  return base::kStatusCodeOk;
+}
+
+bool Graph::collectStateGraphs(std::vector<Graph*>& graphs) {
+  if (parallel_type_ == base::kParallelTypePipeline)
+    return false;
+  if (std::find(graphs.begin(), graphs.end(), this) != graphs.end()) return false;
+  graphs.push_back(this);
+  std::function<bool(Node*)> visit = [&](Node* node) {
+    if (node->getParallelType() == base::kParallelTypePipeline) return false;
+    if (auto* graph = dynamic_cast<Graph*>(node)) return graph->collectStateGraphs(graphs);
+    if (auto* composite = dynamic_cast<CompositeNode*>(node)) {
+      for (auto* child : composite->getNodes())
+        if (!visit(child)) return false;
+    }
+    return true;
+  };
+  // Condition can select any registered branch; Loop executes its whole body.
+  const auto& participants = (is_condition_ || is_loop_)
+      ? node_repository_ : run_node_repository_;
+  for (auto* wrapper : participants)
+    if (!visit(wrapper->node_)) return false;
+  return true;
+}
+
+base::Status Graph::runWithState(std::shared_ptr<State> state) {
+  std::unique_lock<std::mutex> lock(execution_mutex_, std::try_to_lock);
+  if (!lock.owns_lock() || !state) return base::kStatusCodeErrorInvalidParam;
+  if (!executor_ || !getInitialized()) return base::kStatusCodeErrorDag;
+  std::vector<Graph*> graphs;
+  if (!collectStateGraphs(graphs)) return base::kStatusCodeErrorNotSupport;
+  // Reserve the entire subgraph tree before publishing the request binding.
+  // Scheduled children bypass these locks; independent calls cannot join this run.
+  std::vector<std::unique_lock<std::mutex>> reservations;
+  for (auto* graph : graphs) {
+    if (graph == this) continue;
+    reservations.emplace_back(graph->execution_mutex_, std::try_to_lock);
+    if (!reservations.back().owns_lock()) return base::kStatusCodeErrorInvalidParam;
+  }
+  // Nested calls inherit the parent's binding; they cannot replace it.
+  if (Node::getState()) return base::kStatusCodeErrorInvalidParam;
+  std::atomic_store(&active_state_, std::move(state));
+  struct Reset {
+    std::shared_ptr<State>* slot;
+    ~Reset() { std::atomic_store(slot, std::shared_ptr<State>()); }
+  } reset{&active_state_};
+  return detail::invokeNode(this, getState().get());
 }
 
 base::Status Graph::init() {
@@ -1361,6 +1545,8 @@ base::Status Graph::init() {
 
   // NNDEPLOY_LOGE("executor!\n");
 
+  status = rebuildDependencies();
+  if (status != base::kStatusCodeOk) return status;
   status = this->executor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
@@ -1405,26 +1591,36 @@ base::Status Graph::deinit() {
 }
 
 base::Status Graph::run() {
+  return runGuarded([this] { return executor_->run(); });
+}
+
+base::Status Graph::runGuarded(const std::function<base::Status()>& body) {
+  std::unique_lock<std::mutex> lock(execution_mutex_, std::defer_lock);
+  if (getState()) {
+    if (!detail::isInvokingNode(this)) return base::kStatusCodeErrorInvalidParam;
+  } else if (!lock.try_lock()) {
+    return base::kStatusCodeErrorInvalidParam;
+  }
   if (!executor_ || !getInitialized()) return base::kStatusCodeErrorDag;
-  base::Status status = base::kStatusCodeOk;
-
-  // NNDEPLOY_LOGI("setRunningFlag true!\n");
-  if (!is_inner_) {
-    setRunningFlag(true);
+  if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+  // Hooks such as choose()/iterBefore() run in this graph's invocation scope.
+  // A recursive run from a hook must not bypass the reservation a second time.
+  if (executing_body_.exchange(true)) return base::kStatusCodeErrorInvalidParam;
+  const bool track_running = !is_inner_;
+  struct RunningScope {
+    Graph* graph;
+    bool track;
+    ~RunningScope() {
+      graph->executing_body_.store(false);
+      if (track) graph->setRunningFlag(false);
+    }
+  } scope{this, track_running};
+  if (track_running) setRunningFlag(true);
+  try {
+    return body();
+  } catch (...) {
+    return base::kStatusCodeErrorDag;
   }
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node run Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->run();
-
-
-  // NNDEPLOY_LOGI("setRunningFlag false!\n");
-  if (!is_inner_) {
-    setRunningFlag(false);
-  }
-
-  return status;
 }
 
 bool Graph::synchronize() {
@@ -1438,6 +1634,7 @@ bool Graph::synchronize() {
 
 bool Graph::interrupt() {
   if (!executor_ || !getInitialized()) return false;
+  Node::interrupt();
   bool is_interrupt = executor_->interrupt();
   if (!is_interrupt) {
     NNDEPLOY_LOGE("executor interrupt failed.\n");
@@ -2001,6 +2198,7 @@ base::Status Graph::removeUnusedNodeAndEdge() {
       }
     }
     for (auto node_wrapper : nodes_to_delete) {
+      removeControlReferences(node_wrapper->name_);
       node_repository_.erase(std::find(node_repository_.begin(),
                                        node_repository_.end(), node_wrapper));
       used_node_names_.erase(node_wrapper->name_);
@@ -2044,7 +2242,10 @@ base::Status Graph::removeUnusedNodeAndEdge() {
 }
 
 base::Status Graph::construct() {
-  base::Status status = base::kStatusCodeOk;
+  base::Status status = validateControlTree(false);
+  if (status != base::kStatusCodeOk) return status;
+  status = validateControlDependencies();
+  if (status != base::kStatusCodeOk) return status;
 
   // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
@@ -2210,26 +2411,8 @@ base::Status Graph::construct() {
     }
   }
 
-  // 找到运行节点
-  std::vector<NodeWrapper*> run_node_repository;
-  for (auto node_wrapper : node_repository_) {
-    bool has_input_or_output = false;
-    for (auto edge_wrapper : edge_repository_) {
-      if (std::find(edge_wrapper->producers_.begin(),
-                    edge_wrapper->producers_.end(),
-                    node_wrapper) != edge_wrapper->producers_.end() ||
-          std::find(edge_wrapper->consumers_.begin(),
-                    edge_wrapper->consumers_.end(),
-                    node_wrapper) != edge_wrapper->consumers_.end()) {
-        has_input_or_output = true;
-        break;
-      }
-    }
-    if (has_input_or_output) {
-      run_node_repository.emplace_back(node_wrapper);
-    }
-  }
-  run_node_repository_ = run_node_repository;
+  status = rebuildDependencies();
+  if (status != base::kStatusCodeOk) return status;
 
   // 对于最外层的图而言，输出节点的的输入为整个图的输出边
   if (!is_inner_) {
@@ -2462,6 +2645,18 @@ base::Status Graph::serialize(rapidjson::Value& json,
     NNDEPLOY_LOGE("serialize node failed\n");
     return status;
   }
+  rapidjson::Value control(rapidjson::kArrayType);
+  for (const auto& relation : control_dependencies_) {
+    rapidjson::Value item(rapidjson::kObjectType);
+    item.AddMember("from", rapidjson::Value(relation.first.c_str(), allocator), allocator);
+    item.AddMember("to", rapidjson::Value(relation.second.c_str(), allocator), allocator);
+    control.PushBack(item, allocator);
+  }
+  json.AddMember("control_dependencies", control, allocator);
+  rapidjson::Value order(rapidjson::kArrayType);
+  for (const auto& name : execution_order_)
+    order.PushBack(rapidjson::Value(name.c_str(), allocator), allocator);
+  json.AddMember("execution_order", order, allocator);
   if (!is_inner_) {
     // 序列化其他布尔标志
     json.AddMember("is_time_profile_", is_time_profile_, allocator);
@@ -2610,7 +2805,37 @@ std::string Graph::serialize() {
 
   return json_str;
 }
+base::Status Graph::deserializeControlDependencies(rapidjson::Value& json) {
+  if (getInitialized()) return base::kStatusCodeErrorInvalidParam;
+  std::set<std::pair<std::string, std::string>> control;
+  std::vector<std::string> order;
+  if (json.HasMember("control_dependencies")) {
+    const auto& values = json["control_dependencies"];
+    if (!values.IsArray()) return base::kStatusCodeErrorInvalidValue;
+    for (const auto& value : values.GetArray()) {
+      if (!value.IsObject() || !value.HasMember("from") || !value.HasMember("to") ||
+          !value["from"].IsString() || !value["to"].IsString())
+        return base::kStatusCodeErrorInvalidValue;
+      control.emplace(value["from"].GetString(), value["to"].GetString());
+    }
+  }
+  if (json.HasMember("execution_order")) {
+    const auto& values = json["execution_order"];
+    if (!values.IsArray()) return base::kStatusCodeErrorInvalidValue;
+    for (const auto& value : values.GetArray()) {
+      if (!value.IsString()) return base::kStatusCodeErrorInvalidValue;
+      order.emplace_back(value.GetString());
+    }
+  }
+  control_dependencies_ = std::move(control);
+  execution_order_ = std::move(order);
+  return base::kStatusCodeOk;
+}
+
 base::Status Graph::deserialize(rapidjson::Value& json) {
+  if (!json.IsObject()) return base::kStatusCodeErrorInvalidParam;
+  auto control_status = deserializeControlDependencies(json);
+  if (control_status != base::kStatusCodeOk) return control_status;
   base::Status status = Node::deserialize(json);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
@@ -2747,57 +2972,6 @@ base::Status Graph::deserialize(rapidjson::Value& json) {
     }
   }
 
-  // if (json.HasMember("node_repository_") &&
-  //     json["node_repository_"].IsArray()) {
-  //   const rapidjson::Value &nodes = json["node_repository_"];
-  //   for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
-  //     if (nodes[i].IsObject()) {
-  //       NodeDesc node_desc;
-  //       rapidjson::Value &node_json = const_cast<rapidjson::Value
-  //       &>(nodes[i]); status = node_desc.deserialize(node_json); if (status
-  //       != base::kStatusCodeOk) {
-  //         return status;
-  //       }
-  //       Node *node = this->createNode(node_desc);
-  //       if (node == nullptr) {
-  //         NNDEPLOY_LOGE("create node failed\n");
-  //         return base::kStatusCodeErrorInvalidValue;
-  //       }
-  //       base::Status status = node->deserialize(node_json);
-  //       if (status != base::kStatusCodeOk) {
-  //         NNDEPLOY_LOGE("deserialize node failed\n");
-  //         return status;
-  //       }
-  //     }
-  //   }
-  // }
-
-  return base::kStatusCodeOk;
-}
-
-base::Status Graph::deserialize(const std::string& json_str) {
-  std::string json_str_param;
-  // replace node value
-  if (!node_value_map_.empty()) {
-    json_str_param = replaceGraphJsonStr(node_value_map_, json_str);
-  } else {
-    json_str_param = json_str;
-  }
-  // NNDEPLOY_LOGI("json_str_param: %s\n", json_str_param.c_str());
-
-  base::Status status = Node::deserialize(json_str_param);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("deserialize node failed\n");
-    return status;
-  }
-
-  rapidjson::Document document;
-  if (document.Parse(json_str_param.c_str()).HasParseError()) {
-    NNDEPLOY_LOGE("parse json string failed\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-  rapidjson::Value& json = document;
-
   if (json.HasMember("node_repository_") &&
       json["node_repository_"].IsArray()) {
     const rapidjson::Value& nodes = json["node_repository_"];
@@ -2863,7 +3037,16 @@ base::Status Graph::deserialize(const std::string& json_str) {
                   name_.c_str(), (int)is_loop_max_flag_);
   }
 
-  return status;
+  return validateControlDependencies();
+}
+
+base::Status Graph::deserialize(const std::string& json_str) {
+  const std::string input = node_value_map_.empty()
+      ? json_str : replaceGraphJsonStr(node_value_map_, json_str);
+  rapidjson::Document document;
+  if (document.Parse(input.c_str()).HasParseError() || !document.IsObject())
+    return base::kStatusCodeErrorInvalidParam;
+  return this->deserialize(document);
 }
 
 // // to json file

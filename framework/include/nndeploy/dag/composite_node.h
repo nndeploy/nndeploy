@@ -140,6 +140,14 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
 
   std::vector<NodeWrapper *> sortDFS();
 
+  // Read-only inventory for validating nested execution capabilities.
+  std::vector<Node*> getNodes() const {
+    std::vector<Node*> nodes;
+    for (auto* wrapper : node_repository_) nodes.push_back(wrapper->node_);
+    return nodes;
+  }
+
+
  protected:
   virtual base::Status construct();
 

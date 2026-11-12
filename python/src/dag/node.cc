@@ -59,6 +59,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_key", &Node::getKey)
       .def("set_name", &Node::setName)
       .def("get_name", &Node::getName)
+      .def("get_state", &getPythonState)
+      .def_property_readonly("state", &getPythonState)
       .def("set_developer", &Node::setDeveloper, py::arg("developer"))
       .def("get_developer", &Node::getDeveloper)
       .def("set_source", &Node::setSource, py::arg("source"))
@@ -582,6 +584,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           },
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
+      .def("run_with_state", [](Graph& self, py::object state) {
+        auto storage = state.attr("_native_state").cast<std::shared_ptr<State>>();
+        py::gil_scoped_release release;
+        return self.runWithState(std::move(storage));
+      }, py::arg("state"))
+      .def("add_control_dependency", &Graph::addControlDependency,
+           py::arg("predecessor"), py::arg("successor"))
+      .def("remove_control_dependency", &Graph::removeControlDependency,
+           py::arg("predecessor"), py::arg("successor"))
+      .def("set_execution_order", &Graph::setExecutionOrder, py::arg("node_names"))
       .def("synchronize", &Graph::synchronize,
            py::call_guard<py::gil_scoped_release>())
       .def("interrupt", &Graph::interrupt,
@@ -706,20 +718,24 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
-      .def("init", &Loop::init)
-      .def("deinit", &Loop::deinit)
+      .def("init", &Loop::init, py::call_guard<py::gil_scoped_release>())
+      .def("deinit", &Loop::deinit, py::call_guard<py::gil_scoped_release>())
+      .def("init_start", &Loop::initStart, py::call_guard<py::gil_scoped_release>())
+      .def("init_end", &Loop::initEnd, py::call_guard<py::gil_scoped_release>())
+      .def("iter_before", &Loop::iterBefore, py::call_guard<py::gil_scoped_release>())
+      .def("iter_after", &Loop::iterAfter, py::call_guard<py::gil_scoped_release>())
       .def("loops", &Loop::loops)
-      .def("run", &Loop::run);
+      .def("run", &Loop::run, py::call_guard<py::gil_scoped_release>());
 
   py::class_<Condition, Graph, PyCondition<Condition>>(m, "Condition",
                                                        py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
-      .def("init", &Condition::init)
-      .def("deinit", &Condition::deinit)
+      .def("init", &Condition::init, py::call_guard<py::gil_scoped_release>())
+      .def("deinit", &Condition::deinit, py::call_guard<py::gil_scoped_release>())
       .def("choose", &Condition::choose)
-      .def("run", &Condition::run);
+      .def("run", &Condition::run, py::call_guard<py::gil_scoped_release>());
 
   py::class_<RunningCondition, Condition, PyRunningCondition<RunningCondition>>(
       m, "RunningCondition", py::dynamic_attr())

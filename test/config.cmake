@@ -52,6 +52,8 @@ list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
 set(TEST_BUILD_DIR ${CMAKE_BINARY_DIR}/test)
 
 add_nndeploy_test(edge_test ${ROOT_PATH}/test/dag/edge_test.cc)
+add_nndeploy_test(state_control_test ${ROOT_PATH}/test/dag/state_control_test.cc)
+set_tests_properties(state_control_test PROPERTIES TIMEOUT 30)
 add_nndeploy_test(dag_regression_test ${ROOT_PATH}/test/dag/dag_regression_test.cc)
 set_tests_properties(dag_regression_test PROPERTIES TIMEOUT 30)
 add_nndeploy_test(graph_test ${ROOT_PATH}/test/dag/graph_test.cc)

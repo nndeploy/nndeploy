@@ -85,7 +85,7 @@ void ParallelTaskExecutor::submitLocked(NodeWrapper *node) {
         if (!node->node_->checkInterruptStatus()) {
           if (update == base::kEdgeUpdateFlagComplete) {
             node->node_->setRunningFlag(true);
-            status = node->node_->run();
+            status = detail::invokeNode(node->node_);
           } else {
             status = update == base::kEdgeUpdateFlagTerminate
                          ? base::kStatusCodeNodeInterrupt : base::kStatusCodeErrorDag;

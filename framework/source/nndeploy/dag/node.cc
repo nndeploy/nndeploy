@@ -347,6 +347,12 @@ base::Status Node::setOutputNames(const std::vector<std::string> &names) {
   return base::kStatusCodeOk;
 }
 
+std::shared_ptr<State> Node::getState() const {
+  if (graph_) return graph_->getState();
+  if (composite_node_) return composite_node_->getState();
+  return nullptr;
+}
+
 base::Status Node::setGraph(Graph *graph) {
   graph_ = graph;
   return base::kStatusCodeOk;

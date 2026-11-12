@@ -6,6 +6,31 @@
 namespace nndeploy {
 namespace dag {
 
+namespace detail {
+namespace {
+thread_local const Node* invoking_node = nullptr;
+thread_local const State* invoking_state = nullptr;
+}
+base::Status invokeNode(Node* node, const State* state) {
+  // The scheduled parent's state, not an independently running child's state.
+  auto inherited = node->Node::getState();
+  struct Scope {
+    const Node* previous_node;
+    const State* previous_state;
+    ~Scope() {
+      invoking_node = previous_node;
+      invoking_state = previous_state;
+    }
+  } scope{invoking_node, invoking_state};
+  invoking_node = node;
+  invoking_state = state ? state : inherited.get();
+  return node->run();
+}
+bool isInvokingNode(const Node* node) {
+  return invoking_node == node && invoking_state == node->getState().get();
+}
+}  // namespace detail
+
 Edge *getEdge(std::vector<EdgeWrapper *> &edge_repository,
               const std::string &edge_name) {
   for (auto edge_wrapper : edge_repository) {

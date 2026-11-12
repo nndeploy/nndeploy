@@ -55,11 +55,11 @@ class NNDEPLOY_CC_API FixedLoop : public Loop {
 
   virtual void setLoops(int loops);
 
-  using dag::Node::serialize;
+  using Graph::serialize;
   virtual base::Status serialize(
       rapidjson::Value& json,
       rapidjson::Document::AllocatorType& allocator) override;
-  using dag::Node::deserialize;
+  using Graph::deserialize;
   virtual base::Status deserialize(rapidjson::Value& json) override;
 
  protected:

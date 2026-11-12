@@ -13,6 +13,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/base.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/state.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -396,6 +397,9 @@ class NNDEPLOY_CC_API Node {
    * @return Device type
    */
   virtual base::DeviceType getDeviceType();
+
+  // State is available during Graph::runWithState; nullptr when unbound.
+  virtual std::shared_ptr<State> getState() const;
 
   // Parameter management
   /**

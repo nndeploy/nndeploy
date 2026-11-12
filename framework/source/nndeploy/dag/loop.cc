@@ -70,54 +70,26 @@ base::Status Loop::init() {
   return status;
 }
 
-base::Status Loop::deinit() {
-  base::Status status = base::kStatusCodeOk;
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "executor deinit failed!");
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  if (!is_inner_) {
-    setInitializedFlag(false);
-  }
-  return status;
-}
+base::Status Loop::deinit() { return Graph::deinit(); }
 
 base::Status Loop::run() {
-  base::Status status = base::kStatusCodeOk;
-
-  if (!is_inner_) {
-    setRunningFlag(true);
-  }
-
-  /**
-   * LoopGraph + Executor 属于一个线程
-   * A->B->C->D->E
-   *
-   *
-   *
-   *
-   *
-   */
-  for (int i = 0; i < loops(); i++) {
-    status = this->iterBefore();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "iterBefore failed!");
-    status = executor_->run();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
-    status = this->iterAfter();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "iterAfter failed!");
-  }
-  
-  if (!is_inner_) {
-    setRunningFlag(false);
-  }
-  return status;
+  return runGuarded([this]() -> base::Status {
+    // Preserve the existing dynamic upper bound: loops() is read each iteration.
+    for (int i = 0;; ++i) {
+      if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+      const int limit = loops();
+      if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+      if (i >= limit) return base::kStatusCodeOk;
+      auto status = iterBefore();
+      if (status != base::kStatusCodeOk) return status;
+      if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+      status = executor_->run();
+      if (status != base::kStatusCodeOk) return status;
+      if (checkInterruptStatus()) return base::kStatusCodeNodeInterrupt;
+      status = iterAfter();
+      if (status != base::kStatusCodeOk) return status;
+    }
+  });
 }
 
 // may be is not right
@@ -162,10 +134,14 @@ base::Status Loop::executor() {
   return status;
 }
 
-FixedLoop::FixedLoop(const std::string &name) : Loop(name) {}
+FixedLoop::FixedLoop(const std::string &name) : Loop(name) {
+  key_ = "nndeploy::dag::FixedLoop";
+}
 FixedLoop::FixedLoop(const std::string &name, std::vector<dag::Edge *> inputs,
                      std::vector<dag::Edge *> outputs)
-    : Loop(name, inputs, outputs) {}
+    : Loop(name, inputs, outputs) {
+  key_ = "nndeploy::dag::FixedLoop";
+}
 FixedLoop::~FixedLoop() {}
 
 int FixedLoop::loops() { return loops_; }
@@ -174,7 +150,7 @@ void FixedLoop::setLoops(int loops) { loops_ = loops; }
 
 base::Status FixedLoop::serialize(
     rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
-  base::Status status = dag::Node::serialize(json, allocator);
+  base::Status status = Graph::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;
   }
@@ -183,7 +159,7 @@ base::Status FixedLoop::serialize(
 }
 
 base::Status FixedLoop::deserialize(rapidjson::Value &json) {
-  base::Status status = dag::Node::deserialize(json);
+  base::Status status = Graph::deserialize(json);
   if (status != base::kStatusCodeOk) {
     return status;
   }
