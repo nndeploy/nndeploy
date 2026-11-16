@@ -3,7 +3,7 @@ import classNames from "classnames";
 
 import styles from './index.module.scss'
 import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
-import { getIoTypeFieldName, getIoTypeFieldValue, setNodeFieldValue } from "../../../functions";
+import { getBooleanOutput, getIoTypeFieldName, getIoTypeFieldValue, setNodeFieldValue } from "../../../functions";
 
 
 interface IoTypeStringProps {
@@ -42,7 +42,7 @@ const IoTypeBoolean: React.FC<IoTypeStringProps> = (props) => {
           </div>
           :
           <div className={classNames(styles['io-type-output-container'])}>
-            <Switch checked={outputResource.content[nodeName] ? true : false}
+            <Switch checked={getBooleanOutput(outputResource.content[nodeName])}
               disabled={true}
 
             />

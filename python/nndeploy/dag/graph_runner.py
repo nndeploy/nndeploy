@@ -8,6 +8,7 @@ import logging
 import traceback
 from typing import Dict, Any, Tuple, List
 import argparse
+import threading
 
 import nndeploy.base
 import nndeploy.device
@@ -27,6 +28,89 @@ class GraphRunner:
     def __init__(self):
         self.graph = None
         self.is_cancel = False
+        self.args = None
+        self._owner = None
+        self._close_error = None
+
+    def load(self, graph_json=None, *, graph=None, graph_factory=None, before_init=None):
+        """Initialize a resident graph on its execution thread.
+
+        The existing run() remains the one-shot editor path. Resident callers
+        use load(), execute() and close() on one owning thread.
+        """
+        if self.graph is not None:
+            raise RuntimeError("GraphRunner already owns a graph")
+        if sum(value is not None for value in (graph_json, graph, graph_factory)) != 1:
+            raise ValueError("Provide exactly one graph source")
+        self._owner = threading.get_ident()
+        self.is_cancel = False
+        try:
+            if graph_json is not None:
+                data = json.loads(graph_json) if isinstance(graph_json, str) else graph_json
+                self.graph = Graph(data.get("name_", "server"))
+                self._check_status(self.graph.deserialize(json.dumps(data, ensure_ascii=False)))
+            else:
+                candidate = graph_factory() if graph_factory is not None else graph
+                if candidate.get_initialized():
+                    raise ValueError("Server requires an uninitialized Graph with exclusive ownership")
+                self.graph = candidate
+            parallel = self.graph.get_parallel_type()
+            if parallel not in (nndeploy.base.ParallelType.kParallelTypeNone, nndeploy.base.ParallelType.Sequential):
+                raise ValueError("Resident execution currently requires a sequential Graph")
+            if before_init is not None:
+                before_init(self.graph)
+            self._check_status(self.graph.init())
+            if self.graph.get_loop_count() != 1:
+                raise ValueError("Resident execution requires one finite invocation")
+            return self.graph
+        except BaseException:
+            self.close()
+            raise
+
+    def _check_owner(self):
+        if self._owner != threading.get_ident():
+            raise RuntimeError("Resident Graph must be used on its owning thread")
+
+    def execute(self, bind, collect, *, steps=None, after_step=None):
+        """Bind a request, run its finite steps, then detach its outputs.
+
+        The caller bounds the step count after binding inputs; ordinary requests
+        run once. Per-step checks run after synchronization, before collection.
+        """
+        self._check_owner()
+        if self._close_error is not None:
+            raise self._close_error
+        if self.graph is None:
+            raise RuntimeError("Graph is not loaded")
+        try:
+            with bind(self.graph):
+                count = steps() if steps is not None else 1
+                if type(count) is not int or count < 1:
+                    raise ValueError('Resident Graph execution requires a finite positive step count')
+                for _ in range(count):
+                    self._check_status(self.graph.run())
+                    if not self.graph.synchronize():
+                        raise RuntimeError("Graph synchronization failed")
+                    if after_step is not None:
+                        after_step()
+                return collect(self.graph)
+        except BaseException:
+            self.close()
+            raise
+
+    def close(self):
+        if self._close_error is not None:
+            raise self._close_error
+        if self.graph is not None:
+            self._check_owner()
+            try:
+                self._check_status(self.graph.deinit())
+            except BaseException as exc:
+                # A second cleanup attempt cannot prove that a failed native
+                # deinit released its threads, devices or model file readers.
+                self._close_error = exc
+                raise
+            self.graph = None
 
     def _check_status(self, status):
         if status != nndeploy.base.StatusCode.Ok:
@@ -79,7 +163,8 @@ class GraphRunner:
             return self.graph.get_parallel_type()
         return nndeploy.base.ParallelType.Pipeline
 
-    def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None) -> Tuple[Dict[str, Any], List[Any]]:
+    def run(self, graph_json_str: str, name: str, task_id: str, args: GraphRunnerArgs = None,
+            *, before_init=None, before_run=None) -> Tuple[Dict[str, Any], List[Any]]:
         self.is_cancel = False
         did_deinit = False
         self.args = args
@@ -103,6 +188,8 @@ class GraphRunner:
                 raise RuntimeError(f"graph interrupted!")
 
             nndeploy.base.time_point_start("init_" + name)
+            if before_init is not None:
+                before_init(self.graph)
             status = self.graph.init()
             self._check_status(status)
             nndeploy.base.time_point_end("init_" + name)
@@ -116,6 +203,8 @@ class GraphRunner:
             if self.is_cancel:
                 raise RuntimeError(f"graph interrupted!")
 
+            if before_run is not None:
+                before_run()
             nndeploy.base.time_point_start("sum_" + name)
             count = self.graph.get_loop_count()
             for i in range(count):

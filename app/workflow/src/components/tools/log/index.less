@@ -34,3 +34,26 @@
     }
   }
 }
+
+.tools-task-history {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 2fr);
+  gap: 20px;
+  height: 340px;
+  section { overflow: auto; min-width: 0; }
+  .history-actions { display: flex; gap: 8px; }
+  .history-tasks { list-style: none; padding: 0; }
+  .history-tasks button {
+    width: 100%; text-align: left; padding: 10px; margin-bottom: 6px;
+    border: 1px solid var(--semi-color-border); border-radius: 6px;
+    background: var(--semi-color-bg-0); cursor: pointer; overflow-wrap: anywhere;
+    &[aria-pressed="true"] { background: var(--semi-color-primary-light-default); }
+  }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .history-file img, .history-file video {
+    display: block; max-width: 100%; max-height: 240px; margin-top: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .tools-task-history { grid-template-columns: 1fr; height: auto; }
+}

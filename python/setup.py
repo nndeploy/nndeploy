@@ -437,6 +437,10 @@ server_requires = [
     'python-multipart>=0.0.6',  # File upload support
     'pydantic>=2.0.0',  # Data validation
     'chardet>=5.2.0',  # Character encoding detection
+    'SQLAlchemy>=2.0,<3',
+    'alembic>=1.13,<2',
+    'prometheus-client>=0.20,<1',
+    'threadpoolctl>=3.6,<4',
 ]
 
 install_requires.extend(server_requires)
@@ -536,9 +540,16 @@ setup(
             'nndeploy-clean=nndeploy.server.clean:main',
         ],
     },
-    # extras_require={
-    #     "all": parse_requirements('../requirements.txt')
-    # },
+    extras_require={
+        'server-audio': ['av>=16.1,<20'],
+        'server-mysql': ['pymysql>=1.1,<2'],
+        'server-postgresql': ['psycopg[binary]>=3.2,<4'],
+        'server-redis': ['redis>=5,<8'],
+        'server-s3': ['boto3>=1.34,<2'],
+        'server-cos': ['cos-python-sdk-v5>=1.9,<2'],
+        'server-oss': ['alibabacloud-oss-v2>=1.4,<2'],
+        'server-obs': ['esdk-obs-python>=3.25,<4'],
+    },
     cmdclass={"bdist_wheel": bdist_wheel},
     # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode

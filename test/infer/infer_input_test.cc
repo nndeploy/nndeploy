@@ -58,6 +58,22 @@ TEST(InferInput, RejectsMissingTensorAndPropagatesBackendErrors) {
   EXPECT_EQ(node.deinit(), base::kStatusCodeOk);
 }
 
+TEST(InferInput, DeserializeExistingBackendUpdatesParameters) {
+  infer::Infer node("parameters", base::kInferenceTypeDefault);
+  auto original = node.getInference();
+  for (int threads : {2, 8}) {
+    std::string json = R"({"type_":"kInferenceTypeDefault","param_":{"num_thread_":)" +
+                       std::to_string(threads) + "}}";
+    rapidjson::Document value;
+    value.Parse(json.c_str());
+    ASSERT_EQ(node.deserialize(value), base::kStatusCodeOk);
+    EXPECT_EQ(node.getInference(), original);
+    auto *param = dynamic_cast<inference::InferenceParam *>(node.getParam());
+    ASSERT_NE(param, nullptr);
+    EXPECT_EQ(param->num_thread_, threads);
+  }
+}
+
 
 class CountedOutput : public device::Tensor {
  public:

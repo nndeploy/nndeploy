@@ -442,6 +442,12 @@ base::Status SAM2Graph::initDynamicsGraphNodes() {
   CHECK_IF_NULL_RETURN(encoder_infer_node_,
                        "Failed to create encoder_infer node");
 
+  // Graph discovery traces before loading an ONNX model. Declare all encoder
+  // outputs here so forward() can connect its three feature edges safely.
+  status = encoder_infer_node_->setOutputNames(
+      {"high_res_feats_0", "high_res_feats_1", "image_embed"});
+  CHECK_IF_ERROR_RETURN(status, "Failed to set SAM 2 encoder output names");
+
   preprocess_point_node_ = this->createNode<SAM2PointNode>("preprocess_point");
   CHECK_IF_NULL_RETURN(preprocess_point_node_,
                        "Failed to create preprocess_point node");

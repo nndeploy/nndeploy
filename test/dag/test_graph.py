@@ -6,7 +6,8 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
-import torch
+import pytest
+torch = pytest.importorskip('torch', reason='Optional PyTorch Graph example requires torch')
 
 
 # python3 nndeploy/test/dag/test_graph.py

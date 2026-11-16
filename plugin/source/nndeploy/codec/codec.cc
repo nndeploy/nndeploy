@@ -4,6 +4,34 @@
 namespace nndeploy {
 namespace codec {
 
+base::Status Decode::reset(const std::string &path) {
+  auto status = deinit();
+  if (status != base::kStatusCodeOk) return status;
+  path_ = path;
+  path_changed_ = false;
+  path_ready_ = false;
+  index_ = 0;
+  size_ = 0;
+  width_ = height_ = 0;
+  fps_ = 0;
+  loop_count_ = 1;
+  return base::kStatusCodeOk;
+}
+
+base::Status Encode::reset(const std::string &path, const std::string &ref_path) {
+  auto status = deinit();
+  if (status != base::kStatusCodeOk) return status;
+  path_ = path;
+  ref_path_ = ref_path;
+  path_changed_ = false;
+  index_ = 0;
+  size_ = 0;
+  width_ = height_ = 0;
+  fps_ = 0;
+  loop_count_ = 1;
+  return base::kStatusCodeOk;
+}
+
 std::map<base::CodecType, createDecodeFunc> &
 getGlobalCreateDecodeFuncMap() {
   static std::once_flag once;

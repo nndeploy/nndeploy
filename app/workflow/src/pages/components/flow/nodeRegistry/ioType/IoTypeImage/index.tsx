@@ -1,3 +1,4 @@
+import { getOutputFileUrl } from '../../../../../../components/tools/webui/functions';
 import { Upload, Typography, Image, Modal, Button } from "@douyinfe/semi-ui";
 import { customRequestArgs, FileItem } from "@douyinfe/semi-ui/lib/es/upload";
 import { IconDelete, IconEyeOpened, IconPlus } from "@douyinfe/semi-icons";
@@ -13,11 +14,14 @@ const { Text } = Typography;
 
 interface IoTypeTextFileProps {
   value: any;
+  nodeName: string;
+  nodePath?: string[];
+  fieldPath?: string[];
   direction: 'input' | 'output';
   onChange: (value: string) => void;
 }
 const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
-  const { value, onChange, direction } = props;
+  const { value, onChange, direction, nodeName, nodePath, fieldPath } = props;
 
 
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -63,7 +67,9 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
   }, [])
 
 
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}&returnMimeType=image`
+  const savedUrl = direction === 'output' ? getOutputFileUrl(runInfo.outputResource, nodePath ?? [nodeName], fieldPath) : undefined
+  const previewUrl = direction === 'output' && runInfo.outputResource.files ? savedUrl
+    : `/api/preview?file_path=${encodeURIComponent(value ?? '')}&time=${runInfo.time}&returnMimeType=image`
 
 
 
@@ -132,7 +138,7 @@ const IoTypeImage: React.FC<IoTypeTextFileProps> = (props) => {
               </div>
             </div>
             :
-            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
+            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!previewUrl })}>
               <div className={styles["image-container"]}>
                 <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                   debugger

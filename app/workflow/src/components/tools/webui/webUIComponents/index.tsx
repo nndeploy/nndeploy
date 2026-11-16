@@ -4,13 +4,15 @@ import lodash, { toNumber, trim } from 'lodash'
 import IoType from "./ioType";
 import { initJson } from "../store/actionType";
 import styles from './index.module.scss'
-import { Button, Modal, Toast } from "@douyinfe/semi-ui";
+import { getOutputFileLabel } from '../functions';
+import { Button, Modal } from "@douyinfe/semi-ui";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
-import { useClientContext } from "@flowgram.ai/free-layout-editor";
-import { apiWorkFlowRunStop } from "../../../../pages/Layout/Design/WorkFlow/api";
+import { Run } from '../../run';
 import classNames from "classnames";
 import UiParams from "./uiParams";
 import CodeBlock from "../../../../pages/components/CodeBlock";
+import { getResourceFields } from '../../../resource-files';
+import { ResourceFieldsInput } from '../../../resource-files-input';
 //import deployMarkDown from '../../../../assets/deploy.md'
 //import deployMarkDown from '../../../../assets/deploy.md';
 //import deployMarkDown from './deplolyContent'
@@ -32,9 +34,9 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
 
   const flowEnviroment = useFlowEnviromentContext()
 
-  const { downloading, runInfo, setRunInfo } = flowEnviroment
+  const { runInfo } = flowEnviroment
 
-  const { runningTaskId, isRunning } = runInfo
+  const { isRunning } = runInfo
 
   const [deployVisible, setDeployVisible] = useState(false);
 
@@ -49,31 +51,6 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
     console.log('Cancel button clicked');
   };
 
-
-  const onRunOrStop = async () => {
-
-    if (isRunning) {
-      let resonse = await apiWorkFlowRunStop(runningTaskId)
-      if (resonse.flag == 'success') {
-        setRunInfo(oldRunInfo => {
-          return {
-            ...oldRunInfo,
-            isRunning: false,
-            result: '',
-          }
-        })
-        Toast.success('stop success')
-      }
-
-    } else {
-
-
-
-      flowEnviroment.onRun?.(json as any)
-
-
-    }
-  };
 
   function getNodes(direction: 'Input' | 'Output', ioType: string[]) {
     return json?.nodes?.filter((node: any) => {
@@ -168,7 +145,9 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
 
   const allNodes = getAllNodes()
 
+  const resourceNodes = allNodes?.filter(node => getResourceFields(node).length > 0) || [];
   const inputBinaryNodes = getNodes('Input', ['Image', 'Video', 'Binary', 'Camera', 'Microphone', 'Model', 'Bool', 'Num'])
+    ?.filter(node => getResourceFields(node).length === 0)
   const inputTextNodes = getNodes('Input', ['String', 'Text', 'Json', 'Xml', 'Csv', 'Yaml'])
 
   const outputBinaryNodes = getNodes('Output', ['Image', 'Video', 'Binary', 'Camera', 'Microphone', 'Model', 'Bool', 'Num'])
@@ -197,6 +176,10 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
       <div className="drawer-content">
         <div className={styles['webui-components-container']}>
           <div className={styles['left-container']}>
+            {resourceNodes.map(node => <div key={node.name_} className={styles['io-input-node-container']}>
+              <div className={styles['io-node-name']}>{node.name_}</div>
+              <ResourceFieldsInput node={node} onChange={value => onValueChange(value, node)} />
+            </div>)}
             {
               inputBinaryNodes.length > 0 &&
 
@@ -264,6 +247,20 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
             </div>
           </div>
           <div className={styles['right-container']}>
+            {!isRunning && runInfo.outputResource.expired &&
+              <p role="status">This task finished earlier. Its saved results have expired.</p>}
+            {!isRunning && runInfo.result === 'success' && !!runInfo.outputResource.files?.length &&
+              <div aria-label="Output files">
+                <strong>Output files</strong>
+                <ul>
+                  {runInfo.outputResource.files.map(file => <li key={file.file_id}>
+                    <a href={file.url} download={file.file_id + (file.media_type === 'application/zip' ? '.zip' : '')}>{getOutputFileLabel(file)}</a>
+                    {file.media_type.startsWith('image/') && <img src={file.url} alt={getOutputFileLabel(file)} loading="lazy" style={{ maxWidth: '100%' }} />}
+                    {file.media_type.startsWith('video/') && <video controls src={file.url} preload="none" style={{ maxWidth: '100%' }} />}
+                    {file.media_type.startsWith('audio/') && <audio controls src={file.url} preload="none" />}
+                  </li>)}
+                </ul>
+              </div>}
 
             {
               outputBinaryNodes.length > 0 &&
@@ -342,15 +339,7 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
         <Button type="tertiary" onClick={() => props.onClose()}>
           close
         </Button>
-        <Button
-          onClick={onRunOrStop}
-          disabled={downloading}
-          type={isRunning ? 'danger' : 'primary'}
-          //loading={isRunning}
-          style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
-        >
-          {isRunning ? 'Stop' : 'Run'}
-        </Button>
+        <Run onRun={async () => { await flowEnviroment.onRun?.(json as any); }} />
       </div>
 
     </>

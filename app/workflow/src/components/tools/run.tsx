@@ -1,16 +1,18 @@
 import { useState } from 'react';
 
-import { getNodeForm, useClientContext, useService } from '@flowgram.ai/free-layout-editor';
+import { getNodeForm, useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Button, Toast } from '@douyinfe/semi-ui';
 
-import { RunningService } from '../../services';
 import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
 import { apiWorkFlowRunStop } from '../../pages/Layout/Design/WorkFlow/api';
+import { applyRunTaskState, applyRunSubmission } from './run-state';
+import { retryRunTask } from './run-connection';
 
 /**
  * Run the simulation and highlight the lines
  */
-export function Run() {
+export function Run({ onRun }: { onRun?: () => void | Promise<void> } = {}) {
+  const [stopping, setStopping] = useState(false);
   //const [isRunning, setRunning] = useState(false);
 
   const flowEnviroment = useFlowEnviromentContext()
@@ -27,23 +29,32 @@ export function Run() {
   const onRunOrStop = async () => {
 
     if (isRunning) {
-        let resonse = await apiWorkFlowRunStop(runningTaskId)
-        if(resonse.flag == 'success'){
-          setRunInfo(oldRunInfo=>{
-            return {
-              ...oldRunInfo, 
-              isRunning: false, 
-              flowNodesRunningStatus: {}, 
-              runningTaskId: '',
-              result: '', 
-            }
-          })
-          Toast.success('stop success')
+        setStopping(true);
+        try {
+          if (runInfo.submissionPending) {
+            const response = await retryRunTask(runningTaskId);
+            setRunInfo(info => applyRunSubmission(info, runningTaskId, response.flag));
+            if (response.message) Toast.info(response.message);
+            return;
+          }
+          const response = await apiWorkFlowRunStop(runningTaskId);
+          if (response.flag === 'success' && response.result) {
+            setRunInfo(info => applyRunTaskState(info, response.result));
+            Toast.info(response.message || 'Cancellation requested');
+          } else {
+            Toast.error(response.message || 'Unable to request cancellation');
+          }
+        } catch (error) {
+          Toast.error(runInfo.submissionPending ? 'Unable to confirm submission. Checking task status.' : 'Unable to confirm cancellation. Please retry.');
+        } finally {
+          setStopping(false);
         }
         //setRunning(false)
     } else {
-
-
+      if (onRun) {
+        await onRun();
+        return;
+      }
       //setRunning(true);
       //await runningService.startRun();
 
@@ -60,12 +71,12 @@ export function Run() {
   return (
     <Button
       onClick={onRunOrStop}
-      disabled={downloading}
+      disabled={downloading || stopping || (isRunning && !runningTaskId)}
       type= {isRunning ? 'danger': 'primary' }
       //loading={isRunning}
       style={{ backgroundColor: 'rgba(171,181,255,0.3)', borderRadius: '8px' }}
     >
-      {isRunning ? 'Stop' : 'Run'}
+      {isRunning ? (runInfo.submissionPending ? 'Retry' : runInfo.cancelRequested ? 'Stopping…' : 'Stop') : 'Run'}
     </Button>
   );
 } 

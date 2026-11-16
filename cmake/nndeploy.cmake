@@ -96,7 +96,6 @@ include("${ROOT_PATH}/cmake/tvm.cmake")
 # ################### dag ####################
 
 # ################### plugin ####################
-include("${ROOT_PATH}/cmake/eigen.cmake")
 include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
 
 # ################### plugin ####################

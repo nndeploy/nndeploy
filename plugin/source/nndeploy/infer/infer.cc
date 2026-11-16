@@ -178,18 +178,24 @@ base::Status Infer::setOutputNames(const std::vector<std::string>& names) {
 }
 
 base::Status Infer::setInferenceType(base::InferenceType inference_type) {
-  if (inference_ == nullptr) {
-    type_ = inference_type;
-    inference_ = inference::createInference(type_);
-    if (inference_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+  if (inference_ != nullptr && type_ == inference_type) {
     return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGW("inference is not nullptr");
+  }
+  if (inference_ != nullptr &&
+      (getInitialized() || !own_inference_ || inference_.use_count() > 1)) {
+    NNDEPLOY_LOGE("Cannot replace an initialized or shared inference backend");
     return base::kStatusCodeErrorInvalidParam;
   }
+  auto candidate = inference::createInference(inference_type);
+  if (candidate == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  inference_ = std::move(candidate);
+  type_ = inference_type;
+  inference_input_names_.clear();
+  inference_output_names_.clear();
+  return base::kStatusCodeOk;
 }
 
 base::Status Infer::setParam(base::Param* param) {
@@ -447,8 +453,8 @@ base::Status Infer::deserialize(rapidjson::Value& json) {
     return status;
   }
   if (json.HasMember("type_") && json["type_"].IsString()) {
-    type_ = base::stringToInferenceType(json["type_"].GetString());
-    status = this->setInferenceType(type_);
+    auto type = base::stringToInferenceType(json["type_"].GetString());
+    status = this->setInferenceType(type);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setInferenceType failed");
   }

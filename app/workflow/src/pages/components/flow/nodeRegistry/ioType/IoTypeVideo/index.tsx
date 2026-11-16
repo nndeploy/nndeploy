@@ -1,3 +1,4 @@
+import { getOutputFileUrl } from '../../../../../../components/tools/webui/functions';
 import { Upload, Typography, Image, Modal, Button, VideoPlayer, Input } from "@douyinfe/semi-ui";
 import { customRequestArgs, FileItem } from "@douyinfe/semi-ui/lib/es/upload";
 import { IconDelete, IconEyeOpened, IconFolderOpen, IconPlus } from "@douyinfe/semi-icons";
@@ -14,11 +15,14 @@ const { Text } = Typography;
 
 interface IoTypeTextFileProps {
   value: any;
+  nodeName: string;
+  nodePath?: string[];
+  fieldPath?: string[];
   direction: 'input' | 'output';
   onChange: (value: string) => void;
 }
 const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
-  const { value, onChange, direction } = props;
+  const { value, onChange, direction, nodeName, nodePath, fieldPath } = props;
 
   const { runInfo, element } = useFlowEnviromentContext()
   const { result: runResult } = runInfo
@@ -72,7 +76,9 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}`
+  const savedUrl = direction === 'output' ? getOutputFileUrl(runInfo.outputResource, nodePath ?? [nodeName], fieldPath) : undefined
+  const previewUrl = direction === 'output' && runInfo.outputResource.files ? savedUrl
+    : `/api/preview?file_path=${encodeURIComponent(value ?? '')}&time=${runInfo.time}`
 
 
 
@@ -177,7 +183,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-                    src={`/api/preview?file_path=${value}`}
+                    src={previewUrl}
                   //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                   />
                 </div>
@@ -189,9 +195,9 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
             </div>
 
             :
-            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
+            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!previewUrl })}>
 
-              {value && runResult == 'success' &&
+              {previewUrl && runResult == 'success' &&
                 <div className={styles["video-container"]}>
                   <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                     debugger
@@ -209,7 +215,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-                    src={`/api/preview?file_path=${value}`}
+                    src={previewUrl}
                   //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                   />
                 </div>
@@ -255,7 +261,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
               clickToPlay={false}
               autoPlay={false}
 
-              src={`/api/preview?file_path=${value}`}
+              src={previewUrl}
             //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
             />
           </div>

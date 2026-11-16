@@ -6,13 +6,18 @@ from pathlib import Path
 import queue
 import sys
 import tempfile
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 from test_review_regressions import ROOT, definitions
 
-spec = importlib.util.spec_from_file_location('review_task_queue', ROOT / 'python/nndeploy/server/task_queue.py')
+# Give pure Python Server modules their normal relative-import context without
+# importing nndeploy's native-extension package initializer.
+package = ModuleType('review_server')
+package.__path__ = [str(ROOT / 'python/nndeploy/server')]
+sys.modules[package.__name__] = package
+spec = importlib.util.spec_from_file_location('review_server.task_queue', ROOT / 'python/nndeploy/server/task_queue.py')
 task_queue = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = task_queue
 spec.loader.exec_module(task_queue)

@@ -8,6 +8,7 @@ import { ZoomSelect } from './zoom-select';
 import { SwitchLine } from './switch-line';
 import { ToolContainer, ToolSection } from './styles';
 import { Save } from './save';
+import { ServerTool } from './server';
 import { Run } from './run';
 import { Readonly } from './readonly';
 import { MinimapSwitch } from './minimap-switch';
@@ -101,6 +102,7 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
         </Tooltip> */}
         <Config />
         <Save disabled={playground.config.readonly} />
+        <ServerTool disabled={playground.config.readonly} />
         <Run />
         <Log />
         <WebUI />

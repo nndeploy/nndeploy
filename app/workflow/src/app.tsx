@@ -14,13 +14,14 @@ import Design from "./pages/Layout/Design/Design";
 import './assets/css/index.scss'
 //import './mock'
 import Home from "./pages/Home";
+import { EditorAccess } from './components/editor-access';
 
 const app = createRoot(document.getElementById("root")!);
 
 app.render(
   <ConfigProvider locale={enUS}>
 
-    <BrowserRouter>
+    <EditorAccess><BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/design" element={<Design />} />
@@ -40,6 +41,6 @@ app.render(
 
         <Route path="*" element={<NoMatch />} />
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter></EditorAccess>
   </ConfigProvider>
 );

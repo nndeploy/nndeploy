@@ -78,12 +78,17 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
   }
   virtual ~YoloPostProcess() {}
 
+  using dag::Node::deserialize;
+  virtual base::Status deserialize(rapidjson::Value& json);
   virtual base::Status run();
 
   base::Status runV5V6();
   base::Status runV8V11();
   base::Status runX();
   base::Status runE2E();
+
+ private:
+  base::Status publishResults(std::unique_ptr<DetectResult> results);
 };
 
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {

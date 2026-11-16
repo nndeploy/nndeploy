@@ -1,6 +1,7 @@
-import { Badge, Button, List, SideSheet, Tooltip } from "@douyinfe/semi-ui"
+import { Badge, Button, List, SideSheet, Tooltip, Tabs, TabPane } from "@douyinfe/semi-ui"
 import { useState } from "react";
 import './index.less'
+import History from './history'
 import { useFlowEnviromentContext } from "../../../context/flow-enviroment-context";
 
 const Log: React.FC<any> = (props) => {
@@ -45,9 +46,13 @@ const Log: React.FC<any> = (props) => {
     </Badge>
     <SideSheet title="Log" visible={visible} onCancel={onClose} placement={'bottom'}
       getPopupContainer={getPopupContainer}
-      height={300}
+      height={480}
     >
+      {visible && <Tabs defaultActiveKey="current">
+        <TabPane tab="Current run" itemKey="current">
       <div className="tools-log-content">
+        {runInfo.outputResource.expired &&
+          <p role="status">This task finished earlier. Its saved results have expired.</p>}
 
         <List
           //header={<div>log list</div>}
@@ -66,6 +71,9 @@ const Log: React.FC<any> = (props) => {
 
 
       </div>
+        </TabPane>
+        <TabPane tab="History" itemKey="history"><History /></TabPane>
+      </Tabs>}
     </SideSheet>
   </>
 

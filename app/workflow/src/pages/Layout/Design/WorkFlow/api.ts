@@ -2,6 +2,9 @@ import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import request from "../../../../request";
 import { IBusinessNode, ITreeWorkFlowResponseData, IWorkFlowEntity, IWorkFlowRunResult, IWorkFlowTreeNodeEntity } from "./entity";
 import { IWorkFlowShortEntity } from "../../../../entity";
+import type { RunTab } from '../../../../components/tools/run-session';
+import { submitRunTask } from '../../../../components/tools/run-connection';
+import type { RunTaskState } from '../../../../components/tools/run-state';
 
 // export async function apiGetWorkFlowTree(){
 //  var response = await request.get<IWorkFlowShortEntity>('/api/workflows', {});
@@ -30,14 +33,12 @@ export async function apiWorkFlowSave(id: string, entity: IBusinessNode){
   return response;
 }
 
-export async function apiWorkFlowRun(entity: IBusinessNode){
- var response = await request.post<IWorkFlowRunResult>('/api/queue', entity);
-
-  return response;
+export async function apiWorkFlowRun(entity: IBusinessNode, tab?: RunTab){
+  return submitRunTask(entity, tab);
 }
 
 export async function apiWorkFlowRunStop(taskId:string){
- var response = await request.post<IWorkFlowRunResult>(`/api/queue/cancel/${taskId}`, {});
+ var response = await request.post<RunTaskState>(`/api/queue/cancel/${taskId}`, {});
 
   return response;
 }

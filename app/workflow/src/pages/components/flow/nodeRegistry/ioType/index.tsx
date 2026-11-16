@@ -30,6 +30,8 @@ interface IoTypeProps {
   value: string;
   direction: 'input' | 'output',
   nodeName:string; 
+  nodePath?: string[];
+  fieldPath?: string[];
   ioDataType: EnumIODataType,
   onChange: (value: string) => void;
 }
@@ -39,7 +41,7 @@ type ComponentMap = {
 };
 
 const IoType: React.FC<IoTypeProps> = (props) => {
-  const { value, onChange, ioDataType, direction,nodeName } = props;
+  const { value, onChange, ioDataType, direction,nodeName, nodePath, fieldPath } = props;
 
   const COMPONENT_MAP: ComponentMap = {
 
@@ -69,7 +71,7 @@ const IoType: React.FC<IoTypeProps> = (props) => {
   const Component = COMPONENT_MAP[ioDataType] ?? <></>;
 
   return (
-    <Component key={ nodeName + '_' +  ioDataType } value={value} onChange={onChange} direction={direction} ioDataType={ioDataType} />
+    <Component key={ nodeName + '_' +  ioDataType } value={value} nodeName={nodeName} nodePath={nodePath} fieldPath={fieldPath} onChange={onChange} direction={direction} ioDataType={ioDataType} />
   )
 }
 

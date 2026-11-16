@@ -24,6 +24,7 @@ import "./Design.scss";
 import "./FirstLevelNav.scss";
 import "./SecondLevelNav.scss";
 import "./TabContent.scss";
+import { restoreRunTabs } from '../../../components/tools/run-session';
 import Flow from "../../components/flow/Index";
 
 import NodeTree from "./Node";
@@ -75,26 +76,31 @@ const Design: React.FC = () => {
   const params = getQueryObject()
 
   useEffect(() => {
-    const newTabId = `${tabId++}`
-
-    if (params.id && params.flowType) {
-
-      setTabs([...tabs, {
-        //newName: params.name, 
-        name: params.name, id: params.id, tabId: newTabId, flowType: params.flowType as EnumFlowType
-      }]);
-      setActiveKey(newTabId);
-    } else {
-
-      setTabs([{
-        //newName: "Unsaved Workflow 1", 
-        id: '', name: 'Unsaved Workflow 1', tabId: '1', flowType: EnumFlowType.workspace
-      }])
-
-
+    const restored = restoreRunTabs();
+    for (const tab of restored) {
+      const numericId = Number(tab.tabId);
+      if (Number.isSafeInteger(numericId) && numericId >= tabId) tabId = numericId + 1;
     }
-
-  }, [])
+    if (params.id && params.flowType) {
+      const previous = restored.find(tab => tab.id === params.id && tab.flowType === params.flowType);
+      if (previous) {
+        setTabs(restored);
+        setActiveKey(previous.tabId);
+      } else {
+        const newTabId = `${tabId++}`;
+        setTabs([...restored, { name: params.name || 'Workflow', id: params.id, tabId: newTabId,
+          flowType: params.flowType as EnumFlowType }]);
+        setActiveKey(newTabId);
+      }
+    } else if (restored.length) {
+      setTabs(restored);
+      setActiveKey(restored[0].tabId);
+    } else {
+      const newTabId = `${tabId++}`;
+      setTabs([{ id: '', name: 'Unsaved Workflow 1', tabId: newTabId, flowType: EnumFlowType.workspace }]);
+      setActiveKey(newTabId);
+    }
+  }, []);
 
 
   function onAddTemplate(item: IWorkFlowShortEntity) {
@@ -379,7 +385,7 @@ const Design: React.FC = () => {
 
                 >
                   <div className="tab-content">
-                    <Flow id={tab.id} onFlowSave={onFlowSave} activeKey={activeKey} flowType={tab.flowType} />
+                    <Flow id={tab.id} tabId={tab.tabId} name={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} flowType={tab.flowType} />
 
                   </div>
                 </TabPane>

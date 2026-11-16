@@ -8,7 +8,21 @@ from pathlib import Path
 from time import sleep
 import shutil
 from urllib.parse import urlparse
-from modelscope.hub.file_download import model_file_download
+
+def _save_plugin_upload(source, destination: Path):
+    """Make a complete upload visible to concurrent Worker directory scans."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=destination.parent, suffix='.tmp', delete=False) as output:
+            temporary = Path(output.name)
+            shutil.copyfileobj(source, output, length=1024 * 1024)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, destination)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 def extract_encode_output_paths(task_json: Dict[str, Any]) -> List[Dict[str, str]]:
     preview_target_keys = {
@@ -270,6 +284,7 @@ def _handle_urls(graph_json: Dict, work_dir: str) -> Dict[str, str]:
                         logging.error(f"Path traversal detected for {field}.{idx}: {expected_dest}")
                         continue
 
+                    from modelscope.hub.file_download import model_file_download
                     local_path = model_file_download(
                         model_id=model_id,
                         file_path=str(rel_path),

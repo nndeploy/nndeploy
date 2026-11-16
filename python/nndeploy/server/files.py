@@ -11,7 +11,7 @@ from typing import Dict, List
 from typing import Optional
 from uuid import NAMESPACE_URL, uuid5
 
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status, Request
 from fastapi.responses import JSONResponse
 
 from .schemas import (UploadResponse, DeleteResponse, FileListResponse, FileInfoResponse)
@@ -353,10 +353,17 @@ async def delete_file(file_path: str, workdir: Path = Depends(get_workdir)):
     summary="upload images/videos/models/audios/others",
 )
 async def upload_file(
-    file_path: str,
+    request: Request,
+    file_path: str | None = None,
     file: UploadFile = File(...),
     workdir: Path = Depends(get_workdir),
 ):
+    if file_path is None:
+        from .api.deploy import save_upload
+        server = request.app.state.server
+        record = await save_upload(server, request, file, 'editor:' + server.config_scope)
+        return UploadResponse(flag='success', message='File uploaded',
+                              result=dict(record, filename=file.filename or 'model'))
     return _save(file, file_path, workdir)
 
 # ──────────────────────────────────────────────

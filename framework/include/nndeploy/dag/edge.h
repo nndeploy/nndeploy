@@ -473,8 +473,12 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
 
   template <typename PY_WRAPPER, typename T>
-  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true, bool written = true) {
-    this->setTypeInfo<T>();
+  base::Status set4py(PY_WRAPPER *wrapper, T *t, bool is_external = true, bool written = true,
+                     std::shared_ptr<EdgeTypeInfo> type_info = nullptr) {
+    // Python objects can carry a more specific declared type than PyObject.
+    // Publish that metadata before a potentially blocking packet submission.
+    if (type_info) this->setTypeInfo(std::move(type_info));
+    else this->setTypeInfo<T>();
     return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external, written);
   }
 

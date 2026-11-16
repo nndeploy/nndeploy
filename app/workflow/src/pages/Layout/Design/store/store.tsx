@@ -97,6 +97,14 @@ export function reducer(state: state, action: any): state {
         return buildNodeRegistry(item)
       })
 
+      // The root Graph is intentionally absent from the node picker, but a
+      // serialized Python workflow can use that same type as a nested Graph.
+      if (!nodeRegistries.some(item => item.type === dagGraphInfo.graph.key_)) {
+        const graphRegistry = buildNodeRegistry(dagGraphInfo.graph)
+        graphRegistry.meta = { ...graphRegistry.meta, nodePanelVisible: false }
+        nodeRegistries.push(graphRegistry)
+      }
+
       nodeRegistries.push(CommentNodeRegistry)
        nodeRegistries.push(GroupNodeRegistry)
        

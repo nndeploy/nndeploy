@@ -79,6 +79,10 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
   base::CodecFlag getCodecFlag() { return flag_; }
   virtual base::Status setPath(const std::string &path) = 0;
 
+  // Release per-file resources and restore an idle path without opening it.
+  // Only call while this node is not executing.
+  base::Status reset(const std::string &path = "");
+
   void setSize(int size) {
     if (size > 0) {
       size_ = size;
@@ -160,7 +164,8 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     // }
     if (json.HasMember("path_") && json["path_"].IsString()) {
       std::string path = json["path_"].GetString();
-      this->setPath(path);
+      status = this->setPath(path);
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setPath failed");
     }
     return status;
   }
@@ -251,6 +256,9 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
   // }
   virtual base::Status setPath(const std::string &path) = 0;
   virtual base::Status setRefPath(const std::string &ref_path) = 0;
+  // Close the current output without reopening a configured destination.
+  base::Status reset(const std::string &path = "",
+                     const std::string &ref_path = "");
   void setFourcc(const std::string &fourcc) { fourcc_ = fourcc; }
   void setFps(double fps) { fps_ = fps; };
   void setWidth(int width) { width_ = width; };

@@ -1,42 +1,39 @@
-import nndeploy._nndeploy_internal as _C
-import nndeploy.dag
+"""Basic public Edge operations without machine-specific files or model SDKs."""
+import numpy as np
+import pytest
+
+from nndeploy import _nndeploy_internal as native
+from nndeploy.dag import Edge
+from nndeploy.device import Tensor
 
 
-# python3 nndeploy/test/dag/test_edge.py
+def test_edge_empty_and_scalar_values():
+    edge = Edge('test_edge')
+    assert edge.get_name() == 'test_edge'
+    assert edge.get(None) is None
+    assert edge.get_graph_output() is None
+    assert edge.set(1)
+    assert edge.get(None) == 1
+    assert edge.get_graph_output() == 1
 
 
-def test_edge():
-    edge = nndeploy.dag.Edge("test_edge")
-    assert edge is not None
-    print(edge.get_name())
-    print(edge.get_buffer(None) is None)
-    # print(edge.get_cv_mat(None) is None)
-    print(edge.get_tensor(None) is None)
-    print(edge.get_param(None) is None)
-    print(edge.get_graph_output_buffer() is None)
-    # print(edge.get_graph_output_cv_mat() is None)
-    print(edge.get_graph_output_tensor() is None)
-    print(edge.get_graph_output_param() is None)
-    
-    edge.set(1)
-    print(edge.get() == 1)
-    print(edge.get_type_name())
-    tensor = nndeploy.device.Tensor()
-    edge.set(tensor)
-    print(edge.get_type_name())
-    edge.create_buffer(nndeploy.device.Device("cpu")._device, nndeploy.device.BufferDesc(1024))
-    print(edge.get_type_name())
-    import torch
-    edge.set(torch.randn(1024))
-    print(edge.get_type_name())
-    print(edge.get_graph_output())
-    
-    import cv2 as cv
-    mat = cv.imread("/home/always/github/public/nndeploy/build/draw_label_node.jpg")
-    edge.set(mat)
-    print(edge.get_type_name())
-    print(edge.get_graph_output_numpy())
+def test_edge_tensor_and_created_buffer():
+    edge = Edge('values')
+    values = np.arange(4, dtype=np.int32)
+    assert edge.set(Tensor.from_numpy(values))
+    np.testing.assert_array_equal(np.asarray(edge.get(None)), values)
+    host = native.device.get_default_host_device()
+    buffer = edge.create(host, native.device.BufferDesc(16))
+    np.asarray(buffer)[:] = 7
+    assert edge.notify_written(buffer)
+    np.testing.assert_array_equal(np.asarray(edge.get(None)), np.full(16, 7, dtype=np.uint8))
 
 
-if __name__ == "__main__":
-    test_edge()
+def test_edge_legacy_numpy_image():
+    edge = Edge('image')
+    image = np.arange(12, dtype=np.uint8).reshape(2, 2, 3)
+    status = edge.set(image)
+    if status == native.base.StatusCode.ErrorNotSupport:
+        pytest.skip('Native OpenCV support is disabled')
+    assert status
+    np.testing.assert_array_equal(edge.get(None), image)

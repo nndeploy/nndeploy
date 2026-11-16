@@ -16,16 +16,45 @@ namespace dag {
 // set4py transfers the wrapper (and an internally owned Mat) to the packet.
 template <typename T>
 static base::Status publish(Edge &edge, const py::object &owner, T *value,
-                            bool external = true, bool written = true) {
+                            bool external = true, bool written = true,
+                            std::shared_ptr<EdgeTypeInfo> type_info = nullptr) {
   auto *wrapper = new PyObjectWrapper(owner.ptr());
   py::gil_scoped_release release;
-  auto status = edge.set4py(wrapper, value, external, written);
+  auto status = edge.set4py(wrapper, value, external, written, std::move(type_info));
   if (status != base::kStatusCodeOk) throw std::runtime_error(status.desc());
   return status;
 }
 
+static std::shared_ptr<EdgeTypeInfo> numpyDeclaration(Edge &edge) {
+  std::shared_ptr<EdgeTypeInfo> numpy;
+  bool image = false;
+  auto inspect = [&](const std::shared_ptr<EdgeTypeInfo> &info) {
+    if (!info) return;
+    if (info->getType() == EdgeTypeFlag::kCvMat) image = true;
+    if (info->getTypeNameWithNamespace() == "numpy.ndarray") numpy = info;
+  };
+  inspect(edge.getTypeInfo());
+  auto ports = [&](const std::vector<Node *> &nodes, bool inputs) {
+    for (auto *node : nodes) {
+      if (!node) continue;
+      auto edges = inputs ? node->getAllInput() : node->getAllOutput();
+      auto infos = inputs ? node->getInputTypeInfo() : node->getOutputTypeInfo();
+      for (size_t i = 0; i < edges.size() && i < infos.size(); ++i)
+        if (edges[i] == &edge) inspect(infos[i]);
+    }
+  };
+  ports(edge.getConsumers(), true);
+  ports(edge.getProducers(), false);
+  // A native image endpoint still needs an actual cv::Mat packet. Untyped
+  // arrays retain the historical image behavior; explicit NumPy ports keep
+  // their rank, dtype, strides and Python owner without an image conversion.
+  return numpy && !image ? std::make_shared<EdgeTypeInfo>(*numpy) : nullptr;
+}
+
 base::Status setPythonEdgeData(Edge &edge, const py::object &obj) {
   if (py::isinstance<py::array>(obj)) {
+    if (auto info = numpyDeclaration(edge))
+      return publish(edge, obj, obj.ptr(), true, true, std::move(info));
 #ifdef ENABLE_NNDEPLOY_OPENCV
     auto array = py::reinterpret_borrow<py::array>(obj);
     if (array.ndim() != 2 && array.ndim() != 3)

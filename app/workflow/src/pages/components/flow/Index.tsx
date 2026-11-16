@@ -40,9 +40,16 @@ import { NodeEntityForm } from "./NodeRepositoryEditor";
 import { IResponse } from "../../../request/types";
 import { EnumFlowType } from "../../../enum";
 import { designDataToBusinessData } from "./FlowSaveDrawer/toBusiness";
+import { serverRequest } from '../../../components/tools/server';
+import { recordRunState, updateRunTab } from '../../../components/tools/run-session';
+import { watchRunTask, restoreRun } from '../../../components/tools/run-connection';
+import { applyRunTaskState } from '../../../components/tools/run-state';
+import { useEditorAccessAllowed } from '../../../components/editor-access';
 import { buildEdges, transferBusinessContentToDesignContent, transferBusinessNodeToDesignNodeIterate } from "./FlowSaveDrawer/toDesign";
 
 interface FlowProps {
+  tabId: string;
+  name: string;
   id: string;
   flowType: EnumFlowType;
 
@@ -60,11 +67,13 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [flowType, setFlowType] = useState<EnumFlowType>(props.flowType);
 
+  const [restoredRun] = useState(() => restoreRun(props.tabId));
   const [runInfo, setRunInfo] = useState<IRunInfo>({
-    isRunning: false,
+    isRunning: Boolean(restoredRun),
+    submissionPending: Boolean(restoredRun && !restoredRun.confirmed),
     time: Date.now(),
     result: '',
-    runningTaskId: '',
+    runningTaskId: restoredRun?.taskId || '',
     downloadProgress: {},
     log: {
       items: [],
@@ -86,6 +95,18 @@ const Flow: React.FC<FlowProps> = (props) => {
   const [graphTopNode, setGraphTopNode] = useState<IBusinessNode>({} as IBusinessNode)
 
   const [downloading, setDownloading] = useState(false)
+
+  useEffect(() => {
+    if (!runInfo.isRunning && runInfo.outputResource.truncated) {
+      Toast.warning('Output preview was truncated.');
+    }
+  }, [runInfo.isRunning, runInfo.runningTaskId, runInfo.outputResource.truncated]);
+
+  useEffect(() => {
+    if (!runInfo.isRunning && runInfo.outputResource.expired) {
+      Toast.info('This task finished earlier. Its saved results have expired.');
+    }
+  }, [runInfo.isRunning, runInfo.runningTaskId, runInfo.outputResource.expired]);
 
   useEffect(() => {
     setGraphTopNode(lodash.cloneDeep(state.dagGraphInfo.graph))
@@ -127,6 +148,22 @@ const Flow: React.FC<FlowProps> = (props) => {
   });
 
   const [loading, setLoading] = useState(true);
+  const restoredViewFitted = useRef(false);
+  const restoredGraphLoaded = useRef(false);
+
+  useEffect(() => {
+    if (!restoredRun || loading || props.activeKey !== props.tabId || restoredViewFitted.current) return;
+    const frame = requestAnimationFrame(() => {
+      const context = ref.current;
+      // Tabs can mount while hidden. Refresh the editor's cached viewport
+      // dimensions after it becomes visible, before calculating the zoom.
+      if (context?.playground.resize()) {
+        void context.tools.fitView(false);
+        restoredViewFitted.current = true;
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [loading, props.activeKey, props.tabId, restoredRun]);
 
 
   const autoLayOutRef = useRef<AutoLayoutHandle>();
@@ -152,7 +189,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const fetchData = async (flowId: string, flowType: EnumFlowType) => {
 
-    if (!flowId) {
+    if (!flowId && (!restoredRun || restoredGraphLoaded.current)) {
       setLoading(false);
       return;
     }
@@ -182,7 +219,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     let response: IResponse<IBusinessNode>
 
-    if (flowType == EnumFlowType.template) {
+    if (!flowId && restoredRun) {
+      response = { flag: 'success', message: '', status: 200, error: 0, result: JSON.parse(restoredRun.payload) };
+    } else if (flowType == EnumFlowType.template) {
       response = await apiGetTemeplateWorkFlow(flowId);
       if (response.flag == "error") {
         return;
@@ -217,17 +256,21 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     // ref?.current?.document.reload(designContent);
     ref?.current?.operation.fromJSON(designContent)
+    if (!flowId) restoredGraphLoaded.current = true;
 
     setTimeout(() => {
-      //加载后触发画布的 fitview 让节点自动居中
-      ref?.current?.tools.fitView(false)
-      //ref?.current?.document.fitView();
-
-      if (!response.result.nndeploy_ui_layout) {
-        //autoLayOutRef.current?.autoLayout()
-        ref?.current?.tools.autoLayout({ enableAnimation: false, disableFitView: true })
-      }
-
+      const context = ref.current;
+      if (!context) return;
+      // Layout is asynchronous. Fit the resulting positions, not the initial
+      // overlapping nodes. Workflows with saved positions keep their layout.
+      const layout = response.result.nndeploy_ui_layout ? Promise.resolve()
+        : context.tools.autoLayout({ enableAnimation: false, disableFitView: true });
+      void layout.then(() => {
+        if (ref.current === context && props.activeKey === props.tabId) {
+          context.playground.resize();
+          return context.tools.fitView(false);
+        }
+      }).catch(() => Toast.warning('Unable to arrange the workflow. Try Auto Layout.'));
     }, 10);
 
 
@@ -254,14 +297,27 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
-  useEffect(() => {
-    const socket = setupWebSocket()
-    setSocket(socket)
-
-    return () => {
-      socket.close()
+  async function onStartServer(flowJson: FlowDocumentJSON, token: string, name: string, exposed: Record<string, string[][]>) {
+    const businessContent = designDataToBusinessData(flowJson, graphTopNode, flowJson.nodes, ref.current!);
+    const info = await serverRequest('/api/workflow/server/start', token, {
+      id: flowType === EnumFlowType.workspace ? entity.id : '', businessContent, name, exposed_parameters: exposed,
+    });
+    if (info.workflow_id) {
+      onflowSaveDrawrSure({ ...entity, id: info.workflow_id, designContent: flowJson, businessContent });
     }
-  }, [])
+    return info;
+  }
+
+  async function onServerParameters(flowJson: FlowDocumentJSON, token: string) {
+    const businessContent = designDataToBusinessData(flowJson, graphTopNode, flowJson.nodes, ref.current!);
+    const response = await fetch('/api/workflow/server/parameters', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? {Authorization: `Bearer ${token}`} : {}) },
+      body: JSON.stringify({id: flowType === EnumFlowType.workspace ? entity.id : '', businessContent}),
+    });
+    const value = await response.json();
+    if (!response.ok) throw new Error(value.error?.message || 'Unable to load node parameters');
+    return value;
+  }
 
   function onConfig() {
 
@@ -269,11 +325,13 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   const [socket, setSocket] = useState<WebSocket>();
+  const editorAccessAllowed = useEditorAccessAllowed();
 
   useEffect(() => {
-
-
-
+    if (!editorAccessAllowed) {
+      setSocket(undefined);
+      return;
+    }
     const socket = setupWebSocket()
     setSocket(socket)
 
@@ -294,7 +352,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     return () => {
       socket!.close()
     }
-  }, [])
+  }, [editorAccessAllowed])
 
 
   async function onDownload(flowJson: FlowDocumentJSON) {
@@ -433,13 +491,122 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   }
 
+  useEffect(() => {
+    updateRunTab({ tabId: props.tabId, id: props.id, name: props.name, flowType: props.flowType });
+  }, [props.tabId, props.id, props.name, props.flowType]);
+
+  useEffect(() => {
+    if (!runInfo.isRunning && runInfo.runningTaskId) {
+      const state = runInfo.result === 'success' ? 'SUCCEEDED' : runInfo.result === 'cancelled' ? 'CANCELLED' : 'FAILED';
+      recordRunState(runInfo.runningTaskId, state);
+    }
+  }, [runInfo.isRunning, runInfo.runningTaskId, runInfo.result]);
+
+  useEffect(() => {
+    const taskId = runInfo.runningTaskId;
+    if (!editorAccessAllowed || !runInfo.isRunning || !taskId) return;
+    return watchRunTask(taskId, setupWebSocket, task => {
+      setRunInfo(info => applyRunTaskState(info, task));
+      if (task.state === 'SUCCEEDED') dispatch(initFreshResourceTree({}));
+    }, response => {
+        if (response.result.task_id && response.result.task_id !== taskId) return;
+
+        if (response.flag != "success") {
+
+          if (response.result.type == 'task_run_info') {
+
+            const cancelled = response.flag === 'cancelled';
+            setRunInfo(info => applyRunTaskState(info, {
+              task_id: response.result.task_id, state: cancelled ? 'CANCELLED' : 'FAILED',
+              outputs_expired: response.result.outputs_expired, output_files: response.result.output_files, outputs: response.result.outputs, outputs_truncated: response.result.outputs_truncated,
+              time_profile: response.result.time_profile,
+            }));
+            if (cancelled) Toast.info('Run cancelled');
+            else Toast.error('Run failed');
+          }
+          return;
+        }
+
+        if (response.result.type == 'memory') {
+
+          setRunInfo(oldRunInfo => {
+            if (!oldRunInfo.isRunning || oldRunInfo.runningTaskId !== taskId) return oldRunInfo;
+            return {
+
+              ...oldRunInfo,
+              outputResource: { ...response.result, time: Date.now() }
+            }
+          })
+
+        } else if (response.result.type == 'progress') {
+
+          setRunInfo(oldRunInfo => {
+            if (!oldRunInfo.isRunning || oldRunInfo.runningTaskId !== taskId) return oldRunInfo;
+
+            return {
+
+
+              ...oldRunInfo,
+              flowNodesRunningStatus: response.result.detail
+            }
+          })
+        } else if (response.result.type == 'log') {
+          setRunInfo(oldRunInfo => {
+            if (!oldRunInfo.isRunning || oldRunInfo.runningTaskId !== taskId) return oldRunInfo;
+            return {
+
+              ...oldRunInfo,
+              log: {
+                ...oldRunInfo.log,
+                items: [...oldRunInfo.log.items, response.result.log],
+              }
+            }
+          })
+        } else if (response.result.type == 'task_run_info') {
+
+          setRunInfo(oldRunInfo => {
+            const completed = applyRunTaskState(oldRunInfo, { task_id: response.result.task_id, state: 'SUCCEEDED',
+              time_profile: response.result.time_profile,
+              outputs_expired: response.result.outputs_expired, output_files: response.result.output_files, outputs: response.result.outputs, outputs_truncated: response.result.outputs_truncated });
+            if (completed === oldRunInfo) return oldRunInfo;
+
+            return {
+              ...completed,
+              log: {
+                ...oldRunInfo.log,
+                time_profile: response.result.time_profile,
+              },
+              time: Date.now(),
+            }
+
+
+          })
+          dispatch(initFreshResourceTree({}))
+        } else if (response.result.type == 'system') {
+          if (response.result.event == 'worker_died') {
+
+            Toast.error("worker process died,restarting...");
+          } else if (response.result.event == 'worker_restarted') {
+            Toast.success("worker process restarted success");
+          }
+        }
+    });
+  }, [editorAccessAllowed, runInfo.runningTaskId, runInfo.isRunning]);
+
+  const submittingRun = useRef(false);
   async function onRun(flowJson: FlowDocumentJSON) {
+    if (submittingRun.current || runInfo.isRunning) return;
+    submittingRun.current = true;
     try {
 
       setRunInfo(oldRunInfo => {
         return {
           ...oldRunInfo,
           isRunning: true,
+          cancelRequested: false,
+          submissionPending: false,
+          runningTaskId: '',
+          flowNodesRunningStatus: {},
           result: '',
           log: {
             items: [],
@@ -460,9 +627,12 @@ const Flow: React.FC<FlowProps> = (props) => {
 
 
 
-      const response = await apiWorkFlowRun(businessContent);
+      const response = await apiWorkFlowRun(businessContent, {
+        tabId: props.tabId, id: props.id, name: props.name, flowType: props.flowType,
+      });
 
       if (response.flag == "error") {
+        setRunInfo(info => ({ ...info, isRunning: false, result: 'error', cancelRequested: false }));
         Toast.error("run fail " + response.message);
         return;
       }
@@ -475,121 +645,19 @@ const Flow: React.FC<FlowProps> = (props) => {
 
           ...oldRunInfo,
           runningTaskId: taskId,
+          submissionPending: response.flag === 'pending',
         }
       })
 
-      socket!.send(JSON.stringify({ type: "bind", task_id: taskId }));
-
-      socket!.onclose = () => {
-        //let j = 0
-      };
-
-      socket!.onmessage = (event) => {
-
-        const response = JSON.parse(event.data);
-
-        if (response.flag != "success") {
-
-          if (response.result.type == 'task_run_info') {
-
-            setRunInfo(oldRunInfo => {
-
-
-              if (response.result.task_id == oldRunInfo.runningTaskId) {
-                return {
-
-
-                  ...oldRunInfo,
-                  isRunning: false,
-                  result: 'error',
-                  flowNodesRunningStatus: {},
-                }
-
-              } else {
-                return {
-                  ...oldRunInfo
-                }
-              }
-
-            })
-
-            Toast.error("run fail ");
-          }
-          return;
-        }
-
-        if (response.result.type == 'memory') {
-
-          setRunInfo(oldRunInfo => {
-            return {
-
-              ...oldRunInfo,
-              outputResource: { ...response.result, time: Date.now() }
-            }
-          })
-
-        } else if (response.result.type == 'progress') {
-
-          setRunInfo(oldRunInfo => {
-
-            return {
-
-
-              ...oldRunInfo,
-              flowNodesRunningStatus: response.result.detail
-            }
-          })
-        } else if (response.result.type == 'log') {
-          setRunInfo(oldRunInfo => {
-            return {
-
-              ...oldRunInfo,
-              log: {
-                ...oldRunInfo.log,
-                items: [...oldRunInfo.log.items, response.result.log],
-              }
-            }
-          })
-        } else if (response.result.type == 'task_run_info') {
-
-          setRunInfo(oldRunInfo => {
-
-            return {
-              ...oldRunInfo,
-              isRunning: false,
-              result: 'success',
-              log: {
-                ...oldRunInfo.log,
-                time_profile: response.result.time_profile,
-              },
-              time: Date.now(),
-            }
-
-
-          })
-          dispatch(initFreshResourceTree({}))
-        } else if (response.result.type == 'system') {
-          if (response.result.event == 'worker_died') {
-
-            Toast.error("worker process died,restarting...");
-            setRunInfo(oldRunInfo => {
-              return {
-                ...oldRunInfo,
-                isRunning: false,
-                result: '',
-                runningTaskId: '',
-                flowNodesRunningStatus: {},
-              }
-            })
-          } else if (response.result.event == 'worker_restarted') {
-            Toast.success("worker process restarted success");
-          }
-        }
-      }
+      if (response.flag === 'pending') Toast.info(response.message);
+      if (response.storageWarning) Toast.warning(response.storageWarning);
 
       //Toast.success("run sucess!");
     } catch (error) {
-      Toast.error("run fail " + error);
+      setRunInfo(info => info.runningTaskId ? info : { ...info, isRunning: false, result: 'error' });
+      Toast.error('Unable to prepare workflow submission: ' + String(error));
+    } finally {
+      submittingRun.current = false;
     }
 
   }
@@ -742,6 +810,10 @@ const Flow: React.FC<FlowProps> = (props) => {
           value={{
             element: demoContainerRef,
             onSave,
+            onStartServer,
+            onServerParameters,
+            serverName: graphTopNode.name_ || props.name,
+            workflowId: flowType === EnumFlowType.workspace ? entity.id : undefined,
             onRun,
             onDownload,
             downloading,

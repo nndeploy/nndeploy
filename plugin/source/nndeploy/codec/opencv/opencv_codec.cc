@@ -31,8 +31,9 @@ base::Status OpenCvImageDecode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvImageDecode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImageDecode::setPath(const std::string &path) {
+  if (path.empty()) return reset();
   if (!base::exists(path)) {
-    NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
+    NNDEPLOY_LOGE("path[%s] does not exist!\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
   if (parallel_type_ == base::kParallelTypePipeline) {
@@ -45,6 +46,7 @@ base::Status OpenCvImageDecode::setPath(const std::string &path) {
     path_cv_.notify_one();  // 通知等待的线程
   } else {
     path_ = path;
+    index_ = 0;
     path_changed_ = true;
     path_ready_ = true;  // 设置标志
   }
@@ -87,6 +89,7 @@ base::Status OpenCvImagesDecode::deinit() {
 }
 
 base::Status OpenCvImagesDecode::setPath(const std::string &path) {
+  if (path.empty()) return reset();
   if (parallel_type_ == base::kParallelTypePipeline) {
     std::lock_guard<std::mutex> lock(path_mutex_);
     path_ = path;
@@ -108,13 +111,13 @@ base::Status OpenCvImagesDecode::setPath(const std::string &path) {
       images_.insert(images_.end(), jpeg_result.begin(), jpeg_result.end());
 
       std::vector<std::string> bmp_result;
-      base::glob(path_, ".bmp", bmp_result);
+      base::glob(path_, "*.bmp", bmp_result);
       images_.insert(images_.end(), bmp_result.begin(), bmp_result.end());
 
       size_ = (int)images_.size();
       if (size_ == 0) {
         NNDEPLOY_LOGE("path[%s] not exist pic!\n", path_.c_str());
-        status = base::kStatusCodeErrorInvalidParam;
+        return base::kStatusCodeErrorInvalidParam;
       }
     } else {
       NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
@@ -143,7 +146,7 @@ base::Status OpenCvImagesDecode::setPath(const std::string &path) {
       images_.insert(images_.end(), jpeg_result.begin(), jpeg_result.end());
 
       std::vector<std::string> bmp_result;
-      base::glob(path_, ".bmp", bmp_result);
+      base::glob(path_, "*.bmp", bmp_result);
       images_.insert(images_.end(), bmp_result.begin(), bmp_result.end());
 
       size_ = (int)images_.size();
@@ -151,6 +154,7 @@ base::Status OpenCvImagesDecode::setPath(const std::string &path) {
         NNDEPLOY_LOGE("path[%s] not exist pic!\n", path_.c_str());
         status = base::kStatusCodeErrorInvalidParam;
       }
+      loop_count_ = size_;
       return status;
     } else {
       NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
@@ -183,6 +187,7 @@ base::Status OpenCvImagesDecode::run() {
   } else {
     NNDEPLOY_LOGI("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                   index_, size_);
+    return base::kStatusCodeErrorInvalidParam;
   }
   return base::kStatusCodeOk;
 }
@@ -198,6 +203,7 @@ base::Status OpenCvVideoDecode::deinit() {
 }
 
 base::Status OpenCvVideoDecode::setPath(const std::string &path) {
+  if (path.empty()) return reset();
   if (parallel_type_ == base::kParallelTypePipeline) {
     std::lock_guard<std::mutex> lock(path_mutex_);
     path_ = path;
@@ -338,6 +344,7 @@ base::Status OpenCvVideoDecode::run() {
       delete mat;
       NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                     index_, size_);
+      return base::kStatusCodeErrorInvalidParam;
     }
   }
 
@@ -556,6 +563,10 @@ base::Status OpenCvVideoEncode::setRefPath(const std::string &path) {
 }
 
 base::Status OpenCvVideoEncode::setPath(const std::string &path) {
+  if (path.empty()) return reset();
+  if (fourcc_.size() != 4) {
+    return base::kStatusCodeErrorInvalidParam;
+  }
   if (writer_ != nullptr) {
     if (writer_->isOpened()) {
       NNDEPLOY_LOGI("OpenCvVideoEncode::deinit() writer_->release()\n");
@@ -565,6 +576,7 @@ base::Status OpenCvVideoEncode::setPath(const std::string &path) {
     writer_ = nullptr;
   }
   path_ = path;
+  index_ = 0;
   path_changed_ = true;
   if (width_ <= 0 || height_ <= 0) {
     return base::kStatusCodeOk;
@@ -586,6 +598,9 @@ base::Status OpenCvVideoEncode::setPath(const std::string &path) {
 }
 
 base::Status OpenCvVideoEncode::run() {
+  if (path_.empty() || fourcc_.size() != 4 || !(fps_ > 0)) {
+    return base::kStatusCodeErrorInvalidParam;
+  }
   if (writer_ == nullptr && width_ <= 0 && height_ <= 0) {
     cv::Mat *first = inputs_[0]->getCvMat(this);
     if (first == nullptr || first->empty()) {
@@ -610,9 +625,14 @@ base::Status OpenCvVideoEncode::run() {
   }
   if (size_ == 0 || index_ < size_) {
     cv::Mat *mat = inputs_[0]->getCvMat(this);
-    if (mat != nullptr) {
-      writer_->write(*mat);
+    if (mat == nullptr || mat->empty() || mat->cols != width_ ||
+        mat->rows != height_ || mat->type() != CV_8UC3 ||
+        writer_ == nullptr || !writer_->isOpened()) {
+      NNDEPLOY_LOGE("OpenCvVideoEncode: expected a nonempty BGR frame with "
+                    "unchanged dimensions and an open writer\n");
+      return base::kStatusCodeErrorInvalidParam;
     }
+    writer_->write(*mat);
     index_++;
     if (size_ > 0 && index_ == size_) {
       writer_->release();

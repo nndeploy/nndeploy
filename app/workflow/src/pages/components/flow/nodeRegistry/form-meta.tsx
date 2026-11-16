@@ -30,6 +30,9 @@ import { PropertyEdit } from "./propertyEdit";
 import IoType, { EnumIODataType } from "./ioType";
 import { isContainerNode } from "../functions";
 import classNames from "classnames";
+import { getOutputNodePath } from '../../../../components/tools/webui/functions';
+import { getResourceFields, resourceFieldName, setResourceValue } from '../../../../components/resource-files';
+import { ResourceFilesInput } from '../../../../components/resource-files-input';
 
 const { Text } = Typography;
 
@@ -50,6 +53,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const name_ = form.getValueIn('name_')
 
   const ioType: EnumIODataType = form.getValueIn('io_type_')
+  const resourceFields = getResourceFields(form.values);
 
   const isContainer = isContainerNode(node.id, clientContext)
 
@@ -59,7 +63,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     const parents = ['', 'param_', 'param']
     for (const parent of parents) {
 
-      const params = ['io_param_', 'required_params_']
+      const params = ['io_param_', 'io_params_', 'required_params_']
 
       for (const param of params) {
         let ioPosition = form.getValueIn((parent ? parent + '.' : '') + param)
@@ -172,7 +176,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
           <>
 
             {
-              (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
+              resourceFields.length === 0 && (isInputMediaNode() || isOutputMediaNode()) && getIoTypeFieldName() &&
 
               <Field key={name_} name={getIoTypeFieldName()} >
                 {({ field, fieldState }) => {
@@ -180,6 +184,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                     direction={isInputMediaNode() ? 'input' : 'output'}
                     ioDataType={ioType}
                     nodeName={name_}
+                    nodePath={getOutputNodePath(node)}
+                    fieldPath={getIoTypeFieldName().split('.')}
 
                     // value={getIoTypeFieldValue()}
                     value={field.value as string}
@@ -196,6 +202,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 }}
               </Field>
             }
+            {resourceFields.map(resource => <div key={JSON.stringify(resource.path)} style={{ marginBottom: 8 }}>
+              <div>{resource.path.join(' / ')}</div>
+              <Field name={resourceFieldName(resource.path)}>
+                {() => <ResourceFilesInput label={`${name_} ${resource.path.join(' / ')}`}
+                  value={form.getValueIn(resourceFieldName(resource.path))} directory={resource.directory}
+                  onChange={value => { form.values = setResourceValue(form.values, resource.path, value); }} />}
+              </Field>
+            </div>)}
             {
               isContainer &&
               <SubCanvasRender style={{ visibility: 'hidden' }} offsetY={-50} />

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { getNodeForm, useNodeRender } from "@flowgram.ai/free-layout-editor";
 import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
-import { getIoTypeFieldName, getIoTypeFieldValue, setNodeFieldValue } from "../../../functions";
+import { getIoTypeFieldName, getIoTypeFieldValue, getOutputFileUrl, setNodeFieldValue } from "../../../functions";
 import lodash from 'lodash'
 import { Map } from 'immutable';
 import UiParams from "../../uiParams";
@@ -74,7 +74,8 @@ const IoTypeImage: React.FC<IoTypeProps> = (props) => {
   }, [])
 
 
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}&returnMimeType=image`
+  const savedUrl = direction === 'output' ? getOutputFileUrl(runInfo.outputResource, [node.name_], getIoTypeFieldName(node).split('.')) : undefined
+  const previewUrl = direction === 'output' && runInfo.outputResource.files ? savedUrl : `/api/preview?file_path=${encodeURIComponent(value ?? '')}&time=${runInfo.time}&returnMimeType=image`
 
 
 
@@ -156,7 +157,7 @@ const IoTypeImage: React.FC<IoTypeProps> = (props) => {
             <div className={classNames(styles['io-type-output-container'])}>
 
               {/* <UiParams {...props} className={classNames(styles['ui-params'])}/> */}
-              <div className={classNames(styles["image-container"], { [styles.hasImage]: runResult == 'success' && !!value })}>
+              <div className={classNames(styles["image-container"], { [styles.hasImage]: runResult == 'success' && !!previewUrl })}>
                 <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                   debugger
                   event.stopPropagation();

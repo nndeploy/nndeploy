@@ -46,7 +46,11 @@ export class AxiosRequest implements IRequest {
 
         const { flag } = businessData
 
-        var error = businessData.error ? businessData.error : businessData.msg ? businessData.msg : ''
+        const error = [
+          typeof businessData.error === 'string' ? businessData.error : businessData.error?.message,
+          businessData.message,
+          businessData.msg,
+        ].find(value => typeof value === 'string' && value.trim()) || 'Request failed. Please try again.'
 
         if (flag && flag == 'error' && businessData.statusCode && businessData.statusCode == '403') {
           message.warning('您的登录已失效, 正在退出, 请稍后!')

@@ -4,12 +4,17 @@ import { INodeEntity } from '../pages/Node/entity';
 import { IBusinessNode, IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
 import { IFlowNodesRunningStatus, ILog, IOutputResource, IRunInfo } from '../pages/components/flow/entity';
 import { run } from 'node:test';
+import type { ServerInfo } from '../components/tools/server';
 
 export const FlowEnviromentContext = React.createContext<
   {
     nodeList?: INodeEntity[],
     element?: React.MutableRefObject<HTMLDivElement | null>;
     onSave?: (flowJson: FlowDocumentJSON) => void;
+    onStartServer?: (flowJson: FlowDocumentJSON, token: string, name: string, exposed: Record<string, string[][]>) => Promise<ServerInfo>;
+    onServerParameters?: (flowJson: FlowDocumentJSON, token: string) => Promise<Record<string, {default: Record<string, unknown>; exposed: string[][]}>>;
+    serverName?: string;
+    workflowId?: string;
     onRun?: (flowJson: FlowDocumentJSON) => void;
     onDownload?: (flowJson: FlowDocumentJSON) => void;
     downloading: boolean,

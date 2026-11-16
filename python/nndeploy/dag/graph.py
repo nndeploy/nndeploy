@@ -28,6 +28,10 @@ class Graph(_C.dag.Graph):
         self.set_key("nndeploy.dag.Graph")
         self.set_desc("Graph: Graph for nndeploy in python")
         self.nodes = []
+        # Native port vectors borrow Edge pointers. Register Python-owned
+        # ports through add_edge, whose binding keeps their owners alive.
+        for edge in (inputs or []) + (outputs or []):
+            self.add_edge(edge)
         
     def __del__(self):
         """Destructor to clean up graph resources"""
@@ -348,6 +352,10 @@ class Graph(_C.dag.Graph):
         Args:
             node: Node object
         """
+        # addNode discovers internal edges in C++ without the Python
+        # keep-alive used by add_edge. Preserve those owners as well.
+        for edge in node.get_all_input() + node.get_all_output():
+            self.add_edge(edge)
         return super().add_node(node)
     
     def delete_node(self, node: Node):

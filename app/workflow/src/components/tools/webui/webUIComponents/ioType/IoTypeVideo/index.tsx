@@ -8,7 +8,7 @@ import classNames from "classnames";
 import { getNodeForm, useNodeRender } from "@flowgram.ai/free-layout-editor";
 import { useFlowEnviromentContext } from "../../../../../../context/flow-enviroment-context";
 import { useGetFileInfo } from "./effect";
-import { getIoTypeFieldName, getIoTypeFieldValue, setNodeFieldValue } from "../../../functions";
+import { getIoTypeFieldName, getIoTypeFieldValue, getOutputFileUrl, setNodeFieldValue } from "../../../functions";
 
 const { Text } = Typography;
 
@@ -78,7 +78,8 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-  const previewUrl = `/api/preview?file_path=${value}&time=${runInfo.time}`
+  const savedUrl = direction === 'output' ? getOutputFileUrl(runInfo.outputResource, [node.name_], getIoTypeFieldName(node).split('.')) : undefined
+  const previewUrl = direction === 'output' && runInfo.outputResource.files ? savedUrl : `/api/preview?file_path=${encodeURIComponent(value ?? '')}&time=${runInfo.time}`
 
 
 
@@ -177,7 +178,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-                    src={`/api/preview?file_path=${value}`}
+                    src={previewUrl}
                   //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                   />
                 </>
@@ -186,7 +187,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
             </div>
 
             :
-            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!value })}>
+            <div className={classNames(styles['io-type-output-container'], { [styles.show]: runResult == 'success' && !!previewUrl })}>
 
 
               <div className={styles["video-container"]}>
@@ -195,7 +196,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
                   runInfo.isRunning ? <div className={styles.spin}>
                     <Spin size="middle" />
                   </div> :
-                    value && runResult == 'success' &&
+                    previewUrl && runResult == 'success' &&
                     <>
                       <IconEyeOpened size="extra-large" className={styles["icon-view"]} onClick={(event) => {
                         debugger
@@ -213,7 +214,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
 
 
 
-                        src={`/api/preview?file_path=${value}`}
+                        src={previewUrl}
                       //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                       />
                     </>
@@ -260,7 +261,7 @@ const IoTypeVideo: React.FC<IoTypeTextFileProps> = (props) => {
               clickToPlay={false}
               autoPlay={false}
 
-              src={`/api/preview?file_path=${value}`}
+              src={previewUrl}
             //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
             />
           </div>

@@ -15,6 +15,9 @@
 #   sfsort_core           - static lib: SfSort tracker
 #   occluboost_core       - static lib: OccluBoost tracker
 
+# Eigen is required only by the BoxMot native trackers.
+include("${CMAKE_CURRENT_LIST_DIR}/eigen.cmake")
+
 set(BOXMOT_ROOT "${PROJECT_SOURCE_DIR}/third_party/boxmot")
 
 if(EXISTS "${BOXMOT_ROOT}/boxmot/native/cpp/trackers")

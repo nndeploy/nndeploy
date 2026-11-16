@@ -67,6 +67,53 @@ base::Status YoloPostParam::deserialize(rapidjson::Value& json) {
   return base::kStatusCodeOk;
 }
 
+base::Status YoloPostProcess::deserialize(rapidjson::Value& json) {
+  // Older workflow JSON connects output_0 (DetectResult) directly to DrawBox.
+  // Keep that declared interface while retaining the newer bbox/detect ports.
+  bool legacy_output = false;
+  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+    auto& outputs = json["outputs_"];
+    legacy_output = outputs.Size() == 1 && outputs[0].HasMember("type_") &&
+                     outputs[0]["type_"].IsString() &&
+                     dag::removeNamespace(outputs[0]["type_"].GetString()) == "DetectResult";
+  }
+  output_type_info_.clear();
+  if (legacy_output) {
+    setOutputTypeInfo<DetectResult>();
+  } else {
+    setOutputTypeInfo<BBoxResult>("bbox");
+    setOutputTypeInfo<DetectResult>("detect");
+  }
+  return dag::Node::deserialize(json);
+}
+
+base::Status YoloPostProcess::publishResults(std::unique_ptr<DetectResult> results) {
+  if (outputs_.empty()) return base::kStatusCodeErrorInvalidParam;
+  if (output_type_info_[0]->getTypeName() == "DetectResult") {
+    auto status = outputs_[0]->set(results.get(), false);
+    if (status == base::kStatusCodeOk) results.release();
+    return status;
+  }
+  auto boxes = std::make_unique<BBoxResult>();
+  for (const auto& det : results->bboxs_) {
+    BBox bbox;
+    bbox.index_ = det.index_;
+    bbox.label_id_ = det.label_id_;
+    bbox.label_name_ = det.label_name_;
+    bbox.score_ = det.score_;
+    bbox.bbox_ = det.bbox_;
+    boxes->bboxs_.push_back(std::move(bbox));
+  }
+  auto status = outputs_[0]->set(boxes.get(), false);
+  if (status != base::kStatusCodeOk) return status;
+  boxes.release();
+  if (outputs_.size() > 1) {
+    status = outputs_[1]->set(results.get(), false);
+    if (status == base::kStatusCodeOk) results.release();
+  }
+  return status;
+}
+
 base::Status YoloPostProcess::run() {
   // NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
   //               std::this_thread::get_id());
@@ -161,22 +208,7 @@ base::Status YoloPostProcess::runV5V6() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-  // Build lightweight BBoxResult for DrawBBox (output_0)
-  BBoxResult* bbox_result = new BBoxResult();
-  for (const auto& det : results->bboxs_) {
-    BBox bbox;
-    bbox.index_ = det.index_;
-    bbox.label_id_ = det.label_id_;
-    bbox.label_name_ = det.label_name_;
-    bbox.score_ = det.score_;
-    bbox.bbox_ = det.bbox_;
-    bbox_result->bboxs_.push_back(std::move(bbox));
-  }
-  outputs_[0]->set(bbox_result, false);
-  if (outputs_.size() > 1) {
-    outputs_[1]->set(results, false);
-  }
-  return base::kStatusCodeOk;
+  return publishResults(std::unique_ptr<DetectResult>(results));
 }
 
 base::Status YoloPostProcess::runV8V11() {
@@ -283,21 +315,7 @@ base::Status YoloPostProcess::runV8V11() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-  BBoxResult* bbox_result = new BBoxResult();
-  for (const auto& det : results->bboxs_) {
-    BBox bbox;
-    bbox.index_ = det.index_;
-    bbox.label_id_ = det.label_id_;
-    bbox.label_name_ = det.label_name_;
-    bbox.score_ = det.score_;
-    bbox.bbox_ = det.bbox_;
-    bbox_result->bboxs_.push_back(std::move(bbox));
-  }
-  outputs_[0]->set(bbox_result, false);
-  if (outputs_.size() > 1) {
-    outputs_[1]->set(results, false);
-  }
-  return base::kStatusCodeOk;
+  return publishResults(std::unique_ptr<DetectResult>(results));
 }
 
 base::Status YoloPostProcess::runE2E() {
@@ -361,21 +379,7 @@ base::Status YoloPostProcess::runE2E() {
     }
   }
 
-  BBoxResult* bbox_result = new BBoxResult();
-  for (const auto& det : results->bboxs_) {
-    BBox bbox;
-    bbox.index_ = det.index_;
-    bbox.label_id_ = det.label_id_;
-    bbox.label_name_ = det.label_name_;
-    bbox.score_ = det.score_;
-    bbox.bbox_ = det.bbox_;
-    bbox_result->bboxs_.push_back(std::move(bbox));
-  }
-  outputs_[0]->set(bbox_result, false);
-  if (outputs_.size() > 1) {
-    outputs_[1]->set(results, false);
-  }
-  return base::kStatusCodeOk;
+  return publishResults(std::unique_ptr<DetectResult>(results));
 }
 
 // dag::Graph *createYoloV5Graph(const std::string &name,

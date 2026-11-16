@@ -17,6 +17,7 @@ export const AutoLayout =  forwardRef<any>((props, ref) => {
   return (
     <Tooltip content={'Auto Layout'}>
       <IconButton
+        aria-label="Auto Layout"
         disabled={playground.config.readonly}
         type="tertiary"
         theme="borderless"

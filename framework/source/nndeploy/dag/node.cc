@@ -1360,7 +1360,9 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("node_type_",
                  rapidjson::Value(node_type_str.c_str(), allocator), allocator);
   if (node_type_ == NodeType::kNodeTypeInput ||
-      node_type_ == NodeType::kNodeTypeOutput) {
+      node_type_ == NodeType::kNodeTypeOutput || io_type_ != IOType::kIOTypeNone) {
+    // Intermediate nodes may declare model/directory resources as I/O params.
+    // Keep that explicit type when saving a workflow, not just for I/O nodes.
     std::string io_type_str = ioTypeToString(io_type_);
     json.AddMember("io_type_", rapidjson::Value(io_type_str.c_str(), allocator),
                    allocator);

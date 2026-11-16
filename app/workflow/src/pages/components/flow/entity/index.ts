@@ -10,7 +10,21 @@ export interface IFlowNodesRunningStatus {
 }
 
 
+export interface IOutputFile {
+  node_path: string[];
+  field_path?: (string | number)[];
+  file_id: string;
+  media_type: string;
+  size: number;
+  sha256: string;
+  url: string;
+}
+
 export interface IOutputResource {
+  files?: IOutputFile[];
+  task_id?: string;
+  truncated?: boolean;
+  expired?: boolean;
   // path: { name: string, path: string }[],
   // text: { name: string, text: string }[]
   type: 'memory',
@@ -27,6 +41,7 @@ export interface ILog {
   time_profile: {
     init_time?: number,
     run_time?: number
+    nodes?: IFlowNodesRunningStatus
   }
 
 }
@@ -40,7 +55,9 @@ export interface IDownloadProgress {
 }
 export interface IRunInfo {
   isRunning: boolean
-  result: '' | 'error' | 'success',
+  result: '' | 'error' | 'success' | 'cancelled',
+  cancelRequested?: boolean;
+  submissionPending?: boolean;
   runningTaskId: string;
   downloadProgress: {
     [fileName: string]: IDownloadProgress

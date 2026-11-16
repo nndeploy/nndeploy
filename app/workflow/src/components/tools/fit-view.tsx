@@ -7,6 +7,7 @@ export const FitView = () => {
   return (
     <Tooltip content="FitView">
       <IconButton
+        aria-label="Fit View"
         icon={<IconExpand />}
         type="tertiary"
         theme="borderless"

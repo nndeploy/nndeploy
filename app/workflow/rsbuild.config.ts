@@ -22,29 +22,16 @@ export default defineConfig({
   server: {
     port: 3000, // 开发服务器的端口
     proxy: {
-
-      '/api/ws': { // 代理路径，可以是任意路径
-        target: 'ws://183.215.186.194:7777', // 目标服务器的地址
+      '/api': {
+        target: process.env.NNDEPLOY_SERVER_URL || 'http://127.0.0.1:8000',
         ws: true,
-        secure: false, // 如果目标服务器使用自签名证书，请设置为false
-        changeOrigin: true, // 是否改变请求头中的origin
-
-
-        // pathRewrite: { '^/api': '' }, // 重写路径，例如将'/api/user'重写为'/user'
-        headers: { // 可选的，向目标服务器发送额外的请求头
-          Host: 'localhost'
-        }
+        // Keep the browser origin and Host consistent for session/CSRF checks.
+        changeOrigin: false,
       },
-      '/api': { // 代理路径，可以是任意路径
-        target: 'http://183.215.186.194:7777', // 目标服务器的地址
-        secure: false, // 如果目标服务器使用自签名证书，请设置为false
-        changeOrigin: true, // 是否改变请求头中的origin
-        // pathRewrite: { '^/api': '' }, // 重写路径，例如将'/api/user'重写为'/user'
-        headers: { // 可选的，向目标服务器发送额外的请求头
-          Host: 'localhost'
-        }
-      }
-
-    }
-  }
+      '/v1': {
+        target: process.env.NNDEPLOY_SERVER_URL || 'http://127.0.0.1:8000',
+        changeOrigin: false,
+      },
+    },
+  },
 });

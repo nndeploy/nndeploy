@@ -404,6 +404,8 @@ class NNDEPLOY_CC_API Sam3LanguageEncodeNode : public dag::Node {
   Sam3LanguageEncodeNode(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::Sam3LanguageEncodeNode";
     desc_ = "SAM 3 Language Encode Node - CLIP text encoder.";
+    this->setInputTypeInfo<Sam3ConceptParam>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3LanguageParam>();
     this->defaultParam();
   }
@@ -413,6 +415,8 @@ class NNDEPLOY_CC_API Sam3LanguageEncodeNode : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::Sam3LanguageEncodeNode";
     desc_ = "SAM 3 Language Encode Node - CLIP text encoder.";
+    this->setInputTypeInfo<Sam3ConceptParam>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3LanguageParam>();
     this->defaultParam();
   }
@@ -592,6 +596,8 @@ class NNDEPLOY_CC_API Sam3PerceptionEncoder : public dag::Node {
   Sam3PerceptionEncoder(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::Sam3PerceptionEncoder";
     desc_ = "SAM 3 Perception Encoder (shared ViT backbone).";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3PerceptionEncoderParam>();
     this->defaultParam();
   }
@@ -600,6 +606,8 @@ class NNDEPLOY_CC_API Sam3PerceptionEncoder : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::Sam3PerceptionEncoder";
     desc_ = "SAM 3 Perception Encoder (shared ViT backbone).";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3PerceptionEncoderParam>();
     this->defaultParam();
   }
@@ -646,6 +654,12 @@ class NNDEPLOY_CC_API Sam3DetectorDecoder : public dag::Node {
   Sam3DetectorDecoder(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::Sam3DetectorDecoder";
     desc_ = "SAM 3 DETR Detector Decoder with Presence Token.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3DetectorDecoderParam>();
     this->defaultParam();
   }
@@ -654,6 +668,12 @@ class NNDEPLOY_CC_API Sam3DetectorDecoder : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::Sam3DetectorDecoder";
     desc_ = "SAM 3 DETR Detector Decoder with Presence Token.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3DetectorDecoderParam>();
     this->defaultParam();
   }
@@ -707,6 +727,13 @@ class NNDEPLOY_CC_API Sam3PresenceHead : public dag::Node {
   Sam3PresenceHead(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::Sam3PresenceHead";
     desc_ = "SAM 3 Presence Head: decoupled recognition & localization.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3PresenceHeadParam>();
     this->defaultParam();
   }
@@ -715,6 +742,13 @@ class NNDEPLOY_CC_API Sam3PresenceHead : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::Sam3PresenceHead";
     desc_ = "SAM 3 Presence Head: decoupled recognition & localization.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3PresenceHeadParam>();
     this->defaultParam();
   }
@@ -754,6 +788,11 @@ class NNDEPLOY_CC_API Sam3ConceptMatcher : public dag::Node {
   Sam3ConceptMatcher(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::segment::Sam3ConceptMatcher";
     desc_ = "SAM 3 Concept Matcher: match queries to concepts.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3ConceptMatcherParam>();
     this->defaultParam();
   }
@@ -762,6 +801,11 @@ class NNDEPLOY_CC_API Sam3ConceptMatcher : public dag::Node {
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::segment::Sam3ConceptMatcher";
     desc_ = "SAM 3 Concept Matcher: match queries to concepts.";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
     param_ = std::make_shared<Sam3ConceptMatcherParam>();
     this->defaultParam();
   }
