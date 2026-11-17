@@ -1,0 +1,2 @@
+# Keep source provenance despite the repository-wide *.json rule.
+!MIGRATION.json

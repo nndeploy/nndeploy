@@ -1,0 +1,20 @@
+# Native inference dependencies; validated with Python 3.12 on Linux/L40S.
+# Install a matching CUDA build of torch/torchvision before this file.
+torch==2.10.0
+torchvision==0.25.0
+numpy>=1.26,<2
+timm==1.0.31
+triton==3.6.0; platform_system == "Linux"
+Pillow>=10
+opencv-python>=4.10,<5
+einops>=0.8
+ftfy>=6.1
+regex
+iopath>=0.1.10
+psutil>=5.9
+tqdm>=4.66
+scipy>=1.11
+scikit-image>=0.22
+typing_extensions>=4.10
+# Optional: huggingface-hub for automatic checkpoint downloads.
+# Optional: cc_torch, torchcodec, decord, flash_attn_interface, xformers.

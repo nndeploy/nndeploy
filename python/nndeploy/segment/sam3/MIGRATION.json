@@ -1,0 +1,272 @@
+{
+  "source_repository": "https://github.com/Alwaysssssss/sam3",
+  "source_commit": "ae8591cc61ee4582f8ba7b0ed07f78de376e2462",
+  "nndeploy_base_commit": "29062bd340adc47df79ba211e42cf5062cc62eb1",
+  "namespace": "nndeploy.segment.sam3",
+  "scope": "Original SAM3 image and video inference; no training, evaluation, agent, or SAM3.1 builders",
+  "files": [
+    {
+      "path": "__init__.py",
+      "upstream_sha256": "ca3821a125f767e6a35188603b51ef2501b1e7c3d1a90546ac567c5d2a80b9fb",
+      "migrated_sha256": "075d11085367b4ab6098bec4ca57c9aa6ac866c9398725fcaf71b7f8127ebd99"
+    },
+    {
+      "path": "assets/bpe_simple_vocab_16e6.txt.gz",
+      "upstream_sha256": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+      "migrated_sha256": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a"
+    },
+    {
+      "path": "logger.py",
+      "upstream_sha256": "886d7b6101ab3cc07f40348a67054101ad87ca2ab9b3546fef1113f3e19db51e",
+      "migrated_sha256": "886d7b6101ab3cc07f40348a67054101ad87ca2ab9b3546fef1113f3e19db51e"
+    },
+    {
+      "path": "model/__init__.py",
+      "upstream_sha256": "5737b3ba20d7549b2fce53c995fa80c331b116d1f958980d99bf6f161e28e3a6",
+      "migrated_sha256": "5737b3ba20d7549b2fce53c995fa80c331b116d1f958980d99bf6f161e28e3a6"
+    },
+    {
+      "path": "model/act_ckpt_utils.py",
+      "upstream_sha256": "913317a663cf0f19317feb66ea43ff7a86e44393f39af3731ba3d33dfff93a82",
+      "migrated_sha256": "d93d082133611af2d973f4df1e96d6281a5ddff9785b98ccd291e1830161d803"
+    },
+    {
+      "path": "model/box_ops.py",
+      "upstream_sha256": "2d1a11337f1db93ccd87132319716cf68b215c59fa51e43416bdad7ab30c8151",
+      "migrated_sha256": "2d1a11337f1db93ccd87132319716cf68b215c59fa51e43416bdad7ab30c8151"
+    },
+    {
+      "path": "model/data_misc.py",
+      "upstream_sha256": "2de49374056d39398f6d90f0326d0ebe75c4c0890a7a0ff281da704ed5ccaa34",
+      "migrated_sha256": "2de49374056d39398f6d90f0326d0ebe75c4c0890a7a0ff281da704ed5ccaa34"
+    },
+    {
+      "path": "model/decoder.py",
+      "upstream_sha256": "392f77936a5a2ed294ed1244dffda73b0eaa139c13466e17a4c969ae70e732ec",
+      "migrated_sha256": "1a7199779cb4e9503dc7475680be55453e19446ce6c5bf08721b31f2bab0f13c"
+    },
+    {
+      "path": "model/edt.py",
+      "upstream_sha256": "d0833410c5e0ff3a473a2db3ba67bd2207ccc6d041cb7a6cee878265405fca7e",
+      "migrated_sha256": "d0833410c5e0ff3a473a2db3ba67bd2207ccc6d041cb7a6cee878265405fca7e"
+    },
+    {
+      "path": "model/encoder.py",
+      "upstream_sha256": "30ff2de9c89401a0ef8ac12db5344ce2513e545e4c9eb043b9bee12aa6d67f06",
+      "migrated_sha256": "30ff2de9c89401a0ef8ac12db5344ce2513e545e4c9eb043b9bee12aa6d67f06"
+    },
+    {
+      "path": "model/geometry_encoders.py",
+      "upstream_sha256": "7deb3ea1323cd8377fe5017fe9d1767598d583e0a4c989111c89a30679d10ec4",
+      "migrated_sha256": "7deb3ea1323cd8377fe5017fe9d1767598d583e0a4c989111c89a30679d10ec4"
+    },
+    {
+      "path": "model/io_utils.py",
+      "upstream_sha256": "8bf0d036bc616a2429a258fa3a91d733e7c64621fe1616fa0c129c29c0fca637",
+      "migrated_sha256": "2eeeeec8fcc4dbd8e76ab9c300277b4ca535a94939fbcfceaa0c3ba663501ca4"
+    },
+    {
+      "path": "model/maskformer_segmentation.py",
+      "upstream_sha256": "26797a63d3681959b3c922f18304ce37053763e6f1dd763ceea25d5df9638bc5",
+      "migrated_sha256": "107cee3436db2c48e52826c8acfe7357f719db26b3c898085a5280d9faf3bfc7"
+    },
+    {
+      "path": "model/memory.py",
+      "upstream_sha256": "6712af0db3bed4e2dffd812884d42db48e6d3572bb1273505745dda8b900e0e3",
+      "migrated_sha256": "6712af0db3bed4e2dffd812884d42db48e6d3572bb1273505745dda8b900e0e3"
+    },
+    {
+      "path": "model/model_misc.py",
+      "upstream_sha256": "5ea3ffd044625cc5ca01517dd06ca632ac711b5788c97dd6fe1e812ca161473d",
+      "migrated_sha256": "7cca9fcf1e034b5af0cd2746cd79f921b6d6f1eb71d8ca6fae2b451d9cc99072"
+    },
+    {
+      "path": "model/necks.py",
+      "upstream_sha256": "0caaefd34e8674973d28b7afde9d87abaaa2eda00d977a592923fe9eeb1cbc05",
+      "migrated_sha256": "c1cc273e70e2dba44bb4921bc185d29ed1c52fc760517472953f00c9505220a2"
+    },
+    {
+      "path": "model/position_encoding.py",
+      "upstream_sha256": "6ec4e053bad5d17035f9ea8f60a032f60c51ba5ce5a5a174b4b2fe0de62749f6",
+      "migrated_sha256": "6ec4e053bad5d17035f9ea8f60a032f60c51ba5ce5a5a174b4b2fe0de62749f6"
+    },
+    {
+      "path": "model/sam1_task_predictor.py",
+      "upstream_sha256": "f8902ea6b997495875302cda47dc858c4178bd5d4f8497f40bc8e8531b0ca48a",
+      "migrated_sha256": "858a3defd9d6c47a2ff4653fea32136a0b6d2ba5c3415b16d6d6fc802f813908"
+    },
+    {
+      "path": "model/sam3_base_predictor.py",
+      "upstream_sha256": "56e044259b5f494e01621a450c0aba66dde7b5e8fa9f43ce6244f5819bec6969",
+      "migrated_sha256": "4e59ddb6f4c03ffb4ea27815eb266031c882e70777441c5900e0231ecbc305b8"
+    },
+    {
+      "path": "model/sam3_image.py",
+      "upstream_sha256": "2c20de90fb0b76b01dd437385eb7226f8c3cd4757a4c80cc8dec943dcf46a4a0",
+      "migrated_sha256": "1ba2f22a3d8f55f8b8f918167e80a5179bd6c139e98a3edaa5787cef45e5abf0"
+    },
+    {
+      "path": "model/sam3_image_processor.py",
+      "upstream_sha256": "d8738a0efb6138b01c0dc5deceffd29de9e675860a9a1ed3822b08766373333b",
+      "migrated_sha256": "9ad08c3ce4a21685004aca78e1ed5990b4ccb70fecdadf57bcf99727776c15b1"
+    },
+    {
+      "path": "model/sam3_tracker_base.py",
+      "upstream_sha256": "b2b52409c002e1590262375aa794f8ab67e7476f42f8fee41a76de0c14aa62e2",
+      "migrated_sha256": "a6eed96f8356d42d0e08c85d60d4012ad4c876c33de66719862179ce75421fe7"
+    },
+    {
+      "path": "model/sam3_tracker_utils.py",
+      "upstream_sha256": "dc5fdeba2d4416f273394a9bd4450dff050608db6009a4546ca68adbaa24a640",
+      "migrated_sha256": "37a2fc34cd510ce60e4c7eac720d95e11f20bc3eeb102fb15802027e3a932449"
+    },
+    {
+      "path": "model/sam3_tracking_predictor.py",
+      "upstream_sha256": "145df76a5c045605d4d15360456015adb4f987c4b18e82f4f4876a63e6a32345",
+      "migrated_sha256": "282e8e05609cbddf735c271ac082ba9c6ce04c0bea35401c002b6efac4226322"
+    },
+    {
+      "path": "model/sam3_video_base.py",
+      "upstream_sha256": "9021ff00e650a4edb9e9eb76e19c7c9260a4dcd69150c4a6acc4269ea50a3d20",
+      "migrated_sha256": "d911bcad918c8b1e8bbb92342793d91f1c68a96e43599ddefe284a74d1438635"
+    },
+    {
+      "path": "model/sam3_video_inference.py",
+      "upstream_sha256": "a502cd76a845292aaf022f64667c176bad919a1bd0cfd9b542d2aa58a7d561fe",
+      "migrated_sha256": "2dee7b8b90988892c32a608979a48a5c4be9852d18ac799b988fddb94567b4a2"
+    },
+    {
+      "path": "model/sam3_video_predictor.py",
+      "upstream_sha256": "9714ac8adbce442bfd05b795cb7b53eab6ac455487df31d7b8ae442675a4b9ea",
+      "migrated_sha256": "8f9097d336e4982b756b74f7fb57c13a613309aa7b29cbd271c58f822c9aeee8"
+    },
+    {
+      "path": "model/text_encoder_ve.py",
+      "upstream_sha256": "267f2a3d0ea73f21ebecf89cbe648bc32c791ed2ef08218816c4821f1889b944",
+      "migrated_sha256": "267f2a3d0ea73f21ebecf89cbe648bc32c791ed2ef08218816c4821f1889b944"
+    },
+    {
+      "path": "model/tokenizer_ve.py",
+      "upstream_sha256": "2e42bb558c95903c3425a372c3d336cecd95cde7e5f32b4f7611855c99ea4328",
+      "migrated_sha256": "2e42bb558c95903c3425a372c3d336cecd95cde7e5f32b4f7611855c99ea4328"
+    },
+    {
+      "path": "model/utils/__init__.py",
+      "upstream_sha256": "dbc5c8475ec79c2980b95cb09862887052cbabd49bc7fe22f2014d0a2b836609",
+      "migrated_sha256": "dbc5c8475ec79c2980b95cb09862887052cbabd49bc7fe22f2014d0a2b836609"
+    },
+    {
+      "path": "model/utils/misc.py",
+      "upstream_sha256": "8cd46ee1d668829cf80366d98ec6d3ae0ed2881c721ff83a5df9fa805922914a",
+      "migrated_sha256": "8cd46ee1d668829cf80366d98ec6d3ae0ed2881c721ff83a5df9fa805922914a"
+    },
+    {
+      "path": "model/utils/sam1_utils.py",
+      "upstream_sha256": "3eb335d6eb447e117eb079136cb897475a0210d41b3990edb830c5866b587c2a",
+      "migrated_sha256": "8265b4bd4a6ccd290e0c65801020c16d7aca20979ba013cb00ad6bdefffda518"
+    },
+    {
+      "path": "model/utils/sam2_utils.py",
+      "upstream_sha256": "78048b7b131250ac14b19c0c6f5fdb21402542b281964af675247e19734e5b2e",
+      "migrated_sha256": "78048b7b131250ac14b19c0c6f5fdb21402542b281964af675247e19734e5b2e"
+    },
+    {
+      "path": "model/vitdet.py",
+      "upstream_sha256": "1afa9731f0d86b81be2530259d21d7fdfec4823f62a16290466b2cdcae8df612",
+      "migrated_sha256": "68950f04f93d594446f4beb258374276ba47fc2f7e1a6d01fe421dbb3cfcba8f"
+    },
+    {
+      "path": "model/vl_combiner.py",
+      "upstream_sha256": "59377a3147bf7751e620df75b777afcc584f36985fe99469b8275fc7cdab1071",
+      "migrated_sha256": "41f85b1f61ef13def4e388ebc9c80a40496046b6f1492a3fc784b3791064b8cc"
+    },
+    {
+      "path": "model_builder.py",
+      "upstream_sha256": "60cef72b1f7e4a2162d1c3f1ad2c0451bbbdc10e3484433a9aa2d016fed6b448",
+      "migrated_sha256": "a4b6a8a4c1297ffdbbaf0ac952dd03458fbdd4235eaceebf782331a5f57681af"
+    },
+    {
+      "path": "perflib/__init__.py",
+      "upstream_sha256": "e25fa5fb31908e816f0ce0f55dae8715076f47ca9ffcbc34335e60cf74bfbd21",
+      "migrated_sha256": "e25fa5fb31908e816f0ce0f55dae8715076f47ca9ffcbc34335e60cf74bfbd21"
+    },
+    {
+      "path": "perflib/compile.py",
+      "upstream_sha256": "403f2b91771e5b0c05c6b623bb5d032765c788cb9674136cbdeb0be628fafbfe",
+      "migrated_sha256": "c6b4c68c16dd14c48cfda6aa7f2b6597db80ca940541794655db1c98e2eafde0"
+    },
+    {
+      "path": "perflib/connected_components.py",
+      "upstream_sha256": "f09bb5b905a12e0aeb6e7f1096af839015230f007dc47c43a1de7893a355dbd1",
+      "migrated_sha256": "97f4e3f02484895c8ba436f2561eb326f646ac663f8fbac0709eb1fb66588c47"
+    },
+    {
+      "path": "perflib/fa3.py",
+      "upstream_sha256": "3b7292118f30f3fdea9850f16e27a6cf0cd8b7b2d427bc1dd8be2abceeb28fe0",
+      "migrated_sha256": "3b7292118f30f3fdea9850f16e27a6cf0cd8b7b2d427bc1dd8be2abceeb28fe0"
+    },
+    {
+      "path": "perflib/fused.py",
+      "upstream_sha256": "f528109e043331da4c240741d1403812b2020801d8f01af0b5fbf0c6e93c1af6",
+      "migrated_sha256": "f528109e043331da4c240741d1403812b2020801d8f01af0b5fbf0c6e93c1af6"
+    },
+    {
+      "path": "perflib/masks_ops.py",
+      "upstream_sha256": "b1b6fae420565315dd434d4efb9a6f76fe0fc2959a8c30f2f1120a0a25e80a55",
+      "migrated_sha256": "b1b6fae420565315dd434d4efb9a6f76fe0fc2959a8c30f2f1120a0a25e80a55"
+    },
+    {
+      "path": "perflib/nms.py",
+      "upstream_sha256": "21c5fd8c12f9a8bacf5b17be1c0a0027533f9f7dca31392a0c90fc0df2d25eb4",
+      "migrated_sha256": "ce5b0401aa2dec6aa6af783e77947dcae0967e3f4a1db7756bd8a9ff28f5b5ce"
+    },
+    {
+      "path": "perflib/triton/connected_components.py",
+      "upstream_sha256": "ce7d50ead86930a197be381792d11d2d25294ef850fb7d09b9336ac809cab3d9",
+      "migrated_sha256": "ce7d50ead86930a197be381792d11d2d25294ef850fb7d09b9336ac809cab3d9"
+    },
+    {
+      "path": "perflib/triton/nms.py",
+      "upstream_sha256": "e9749ee2e49acf3665e7aade92acbdbff7e0685d2c1feae40f2c231a94e5c8c3",
+      "migrated_sha256": "e9749ee2e49acf3665e7aade92acbdbff7e0685d2c1feae40f2c231a94e5c8c3"
+    },
+    {
+      "path": "sam/__init__.py",
+      "upstream_sha256": "9fd565929cc73505a78397f87c558d721b4df92a279551a4860bf8947baa8ae0",
+      "migrated_sha256": "9fd565929cc73505a78397f87c558d721b4df92a279551a4860bf8947baa8ae0"
+    },
+    {
+      "path": "sam/common.py",
+      "upstream_sha256": "e64cb707f7c332761b34ac1135718e699a8271d4c5c4f42831d5fa393d2edc86",
+      "migrated_sha256": "e64cb707f7c332761b34ac1135718e699a8271d4c5c4f42831d5fa393d2edc86"
+    },
+    {
+      "path": "sam/mask_decoder.py",
+      "upstream_sha256": "91136783214aa8e89d6284d675bf846689b322869402c9afb01f43a734ee8b98",
+      "migrated_sha256": "91136783214aa8e89d6284d675bf846689b322869402c9afb01f43a734ee8b98"
+    },
+    {
+      "path": "sam/prompt_encoder.py",
+      "upstream_sha256": "76b1543e050eed1f29bed3a41653e0a0475bb965fb4debdb425c37ad1ce2ffaf",
+      "migrated_sha256": "76b1543e050eed1f29bed3a41653e0a0475bb965fb4debdb425c37ad1ce2ffaf"
+    },
+    {
+      "path": "sam/rope.py",
+      "upstream_sha256": "e90c4bd3a1de44402fc2e8baba5a5621829002fd8f5136b63738743951da9290",
+      "migrated_sha256": "e90c4bd3a1de44402fc2e8baba5a5621829002fd8f5136b63738743951da9290"
+    },
+    {
+      "path": "sam/transformer.py",
+      "upstream_sha256": "4885315b97577a5ece6ab53f45318fb629b16c240d96315064bf71a152effc6e",
+      "migrated_sha256": "529a9d254b7a7f7d27d8e1eabf285247fd84d7860e17d8113a102a105c85fff6"
+    }
+  ],
+  "extracted_helpers": {
+    "source": "sam3/train/masks_ops.py",
+    "destination": "model/mask_utils.py",
+    "symbols": [
+      "mask_intersection_vectorized",
+      "mask_iom"
+    ]
+  }
+}

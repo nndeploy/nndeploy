@@ -337,7 +337,10 @@ def get_package_data():
     
     # Ensure returning a dictionary with a simple string list as value
     package_data = {
-        "nndeploy": so_files  # so_files is already a string list
+        "nndeploy": so_files,  # so_files is already a string list
+        "nndeploy.segment.sam3": [
+            "assets/*.gz", "LICENSE", "README.md", "requirements.txt", "MIGRATION.json"
+        ],
     }
     
     print(f"package_data: {package_data}")
