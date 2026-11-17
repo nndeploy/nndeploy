@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--output-dir', default='logs/server-development')
     parser.add_argument('--playwright', help='Installed Playwright module path')
     parser.add_argument('--chrome', help='Chrome executable path')
-    parser.add_argument('--scenario', choices=['reconnect', 'nested', 'resources'], default='reconnect')
+    parser.add_argument('--scenario', choices=['reconnect', 'nested', 'resources', 'mcp'], default='reconnect')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[3]
     output = Path(args.output_dir).resolve()
@@ -33,6 +33,8 @@ def main():
         environment['NNDEPLOY_BROWSER_NESTED'] = '1'
     if args.scenario == 'resources':
         environment.update(NNDEPLOY_BROWSER_RESOURCES='1', NNDEPLOY_BROWSER_ADMIN='browser-resource-test')
+    if args.scenario == 'mcp':
+        environment['NNDEPLOY_BROWSER_ADMIN'] = 'browser-resource-test'
     if args.playwright:
         environment['NNDEPLOY_PLAYWRIGHT'] = str(Path(args.playwright).resolve())
     if args.chrome:
@@ -41,7 +43,9 @@ def main():
         command = [sys.executable, str(Path(__file__).with_name('launch_reconnect.py')),
             '--host', '127.0.0.1', '--port', str(port), '--resources', str(root / 'resources'),
             '--log', str(root / 'editor.log'), '--front-end-dir', str(repo / 'app/workflow/dist')]
-        if args.scenario == 'resources':
+        if args.scenario == 'mcp':
+            command += ['--mcp']
+        if args.scenario in ('resources', 'mcp'):
             command += ['--admin-token-env', 'NNDEPLOY_BROWSER_ADMIN']
         server = subprocess.Popen(command,
             env=environment, stdout=log, stderr=log, cwd=repo)
@@ -60,7 +64,7 @@ def main():
                     raise RuntimeError('Editor did not become ready')
                 time.sleep(.1)
             with (root / 'browser.log').open('w') as browser_log:
-                script = {'nested': 'editor_nested.cjs', 'resources': 'editor_resources.cjs'}.get(args.scenario, 'editor_reconnect.cjs')
+                script = {'nested': 'editor_nested.cjs', 'resources': 'editor_resources.cjs', 'mcp': 'editor_mcp.cjs'}.get(args.scenario, 'editor_reconnect.cjs')
                 result = subprocess.run(['node', str(Path(__file__).with_name(script)), str(state)],
                     cwd=repo, env=environment, stdout=browser_log, stderr=browser_log, timeout=120)
             print((root / 'browser.log').read_text(), end='')

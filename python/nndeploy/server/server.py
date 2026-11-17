@@ -75,7 +75,19 @@ class Server:
                  name=None, config=None, workers=None, input_model=None, output_model=None, router=None,
                  data_dir="./resources/server", max_inflight_tasks=64, admin_token=None, database_url=None, storage_config=None,
                  redis_config=None, auth_config=None, cors_origins=None, max_sync_connections=None, device_limits=None,
-                 database_timeout_seconds=None, audit_config=None, editor_history_retention_seconds=None):
+                 database_timeout_seconds=None, audit_config=None, editor_history_retention_seconds=None, mcp_config=None):
+        from .environment import load_server_env
+        load_server_env()
+        self.mcp = None
+        self.mcp_config = None
+        if mcp_config is not None:
+            from .mcp.config import MCPConfig
+            self.mcp_config = MCPConfig.model_validate(mcp_config)
+            if self.mcp_config.enabled:
+                try:
+                    from .mcp.app import MCP
+                except ImportError as exc:
+                    raise ImportError('MCP requires the optional nndeploy[server-mcp] dependencies') from exc
         DB._validate_retention(editor_history_retention_seconds)
         self.editor_history_retention_seconds = editor_history_retention_seconds
         self.database_timeout_seconds = database_timeout_seconds
@@ -205,7 +217,11 @@ class Server:
             try:
                 self.loop = asyncio.get_running_loop()
                 await self.start()
-                yield
+                if self.mcp is None:
+                    yield
+                else:
+                    async with self.mcp.lifespan():
+                        yield
             finally:
                 await self.close()
 
@@ -221,6 +237,9 @@ class Server:
             self.editor_access.register(self.app)
             self.app.add_middleware(EditorAccessMiddleware, access=self.editor_access)
         register_routes(self)
+        if self.mcp_config is not None and self.mcp_config.enabled:
+            from .mcp.app import MCP
+            self.mcp = MCP(self, self.mcp_config)
         self.app.add_middleware(MetricsMiddleware, server=self)
         if self.cors_origins:
             self.app.add_middleware(CORSMiddleware, allow_origins=self.cors_origins,
@@ -236,14 +255,14 @@ class Server:
 
     def add(self, *, name=None, workflow=None, graph=None, graph_factory=None, deploy=None,
             handler_factory=None, config=None, workers=None, input_model=None, output_model=None,
-            router=None, algorithm=None, options=None):
+            router=None, algorithm=None, options=None, mcp=None):
         from .config import ServerConfig, load_json, suggest_config
         import copy
         if algorithm is not None:
             if any(value is not None for value in (workflow, graph, graph_factory, deploy, handler_factory)):
                 raise ValueError('Use either a registered algorithm or a direct execution source')
             arguments = self._registry.create(algorithm, options)
-            for key, value in dict(config=config, input_model=input_model, output_model=output_model, router=router).items():
+            for key, value in dict(config=config, input_model=input_model, output_model=output_model, router=router, mcp=mcp).items():
                 if value is not None:
                     arguments[key] = value
             return self.add(name=name, workers=workers, **arguments)
@@ -251,6 +270,14 @@ class Server:
             raise ValueError('Options require a registered algorithm')
         if sum(value is not None for value in (workflow, graph, graph_factory, deploy, handler_factory)) != 1:
             raise ValueError("Provide exactly one workflow, graph, graph_factory, deploy or handler_factory")
+        export = None
+        if mcp is not None:
+            from .mcp.config import ToolConfig
+            export = ToolConfig.model_validate(mcp)
+            if self.mcp is None:
+                raise ValueError('Enable mcp_config before exporting an MCP tool')
+            if export.name in self.mcp.exports:
+                raise ValueError(f'Duplicate MCP tool name: {export.name}')
         supplied_config = config is not None
         base_dir = Path.cwd()
         if isinstance(workflow, (str, Path)):
@@ -276,7 +303,11 @@ class Server:
             config['name'] = name
         if workers is not None:
             config.setdefault('execution', {})['workers'] = workers
+        if export is not None:
+            config['mcp'] = export.model_dump()
         value = ServerConfig.model_validate(config)
+        if self.mcp is not None:
+            self.mcp.validate_export(value.name, value.mcp)
         if value.name in self.entries:
             raise ValueError(f"Duplicate entry name: {value.name}")
         if graph is not None and value.execution.workers != 1:
@@ -288,6 +319,8 @@ class Server:
             status='stopped', error=None, workers=[], consumers=[], futures={},
             untyped=not supplied_config and input_model is None and (deploy is not None or handler_factory is not None),
             schema=value.public_schema(), closing=None)
+        if value.mcp is not None and entry['untyped']:
+            raise ValueError('MCP exports require an input_model or explicit input config')
         entry['source']['untyped'] = entry['untyped']
         if self.redis_config is not None:
             from .redis import source_identity
@@ -351,8 +384,14 @@ class Server:
             raise ServerError(422, 'invalid_request', 'Server name must not be empty')
         name = name.strip()
         config['name'] = name
+        if 'mcp' in request:
+            config['mcp'] = request['mcp']
         try:
-            ServerConfig.model_validate(config)
+            validated = ServerConfig.model_validate(config)
+            if validated.mcp is not None and self.mcp is None and 'mcp' in request:
+                raise ServerError(409, 'mcp_disabled', 'Start the editor with --mcp to enable MCP exports.')
+            if self.mcp is not None:
+                self.mcp.validate_export(name, validated.mcp)
         except ValueError as exc:
             raise ServerError(422, 'invalid_request', str(exc)) from exc
         if name in self.entries and name != previous_name and self.entries[name].get('workflow_id') != identity:
@@ -388,7 +427,11 @@ class Server:
                 await self._start_entry(name, self._entry(name))
             self._write_json_replace(sidecar, config)
             return dict(workflow_id=identity, **self.describe(name))
-        return await self._control_entry(name, 'reload', update_entry)
+        async def guarded_update():
+            from contextlib import nullcontext
+            with self.mcp.reserve(name, validated.mcp) if self.mcp is not None else nullcontext():
+                return await update_entry()
+        return await self._control_entry(name, 'reload', guarded_update)
 
     def create_app(self):
         return self.app
@@ -868,6 +911,14 @@ class Server:
         return await self._control_entry(name, 'reload', lambda: self._reload_entry(name, workflow=workflow, config=config))
 
     async def _reload_entry(self, name, *, workflow=None, config=None, start_stopped=False):
+        from contextlib import nullcontext
+        from .config import ServerConfig, load_json
+        value = self._entry(name)['config'] if config is None else ServerConfig.model_validate(
+            load_json(config) if isinstance(config, (str, Path)) else config)
+        with self.mcp.reserve(name, value.mcp) if self.mcp is not None else nullcontext():
+            return await self._reload_entry_impl(name, workflow=workflow, config=config, start_stopped=start_stopped)
+
+    async def _reload_entry_impl(self, name, *, workflow=None, config=None, start_stopped=False):
         """Prepare replacement workers before changing the accepting entry."""
         import copy
         from .config import ServerConfig, load_json
@@ -942,7 +993,8 @@ class Server:
         control = self.entry_controls.get(name)
         stopping = control is not None and control['action'] == 'stop' and not control['task'].done()
         state = 'failed' if entry.get('consumer_failed') and entry['status'] not in ('stopping', 'stopped') else entry['status']
-        return dict(name=name, status='stopping' if stopping and entry['status'] == 'ready' else state, error=entry['error'],
+        return dict(name=name, mcp=entry['config'].mcp.model_dump() if entry['config'].mcp else None,
+                    mcp_path=self.mcp.config.path if self.mcp is not None else None, status='stopping' if stopping and entry['status'] == 'ready' else state, error=entry['error'],
                     schema=entry['schema'], workers=len(entry['workers']),
                     draining_workers=sum(len(previous['workers']) for previous in self.retiring_entries.get(name, [])),
                     inflight=len(entry['futures']), deploy_path=f'/v1/server/{name}/deploy',
@@ -1777,6 +1829,7 @@ class Server:
         await asyncio.shield(self.closing_task)
 
     async def _close(self):
+        stopped = []
         self.shutting_down = True
         if self.editor_access is not None:
             self.queue.pause_editor()
@@ -1784,7 +1837,7 @@ class Server:
         if self.task_maintenance is not None:
             # Do not cancel to_thread during a transaction or dispose its DB
             # underneath it. Wake the timer and join the current bounded batch.
-            await asyncio.shield(self.task_maintenance)
+            stopped.extend(await asyncio.gather(self.task_maintenance, return_exceptions=True))
         if self.editor_access is not None:
             self.editor_access.sessions.clear()
         if self.shared_control:
@@ -1793,8 +1846,8 @@ class Server:
         if self.control_tasks:
             await asyncio.gather(*self.control_tasks, return_exceptions=True)
         entries = list(self.entries.items()) + [(name, entry) for name, values in self.retiring_entries.items() for entry in values]
-        stopped = await asyncio.gather(*(self._stop_entry(name, entry, persist=False, shared_scope=False) for name, entry in entries),
-                                       return_exceptions=True)
+        stopped.extend(await asyncio.gather(*(self._stop_entry(name, entry, persist=False, shared_scope=False) for name, entry in entries),
+                                            return_exceptions=True))
         for entry, _ in list(self._asset_leases.values()):
             self._release_assets(entry)
         if self.waiters:
@@ -1806,7 +1859,10 @@ class Server:
                                                    if entry.get('queue') is not None), return_exceptions=True))
         self.started = False
         if self.editor_access is not None:
-            self.queue.history_store.close()
+            try:
+                self.queue.history_store.close()
+            except Exception as exc:
+                stopped.append(exc)
         try:
             await self.request_limiter.close()
         except Exception as exc:
@@ -1821,7 +1877,7 @@ class Server:
         except Exception as exc:
             stopped.append(exc)
         if getattr(self, 'callbacks', None) is not None:
-            await self.callbacks.close()
+            stopped.extend(await asyncio.gather(self.callbacks.close(), return_exceptions=True))
         for dependency in (self.controls, self.db, self.storage):
             try:
                 dependency.close()
@@ -2206,7 +2262,11 @@ class Server:
             name = config.get('name')
             if not name or name == 'workflow-' + id:
                 name = self.db.get_workflow_name(id)
-            return {'name': name}
+            active = self.entries.get(name)
+            tool = active['config'].mcp.model_dump() if active and active['config'].mcp else config.get('mcp')
+            if active and active['config'].mcp is None:
+                tool = None
+            return {'name': name, 'mcp': tool, 'mcp_path': self.mcp.config.path if self.mcp is not None else None}
 
         @api.post(
                 "/workflow/upload",
@@ -3227,3 +3287,9 @@ class Server:
 
 # Existing editor and CLI imports remain supported.
 NnDeployServer = Server
+
+
+def main(argv=None):
+    """Compatibility entry point sharing the editor and Deploy CLI."""
+    from .app import main as app_main
+    return app_main(argv)

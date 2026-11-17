@@ -10,7 +10,7 @@ import About from "./pages/About";
 import { NoMatch } from "./pages/NoMatch";
 import BackendLayout from "./pages/Layout/Backend";
 import NodePage from "./pages/Node";
-import Design from "./pages/Layout/Design/Design";
+import EditorPages from './pages/EditorPages';
 import './assets/css/index.scss'
 //import './mock'
 import Home from "./pages/Home";
@@ -23,8 +23,10 @@ app.render(
 
     <EditorAccess><BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/design" element={<Design />} />
+        <Route element={<EditorPages />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/design" element={null} />
+        </Route>
 
 
 

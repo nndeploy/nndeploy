@@ -1,0 +1,14 @@
+.server-panel {
+  .server-sections { display: flex; flex-direction: column; gap: 20px; }
+  .server-section { padding: 20px; border: 1px solid var(--semi-color-border); border-radius: 12px; background: var(--semi-color-bg-1); min-width: 0; }
+  h3 { margin: 0 0 16px; font-size: 16px; }
+  p { color: var(--semi-color-text-2); line-height: 1.6; overflow-wrap: anywhere; }
+  label { display: block; margin: 12px 0 6px; font-weight: 500; }
+  details { margin-top: 12px; padding: 10px 12px; background: var(--semi-color-fill-0); border-radius: 8px; }
+  summary { cursor: pointer; overflow-wrap: anywhere; }
+  pre { padding: 14px; border-radius: 8px; background: var(--semi-color-fill-0); font-size: 12px; max-height: 360px; overflow: auto; }
+  li { margin: 8px 0; overflow-wrap: anywhere; }
+  .server-required { color: var(--semi-color-danger); font-weight: 700; }
+  .server-action-hint { margin: 8px 0 0; font-size: 13px; }
+  .server-actions { position: sticky; top: 0; padding: 12px 0; background: var(--semi-color-bg-2); z-index: 1; }
+}

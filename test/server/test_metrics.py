@@ -62,8 +62,8 @@ def test_metrics_are_per_server_have_bounded_labels_and_do_not_contain_payloads(
         assert response.status_code == 200
         task_id = response.json()['task_id']
         for index in range(20):
-            # Sync resolves the entry's wait policy before admission. Async
-            # reaches admission; both must retain bounded HTTP labels.
+            # Both modes resolve the entry schema before admission; rejected
+            # names still retain bounded HTTP labels.
             assert a.post(f'/v1/server/unknown-{index}/deploy', json={}).status_code == 404
             assert a.post(f'/v1/server/unknown-{index}/deploy', json={'mode': 'async'}).status_code == 404
             assert a.get(f'/no-such-route-{index}').status_code == 404
@@ -71,7 +71,9 @@ def test_metrics_are_per_server_have_bounded_labels_and_do_not_contain_payloads(
         result = a.get('/metrics', headers=ADMIN)
         records = samples(result)
         assert value(records, 'nndeploy_operation_seconds_count', operation='admission', entry='echo', outcome='success') == 1
-        assert value(records, 'nndeploy_operation_seconds_count', operation='admission', entry='__unknown__', outcome='error') == 20
+        assert not any(row.name == 'nndeploy_operation_seconds_count'
+                       and row.labels.get('operation') == 'admission'
+                       and row.labels.get('entry') == '__unknown__' for row in records)
         assert value(records, 'nndeploy_http_request_seconds_count', method='POST', route='/v1/server/{name}/deploy', entry='__unknown__', status='404') == 40
         assert value(records, 'nndeploy_queue_wait_seconds_count', entry='echo') == 1
         for secret in ('private-request-value', task_id, 'metrics-admin-secret', 'unknown-19', 'missing-19', 'no-such-route-19', str(tmp_path)):

@@ -18,3 +18,9 @@
 **/*.pyc
 **/log
 **/.ipynb_checkpoints
+
+# Environment files never belong in the Docker build context.
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*

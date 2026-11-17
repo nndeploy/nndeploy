@@ -102,10 +102,10 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
         </Tooltip> */}
         <Config />
         <Save disabled={playground.config.readonly} />
-        <ServerTool disabled={playground.config.readonly} />
         <Run />
         <Log />
         <WebUI />
+        <ServerTool disabled={playground.config.readonly} />
       </ToolSection>
     </ToolContainer>
   );

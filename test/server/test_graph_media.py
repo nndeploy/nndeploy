@@ -148,7 +148,14 @@ def test_video_and_text_file_ports_roundtrip_with_explicit_content_type(db, tmp_
                 output = client.get(f"/v1/files/{result.json()['outputs']['media']['file_id']}/content")
                 assert output.headers['content-type'].startswith(media_type)
                 assert output.content == data
-            assert client.post('/v1/server/default/deploy', json={'inputs': {'media': str(path)}}).status_code == 422
+            local_input = tmp_path / ('local.mp4' if media_type == 'video/mp4' else 'local.txt')
+            local_input.write_bytes(data)
+            local = client.post('/v1/server/default/deploy', json={'inputs': {'media': str(local_input)}})
+            assert local.status_code == 200, local.text
+            content = client.get(f"/v1/files/{local.json()['outputs']['media']['file_id']}/content")
+            assert content.content == data
+            assert client.post('/v1/server/default/deploy',
+                json={'inputs': {'media': str(tmp_path / 'missing')}}).status_code == 422
 
 
 def test_media_output_format_and_original_workflow_stay_independent(db, tmp_path):

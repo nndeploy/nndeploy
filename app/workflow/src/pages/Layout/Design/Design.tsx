@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import React, { useEffect, useReducer, useRef, useState } from "react";
 import {
   Nav,
@@ -43,7 +44,9 @@ import { set } from "lodash";
 
 var tabId = 2;
 
-const Design: React.FC = () => {
+const Design: React.FC<{ visible?: boolean }> = ({ visible = true }) => {
+  const location = useLocation();
+  const initialized = useRef(false);
   const { Text } = Typography;
 
   const [activeKey, setActiveKey] = useState<string>("1");
@@ -63,44 +66,37 @@ const Design: React.FC = () => {
 
   const [templateDrawerVisible, setTemplateDrawerVisible] = useState(false);
 
-  function getQueryObject(url?: string) {
-    const search = url ? url.split('?')[1] : window.location.search.slice(1);
-    const params = new URLSearchParams(search);
-    const obj: { [key: string]: string } = {};
-    for (const [key, value] of params.entries()) {
-      obj[key] = value;
-    }
-    return obj;
-  }
-
-  const params = getQueryObject()
-
   useEffect(() => {
-    const restored = restoreRunTabs();
+    if (!visible) return;
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const flowType = params.get('flowType');
+    const restored = initialized.current ? tabs : restoreRunTabs();
     for (const tab of restored) {
       const numericId = Number(tab.tabId);
       if (Number.isSafeInteger(numericId) && numericId >= tabId) tabId = numericId + 1;
     }
-    if (params.id && params.flowType) {
-      const previous = restored.find(tab => tab.id === params.id && tab.flowType === params.flowType);
+    initialized.current = true;
+    if (id && (flowType === EnumFlowType.workspace || flowType === EnumFlowType.template)) {
+      const previous = restored.find(tab => tab.id === id && tab.flowType === flowType);
       if (previous) {
         setTabs(restored);
         setActiveKey(previous.tabId);
       } else {
         const newTabId = `${tabId++}`;
-        setTabs([...restored, { name: params.name || 'Workflow', id: params.id, tabId: newTabId,
-          flowType: params.flowType as EnumFlowType }]);
+        setTabs([...restored, { name: params.get('name') || 'Workflow', id, tabId: newTabId, flowType }]);
         setActiveKey(newTabId);
       }
-    } else if (restored.length) {
-      setTabs(restored);
-      setActiveKey(restored[0].tabId);
-    } else {
+    } else if (location.state?.createWorkflow || !restored.length) {
       const newTabId = `${tabId++}`;
-      setTabs([{ id: '', name: 'Unsaved Workflow 1', tabId: newTabId, flowType: EnumFlowType.workspace }]);
+      setTabs([...restored, { id: '', name: `Unsaved Workflow ${newTabId}`, tabId: newTabId, flowType: EnumFlowType.workspace }]);
       setActiveKey(newTabId);
+    } else {
+      setTabs(restored);
+      if (!restored.some(tab => tab.tabId === activeKey)) setActiveKey(restored[0].tabId);
     }
-  }, []);
+    // Only navigation opens a tab. Editing or closing a tab must not reopen it.
+  }, [location.key, visible]);
 
 
   function onAddTemplate(item: IWorkFlowShortEntity) {
@@ -108,6 +104,11 @@ const Design: React.FC = () => {
     setTemplateDrawerVisible(false)
     setSelectedFirstLevel('')
 
+    const existing = tabs.find(tab => tab.id === item.id && tab.flowType === EnumFlowType.template);
+    if (existing) {
+      setActiveKey(existing.tabId);
+      return;
+    }
     const newTabId = `${tabId++}`
 
     setTabs([...tabs, {
@@ -204,7 +205,7 @@ const Design: React.FC = () => {
 
   function onShowFlow(node: TreeNodeData) {
 
-    const findTab = tabs.find(item => item.id == node.key as string) 
+    const findTab = tabs.find(item => item.id === node.key && item.flowType === EnumFlowType.workspace)
     if(findTab){
       setActiveKey(findTab.tabId)
       return
@@ -385,7 +386,7 @@ const Design: React.FC = () => {
 
                 >
                   <div className="tab-content">
-                    <Flow id={tab.id} tabId={tab.tabId} name={tab.name} onFlowSave={onFlowSave} activeKey={activeKey} flowType={tab.flowType} />
+                    <Flow id={tab.id} tabId={tab.tabId} name={tab.name} onFlowSave={onFlowSave} activeKey={visible ? activeKey : ''} flowType={tab.flowType} />
 
                   </div>
                 </TabPane>

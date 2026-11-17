@@ -357,3 +357,16 @@ def test_model_directory_uses_configured_file_capacity_above_the_legacy_archive_
         finally:
             await server.close()
     asyncio.run(scenario())
+
+
+def test_autodetected_resource_defaults_are_not_caller_owned_task_inputs(tmp_path):
+    server = Server(data_dir=tmp_path)
+    data, media = payload(False)
+    record = server.storage.save(io.BytesIO(data), media, owner='editor:workspace')
+    workflow = json.loads(resource_graph({'file_id': record['file_id']}).serialize())
+    server.add(name='model-defaults', workflow=workflow)
+    with TestClient(server.app) as client:
+        response = client.post('/v1/server/model-defaults/deploy', json={})
+        assert response.status_code == 200, response.text
+        assert response.json()['outputs']['sink'] == 'weights'
+        assert server.db.get_task(response.json()['task_id'])['parameters']['model'] == {}

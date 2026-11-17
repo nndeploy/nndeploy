@@ -1,67 +1,66 @@
+"""Clean selected local Server directories without following directory symlinks."""
 
-import os
+import argparse
+from pathlib import Path
 import shutil
 
 
-def main() -> None:    
-    import argparse
-    
-    # Setup command line argument parser
-    parser = argparse.ArgumentParser(description='Clean nndeploy server directories')
-    parser.add_argument('--logs', action='store_true', help='Clean logs directory')
-    parser.add_argument('--template', action='store_true', help='Clean resources/template directory')
-    parser.add_argument('--db', action='store_true', help='Clean resources/db directory')
-    parser.add_argument('--frontend', action='store_true', help='Clean frontend directory')
-    parser.add_argument('--plugin', action='store_true', help='Clean plugins directory')
-    parser.add_argument('--keep', nargs='+', choices=['logs', 'template', 'db', 'frontend', 'plugin'], 
-                       help='Keep specified directories (clean all others)')
-    
-    args = parser.parse_args()
-    
-    # Get current directory
-    current_dir = os.getcwd()
-    
-    # Available directories mapping
-    available_dirs = {
-        'logs': 'logs',
-        'template': 'resources/template',
-        'db': 'resources/db',
-        'frontend': 'frontend',
-        'plugin': 'resources/plugin'
-    }
-    
-    # Determine directories to clean
-    dirs_to_clean = []
-    
+CATEGORIES = ('logs', 'template', 'db', 'frontend', 'plugin', 'server')
+# Preserve the historical default; Deploy state requires an explicit --server.
+DEFAULT_CATEGORIES = CATEGORIES[:-1]
+
+
+def cli(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in CATEGORIES:
+        parser.add_argument(f'--{name}', action='store_true', help=f'Clean {name} directory')
+    parser.add_argument('--resources', default='./resources', help='Server resource directory')
+    parser.add_argument('--logs-dir', default='./logs')
+    parser.add_argument('--frontend-dir', default='./frontend')
+    parser.add_argument('--keep', nargs='+', choices=CATEGORIES)
+    parser.add_argument('--dry-run', action='store_true', help='Print paths without deleting them')
+    args = parser.parse_args(argv)
+    if args.keep and any(getattr(args, name) for name in CATEGORIES):
+        parser.error('--keep cannot be combined with individual directory selectors')
+    return args
+
+
+def main(argv=None) -> int:
+    args = cli(argv)
+    resources = Path(args.resources).expanduser().absolute()
+    directories = {name: resources / name for name in CATEGORIES}
+    directories.update(logs=Path(args.logs_dir).expanduser().absolute(),
+                       frontend=Path(args.frontend_dir).expanduser().absolute())
+    selected = [name for name in CATEGORIES if getattr(args, name)]
     if args.keep:
-        # Clean all directories except the ones specified in --keep
-        for key, path in available_dirs.items():
-            if key not in args.keep:
-                dirs_to_clean.append(path)
-    elif any([args.logs, args.template, args.db, args.frontend, args.plugin]):
-        # Clean only specified directories
-        if args.logs:
-            dirs_to_clean.append(available_dirs['logs'])
-        if args.template:
-            dirs_to_clean.append(available_dirs['template'])
-        if args.db:
-            dirs_to_clean.append(available_dirs['db'])
-        if args.frontend:
-            dirs_to_clean.append(available_dirs['frontend'])
-        if args.plugin:
-            dirs_to_clean.append(available_dirs['plugin'])
-    else:
-        # Default: clean all directories
-        dirs_to_clean = list(available_dirs.values())
-    
-    # Execute cleanup operation
-    for dir_name in dirs_to_clean:
-        dir_path = os.path.join(current_dir, dir_name)
-        if os.path.exists(dir_path):
-            try:
-                shutil.rmtree(dir_path)
-                print(f"Successfully deleted directory: {dir_path}")
-            except Exception as e:
-                print(f"Failed to delete directory {dir_path}: {e}")
-        else:
-            print(f"Directory does not exist: {dir_path}")
+        selected = [name for name in DEFAULT_CATEGORIES if name not in args.keep]
+    elif not selected:
+        selected = list(DEFAULT_CATEGORIES)
+    failed = False
+    for name in selected:
+        path = directories[name]
+        try:
+            # A typo in a directory override must not delete a filesystem root,
+            # the working directory or one of its ancestors.
+            resolved = path.resolve()
+            cwd = Path.cwd().resolve()
+            if not path.is_symlink() and (resolved == Path(resolved.anchor) or resolved == cwd or resolved in cwd.parents):
+                raise ValueError(f'Refusing to delete protected directory: {path}')
+            if args.dry_run:
+                print(f'Would delete: {path}')
+            elif path.is_symlink():
+                path.unlink()
+                print(f'Deleted symlink: {path}')
+            elif path.exists():
+                shutil.rmtree(path)
+                print(f'Deleted directory: {path}')
+            else:
+                print(f'Directory does not exist: {path}')
+        except (OSError, ValueError) as exc:
+            failed = True
+            print(f'Failed to delete {path}: {exc}')
+    return int(failed)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

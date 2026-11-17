@@ -196,7 +196,8 @@ class Executor:
                 if self.source.get('autodetect'):
                     from .config import ServerConfig, suggest_config
                     generated = suggest_config(json.loads(graph.serialize()))
-                    generated.update(name=self.config.name, execution=self.config.execution.model_dump())
+                    generated.update(name=self.config.name, execution=self.config.execution.model_dump(),
+                                     mcp=self.config.mcp.model_dump() if self.config.mcp else None)
                     self.config = ServerConfig.model_validate(generated)
                 prepare_native_graph(graph, self.config, native_originals)
                 if self.source.get('workflow') is None:

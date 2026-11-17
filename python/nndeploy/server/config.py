@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator, model_serializer
+from .mcp.config import ToolConfig
 
 
 def _object(pairs):
@@ -307,6 +308,15 @@ class StreamingConfig(StrictModel):
 
 
 class ServerConfig(StrictModel):
+    mcp: ToolConfig | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        if self.mcp is None:
+            value.pop("mcp", None)
+        return value
+
     name: str = Field(default="default", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
     inputs: dict[str, FieldConfig] = Field(default_factory=dict)
     parameters: dict[str, FieldConfig] = Field(default_factory=dict)
@@ -353,10 +363,14 @@ class ServerConfig(StrictModel):
                     result[group][name] = field.validate_value(values.get(name, field.default), allow_local_files=True)
                     if group == 'parameters' and field.node is not None and field.type == 'json' and isinstance(field.default, dict):
                         from .parameters import parameter_changes
-                        parameter_changes(field.default, result[group][name], name)
+                        changes = parameter_changes(field.default, result[group][name], name)
                         if name in values and field.exposed is not None:
                             from .parameters import exposed_defaults
                             parameter_changes(exposed_defaults(field.default, field.exposed), values[name], name)
+                        # Defaults are resident configuration, protected by the
+                        # entry's resource lease. Only request overrides belong
+                        # to the task and its caller-owned file references.
+                        result[group][name] = changes
                 except (ValueError, TypeError, OverflowError) as exc:
                     raise ValueError(f"Invalid {group}.{name}: {exc}") from exc
         return result

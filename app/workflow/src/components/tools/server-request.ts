@@ -1,3 +1,24 @@
+export interface MCPToolConfig {
+  name: string;
+  description: string;
+}
+
+export function mcpValidation(enabled: boolean, name: string, description: string): string {
+  if (!enabled) return '';
+  if (!name.trim() && !description.trim()) return 'Tool name and description are required when MCP export is enabled.';
+  if (!name.trim()) return 'Tool name is required when MCP export is enabled.';
+  if (!description.trim()) return 'Tool description is required when MCP export is enabled.';
+  if (!/^[A-Za-z0-9_.-]{1,128}$/.test(name.trim())) return 'Use 1–128 letters, numbers, underscores, hyphens or dots for the tool name.';
+  if (['get_task', 'cancel_task'].includes(name.trim())) return 'This tool name is reserved.';
+  if (!description.trim() || description.trim().length > 4096) return 'Enter a tool description of 1–4096 characters.';
+  return '';
+}
+
+export function mcpConnectionUrl(path: string | null | undefined, origin: string): string {
+  if (!path || !/^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(path)) return '';
+  return new URL(path, origin).href;
+}
+
 export interface ServerField {
   type: string;
   required: boolean;
@@ -14,6 +35,8 @@ export interface ServerField {
 export interface ServerInfo {
   name: string;
   workflow_id?: string;
+  mcp?: MCPToolConfig | null;
+  mcp_path?: string | null;
   status: string;
   deploy_path: string;
   schema: Record<string, Record<string, ServerField>>;
@@ -77,3 +100,24 @@ export async function serverRequest(path: string, token: string, body?: unknown)
   throw new Error('Server is still processing this request. Refresh its status before starting another action.');
 }
 
+
+export async function loadMcpAvailability(token: string): Promise<{ enabled: boolean; path: string | null }> {
+  const response = await fetch('/api/server/mcp/config', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401 || response.status === 403) {
+    throw new Error('Sign in or check your management token to load MCP availability.');
+  }
+  if (response.status === 404 || !response.headers.get('content-type')?.includes('application/json')) {
+    throw new Error('The running backend does not provide the MCP configuration API. Restart the updated server with --mcp, then refresh MCP availability.');
+  }
+  if (!response.ok) throw new Error('Unable to load MCP availability. Check the server and retry.');
+  let value: any;
+  try { value = await response.json(); }
+  catch { throw new Error('The server returned invalid MCP configuration JSON. Check the backend version and retry.'); }
+  if (!value || typeof value.enabled !== 'boolean' ||
+      (value.enabled ? typeof value.path !== 'string' || !/^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(value.path) : value.path !== null)) {
+    throw new Error('The server returned an invalid MCP configuration. Check the backend version and retry.');
+  }
+  return value;
+}

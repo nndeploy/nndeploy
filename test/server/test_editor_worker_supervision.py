@@ -312,7 +312,7 @@ def test_editor_main_always_joins_supervision_on_exit(tmp_path, monkeypatch, log
             raise OSError('Controlled logger startup failure')
         return SimpleNamespace(stop=lambda: stopped.append(True), _thread=threading.current_thread())
     arguments = app.cli(['--resources', str(tmp_path / 'resources'), '--log', str(tmp_path / 'server.log')])
-    monkeypatch.setattr(app, 'cli', lambda: arguments)
+    monkeypatch.setattr(app, 'cli', lambda argv=None: arguments)
     monkeypatch.setattr(app.mp, 'set_start_method', lambda *args, **kwargs: None)
     monkeypatch.setattr(app, 'NnDeployServer', Server)
     monkeypatch.setattr(app, 'start_worker', start)

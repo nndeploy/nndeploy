@@ -1,0 +1,2 @@
+# Environment files must never enter Python source distributions.
+global-exclude .env .env.* *.env *.env.*

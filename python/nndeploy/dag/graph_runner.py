@@ -181,8 +181,9 @@ class GraphRunner:
             self.graph.set_time_profile_flag(True)
             if args is not None and args.debug:
                 self.graph.set_debug_flag(True)
-            # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
-            # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+            if args is not None and getattr(args, "parallel_type", ""):
+                self.graph.set_parallel_type(
+                    nndeploy.base.ParallelType.from_name(args.parallel_type))
 
             if self.is_cancel:
                 raise RuntimeError(f"graph interrupted!")

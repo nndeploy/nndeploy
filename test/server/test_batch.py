@@ -184,3 +184,23 @@ def test_cancelled_python_waiter_does_not_break_subsequent_batch_execution(tmp_p
             release.set()
             await server.close()
     asyncio.run(scenario())
+
+
+def test_node_shorthand_batch_rejects_unknown_envelope_before_admission(tmp_path):
+    calls = []
+
+    def echo(inputs):
+        calls.append(inputs)
+        return inputs
+
+    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+                    config={'inputs': {'text': {'type': 'string'}}})
+    with TestClient(server.app) as client:
+        response = client.post('/v1/server/echo/deploy/batch',
+                               json={'items': [{'text': 'valid'}, {'text': 'invalid', 'unknown': 1}]})
+        assert response.status_code == 422
+        assert calls == []
+        response = client.post('/v1/server/echo/deploy/batch', json={'items': [{'text': 'valid'}]})
+        assert response.status_code == 200
+        assert response.json()['items'][0]['outputs'] == {'text': 'valid'}
+        assert calls == [{'text': 'valid'}]

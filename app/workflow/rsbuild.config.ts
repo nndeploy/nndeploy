@@ -28,6 +28,10 @@ export default defineConfig({
         // Keep the browser origin and Host consistent for session/CSRF checks.
         changeOrigin: false,
       },
+      '/mcp': {
+        target: process.env.NNDEPLOY_SERVER_URL || 'http://127.0.0.1:8000',
+        changeOrigin: false,
+      },
       '/v1': {
         target: process.env.NNDEPLOY_SERVER_URL || 'http://127.0.0.1:8000',
         changeOrigin: false,

@@ -43,3 +43,8 @@ not a real model/GPU or performance acceptance test. It also holds an upload
 response to verify array-item removal is disabled, and uses a literal dotted
 resource field to catch form-path rewriting. Credentials are disposable local
 test values; uploads use the browser session without a bearer token.
+
+Pass `--scenario mcp` (with the optional `server-mcp` dependencies installed) to
+check the Server panel's export switch, tool name/description, actual clipboard
+copy, persisted fields after page reload, tool renaming and disabling. The runner
+starts the disposable editor with `--mcp`; screenshots are saved with the evidence.

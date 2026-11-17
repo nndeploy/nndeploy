@@ -435,6 +435,7 @@ server_requires = [
     'uvicorn>=0.24.0',  # ASGI server
     'websockets>=11.0',  # WebSocket support
     'python-multipart>=0.0.6',  # File upload support
+    'python-dotenv>=1.0,<2',  # Optional server.env loading
     'pydantic>=2.0.0',  # Data validation
     'chardet>=5.2.0',  # Character encoding detection
     'SQLAlchemy>=2.0,<3',
@@ -532,6 +533,8 @@ setup(
     package_dir={"nndeploy": "nndeploy"},
     # package_data=package_data,
     package_data=get_package_data(),
+    exclude_package_data={"": [".env", ".env.*", "*.env", "*.env.*",
+                               "**/.env", "**/.env.*", "**/*.env", "**/*.env.*"]},
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
@@ -541,6 +544,7 @@ setup(
         ],
     },
     extras_require={
+        'server-mcp': ['mcp>=1.30,<2'],
         'server-audio': ['av>=16.1,<20'],
         'server-mysql': ['pymysql>=1.1,<2'],
         'server-postgresql': ['psycopg[binary]>=3.2,<4'],

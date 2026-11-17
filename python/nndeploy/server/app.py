@@ -330,6 +330,10 @@ def cli(argv=None):
     ap.add_argument("--device-limits", help="JSON resident model budgets; does not change algorithm device placement")
     ap.add_argument("--auth-config", help="JSON API key permissions; token values are read from environment variables")
     ap.add_argument("--audit-config", help="Optional JSON HTTP audit settings; an empty object enables default retention")
+    ap.add_argument("--mcp", action="store_true", help="Enable MCP tool exports from the Server panel (requires server-mcp dependencies)")
+    ap.add_argument("--mcp-path", default="/mcp", help="MCP endpoint path")
+    ap.add_argument("--mcp-allowed-host", action="append", help="Allowed MCP Host header; repeat for multiple hosts")
+    ap.add_argument("--mcp-allowed-origin", action="append", help="Allowed MCP browser Origin; repeat for multiple origins")
     ap.add_argument("--cors-origin", action="append", default=[], help="Explicit browser origin; repeat for multiple origins")
     ap.add_argument("--max-sync-connections", type=int, default=None, help="Maximum simultaneous synchronous Deploy HTTP responses")
     ap.add_argument(
@@ -341,6 +345,14 @@ def cli(argv=None):
     )
     ap.set_defaults(debug=False)
     args = ap.parse_args(argv)
+    if not 1 <= args.port <= 65535:
+        ap.error("--port must be between 1 and 65535")
+    if args.editor_history_retention_seconds is not None:
+        import math
+        if not math.isfinite(args.editor_history_retention_seconds) or args.editor_history_retention_seconds < 60:
+            ap.error("--editor-history-retention-seconds must be finite and at least 60")
+    if args.api_only and args.json_file:
+        ap.error("--json_file imports editor workflows; use --workflow with --api-only")
     if not 0 < args.database_operation_timeout_seconds <= 86400:
         ap.error('--database-operation-timeout-seconds must be finite, positive and at most 86400')
     if (args.database_backup or args.database_restore or args.database_export or args.database_import) and (not args.database_url_env or args.api_only or args.workflow or args.config or args.name):
@@ -891,12 +903,14 @@ class _EditorRuntime:
             finally:
                 self.ipc_watchdog.close()
 
-def main() -> None:
+def main(argv=None) -> None:
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     
     mp.set_start_method("spawn", force=True)
 
-    args = cli()
+    args = cli(argv)
+    from .environment import load_server_env
+    load_server_env()
     token = None
     if args.admin_token_env:
         token = os.environ.get(args.admin_token_env)
@@ -953,6 +967,9 @@ def main() -> None:
                                 data_dir=Path(args.resources) / "server", admin_token=token, database_url=database_url,
                                 database_timeout_seconds=args.database_timeout_seconds,
                                 storage_config=storage_config, redis_config=redis_config, auth_config=auth_config, audit_config=audit_config,
+                                mcp_config=dict(enabled=args.mcp, path=args.mcp_path,
+                                    **({'allowed_hosts': args.mcp_allowed_host} if args.mcp_allowed_host else {}),
+                                    **({'allowed_origins': args.mcp_allowed_origin} if args.mcp_allowed_origin else {})),
                                 cors_origins=args.cors_origin, max_sync_connections=args.max_sync_connections, device_limits=device_limits)
         server.run(host=args.host, port=args.port)
         return
@@ -976,7 +993,9 @@ def main() -> None:
                 if not src.exists():
                     logging.warning(f"JSON file not found: {src}")
                     continue
-                shutil.copy(src, workflow_dir)
+                destination = workflow_dir / src.name
+                if src.resolve() != destination.resolve():
+                    shutil.copy(src, destination)
                 logging.info(f"Copied JSON file {src} to {workflow_dir}")
             except Exception as e:
                 logging.error(f"Failed to copy JSON file {json_path}: {e}")
@@ -987,7 +1006,10 @@ def main() -> None:
     if args.plugin != []:
         for plugin_path in args.plugin:
             import shutil
-            shutil.copy(plugin_path, plugin_dir)
+            source = Path(plugin_path)
+            destination = plugin_dir / source.name
+            if source.resolve() != destination.resolve():
+                shutil.copy(source, destination)
     if plugin_dir.exists():
         load_existing_plugins(plugin_dir)
 
@@ -1002,7 +1024,11 @@ def main() -> None:
         database_timeout_seconds=args.database_timeout_seconds,
         editor_history_retention_seconds=args.editor_history_retention_seconds,
         database_url=database_url, storage_config=storage_config, redis_config=redis_config,
-        auth_config=auth_config, audit_config=audit_config, cors_origins=args.cors_origin,
+        auth_config=auth_config, audit_config=audit_config,
+        mcp_config=dict(enabled=args.mcp, path=args.mcp_path,
+                        **({'allowed_hosts': args.mcp_allowed_host} if args.mcp_allowed_host else {}),
+                        **({'allowed_origins': args.mcp_allowed_origin} if args.mcp_allowed_origin else {})),
+        cors_origins=args.cors_origin,
         max_sync_connections=args.max_sync_connections, device_limits=device_limits))
     original_lifespan = server.app.router.lifespan_context
 

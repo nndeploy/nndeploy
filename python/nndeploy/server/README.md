@@ -645,3 +645,307 @@ server/
 * 项目通过模块化设计将 HTTP 接口、队列调度、执行引擎与持久化解耦，便于分别扩展与维护。
 * 依托 FastAPI 的异步能力、Pydantic 的类型约束以及多进程执行隔离。
 * 增加了对回传Graph json的解析功能，可以读取Graph中的参数，实现模型资源的自动下载。
+
+## MCP: export multiple algorithms or workflows
+
+Install the optional official MCP SDK (Python 3.10+):
+
+```bash
+pip install 'nndeploy[server-mcp]'
+# From a source checkout with nndeploy already built:
+pip install 'mcp>=1.30,<2'
+python demo/server/mcp_algorithms.py
+# In another terminal:
+python demo/server/mcp_client.py
+```
+
+Connect a Streamable HTTP MCP client to `http://127.0.0.1:8000/mcp`.
+This is a protocol endpoint, not a browser page. One connection discovers all
+exported tools allowed by the caller's entry permissions.
+
+```python
+from pydantic import BaseModel
+from nndeploy.server import Server
+
+class TextInput(BaseModel):
+    text: str
+
+server = Server(mcp_config={"enabled": True})
+server.add(
+    name="uppercase", deploy=lambda inputs: {"text": inputs["text"].upper()},
+    input_model=TextInput,
+    mcp={"name": "uppercase_text", "description": "Convert text to uppercase."},
+)
+server.add(
+    name="pipeline", workflow="workflows/pipeline.json",
+    mcp={"name": "run_pipeline", "description": "Execute the complete image processing workflow."},
+)
+server.run(host="127.0.0.1", port=8000)
+```
+
+The pipeline path must refer to your existing Graph JSON; all its nodes execute
+as one Server task. Graph objects, graph factories, handler factories and registered
+algorithms use the same `add(..., mcp=...)` option. Exports are explicit: entries
+without `mcp` remain available through their existing Server interfaces only.
+Tool names must be unique and contain only ASCII letters, digits, `_`, `-`, or `.`
+(up to 128 characters). `get_task` and `cancel_task` are reserved.
+Code exports require `input_model` or explicit input configuration; workflow
+schemas use the existing input/parameter discovery. Configure exports in Python startup code or in the editor Server panel. Workflow
+exports are saved with their Server configuration and restored on restart when
+the MCP transport is enabled. Code factories still require explicit registration.
+
+Each algorithm tool accepts:
+
+```json
+{
+  "inputs": {"text": "Hello nndeploy"},
+  "parameters": {},
+  "idempotency_key": "optional-stable-operation-key"
+}
+```
+
+`inputs` and `parameters` follow the tool's advertised JSON Schema. Empty groups
+may be omitted if none of their fields are required. Server validation remains
+authoritative for file formats, node parameters and array constraints.
+The result contains `task_id`, `status_url`, and `dispatch_pending`. Call
+`get_task({"task_id": "..."})` until `state` is `succeeded`, `failed`, `cancelled`,
+or `expired`. A task can already be executing when its submission response arrives.
+`cancel_task` requests cancellation; inspect `state` and `cancel_requested` rather
+than assuming cancellation has completed. Business errors return `isError=true`
+with a structured `error`; accepted tasks continue after a client disconnect.
+Retry submissions with the same idempotency key and identical arguments.
+
+Algorithm tools share the existing queue, Worker, quotas, task ownership and
+file storage. Upload media through `POST /v1/files` and pass `{"file_id": "..."}`
+in the declared input field. Outputs keep their existing Server file references;
+use authenticated HTTP file interfaces to retrieve content. MCP does not expose
+local paths or inline large media. Independent tools can be submitted concurrently;
+actual execution concurrency follows existing Worker and device limits. For a
+fixed sequence, export the complete Graph as one tool; for an ad hoc sequence,
+wait for the first task and pass its output to the next compatible input.
+
+MCP is disabled by default and its SDK is not imported when disabled. Configuration:
+
+```python
+server = Server(
+    mcp_config={
+        "enabled": True,
+        "path": "/mcp",
+        "allowed_hosts": ["inference.example.com"],
+        "allowed_origins": ["https://client.example.com"],
+    },
+    auth_config={
+        "keys": [{
+            "subject": "assistant",
+            "token_env": "NNDEPLOY_MCP_TOKEN",
+            "entries": ["uppercase", "pipeline"],
+            "permissions": ["deploy", "tasks:read", "tasks:cancel", "files:read", "files:write"],
+        }],
+    },
+)
+```
+
+The token environment variable must contain at least 32 characters. Configure
+`Authorization: Bearer ...` in the client (the example client reads
+`NNDEPLOY_MCP_TOKEN`). Default Host/Origin allowlists accept loopback addresses;
+configure your actual hostname when serving remotely, and provide HTTPS at the
+proxy. Requests without Origin are allowed after Host/authentication checks.
+The endpoint uses existing Bearer authentication, not OAuth discovery. An
+unauthenticated Server also has an unauthenticated MCP endpoint.
+
+This implementation uses the official SDK 1.x stateless Streamable HTTP transport,
+with JSON responses and no server-initiated tool-list notifications. Clients should
+list tools again after entry schema changes. It does not advertise MCP protocol
+Tasks: task IDs belong to nndeploy's existing task system. Resources, prompts,
+stdio and MCP-specific uploads are not implemented. Tested with SDK 1.30.0;
+client compatibility depends on its supported transport and authentication options.
+
+
+### Configure MCP in the editor Server panel
+
+Start the editor with the optional MCP dependencies installed:
+
+```bash
+nndeploy-app --mcp
+# Serve a locally built editor when developing from source:
+nndeploy-app --mcp --front-end-dir app/workflow/dist
+```
+
+In **Server → MCP tool export**, enable **Enable tool export**, enter a unique
+**Tool name** and a **Tool description**, then select **Start** or **Update**.
+An entire multi-node workflow is exported as one tool. **Copy MCP URL** copies
+the shared Streamable HTTP address without credentials. Configure any required
+Bearer token separately in the client. Clearing the checkbox and selecting
+**Update** removes the tool export while retaining the HTTP entry.
+
+The panel restores saved settings when reopened after a page reload. Changes to
+a running workflow apply only after a successful Update; failed reloads preserve
+the previous tool. Tool names are checked against other entries, including updates
+in progress. Use a unique tool name when renaming a service that retains an older
+entry. Existing configurations without MCP remain unchanged.
+
+If the transport is disabled, the panel shows how to enable it and does not offer
+a live connection address. The CLI also accepts `--mcp-path`, repeated
+`--mcp-allowed-host` and repeated `--mcp-allowed-origin`. Hosts must match the
+address clients actually use. The development proxy forwards the default `/mcp`
+path; custom paths require a matching proxy rule.
+
+### Repository command-line entry points
+
+`python app.py` and `python server.py` share the same CLI as
+`python -m nndeploy.server`. The default port is **8000**; the editor binds to
+`0.0.0.0`, while `--api-only --workflow graph.json` defaults to `127.0.0.1`.
+Use `--help` to see deployment, authentication, MCP and database options.
+
+```bash
+python server.py --api-only --workflow graph.json --port 9000
+python app.py --resources ./my_resources --front-end-dir ./frontend/dist
+python clean.py --resources ./my_resources --db --dry-run
+python clean.py --resources ./my_resources --server
+python run_json.py --json_file graph.json --parallel_type sequential
+```
+
+Stop processes using the selected directories before cleanup. `clean.py`
+supports `--resources`, `--logs-dir`, `--frontend-dir`, and `--dry-run`.
+With no selectors it retains the historical cleanup set: logs, template, db,
+frontend and plugin. Deploy state under `resources/server` is only removed by
+explicit `--server`; `--keep` excludes directories from the historical set and
+cannot be mixed with individual selectors. Directory symlinks are unlinked,
+without deleting their targets. Templates currently use `./resources/template`
+even when the editor is started with a custom resource directory; select that
+resource root when clearing the template cache.
+
+`run_json.py` accepts both underscore and hyphen spellings for its JSON, task,
+node and parallel options. `--parallel_type` supports `none`, `sequential`,
+`task`, and `pipeline` (also their canonical enum names). Omit it to retain the
+workflow's setting. Existing resource directories are reused without copying
+over their contents. Execution and cleanup failures return exit code 1;
+invalid CLI arguments return exit code 2.
+
+### Shutdown failure handling
+
+`await server.close()` owns a single shutdown operation. Cancelling a caller
+waiting for it does not cancel worker cleanup; another caller can await the
+same operation. Unexpected maintenance or callback-dispatch failures are
+reported after worker and dependency cleanup has been attempted. Repeated
+calls retain the original shutdown result, including an unconfirmed release
+failure; create a new `Server` to restart.
+
+HTTP node shorthand accepts declared input and parameter names; untyped code
+entries also accept arbitrary input names. Unknown
+request-envelope fields are rejected with 422, including batch items, before
+any task in that batch is admitted. Per-item input validation and execution
+failures continue to appear in the batch response.
+
+Node parameter defaults remain part of the resident configuration. Tasks store
+only changed node parameters, so configured model files stay protected by the
+entry resource lease without being mistaken for caller-owned request uploads.
+
+### PostgreSQL, Redis and Tencent COS configuration
+
+Connection URLs and credentials stay in environment variables. The CLI reads
+`DATABASE_URL` only when `--database-url-env DATABASE_URL` is supplied. A plain
+`postgresql://` URL is normalized to the installed Psycopg driver.
+
+For a Redis URL stored in `REDIS_URL`, use a Redis configuration file such as:
+
+```json
+{
+  "url_env": "REDIS_URL",
+  "namespace": "agentx:dev",
+  "event_stream_prefix": "agentx_dev:run_stream:"
+}
+```
+
+Namespaces support letters, digits, `_`, `.`, `-` and `:` (up to 64 characters).
+`event_stream_prefix` is optional (up to 128 characters with the same character
+set). It prefixes event-notification Streams; namespace and database identity
+are still appended to prevent cross-application notification collisions. Queue
+Streams continue to use the namespace. Omitting it retains existing key names.
+`REDIS_PREFIX` and `REDIS_STREAM_PREFIX` are application environment conventions,
+not automatically loaded settings: map their values to these JSON fields.
+Redis is coordination/cache infrastructure; task state and event replay remain
+in the database, including when Redis notifications are unavailable.
+
+For COS, use a storage configuration file such as:
+
+```json
+{
+  "backend": "cos",
+  "bucket": "your-bucket-1234567890",
+  "region": "ap-beijing",
+  "prefix": "nndeploy",
+  "access_key_env": "COS_ACCESS_KEY_ID",
+  "secret_key_env": "COS_ACCESS_KEY_SECRET"
+}
+```
+
+Set `bucket` from `COS_BUCKET_NAME` (or `COS_BUCKET`) and `region` from
+`COS_REGION` when preparing the configuration; JSON values are not interpolated
+from the environment. Temporary credentials can additionally use `token_env`.
+For example, after saving the two files as `redis.json` and `cos.json`:
+
+```bash
+python server.py --api-only --workflow ./graph.json \
+  --database-url-env DATABASE_URL \
+  --redis-config ./redis.json --storage-config ./cos.json
+```
+
+COS uploads up to 8 MiB use a single request; larger files use 8 MiB parts and
+at most two concurrent writers. Server owns each multipart upload and attempts
+to abort it after a part/completion failure, after joining active writers. An
+abort failure is logged without SDK exception text or signed URLs. A process
+crash or unavailable COS abort API can still leave incomplete parts; configure
+the bucket's incomplete-multipart lifecycle cleanup for those cases.
+
+Opt-in remote tests are separate from destructive fault tests that start/stop
+local services. Enable only the services you intend to validate:
+
+```bash
+NNDEPLOY_TEST_REMOTE_POSTGRES=1 python -m pytest test/server/test_remote_services.py -q
+NNDEPLOY_TEST_REMOTE_REDIS=1 python -m pytest test/server/test_remote_services.py -q
+NNDEPLOY_TEST_REMOTE_COS=1 python -m pytest test/server/test_remote_services.py -q
+```
+
+These tests read the environment names above. PostgreSQL tests require permission
+to create and remove a uniquely named schema. Redis tests use a generated suffix
+under `REDIS_PREFIX`, never `FLUSHDB`. COS tests write only to a generated
+`nndeploy-validation/<uuid>/` prefix and verify cleanup of their objects and
+multipart uploads. They require object read/write/delete and prefix listing
+permissions. Keep credentials and signed URLs out of shared test output.
+
+To include the two-Server native Graph test across all three real services,
+enable all three flags together:
+
+```bash
+NNDEPLOY_TEST_REMOTE_POSTGRES=1 NNDEPLOY_TEST_REMOTE_REDIS=1 NNDEPLOY_TEST_REMOTE_COS=1 \
+  python -m pytest test/server/test_remote_services.py -q
+```
+
+This additionally checks cross-replica idempotency, shared queue accounting,
+persistent task events, and an output read from COS through another replica's
+cold cache. These checks do not stop or restart the supplied remote services.
+
+### Private environment files
+
+The repository root contains `server.example.env`, a sanitized template with
+variable descriptions and loading commands. From the repository root, run
+`cp server.example.env server.env`, then edit `server.env` with actual values
+and set its permissions with `chmod 600 server.env`. This private file is ignored
+by Git. CLI launchers (`app.py`, `server.py`, `python -m nndeploy.server`) and
+Python `Server(...)` construction automatically read `server.env` from the current
+working directory before resolving environment-based settings. A missing file
+is allowed; existing environment variables take precedence, including empty
+values. Importing the module alone does not load it. No parent-directory search,
+shell command execution or `${...}` interpolation is performed. Quoted values,
+comments and optional `export` prefixes use dotenv syntax.
+
+This loads environment variables only: backend selection still uses
+`--database-url-env`, `--redis-config`, `--storage-config` or the corresponding
+Python arguments. Manual loading with `set -a; source ./server.env; set +a` is
+optional for other programs. Do not fill real values into the tracked example.
+
+Git ignores private environment files while allowing example templates. Docker
+build context rules and Python source/wheel packaging rules exclude environment
+files, including templates. Production deployments should inject secrets at
+runtime instead of copying environment files into build artifacts.

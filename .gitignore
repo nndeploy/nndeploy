@@ -160,6 +160,13 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+*.env
+*.env.*
+# Only sanitized example templates may be committed.
+!.env.example
+!*.example.env
+!*.env.example
 .venv
 env/
 venv/

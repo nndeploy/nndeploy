@@ -9,6 +9,7 @@ from fastapi import Depends, Header, HTTPException, UploadFile, File, Request, Q
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 
+from ..operations import read_task, cancel_task, submit_task
 from ..errors import ServerError
 from ..protocol import DeployRequest, TaskResponse, BatchRequest, TaskInput
 from ..dependencies import Identity, limited_identity
@@ -100,6 +101,11 @@ async def deploy_request(server, name, body, caller, *, request, idempotency_key
             request.state.audit_resource = identity
             return await server.wait_result(identity, future, wait_timeout)
         return await wait_sync_response(request, result())
+    if body.mode == 'async':
+        value = await submit_task(server, name, body.inputs, body.parameters, caller,
+                                  idempotency_key=idempotency_key, callback_url=body.callback_url)
+        request.state.audit_resource = value['task_id']
+        return JSONResponse(value, status_code=202)
     if body.mode == 'stream':
         caller.require('tasks:read', name)
         if not server._entry(name)['config'].streaming.enabled:
@@ -120,9 +126,6 @@ async def deploy_request(server, name, body, caller, *, request, idempotency_key
     future.cancel()
     if body.mode == 'stream':
         return TaskEventResponse(server, identity, reserved=True)
-    if body.mode == 'async':
-        return JSONResponse({'task_id': identity, 'status_url': f'/v1/tasks/{identity}',
-                             'dispatch_pending': getattr(future, 'dispatch_pending', False)}, status_code=202)
 
 
 def register_routes(server):
@@ -249,7 +252,8 @@ def register_routes(server):
         from pydantic import ValidationError
         caller.require('deploy', name)
         try:
-            body = DeployRequest.model_validate(node_request(server._entry(name)['config'], body))
+            entry = server._entry(name)
+            body = DeployRequest.model_validate(node_request(entry['config'], body, untyped=entry['untyped']))
         except ValidationError as exc:
             raise RequestValidationError(exc.errors()) from exc
         return await deploy_request(server, name, body, caller, request=request, idempotency_key=idempotency_key, accept=accept)
@@ -268,9 +272,10 @@ def register_routes(server):
         caller.require('deploy', name)
         from ..protocol import node_request
         from pydantic import ValidationError
-        config = server._entry(name)['config']
+        entry = server._entry(name)
         if isinstance(body.get('items'), list):
-            body = dict(body, items=[node_request(config, item) if isinstance(item, dict) else item for item in body['items']])
+            body = dict(body, items=[node_request(entry['config'], item, untyped=entry['untyped'])
+                                    if isinstance(item, dict) else item for item in body['items']])
         try:
             body = BatchRequest.model_validate(body)
         except ValidationError as exc:
@@ -288,12 +293,7 @@ def register_routes(server):
 
     @app.get('/v1/tasks/{identity}', response_model=TaskResponse)
     async def task(identity: str, caller: Identity = Depends(limited_identity)):
-        caller.require('tasks:read')
-        value = await asyncio.to_thread(server.db.get_task, identity)
-        if value is None or not caller.owns(value):
-            raise ServerError(404, 'task_not_found', 'Unknown task')
-        caller.require('tasks:read', value['name'])
-        return value
+        return await read_task(server, identity, caller)
 
     @app.get('/v1/tasks/{identity}/events')
     async def events(identity: str, last_event_id: str = Header(default='0'),
@@ -315,12 +315,7 @@ def register_routes(server):
 
     @app.post('/v1/tasks/{identity}/cancel', response_model=TaskResponse)
     async def cancel(identity: str, caller: Identity = Depends(limited_identity)):
-        caller.require('tasks:cancel')
-        value = await asyncio.to_thread(server.db.get_task, identity)
-        if value is None or not caller.owns(value):
-            raise ServerError(404, 'task_not_found', 'Unknown task')
-        caller.require('tasks:cancel', value['name'])
-        return await server.cancel_task(identity)
+        return await cancel_task(server, identity, caller)
 
     @app.post('/v1/files', status_code=201)
     async def upload(request: Request, file: UploadFile = File(...), caller: Identity = Depends(limited_identity)):
@@ -386,6 +381,10 @@ def register_routes(server):
     @app.post('/api/server/cleanup-files', dependencies=[Depends(administrator)])
     async def cleanup_files():
         return await server.cleanup_files()
+
+    @app.get('/api/server/mcp/config', dependencies=[Depends(administrator)])
+    async def mcp_config():
+        return {'enabled': server.mcp is not None, 'path': server.mcp.config.path if server.mcp else None}
 
     @app.get('/api/server/{name}', dependencies=[Depends(administrator)])
     async def entry(name: str):

@@ -9,7 +9,8 @@ from .config import StrictModel
 
 class RedisConfig(StrictModel):
     url_env: str = 'NNDEPLOY_REDIS_URL'
-    namespace: str = Field(default='nndeploy', pattern=r'^[A-Za-z0-9_.-]{1,64}$')
+    namespace: str = Field(default='nndeploy', pattern=r'^[A-Za-z0-9_.:-]{1,64}$')
+    event_stream_prefix: str | None = Field(default=None, pattern=r'^[A-Za-z0-9_.:-]{1,128}$')
     socket_timeout_seconds: float = Field(default=2.0, gt=0, le=30)
     lease_seconds: float = Field(default=30.0, ge=1, le=3600)
     max_inflight_tasks: int = Field(default=64, ge=1)
@@ -33,7 +34,7 @@ class RedisEvents:
     """
     def __init__(self, config, database_identity):
         import redis
-        self.prefix = f'{config.namespace}:db:{database_identity}:events:'
+        self.prefix = f'{config.event_stream_prefix or ""}{config.namespace}:db:{database_identity}:events:'
         self.reader = config.connect()
         self.writer = redis.Redis.from_url(os.environ[config.url_env], decode_responses=True,
             socket_connect_timeout=config.socket_timeout_seconds, socket_timeout=config.socket_timeout_seconds)

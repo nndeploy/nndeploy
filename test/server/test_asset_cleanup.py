@@ -246,6 +246,11 @@ def test_reload_discards_previous_and_failed_candidate_copies(tmp_path, monkeypa
     source.write_text('first')
     workflow = json.loads(graph_with_resources([str(source)]).serialize())
     server = Server(workflow=workflow, config=settings(), data_dir=tmp_path / 'runtime')
+    async def idle_maintenance(*args, **kwargs):
+        # This test asserts the manual cleanup count. Automatic maintenance
+        # must not race it and legitimately collect the same obsolete copy.
+        await server.maintenance_stop.wait()
+    monkeypatch.setattr(server, '_maintain_tasks', idle_maintenance)
     def paths():
         return [path for path in (server.data_dir / 'assets').glob('*/model.bin')]
     async def scenario():

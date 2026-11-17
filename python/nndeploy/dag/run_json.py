@@ -1,150 +1,103 @@
-# graph_runner.py
+"""Run a JSON workflow and report failures through the process exit status."""
 
 from __future__ import annotations
-import json
-import time
-import logging
-import traceback
-from typing import Dict, Any, Tuple, List
+
 import argparse
-import shutil
+import logging
 from pathlib import Path
+import shutil
 
 import nndeploy.base
-import nndeploy.device
 from .node import add_global_import_lib, import_global_import_lib
 from .graph_runner import GraphRunner
-     
-       
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--json_file", type=str, required=True)
-    parser.add_argument("--name", type=str, default="", required=False)
-    parser.add_argument("--task_id", type=str, default="", required=False)
-        
-    # node_name:param_key:param_value
-    parser.add_argument("--node_param", "-np", type=str, nargs='*', default=[], required=False)
-    
-    # kParallelTypeSequential
-    parser.add_argument("--parallel_type", type=str, default="", required=False)
-    
-    # dump
-    parser.add_argument("--dump", action="store_true", default=False, required=False)
-    # debug
-    parser.add_argument("--debug", action="store_true", default=False, required=False)
-    
-    # plugin
-    parser.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
-    # resources
-    parser.add_argument("--resources", type=str, default="", required=False)
-    return parser.parse_args()
+
+
+PARALLEL_TYPES = {
+    'none': 'kParallelTypeNone', 'sequential': 'Sequential',
+    'task': 'Task', 'pipeline': 'Pipeline',
+}
+
+
+def _parallel_type(value):
+    normalized = PARALLEL_TYPES.get(value.lower(), value)
+    if normalized not in PARALLEL_TYPES.values():
+        raise argparse.ArgumentTypeError('Choose none, sequential, task or pipeline')
+    return normalized
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--json_file', '--json-file', required=True)
+    parser.add_argument('--name', default='')
+    parser.add_argument('--task_id', '--task-id', default='')
+    parser.add_argument('--node_param', '--node-param', '-np', nargs='*', default=[],
+                        help='Node parameter overrides in node:key:value format')
+    parser.add_argument('--parallel_type', '--parallel-type', type=_parallel_type, default=None)
+    parser.add_argument('--dump', action='store_true')
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--plugin', nargs='*', default=[])
+    parser.add_argument('--resources', default='',
+                        help='Copy resources into the working directory if not already present')
+    args = parser.parse_args(argv)
+    args.parallel_type = args.parallel_type or ''
+    return args
 
 
 class GraphRunnerArgs:
     def __init__(self):
-        self.json_file = ""
-        self.name = ""
-        self.task_id = ""
+        self.json_file = ''
+        self.name = ''
+        self.task_id = ''
         self.input_path = {}
         self.output_path = {}
         self.node_param = []
-        self.parallel_type = ""
+        self.parallel_type = ''
         self.dump = False
         self.debug = False
         self.plugin = []
-        self.resources = ""
-        
-    def parse_args(self):
-        args = parse_args()
-        self.json_file = args.json_file
-        self.name = args.name
-        self.task_id = args.task_id
-        
-        for item in args.node_param:
-            self.node_param.append(item)
-        
-        for item in args.plugin:
-            self.plugin.append(item)
-        
-        self.parallel_type = args.parallel_type
-        self.dump = args.dump
-        self.debug = args.debug
-        self.resources = args.resources
+        self.resources = ''
 
-# def main():
-#     args = GraphRunnerArgs()
-#     args.parse_args()
+    def parse_args(self, argv=None):
+        # Replace lists instead of accumulating values across repeated parses.
+        self.__dict__.update(vars(parse_args(argv)))
 
-#     if args.plugin != []:
-#         for plugin_path in args.plugin:
-#             add_global_import_lib(plugin_path)
-#         import_global_import_lib()
 
-#     graph_json_str = ""
-#     with open(args.json_file, "r") as f:
-#         graph_json_str = f.read()
-#     gr = GraphRunner()
-#     time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args)
-#     # print(time_profiler_map)
-#     # print(results)
-
-def main():
+def main(argv=None) -> int:
     args = GraphRunnerArgs()
-    args.parse_args()
-
-    logger = logging.getLogger("run_json")
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(asctime)s] [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    # Step 1: copy resources directory
-    if args.resources:
-        src = Path(args.resources).resolve()
-        dst = Path.cwd() / src.name
-        logger.info(f"Preparing to copy resources from {src} -> {dst}")
-
-        if not src.exists() or not src.is_dir():
-            logger.error(f"Resource directory not found or not a directory: {src}")
-            return
-
-        if dst.exists():
-            logger.warning(
-                f"Target directory already exists: {dst}. "
-                "Skipping copy. Please remove or rename it manually if you want to overwrite."
-            )
-            return
-        else:
-            try:
-                shutil.copytree(src, dst)
-                logger.info(f"Resources copied successfully to {dst}")
-            except Exception as e:
-                logger.error(f"Failed to copy resources from {src} to {dst}: {e}")
-                return
-
-    # Step 2: load plugins
-    if args.plugin:
-        for plugin_path in args.plugin:
-            add_global_import_lib(plugin_path)
-        import_global_import_lib()
-        logger.info(f"Loaded plugins: {args.plugin}")
-
-    # Step 3: load JSON file and run
+    args.parse_args(argv)
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format='[%(asctime)s] [%(levelname)s] %(message)s')
+    logger = logging.getLogger('run_json')
     try:
-        with open(args.json_file, "r") as f:
-            graph_json_str = f.read()
-    except Exception as e:
-        logger.error(f"Failed to read JSON file {args.json_file}: {e}")
-        return
+        # Read before copying resources or importing plugins so missing inputs
+        # fail without changing the working directory.
+        graph_json = Path(args.json_file).expanduser().read_text(encoding='utf-8')
+        if args.resources:
+            source = Path(args.resources).expanduser().resolve()
+            if not source.is_dir():
+                raise ValueError(f'Resource directory not found: {source}')
+            destination = Path.cwd() / source.name
+            if destination.exists():
+                if not destination.is_dir():
+                    raise ValueError(f'Resource destination is not a directory: {destination}')
+                logger.info('Using existing resources: %s', destination)
+            else:
+                shutil.copytree(source, destination)
+        if args.plugin:
+            for plugin in args.plugin:
+                add_global_import_lib(str(Path(plugin).expanduser().resolve()))
+            import_global_import_lib()
+        runner = GraphRunner()
+        _, _, status, message = runner.run(graph_json, args.name, args.task_id, args)
+        if status != nndeploy.base.StatusCode.Ok:
+            logger.error('Graph execution failed: %s', message)
+            return 1
+        logger.info('Graph execution completed successfully.')
+        return 0
+    except Exception:
+        logger.exception('Workflow execution failed')
+        return 1
 
-    gr = GraphRunner()
-    try:
-        time_profiler_map, results, _, _ = gr.run(graph_json_str, args.name, args.task_id, args)
-        logger.info("GraphRunner execution completed successfully.")
-    except Exception as e:
-        logger.error(f"GraphRunner execution failed: {e}\n{traceback.format_exc()}")
 
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    raise SystemExit(main())

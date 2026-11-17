@@ -150,8 +150,7 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
     ?.filter(node => getResourceFields(node).length === 0)
   const inputTextNodes = getNodes('Input', ['String', 'Text', 'Json', 'Xml', 'Csv', 'Yaml'])
 
-  const outputBinaryNodes = getNodes('Output', ['Image', 'Video', 'Binary', 'Camera', 'Microphone', 'Model', 'Bool', 'Num'])
-  const outputTextNodes = getNodes('Output', ['String', 'Text', 'Json', 'Xml', 'Csv', 'Yaml'])
+
 
 
 
@@ -176,6 +175,8 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
       <div className="drawer-content">
         <div className={styles['webui-components-container']}>
           <div className={styles['left-container']}>
+            <h3>Inputs & parameters</h3>
+            <p className={styles['section-description']}>Configure inputs, then run the workflow.</p>
             {resourceNodes.map(node => <div key={node.name_} className={styles['io-input-node-container']}>
               <div className={styles['io-node-name']}>{node.name_}</div>
               <ResourceFieldsInput node={node} onChange={value => onValueChange(value, node)} />
@@ -208,7 +209,7 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
             {
               inputTextNodes.map(node => {
 
-                return <div className={classNames(styles['io-input-area'], styles['io-input-area-text'], 'io-input-area')}>
+                return <div key={node.name_} className={classNames(styles['io-input-area'], styles['io-input-area-text'], 'io-input-area')}>
 
                   <div key={node.name_}
                     className={classNames(styles['io-input-node-container'], 'io-input-node-container')}>
@@ -234,7 +235,7 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
             <div className={classNames(styles['param-area'], 'param-area')}>
               {
                 allNodes.map(node => {
-                  return <UiParams
+                  return <UiParams key={node.name_}
                     onChange={value => {
                       onValueChange(value, node)
                     }}
@@ -247,70 +248,29 @@ const WebUIComponents: React.FC<IWebUIComponentsProps> = (props) => {
             </div>
           </div>
           <div className={styles['right-container']}>
-            {!isRunning && runInfo.outputResource.expired &&
-              <p role="status">This task finished earlier. Its saved results have expired.</p>}
-            {!isRunning && runInfo.result === 'success' && !!runInfo.outputResource.files?.length &&
-              <div aria-label="Output files">
-                <strong>Output files</strong>
-                <ul>
-                  {runInfo.outputResource.files.map(file => <li key={file.file_id}>
-                    <a href={file.url} download={file.file_id + (file.media_type === 'application/zip' ? '.zip' : '')}>{getOutputFileLabel(file)}</a>
-                    {file.media_type.startsWith('image/') && <img src={file.url} alt={getOutputFileLabel(file)} loading="lazy" style={{ maxWidth: '100%' }} />}
-                    {file.media_type.startsWith('video/') && <video controls src={file.url} preload="none" style={{ maxWidth: '100%' }} />}
-                    {file.media_type.startsWith('audio/') && <audio controls src={file.url} preload="none" />}
-                  </li>)}
-                </ul>
-              </div>}
+            <h3>Results</h3>
+            <p className={styles['section-description']} role="status">
+              {isRunning ? 'Running workflow…' : runInfo.outputResource.expired
+                ? 'Saved results have expired. Run the workflow again.'
+                : runInfo.result === 'success' ? 'Workflow completed' : 'Run the workflow to view results.'}
+            </p>
+            {!isRunning && !runInfo.outputResource.expired && runInfo.result === 'success' && <>
+              {(runInfo.outputResource.files || []).map(file => <article key={file.file_id} className={styles['result-card']}>
+                <header><strong>{getOutputFileLabel(file)}</strong><span>{file.media_type}</span></header>
+                {file.media_type.startsWith('image/') && <a href={file.url} target="_blank" rel="noreferrer"><img src={file.url} alt={getOutputFileLabel(file)} loading="lazy" /></a>}
+                {file.media_type.startsWith('video/') && <video controls src={file.url} preload="metadata" />}
+                {file.media_type.startsWith('audio/') && <audio controls src={file.url} preload="metadata" />}
+                <a className={styles['download-link']} href={file.url} download>Download file</a>
+              </article>)}
+              {Object.entries(runInfo.outputResource.content || {}).map(([name, value]) =>
+                <article key={name} className={styles['result-card']}>
+                  <header><strong>{name}</strong><span>Text / data</span></header>
+                  <pre>{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}</pre>
+                </article>)}
+              {!runInfo.outputResource.files?.length && !Object.keys(runInfo.outputResource.content || {}).length &&
+                <p>No output was returned by this workflow.</p>}
+            </>}
 
-            {
-              outputBinaryNodes.length > 0 &&
-
-              <div className={classNames(styles['io-output-area'], 'io-output-area')}>
-                {outputBinaryNodes.map(node => {
-
-                  return <div key={node.name_} className={styles['io-output-node-container']}>
-                    <div className={styles['io-node-name']}>{node.name_}</div>
-
-                    <IoType
-                      direction={'output'}
-                      ioDataType={node.io_type_}
-                      node={node}
-
-                      onChange={value => {
-                        onValueChange(value, node)
-                      }}
-                    />
-
-                  </div>
-
-
-                })}
-              </div>
-            }
-            {
-              outputTextNodes.map(node => {
-
-                return <div className={classNames(styles['io-output-area'], styles['io-output-area-text'], 'io-output-area')}>
-
-                  <div key={node.name_}
-                    className={classNames(styles['io-output-node-container'], 'io-output-node-container')}>
-                    <div className={styles['io-node-name']}>{node.name_}</div>
-                    {
-                      <IoType
-                        direction={'output'}
-                        ioDataType={node.io_type_}
-                        node={node}
-
-                        onChange={value => {
-                          onValueChange(value, node)
-                        }}
-                      />
-                    }
-                  </div>
-                </div>
-
-
-              })}
           </div>
         </div>
       </div >
