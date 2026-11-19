@@ -126,6 +126,10 @@ base::Status softmax(device::Tensor *input,
                          "checkOrAllocOutput failed");
   status = op->preRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  // aclnn ops may require workspace; run() returns 161001 if not allocated
+  status = op->allocateWorkspace();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "allocateWorkspace failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();
