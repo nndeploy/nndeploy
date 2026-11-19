@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -39,6 +40,7 @@ class Sam3Processor:
         )
 
     @torch.inference_mode()
+    @boundary('image_preprocess')
     def set_image(self, image, state=None):
         """Sets the image on which we want to do predictions."""
         if state is None:
@@ -181,6 +183,7 @@ class Sam3Processor:
         return state
 
     @torch.inference_mode()
+    @boundary('concept_postprocess')
     def _forward_grounding(self, state: Dict):
         outputs = self.model.forward_grounding(
             backbone_out=state["backbone_out"],

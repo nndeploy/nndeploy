@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 # All rights reserved.
 
@@ -231,6 +232,7 @@ class SAM3InteractiveImagePredictor(nn.Module):
 
         return all_masks, all_ious, all_low_res_masks
 
+    @boundary('instance_predictor')
     def predict(
         self,
         point_coords: Optional[np.ndarray] = None,

@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -225,6 +226,7 @@ class SimpleTokenizer(object):
         )
         return text
 
+    @boundary('tokenizer')
     def __call__(
         self, texts: Union[str, List[str]], context_length: Optional[int] = None
     ) -> torch.LongTensor:

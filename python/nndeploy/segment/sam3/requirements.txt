@@ -16,5 +16,7 @@ tqdm>=4.66
 scipy>=1.11
 scikit-image>=0.22
 typing_extensions>=4.10
+# COCO RLE input/output for image and video interfaces.
+pycocotools>=2.0
 # Optional: huggingface-hub for automatic checkpoint downloads.
 # Optional: cc_torch, torchcodec, decord, flash_attn_interface, xformers.

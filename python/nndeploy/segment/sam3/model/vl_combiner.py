@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -78,6 +79,7 @@ class SAM3VLBackbone(nn.Module):
         output.update(self.forward_text(captions, input_boxes, additional_text, device))
         return output
 
+    @boundary('vision_encoder')
     def forward_image(self, samples: torch.Tensor):
         return activation_ckpt_wrapper(self._forward_image_no_act_ckpt)(
             samples=samples,
@@ -121,6 +123,7 @@ class SAM3VLBackbone(nn.Module):
 
         return output
 
+    @boundary('text_encoder')
     def forward_text(
         self, captions, input_boxes=None, additional_text=None, device="cuda"
     ):

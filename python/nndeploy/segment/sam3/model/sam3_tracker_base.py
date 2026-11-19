@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -214,6 +215,7 @@ class Sam3TrackerBase(torch.nn.Module):
         # avoid potential interference with spatial positional encoding
         self.obj_ptr_tpos_proj = torch.nn.Linear(self.hidden_dim, self.mem_dim)
 
+    @boundary('instance_heads')
     def _forward_sam_heads(
         self,
         backbone_features,
@@ -556,6 +558,7 @@ class Sam3TrackerBase(torch.nn.Module):
 
         return valid_indices
 
+    @boundary('memory_attention')
     def _prepare_memory_conditioned_features(
         self,
         frame_idx,
@@ -793,6 +796,7 @@ class Sam3TrackerBase(torch.nn.Module):
         pix_feat_with_mem = encoder_out["memory"].permute(1, 2, 0).view(B, C, H, W)
         return pix_feat_with_mem
 
+    @boundary('memory_encoder')
     def _encode_new_memory(
         self,
         image,

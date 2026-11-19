@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -542,6 +543,7 @@ class Sam3VideoBase(nn.Module):
 
         return keep
 
+    @boundary('video_detection')
     def run_backbone_and_detection(
         self,
         frame_idx: int,
@@ -748,6 +750,7 @@ class Sam3VideoBase(nn.Module):
                 )
         return tracker_states_local
 
+    @boundary('tracking_plan')
     def run_tracker_update_planning_phase(
         self,
         frame_idx: int,
@@ -1173,6 +1176,7 @@ class Sam3VideoBase(nn.Module):
 
         return tracker_low_res_masks_global
 
+    @boundary('tracking_commit')
     def run_tracker_update_execution_phase(
         self,
         frame_idx: int,
@@ -1485,6 +1489,7 @@ class Sam3VideoBase(nn.Module):
 
         return obj_ids_local, low_res_masks_local, obj_scores_local
 
+    @boundary('association')
     def _associate_det_trk(
         self,
         det_masks: Tensor,

@@ -1,3 +1,5 @@
+from nndeploy.segment.sam3.modules import check_cancel, observe_path
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -242,7 +244,10 @@ class Sam3VideoInference(Sam3VideoBase):
         if reverse:
             end_frame_idx = start_frame_idx - max_frame_num_to_track
             end_frame_idx = max(end_frame_idx, 0)
-            processing_order = range(start_frame_idx - 1, end_frame_idx - 1, -1)
+            # The workflow contract includes both endpoints of the native
+            # tracking span. Preserve upstream behavior for ordinary callers.
+            first = start_frame_idx if inference_state.get("_sam3_workflow_include_reverse_start", False) else start_frame_idx - 1
+            processing_order = range(first, end_frame_idx - 1, -1)
         else:
             end_frame_idx = start_frame_idx + max_frame_num_to_track
             end_frame_idx = min(end_frame_idx, num_frames - 1)
@@ -292,6 +297,7 @@ class Sam3VideoInference(Sam3VideoBase):
         for frame_idx in tqdm(
             processing_order, desc="propagate_in_video", disable=self.rank > 0
         ):
+            check_cancel(inference_state)
             out = self._run_single_frame_inference(inference_state, frame_idx, reverse)
 
             if self.hotstart_delay > 0:
@@ -357,6 +363,7 @@ class Sam3VideoInference(Sam3VideoBase):
                     postprocessed_out = None  # no output on other GPUs
                 yield yield_frame_idx, postprocessed_out
 
+    @boundary('video_frame')
     def _run_single_frame_inference(self, inference_state, frame_idx, reverse):
         """
         Perform inference on a single frame and get its inference results. This would
@@ -429,6 +436,7 @@ class Sam3VideoInference(Sam3VideoBase):
 
         return out
 
+    @boundary('video_postprocess')
     def _postprocess_output(
         self,
         inference_state,
@@ -1023,6 +1031,8 @@ class Sam3VideoInferenceWithInstanceInteractivity(Sam3VideoInference):
             frame_idx=start_frame_idx,
         )
 
+        observe_path(propagation_type)
+
         # step 2: run full VG propagation
         if propagation_type == "propagation_full":
             logger.debug(f"Running full VG propagation (reverse={reverse}).")
@@ -1053,6 +1063,7 @@ class Sam3VideoInferenceWithInstanceInteractivity(Sam3VideoInference):
         # if fetch just return from output
         if propagation_type == "propagation_fetch":
             for frame_idx in tqdm(processing_order):
+                check_cancel(inference_state)
                 if self.rank == 0:
                     obj_id_to_mask = inference_state["cached_frame_outputs"].get(
                         frame_idx, {}
@@ -1095,6 +1106,7 @@ class Sam3VideoInferenceWithInstanceInteractivity(Sam3VideoInference):
 
         for frame_idx in tqdm(processing_order):
             # run Tracker propagation
+            check_cancel(inference_state)
             if propagation_type == "propagation_partial":
                 self._prepare_backbone_feats(inference_state, frame_idx, reverse)
                 obj_ids_local, low_res_masks_local, tracker_scores_local = (

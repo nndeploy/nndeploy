@@ -1,3 +1,4 @@
+from nndeploy.segment.sam3.modules import boundary
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 # pyre-unsafe
@@ -164,6 +165,7 @@ class Sam3Image(torch.nn.Module):
         assert "backbone_fpn" in backbone_out
         return self._get_img_feats(backbone_out, img_ids=img_ids)
 
+    @boundary('concept_prompt')
     def _encode_prompt(
         self,
         backbone_out,
@@ -209,6 +211,7 @@ class Sam3Image(torch.nn.Module):
             prompt_mask = torch.cat([geo_masks, visual_prompt_mask], dim=1)
         return prompt, prompt_mask, backbone_out
 
+    @boundary('concept_encoder')
     def _run_encoder(
         self,
         backbone_out: Dict,
@@ -249,6 +252,7 @@ class Sam3Image(torch.nn.Module):
         }
         return backbone_out, encoder_out, feat_tuple
 
+    @boundary('concept_decoder')
     def _run_decoder(
         self,
         pos_embed,
@@ -383,6 +387,7 @@ class Sam3Image(torch.nn.Module):
                 update_aux=self.training,
             )
 
+    @boundary('concept_mask_head')
     def _run_segmentation_heads(
         self,
         out,
@@ -554,6 +559,7 @@ class Sam3Image(torch.nn.Module):
 
 
 
+    @boundary('instance_segmentor')
     def predict_inst(
         self,
         inference_state,
