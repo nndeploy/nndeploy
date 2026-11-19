@@ -246,6 +246,7 @@ compile_commands.json
 *.onnx
 *.onnx.data
 *.json
+!/demo/server/text/services.json
 *.safetensors
 *.pth
 *.pt

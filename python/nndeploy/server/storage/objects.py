@@ -20,6 +20,8 @@ class StorageConfig(StrictModel):
     secret_key_env: str | None = None
     token_env: str | None = None
     max_bytes: int = Field(default=16 * 1024 * 1024, ge=1, le=5 * 1024**3)
+    media_max_duration_seconds: float = Field(default=600, gt=0, le=86400, allow_inf_nan=False)
+    media_max_dimension: int = Field(default=4096, ge=1, le=32768)
     retention_seconds: float | None = Field(default=None, ge=60, allow_inf_nan=False)
     max_files_per_subject: int | None = Field(default=None, ge=1, le=1_000_000)
     max_storage_bytes_per_subject: int | None = Field(default=None, ge=1, le=2**63 - 1)

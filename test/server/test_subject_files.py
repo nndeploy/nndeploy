@@ -201,7 +201,7 @@ def test_remote_cleanup_failure_retains_quota_until_reconciled(remote, monkeypat
 def test_process_graph_output_uses_same_file_quota(db, tmp_path):
     from test_server_api import image_graph
     owner = uuid.uuid4().hex
-    server = Server(name='image', workflow=image_graph(), data_dir=tmp_path,
+    server = Server(name='image', workflow=image_graph(), resources=tmp_path, data_dir=tmp_path,
         database_url=db.url.render_as_string(hide_password=False), storage_config={'max_files_per_subject': 1},
         config={'inputs': {'image': {'type': 'image', 'node': ['decode']}},
                 'outputs': {'image': {'type': 'image', 'node': ['encode']}}, 'execution': {'isolation': 'process'}})
@@ -248,7 +248,7 @@ def test_file_http_quota_shared_by_identity_and_released_after_delete(db, tmp_pa
     auth, headers = credentials
     for key in auth['keys']:
         key['subject'] += '-' + uuid.uuid4().hex
-    servers = [Server(data_dir=tmp_path / str(i), auth_config=auth,
+    servers = [Server(resources=tmp_path / str(i), data_dir=tmp_path / str(i), auth_config=auth,
         database_url=db.url.render_as_string(hide_password=False),
         storage_config={'max_files_per_subject': 1, 'max_storage_bytes_per_subject': 5}) for i in range(2)]
     with TestClient(servers[0].app) as a, TestClient(servers[1].app) as b:

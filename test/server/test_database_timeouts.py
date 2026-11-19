@@ -241,7 +241,7 @@ def test_database_timeout_cli_and_server_option(tmp_path):
     from nndeploy.server import Server
     from nndeploy.server.app import cli
     args = cli(['--database-timeout-seconds', '4'])
-    server = Server(data_dir=tmp_path, database_timeout_seconds=args.database_timeout_seconds)
+    server = Server(resources=tmp_path, data_dir=tmp_path, database_timeout_seconds=args.database_timeout_seconds)
     try:
         assert server.db.timeout_seconds == 4
     finally:

@@ -8,7 +8,7 @@ from nndeploy.server import Server
 
 
 def test_close_during_start_joins_created_background_tasks(tmp_path, monkeypatch):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     entered, release = threading.Event(), threading.Event()
     recover = server.storage.recover_pending
 
@@ -39,7 +39,7 @@ def test_close_during_start_joins_created_background_tasks(tmp_path, monkeypatch
 
 @pytest.mark.parametrize('component', ['maintenance', 'callbacks'])
 def test_background_failure_still_closes_workers_and_dependencies(tmp_path, monkeypatch, component):
-    server = Server(name='echo', deploy=lambda inputs: inputs, data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda inputs: inputs, resources=tmp_path, data_dir=tmp_path)
     closed = []
     for name in ('controls', 'db', 'storage'):
         dependency = getattr(server, name)
@@ -102,7 +102,7 @@ def test_cancelled_close_waiter_does_not_cancel_cleanup(tmp_path):
             assert release.wait(5)
             closed.append(True)
 
-    server = Server(name='echo', handler_factory=Handler, data_dir=tmp_path)
+    server = Server(name='echo', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
 
     async def scenario():
         await server.start()

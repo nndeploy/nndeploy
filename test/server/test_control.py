@@ -64,7 +64,7 @@ def test_duplicate_start_joins_initialization_and_waiter_cancel_does_not_own_it(
             assert release.wait(5)
         def deploy(self, values):
             return values
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         first = asyncio.create_task(server.start_entry('default'))
         try:
@@ -95,7 +95,7 @@ def test_reload_blocks_other_controls_until_old_worker_drains_but_stays_ready(tm
                 entered.set()
                 assert release.wait(10)
             return {'number': self.number}
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         _, pending = await server.submit('default', {'block': True})
@@ -134,7 +134,7 @@ def test_duplicate_stop_waits_for_one_release_even_when_first_waiter_cancels(tmp
             closed.append(1)
             entered.set()
             assert release.wait(5)
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         first = asyncio.create_task(server.stop_entry('default'))
@@ -157,7 +157,7 @@ def test_duplicate_stop_waits_for_one_release_even_when_first_waiter_cancels(tmp
 
 
 def test_stop_is_persisted_before_worker_release_and_restart_observes_it(tmp_path):
-    server = Server(workflow=text_graph(), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         entered, release = asyncio.Event(), asyncio.Event()
@@ -172,7 +172,7 @@ def test_stop_is_persisted_before_worker_release_and_restart_observes_it(tmp_pat
         try:
             await asyncio.wait_for(entered.wait(), 5)
             assert not server.db.get_server_config(server.config_scope, 'echo')['data']['enabled']
-            restarted = Server(data_dir=tmp_path)
+            restarted = Server(resources=tmp_path, data_dir=tmp_path)
             await restarted.start()
             try:
                 assert restarted.describe('echo')['status'] == 'stopped'
@@ -188,7 +188,7 @@ def test_stop_is_persisted_before_worker_release_and_restart_observes_it(tmp_pat
 
 @pytest.mark.parametrize('committed', [False, True])
 def test_config_write_retry_resolves_lost_ack_with_one_operation(tmp_path, monkeypatch, committed):
-    server = Server(workflow=text_graph(), config=configuration('old'), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=configuration('old'), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         save = server.db.save_server_config
@@ -212,7 +212,7 @@ def test_config_write_retry_resolves_lost_ack_with_one_operation(tmp_path, monke
 
 
 def test_database_outage_keeps_old_graph_until_configuration_is_confirmed(tmp_path, monkeypatch):
-    server = Server(workflow=text_graph(), config=configuration('old'), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=configuration('old'), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         save = server.db.save_server_config
@@ -241,7 +241,7 @@ def test_database_outage_keeps_old_graph_until_configuration_is_confirmed(tmp_pa
 
 
 def test_conflicting_config_change_does_not_overwrite_or_stop_live_graph(tmp_path):
-    server = Server(workflow=text_graph(), config=configuration('old'), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=configuration('old'), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -262,7 +262,7 @@ def test_conflicting_config_change_does_not_overwrite_or_stop_live_graph(tmp_pat
 
 @pytest.mark.parametrize('committed', [False, True])
 def test_shutdown_during_unknown_config_commit_reports_uncertainty_and_releases_workers(tmp_path, monkeypatch, committed):
-    server = Server(workflow=text_graph(), config=configuration('old'), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=configuration('old'), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         save = server.db.save_server_config
@@ -280,7 +280,7 @@ def test_shutdown_during_unknown_config_commit_reports_uncertainty_and_releases_
             await reloading
         assert unknown.value.code == 'configuration_unconfirmed'
         assert not server.started and not server.entries['echo']['workers']
-        restored = Server(data_dir=tmp_path)
+        restored = Server(resources=tmp_path, data_dir=tmp_path)
         await restored.start()
         try:
             assert (await restored.deploy('echo', {}))['outputs']['text'] == ('new' if committed else 'old')
@@ -299,7 +299,7 @@ def test_shutdown_attempts_every_worker_and_closes_dependencies_despite_release_
     class Good(Broken):
         def deinit(self):
             released.append('worker')
-    server = Server(name='broken', handler_factory=Broken, data_dir=tmp_path)
+    server = Server(name='broken', handler_factory=Broken, resources=tmp_path, data_dir=tmp_path)
     server.add(name='good', handler_factory=Good)
     db_close, storage_close = server.db.close, server.storage.close
     def close_db():
@@ -331,7 +331,7 @@ def test_server_start_waiters_share_initialization_and_cancellation(tmp_path):
             assert release.wait(5)
         def deploy(self, values):
             return values
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         first = asyncio.create_task(server.start())
         second = None
@@ -366,7 +366,7 @@ def test_close_during_start_is_owned_and_rejects_new_controls(tmp_path):
             return values
         def deinit(self):
             closed.append(1)
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         starting = asyncio.create_task(server.start())
         assert await asyncio.to_thread(entered.wait, 5)
@@ -411,7 +411,7 @@ def test_close_joins_every_worker_of_one_entry_before_reporting_failure(tmp_path
             entered.set()
             assert release.wait(5)
             closed.append(self.number)
-    server = Server(handler_factory=Handler, data_dir=tmp_path, config={'execution': {'workers': 2}})
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path, config={'execution': {'workers': 2}})
     async def scenario():
         await server.start()
         closing = asyncio.create_task(server.close())
@@ -444,7 +444,7 @@ def test_failed_old_worker_release_blocks_more_reloads_and_is_tracked_at_shutdow
             closed.append(self.number)
             if self.number == 0:
                 raise RuntimeError('old worker release failed')
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -467,11 +467,11 @@ def test_failed_old_worker_release_blocks_more_reloads_and_is_tracked_at_shutdow
 
 
 def test_restore_uses_token_from_the_same_configuration_read(tmp_path, monkeypatch):
-    server = Server(workflow=text_graph(), config=configuration('old'), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=configuration('old'), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         await server.close()
-        restored = Server(data_dir=tmp_path)
+        restored = Server(resources=tmp_path, data_dir=tmp_path)
         load = restored.db.load_server_configs
         changed = []
         def concurrent_update(*args, **kwargs):

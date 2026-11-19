@@ -133,14 +133,14 @@ def test_http_deploy_and_restart_queries_use_selected_database(db, tmp_path):
     from nndeploy.server import Server
     name = 'entry-' + uuid.uuid4().hex
     location = db.url.render_as_string(hide_password=False)
-    with TestClient(Server(name=name, deploy=lambda inputs: inputs, data_dir=tmp_path / 'http', database_url=location).app) as client:
+    with TestClient(Server(name=name, deploy=lambda inputs: inputs, resources=tmp_path / 'http', data_dir=tmp_path / 'http', database_url=location).app) as client:
         first = client.post(f'/v1/server/{name}/deploy', json={'inputs': {'text': 'persisted'}}, headers={'Idempotency-Key': 'http'})
         assert first.status_code == 200, first.text
         again = client.post(f'/v1/server/{name}/deploy', json={'inputs': {'text': 'persisted'}}, headers={'Idempotency-Key': 'http'})
         assert first.json() == again.json()
         file = client.post('/v1/files', files={'file': ('test.txt', b'persisted file', 'text/plain')})
         assert file.status_code == 201
-    with TestClient(Server(data_dir=tmp_path / 'http', database_url=location).app) as client:
+    with TestClient(Server(resources=tmp_path / 'http', data_dir=tmp_path / 'http', database_url=location).app) as client:
         row = client.get('/v1/tasks/' + first.json()['task_id']).json()
         assert row['state'] == 'succeeded' and row['inputs'] == {'text': 'persisted'}
         assert client.get('/v1/files/' + file.json()['file_id'] + '/content').content == b'persisted file'

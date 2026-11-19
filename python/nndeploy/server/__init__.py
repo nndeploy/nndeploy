@@ -1,9 +1,12 @@
 """Public Server API. Importing this package does not initialize the editor."""
 
-__all__ = ["Server", "NnDeployServer", "TaskQueue", "main"]
+__all__ = ["Server", "NnDeployServer", "TaskQueue", "ServiceAdapter", "main"]
 
 
 def __getattr__(name):
+    if name == "ServiceAdapter":
+        from .registry import ServiceAdapter
+        return ServiceAdapter
     if name in ("Server", "NnDeployServer"):
         from .server import Server
         return Server

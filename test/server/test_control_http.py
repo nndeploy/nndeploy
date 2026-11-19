@@ -28,7 +28,7 @@ AUTH = {'Authorization': 'Bearer management-token'}
 
 
 def make(database, directory):
-    return Server(data_dir=directory, database_url=database.url.render_as_string(hide_password=False), admin_token='management-token')
+    return Server(resources=directory, data_dir=directory, database_url=database.url.render_as_string(hide_password=False), admin_token='management-token')
 
 
 async def complete(client, url):
@@ -279,7 +279,7 @@ def test_shared_replicas_replay_one_reload_even_with_different_workspaces(backen
         directory = tmp_path / str(index)
         directory.mkdir()
         (directory / 'files').symlink_to(files, target_is_directory=True)
-    servers = [Server(name='model', deploy=shared_deploy, config=config('old'), data_dir=tmp_path / str(index),
+    servers = [Server(name='model', deploy=shared_deploy, config=config('old'), resources=tmp_path / str(index), data_dir=tmp_path / str(index),
         database_url=database.url.render_as_string(hide_password=False), redis_config=redis, admin_token='management-token') for index in range(2)]
     entered, release = asyncio.Event(), asyncio.Event()
     calls = []
@@ -366,7 +366,7 @@ def test_editor_new_workflow_retries_save_and_start_only_once(db, tmp_path, monk
 
 def _interrupted_control(url, directory, marker):
     async def scenario():
-        server = Server(data_dir=directory, database_url=url, admin_token='management-token')
+        server = Server(resources=directory, data_dir=directory, database_url=url, admin_token='management-token')
         async def action():
             Path(marker).write_text('started')
             await asyncio.Event().wait()

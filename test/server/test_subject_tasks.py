@@ -91,7 +91,7 @@ def test_http_running_cancel_retains_capacity_and_terminal_releases_it(db, tmp_p
         assert release.wait(timeout=15)
         return values
 
-    server = Server(name='echo', deploy=deploy, auth_config=config, data_dir=tmp_path,
+    server = Server(name='echo', deploy=deploy, auth_config=config, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     server.add(name='other', deploy=lambda x: x)
     with TestClient(server.app) as client:
@@ -130,7 +130,7 @@ def test_shared_http_replicas_use_one_identity_task_budget(backend, tmp_path, cr
     for key in auth['keys']:
         key['subject'] += '-' + uuid.uuid4().hex
     servers = [Server(name='echo', deploy=shared_deploy, config=entry_config(),
-                      data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False),
+                      resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False),
                       redis_config=redis, auth_config=auth) for _ in range(2)]
     marker, release = tmp_path / 'started', tmp_path / 'release'
 

@@ -239,7 +239,7 @@ def test_remote_cos_server_graph_outputs_survive_restart(remote_cos, tmp_path):
     storage, config = remote_cos
     options = dict(workflow=image_graph(), name='image', admin_token='remote-probe-test-token',
         database_url=storage.db.url.render_as_string(hide_password=False), storage_config=config.model_dump())
-    first = Server(data_dir=tmp_path / 'first', **options)
+    first = Server(resources=tmp_path / 'first', data_dir=tmp_path / 'first', **options)
     with TestClient(first.app) as client:
         upload = client.post('/v1/files', files={'file': ('input.png', picture(), 'image/png')})
         assert upload.status_code == 201
@@ -252,7 +252,7 @@ def test_remote_cos_server_graph_outputs_survive_restart(remote_cos, tmp_path):
         expected = content.content
         assert client.delete('/v1/files/' + output,
             headers={'Authorization': 'Bearer remote-probe-test-token'}).status_code == 409
-    second = Server(data_dir=tmp_path / 'second', **options)
+    second = Server(resources=tmp_path / 'second', data_dir=tmp_path / 'second', **options)
     with TestClient(second.app) as client:
         assert client.get('/v1/tasks/' + identity).json()['state'] == 'succeeded'
         content = client.get('/v1/files/' + output + '/content')
@@ -272,7 +272,7 @@ def test_remote_postgres_redis_cos_two_server_graph_roundtrip(
     options = dict(name='remote-image', workflow=image_graph(),
         database_url=remote_database.url.render_as_string(hide_password=False),
         redis_config=redis_config.model_dump(), storage_config=storage_config.model_dump())
-    servers = [Server(data_dir=tmp_path / name, **options) for name in ('replica-a', 'replica-b')]
+    servers = [Server(resources=tmp_path / name, data_dir=tmp_path / name, **options) for name in ('replica-a', 'replica-b')]
 
     async def scenario():
         try:

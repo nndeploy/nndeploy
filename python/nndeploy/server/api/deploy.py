@@ -115,15 +115,13 @@ async def deploy_request(server, name, body, caller, *, request, idempotency_key
         from ..streaming import reserve_connection, TaskEventResponse
         reserve_connection(server)
     try:
-        identity, future = await server.submit(name, body.inputs, body.parameters, idempotency_key=idempotency_key, owner=caller.subject, callback_url=body.callback_url)
+        identity, future = await server.submit(name, body.inputs, body.parameters, idempotency_key=idempotency_key, owner=caller.subject, callback_url=body.callback_url, observe=False)
         request.state.audit_resource = identity
     except BaseException:
         if body.mode == 'stream':
             server.stream_connections -= 1
         raise
-    # Async responses and event readers use durable task records, not this
-    # per-caller observer. Detach it without cancelling the accepted task.
-    future.cancel()
+    # Event readers use durable task records; no result observer was created.
     if body.mode == 'stream':
         return TaskEventResponse(server, identity, reserved=True)
 

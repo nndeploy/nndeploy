@@ -57,6 +57,7 @@ from .logging_taskid import set_task_id, reset_task_id, run_func_in_copied_conte
 from .db import DB
 from .metrics import Metrics, MetricsMiddleware, observe_admission
 from .audit import audited
+from .entry import Entry, EntrySource, new_entry
 
 class SPAStaticFiles(StaticFiles):
     async def get_response(self, path, scope):
@@ -72,8 +73,8 @@ class Server:
 
     def __init__(self, args=None, job_mp_queue=None, plugin_update_q=None, cancel_event_queue=None,
                  *, workflow=None, graph=None, graph_factory=None, deploy=None, handler_factory=None,
-                 name=None, config=None, workers=None, input_model=None, output_model=None, router=None,
-                 data_dir="./resources/server", max_inflight_tasks=64, admin_token=None, database_url=None, storage_config=None,
+                 name=None, config=None, workers=None, input_model=None, output_model=None, router=None, router_prefix=None, router_permissions=None,
+                 resources="./resources", data_dir=None, max_inflight_tasks=64, admin_token=None, database_url=None, storage_config=None,
                  redis_config=None, auth_config=None, cors_origins=None, max_sync_connections=None, device_limits=None,
                  database_timeout_seconds=None, audit_config=None, editor_history_retention_seconds=None, mcp_config=None):
         from .environment import load_server_env
@@ -91,6 +92,8 @@ class Server:
         DB._validate_retention(editor_history_retention_seconds)
         self.editor_history_retention_seconds = editor_history_retention_seconds
         self.database_timeout_seconds = database_timeout_seconds
+        self.resources = Path(args.resources if args is not None else resources).expanduser().resolve()
+        self.db_path = self.resources / 'db' / 'nndeploy.db'
         from .auth import origin_key
         self.cors_origins = list(cors_origins or [])
         limit = max_inflight_tasks if max_sync_connections is None else max_sync_connections
@@ -102,12 +105,12 @@ class Server:
         for origin in self.cors_origins:
             origin_key(origin)
         if args is None:
-            self._init_api(data_dir, max_inflight_tasks, admin_token, database_url=database_url, storage_config=storage_config,
+            self._init_api(data_dir or self.resources / 'server', max_inflight_tasks, admin_token, database_url=database_url, storage_config=storage_config,
                            redis_config=redis_config, auth_config=auth_config, device_limits=device_limits, audit_config=audit_config)
             if any(value is not None for value in (workflow, graph, graph_factory, deploy, handler_factory)):
                 self.add(name=name, workflow=workflow, graph=graph, graph_factory=graph_factory,
                          deploy=deploy, handler_factory=handler_factory, config=config, workers=workers,
-                         input_model=input_model, output_model=output_model, router=router)
+                         input_model=input_model, output_model=output_model, router=router, router_prefix=router_prefix, router_permissions=router_permissions)
             return
         from .template import WorkflowTemplateManager
         NnDeployServer.instance = self
@@ -118,10 +121,8 @@ class Server:
             version="1.0.0"
         )
 
-        self.workflow_dir = Path(self.args.resources) / "workflow"
-        self.db_path = Path(self.args.resources) / "db" / "nndeploy.db"
+        self.workflow_dir = self.resources / "workflow"
         self.workflow_dir.mkdir(parents=True, exist_ok=True)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Ensure required subdirectories exist
         required_dirs = ["images", "videos", "audios", "models", "others"]
@@ -129,15 +130,12 @@ class Server:
             d = Path(self.args.resources) / sub
             d.mkdir(parents=True, exist_ok=True)
 
-        self.db = DB(database_url or self.db_path, timeout_seconds=self.database_timeout_seconds,
-                     backup_dir=self.db_path.parent / 'backups').init_schema()
-
         self.cancel_event_queue = cancel_event_queue
         self.plugin_update_q = plugin_update_q
         self.sockets: set[WebSocket] = set()
         self.ws_task_map: dict[WebSocket, set[str]] = {}
         self.task_ws_map: dict[str, set[WebSocket]] = {}
-        self._init_api(Path(self.args.resources) / 'server', max_inflight_tasks, admin_token, editor=True,
+        self._init_api(self.resources / 'server', max_inflight_tasks, admin_token, editor=True, database_url=database_url,
                        storage_config=storage_config, redis_config=redis_config, auth_config=auth_config,
                        device_limits=device_limits, audit_config=audit_config)
         from .db import _EditorHistory
@@ -160,7 +158,9 @@ class Server:
         self.authentication = Authentication(auth_config, admin_token)
         if max_inflight_tasks < 1:
             raise ValueError("max_inflight_tasks must be positive")
-        self.entries = {}
+        self.entries: dict[str, Entry] = {}
+        from .lifecycle import EntryLifecycle
+        self.lifecycle = EntryLifecycle(self)
         self._asset_leases = {}
         from .registry import Registry
         self._registry = Registry()
@@ -168,9 +168,10 @@ class Server:
         self.data_dir.mkdir(parents=True, exist_ok=True)
         from .resources import server_scope
         self.config_scope = server_scope(self.data_dir)
-        if not editor:
-            self.db = DB(database_url or self.data_dir / "server.db", timeout_seconds=self.database_timeout_seconds,
-                         backup_dir=self.data_dir / 'db-backups').init_schema()
+        # All frontends and algorithms share one database selection. data_dir
+        # controls managed files/workspaces, never the SQL database location.
+        self.db = DB(database_url or self.db_path, timeout_seconds=self.database_timeout_seconds,
+                     backup_dir=self.db_path.parent / 'backups').init_schema()
         self.db.init_tasks()
         self.metrics = Metrics()
         self.metrics.attach_database(self.db)
@@ -197,6 +198,7 @@ class Server:
         if self.redis_config is not None:
             from .redis import RedisEvents
             self.event_notifications = RedisEvents(self.redis_config, self.db.database_identity())
+            self.db.event_notifications = self.event_notifications
         from .rate_limit import RequestLimiter
         self.request_limiter = RequestLimiter(self.authentication.request_rate, self.redis_config)
         from .audit import Audit
@@ -208,6 +210,8 @@ class Server:
         from .devices import Devices
         self.devices = Devices(self, device_limits) if device_limits is not None else None
         self.waiters = {}
+        from .results import SharedResults
+        self.results = SharedResults(self)
         self.shared_control = None
         self.task_maintenance = None
         self.maintenance_stop = asyncio.Event()
@@ -255,19 +259,27 @@ class Server:
 
     def add(self, *, name=None, workflow=None, graph=None, graph_factory=None, deploy=None,
             handler_factory=None, config=None, workers=None, input_model=None, output_model=None,
-            router=None, algorithm=None, options=None, mcp=None):
-        from .config import ServerConfig, load_json, suggest_config
-        import copy
+            router=None, router_prefix=None, router_permissions=None, algorithm=None, options=None, mcp=None):
         if algorithm is not None:
             if any(value is not None for value in (workflow, graph, graph_factory, deploy, handler_factory)):
                 raise ValueError('Use either a registered algorithm or a direct execution source')
             arguments = self._registry.create(algorithm, options)
-            for key, value in dict(config=config, input_model=input_model, output_model=output_model, router=router, mcp=mcp).items():
-                if value is not None:
-                    arguments[key] = value
-            return self.add(name=name, workers=workers, **arguments)
+            return self._add_registered(name, arguments, workers=workers, config=config,
+                input_model=input_model, output_model=output_model, router=router,
+                router_prefix=router_prefix, router_permissions=router_permissions, mcp=mcp)
         if options is not None:
             raise ValueError('Options require a registered algorithm')
+        return self._commit_entry(*self._prepare_entry(name=name, workflow=workflow, graph=graph,
+            graph_factory=graph_factory, deploy=deploy, handler_factory=handler_factory,
+            config=config, workers=workers, input_model=input_model, output_model=output_model,
+            router=router, router_prefix=router_prefix, router_permissions=router_permissions, mcp=mcp))
+
+    def _prepare_entry(self, *, name=None, workflow=None, graph=None, graph_factory=None, deploy=None,
+                       handler_factory=None, config=None, workers=None, input_model=None, output_model=None,
+                       router=None, router_prefix=None, router_permissions=None, mcp=None):
+        """Validate an entry and its routes without installing or starting it."""
+        from .config import ServerConfig, load_json, suggest_config
+        import copy
         if sum(value is not None for value in (workflow, graph, graph_factory, deploy, handler_factory)) != 1:
             raise ValueError("Provide exactly one workflow, graph, graph_factory, deploy or handler_factory")
         export = None
@@ -312,35 +324,64 @@ class Server:
             raise ValueError(f"Duplicate entry name: {value.name}")
         if graph is not None and value.execution.workers != 1:
             raise ValueError("Multiple workers require a graph_factory, not a shared Graph")
-        entry = dict(
-            config=value, source=dict(base_dir=str(base_dir), autodetect=not supplied_config and graph_factory is not None, workflow=copy.deepcopy(workflow), graph=graph,
-                                     graph_factory=graph_factory, deploy=deploy, handler_factory=handler_factory,
-                                     input_model=input_model, output_model=output_model),
-            status='stopped', error=None, workers=[], consumers=[], futures={},
-            untyped=not supplied_config and input_model is None and (deploy is not None or handler_factory is not None),
-            schema=value.public_schema(), closing=None)
+        source = EntrySource(base_dir=str(base_dir), autodetect=not supplied_config and graph_factory is not None,
+                             workflow=copy.deepcopy(workflow), graph=graph, graph_factory=graph_factory,
+                             deploy=deploy, handler_factory=handler_factory,
+                             input_model=input_model, output_model=output_model)
+        entry = new_entry(value, source, untyped=not supplied_config and input_model is None and
+                          (deploy is not None or handler_factory is not None))
         if value.mcp is not None and entry['untyped']:
             raise ValueError('MCP exports require an input_model or explicit input config')
         entry['source']['untyped'] = entry['untyped']
         if self.redis_config is not None:
             from .redis import source_identity
             entry['source']['identity'] = source_identity(entry['source'])
+        mounted = None
         if router is not None:
             from .api.extensions import prepare_router
-            from starlette.routing import Mount
-            mounted = prepare_router(self, value.name, router)
-            # The editor's SPA catch-all must remain behind newly added HTTP routes.
-            routes = self.app.router.routes
-            insert_at = next((index for index, route in enumerate(routes)
-                              if isinstance(route, Mount) and route.path == ''), len(routes))
-            previous_count = len(routes)
-            self.app.include_router(mounted)
-            added = routes[previous_count:]
-            del routes[previous_count:]
-            routes[insert_at:insert_at] = added
-            self.app.openapi_schema = None
-        self.entries[value.name] = entry
+            mounted = prepare_router(self, value.name, router, prefix=router_prefix, permissions=router_permissions)
+        return entry, mounted
+
+    def _commit_entry(self, entry, mounted):
+        if entry['config'].name in self.entries:
+            raise ValueError(f"Duplicate entry name: {entry['config'].name}")
+        if mounted is not None:
+            from .api.extensions import mount_router
+            conflicts = mounted.nndeploy_route_keys & getattr(self, '_algorithm_routes', set())
+            if conflicts:
+                raise ValueError(f'Algorithm route conflicts with an existing route: {sorted(conflicts)}')
+            mount_router(self, mounted)
+        self.entries[entry['config'].name] = entry
         return self
+
+    def _add_registered(self, name, definition, **overrides):
+        from .registry import ServiceAdapter
+        if isinstance(definition, ServiceAdapter):
+            if self.started or self.starting_task is not None or self.shutting_down:
+                raise ValueError('Register service adapters before starting the Server')
+            if not isinstance(name, str) or name in self.entries:
+                raise ValueError('Service adapters require a unique entry name')
+            from .config import ServerConfig
+            ServerConfig.model_validate({'name': name})
+            if any(value is not None for value in overrides.values()):
+                raise ValueError('Configure service adapters through algorithm options')
+            keys = getattr(self, '_service_adapter_keys', set())
+            if definition.exclusive_key is not None and definition.exclusive_key in keys:
+                raise ValueError(f'Service adapter already registered: {definition.exclusive_key}')
+            result = definition.install(self, name=name)
+            import inspect
+            if inspect.isawaitable(result):
+                if inspect.iscoroutine(result):
+                    result.close()
+                raise ValueError('Service adapter installer must finish synchronously')
+            if name not in self.entries:
+                raise ValueError(f'Service adapter did not register entry: {name}')
+            if definition.exclusive_key is not None:
+                self._service_adapter_keys = keys | {definition.exclusive_key}
+            return self
+        arguments = dict(definition)
+        arguments.update({key: value for key, value in overrides.items() if value is not None})
+        return self.add(name=name, **arguments)
 
     @audited
     async def start_workflow(self, request):
@@ -725,186 +766,7 @@ class Server:
         entry.pop('release_pending', None)
 
     async def _start_entry(self, name, entry, *, persist=True, resume=True):
-        from .worker import Worker, ProcessWorker, EngineWorker, ConcurrentWorker
-        from .errors import ServerError
-        if self.shutting_down:
-            raise ServerError(503, 'server_stopping', 'Server is shutting down')
-        if entry['status'] == 'ready':
-            if entry.get('consumer_failed'):
-                raise ServerError(503, 'consumer_failed', 'Stop the entry before restarting its failed consumer')
-            if self.redis_config is not None and resume:
-                await self.shared_runtime.check(entry)
-                queue = entry['queue']
-                usage = await asyncio.to_thread(self.db.queue_usage, queue.key)
-                if not usage['accepting']:
-                    await self._write_shared_control(entry, True, usage['control_token'])
-            return self.describe(name)
-        if entry['status'] == 'failed' and entry['workers']:
-            raise ServerError(409, 'entry_busy', 'Previous worker release was not confirmed')
-        if entry['status'] == 'failed' and entry.get('release_pending'):
-            # Failed initialization may have closed every Worker while its
-            # resource transaction failed. Preserve the old holder until that
-            # cleanup succeeds; a new load must not orphan the old references.
-            await self._release_entry_files(entry)
-        if entry['status'] == 'failed' and entry.get('device_guard') and self.devices is not None:
-            await self.devices.release(entry)
-        if entry['status'] in ('starting', 'stopping', 'reloading'):
-            raise ServerError(409, 'entry_busy', 'Entry is changing state', retryable=True)
-        entry['status'], entry['error'] = 'starting', None
-        config = entry['config']
-        initial_config = config
-        directory = self.data_dir / 'tmp' / name
-        directory.mkdir(parents=True, exist_ok=True)
-        entry['workers'] = []
-        entry['consumers'], entry['consumer_runs'] = [], []
-        entry['consumer_failed'] = False
-        if not entry.get('control_guard'):
-            entry['file_holder'] = uuid.uuid4().hex
-        entry['shared_holders'] = []
-        candidate = bool(entry.get('shared_candidate') or entry.get('shared_draining'))
-        queue_prepared = False
-        control_token = None
-        prepared_fingerprint = None
-        try:
-            if (entry['source']['workflow'] is not None or entry['source'].get('graph_factory') is not None) and 'saved_token' not in entry:
-                saved = await asyncio.to_thread(self.db.get_server_config, self.config_scope, name)
-                entry['saved_token'] = saved['write_token'] if saved else None
-                if saved and saved['data'].get('kind') == 'graph_factory' and entry['source'].get('graph_factory') is not None:
-                    entry['source']['resource_fallback'] = saved['data']['resources']
-            if self.redis_config is not None and (not entry['source']['autodetect'] or entry.get('queue') is not None):
-                # A known stopped shared configuration must not initialize or
-                # execute warmup just because another API process restarted.
-                await self._prepare_shared_queue(name, entry, resume=resume)
-                candidate = bool(entry.get('shared_candidate') or entry.get('shared_draining'))
-                config = initial_config = entry['config']
-                queue_prepared = True
-                usage = await asyncio.to_thread(self.db.queue_usage, entry['queue'].key)
-                control_token = usage['control_token']
-                from .redis import entry_fingerprint
-                prepared_fingerprint = entry_fingerprint(entry['source'], config)
-                if not candidate and not resume and not usage['accepting']:
-                    entry['status'] = 'stopped'
-                    return self.describe(name)
-                if not candidate and resume and not usage['accepting'] and usage['inflight']:
-                    raise ServerError(409, 'entry_busy', 'Shared entry is still draining', retryable=True)
-            if self.shared_runtime is not None and not entry.get('control_guard'):
-                await self.shared_runtime.guard(entry, uuid.uuid4().hex)
-            if self.devices is not None:
-                await self.devices.acquire(name, entry)
-            elif config.execution.devices:
-                raise ServerError(422, 'device_limits_required', 'Configure Server device_limits to enforce declared resident budgets')
-            await asyncio.to_thread(self.db.hold_files, entry['file_holder'],
-                                    [entry['source']['workflow'], config.model_dump()])
-            if entry['source']['workflow'] is not None:
-                from .resources import prepare_workflow
-                entry['source']['workflow'] = await asyncio.to_thread(prepare_workflow,
-                    entry['source']['workflow'], config, self.data_dir, entry['source']['base_dir'],
-                    lease=await self._assets_for(entry))
-            for _ in range(config.execution.workers):
-                worker_class = {'engine': EngineWorker, 'concurrent': ConcurrentWorker}.get(
-                    config.execution.scheduling, ProcessWorker if config.execution.isolation == 'process' else Worker)
-                if config.execution.batching.enabled:
-                    from .batching import BatchWorker
-                    worker_class = BatchWorker
-                # Existing editor plugins are trusted installation code. Each
-                # isolated Worker must register them before loading the Graph.
-                # Derive this locally; it is not a workflow field or HTTP input.
-                plugin_root = Path(self.args.resources) if getattr(self, 'args', None) is not None else self.data_dir
-                worker_source = dict(entry['source'], plugin_dir=str(plugin_root / 'plugin'), resource_dir=str(self.data_dir),
-                                     resource_holder=entry['file_holder'])
-                worker = worker_class(worker_source, config, self.storage, directory)
-                if entry.get('control_guard'):
-                    worker.control_guard_path = str(entry['control_guard'].path)
-                if entry.get('device_guard'):
-                    worker.device_guard_path = str(entry['device_guard'].path)
-                    worker.device_run = lambda values, operation, entry=entry: self.devices.run(entry, values, operation)
-                    if config.execution.temporary_memory_bytes:
-                        worker.device_prepare = worker.device_run
-                entry['workers'].append(worker)
-                holder = await self.shared_runtime.hold(entry) if self.shared_runtime is not None else None
-                worker.shared_holder = holder
-                with self.metrics.measure('worker_initialize', name):
-                    if self.devices is not None:
-                        await self.devices.initialize(entry, worker)
-                    else:
-                        await worker.start()
-                if getattr(worker, 'asset_paths', None):
-                    lease = await self._assets_for(entry)
-                    await asyncio.to_thread(lease.hold_values, worker.asset_paths)
-                if entry['source'].get('graph_factory') is not None:
-                    entry['source']['resource_snapshot'] = worker.resource_snapshot
-                if holder is not None:
-                    await self.shared_runtime.hold(entry, holder=holder, ready=True)
-                if entry['source']['autodetect']:
-                    config = worker.config
-                    entry['config'], entry['schema'] = config, config.public_schema()
-            await asyncio.to_thread(self.db.hold_files, entry['file_holder'], config.model_dump())
-            if self.redis_config is not None:
-                from .redis import entry_fingerprint
-                if queue_prepared and prepared_fingerprint != entry_fingerprint(entry['source'], config):
-                    entry['config'], entry['schema'] = initial_config, initial_config.public_schema()
-                    raise ServerError(409, 'shared_configuration_changed', 'Discovered workflow configuration changed; register its explicit configuration before starting')
-                if not queue_prepared:
-                    await self._prepare_shared_queue(name, entry, loaded=True, resume=resume)
-                    candidate = bool(entry.get('shared_candidate') or entry.get('shared_draining'))
-                    for worker in entry['workers']:
-                        worker.shared_holder = await self.shared_runtime.hold(entry, ready=True)
-                if resume and not candidate:
-                    usage = await asyncio.to_thread(self.db.queue_usage, entry['queue'].key)
-                    if control_token is None:
-                        # First-time factory discovery cannot observe this queue
-                        # before loading its schema. Join an active queue, but
-                        # never resume a stopped queue from that late snapshot.
-                        if not usage['accepting']:
-                            raise ServerError(409, 'shared_control_changed', 'Shared entry is stopped; retry Start after schema discovery', retryable=True)
-                    else:
-                        await self._write_shared_control(entry, True, control_token)
-                usage = await asyncio.to_thread(self.db.queue_usage, entry['queue'].key)
-                if not candidate and not usage['accepting']:
-                    await asyncio.gather(*(worker.close() for worker in entry['workers']))
-                    await self._release_entry_files(entry)
-                    entry['workers'], entry['status'] = [], 'stopped'
-                    return self.describe(name)
-            if self.shared_runtime is not None:
-                await self.shared_runtime.started(entry)
-            if persist:
-                await self._persist_entry(name, entry, True)
-            if self.redis_config is None:
-                # Deploy history lives in DB with its retention policy. Keep
-                # the editor's legacy in-memory history only on its own queue.
-                entry['queue'] = TaskQueue(capacity=config.execution.capacity, history_limit=0)
-            entry['wake'] = asyncio.Event()
-            entry['futures'] = {}
-            entry['closing'] = None
-            entry['status'] = 'ready'
-            entry['local_stop'] = False
-            consume = self._consume if self.redis_config is None else self._consume_shared
-            # Execution/claim/finalization remain owned even if an internal
-            # consumer waiter is cancelled before or during its first await.
-            entry['consumer_runs'] = [asyncio.create_task(consume(entry, worker)) for worker in entry['workers']
-                                      for _ in range(config.execution.request_slots)]
-            for run in entry['consumer_runs']:
-                run.add_done_callback(lambda task, entry=entry: self._consumer_finished(entry, task))
-            entry['consumers'] = [asyncio.create_task(self._join_consumer(run)) for run in entry['consumer_runs']]
-            if self.redis_config is not None:
-                entry['maintenance'] = asyncio.create_task(self._maintain_shared(entry))
-        except Exception as exc:
-            closed = await asyncio.gather(*(worker.close() for worker in entry['workers']), return_exceptions=True)
-            if not any(isinstance(result, BaseException) for result in closed):
-                try:
-                    await self._release_entry_files(entry)
-                    if self.shared_runtime is not None:
-                        await self.shared_runtime.failed(entry)
-                except Exception:
-                    logging.exception('Could not release failed entry resource references')
-            if not any(isinstance(result, BaseException) for result in closed):
-                entry['workers'] = []
-            superseded = isinstance(exc, ServerError) and exc.code in ('shared_control_changed', 'entry_busy') and not entry['workers']
-            entry['status'], entry['error'] = 'stopped' if superseded else 'failed', str(exc)
-            if self.redis_config is not None and entry.get('queue') is not None:
-                await entry['queue'].close()
-            raise
-        return self.describe(name)
+        return await self.lifecycle.start(name, entry, persist=persist, resume=resume)
 
     @audited
     async def reload_entry(self, name, *, workflow=None, config=None):
@@ -919,74 +781,23 @@ class Server:
             return await self._reload_entry_impl(name, workflow=workflow, config=config, start_stopped=start_stopped)
 
     async def _reload_entry_impl(self, name, *, workflow=None, config=None, start_stopped=False):
-        """Prepare replacement workers before changing the accepting entry."""
-        import copy
-        from .config import ServerConfig, load_json
-        from .errors import ServerError
-        old = self._entry(name)
-        stopped_update = start_stopped and self.shared_runtime is not None and old['status'] in ('stopped', 'failed') and not old['workers']
-        failed_update = self.shared_runtime is not None and old.get('shared_key') and old['status'] == 'failed' and not old['workers']
-        if (old['status'] != 'ready' and not stopped_update and not failed_update) or self.shutting_down:
-            raise ServerError(409, 'entry_busy', 'Entry must be ready before reload', retryable=True)
-        if old['source']['graph'] is not None:
-            raise ServerError(409, 'reload_unsupported', 'Reload requires a workflow or a factory')
-        source = dict(old['source'])
-        if workflow is not None:
-            if source['workflow'] is None:
-                raise ServerError(422, 'invalid_request', 'This entry does not load a workflow')
-            source['workflow'] = load_json(workflow) if isinstance(workflow, (str, Path)) else copy.deepcopy(workflow)
-            if self.redis_config is not None:
-                from .redis import source_identity
-                source['identity'] = source_identity(source)
-        value = old['config']
-        if config is not None:
-            if isinstance(config, (str, Path)):
-                config = load_json(config)
-            value = ServerConfig.model_validate(config)
-            value = value.model_copy(update={'name': name})
-            source['autodetect'] = False
-            source['untyped'] = False
-        candidate = dict(old, source=source, config=value, schema=value.public_schema(),
-                         untyped=source['untyped'], status='stopped', error=None, workers=[], consumers=[], futures={}, admitted=set(), closing=None)
-        candidate.pop('device_guard', None)
-        if self.shared_runtime is not None:
-            return await self.shared_runtime.reload(name, old, candidate)
-        old['status'] = 'reloading'
-        try:
-            await self._start_entry(name, candidate, persist=False)
-            await self._persist_entry(name, candidate, True)
-        except BaseException:
-            try:
-                if candidate['status'] == 'ready':
-                    await self._stop_entry(name, candidate, persist=False)
-            finally:
-                old['status'] = 'ready'
-                if candidate['workers'] or candidate.get('release_pending'):
-                    self.retiring_entries.setdefault(name, []).append(candidate)
-                else:
-                    self._release_assets(candidate)
-            raise
-        # There is no await between the pointer change and stopping old admission.
-        self.entries[name] = candidate
-        candidate['status'] = 'reloading'
-        old['status'] = 'ready'
-        self.retiring_entries.setdefault(name, []).append(old)
-        try:
-            await self._stop_entry(name, old, persist=False)
-        except BaseException:
-            candidate['error'] = 'Previous worker release was not confirmed'
-            raise
-        finally:
-            candidate['status'] = 'ready'
-        self.retiring_entries[name].remove(old)
-        self._release_assets(old)
-        return self.describe(name)
+        return await self.lifecycle.reload(name, workflow=workflow, config=config, start_stopped=start_stopped)
 
     def accepting(self, name, entry=None):
         entry = self._entry(name) if entry is None else entry
         control = self.entry_controls.get(name)
         stopping = control is not None and control['action'] == 'stop' and not control['task'].done()
         return not self.shutting_down and not stopping and not entry.get('consumer_failed') and entry['status'] in ('ready', 'reloading')
+
+    def service_status(self, name):
+        """Snapshot resident handler readiness without exposing Worker internals."""
+        entry = self._entry(name)
+        ready = self.accepting(name, entry) and bool(entry['workers'])
+        snapshots = [getattr(worker, 'service_status', {}) for worker in entry['workers']]
+        variants = set().union(*(value.keys() for value in snapshots))
+        return {'ready': ready, 'variants': {
+            variant: ready and all(value.get(variant, False) for value in snapshots)
+            for variant in variants}}
 
     def describe(self, name):
         entry = self._entry(name)
@@ -996,6 +807,7 @@ class Server:
         return dict(name=name, mcp=entry['config'].mcp.model_dump() if entry['config'].mcp else None,
                     mcp_path=self.mcp.config.path if self.mcp is not None else None, status='stopping' if stopping and entry['status'] == 'ready' else state, error=entry['error'],
                     schema=entry['schema'], workers=len(entry['workers']),
+                    parameter_modes=getattr(entry['workers'][0], 'parameter_modes', {}) if entry['workers'] else {},
                     draining_workers=sum(len(previous['workers']) for previous in self.retiring_entries.get(name, [])),
                     inflight=len(entry['futures']), deploy_path=f'/v1/server/{name}/deploy',
                     isolation=entry['config'].execution.isolation, streaming=entry['config'].streaming.model_dump(),
@@ -1047,12 +859,20 @@ class Server:
         return task
 
     @audited
-    async def submit(self, name, inputs, parameters=None, *, idempotency_key=None, owner=None, callback_url=None):
+    async def submit(self, name, inputs, parameters=None, *, idempotency_key=None, owner=None, callback_url=None, service=None, observe=True):
         # Admission is owned by Server even if the HTTP request disconnects
         # during the database write.
-        identity, future = await asyncio.shield(self.own(self._submit(name, inputs, parameters, idempotency_key=idempotency_key, owner=owner, callback_url=callback_url)))
+        identity, future = await asyncio.shield(self.own(self._submit(name, inputs, parameters, idempotency_key=idempotency_key, owner=owner, callback_url=callback_url, service=service, observe=observe and self.redis_config is None)))
+        if not observe:
+            receipt = asyncio.get_running_loop().create_future()
+            receipt.set_result({"task_id": identity})
+            receipt.dispatch_pending = getattr(future, "dispatch_pending", False)
+            return identity, receipt
+        dispatch_pending = getattr(future, 'dispatch_pending', False)
+        if self.redis_config is not None:
+            _, future = self._record_future(dict(task_id=identity, state='pending', queue_key='shared'))
         observer = self._observe_result(future)
-        observer.dispatch_pending = getattr(future, 'dispatch_pending', False)
+        observer.dispatch_pending = dispatch_pending
         return identity, observer
 
     @staticmethod
@@ -1078,6 +898,9 @@ class Server:
             if not done.cancelled():
                 done.exception()
         observer.add_done_callback(detached)
+        shared = getattr(future, "shared_result", None)
+        if shared is not None:
+            shared[0].attach(shared[1], future, observer)
         if future.done():
             completed(future)
         else:
@@ -1085,13 +908,30 @@ class Server:
         return observer
 
     @observe_admission
-    async def _submit(self, name, inputs, parameters=None, *, idempotency_key=None, owner=None, expected_entry=None, callback_url=None):
+    async def _submit(self, name, inputs, parameters=None, *, idempotency_key=None, owner=None, expected_entry=None, callback_url=None, service=None, observe=True):
         from .errors import ServerError
         import queue
         import time
         from .logging_taskid import get_request_id
         request_id = get_request_id()
         entry = self._entry(name)
+        service = dict(service or {})
+        if 'temporary_memory_bytes' in service:
+            estimate = service['temporary_memory_bytes']
+            ceilings = entry['config'].execution.temporary_memory_bytes
+            if (not isinstance(estimate, dict) or not ceilings or self.devices is None or
+                any(device not in ceilings or type(amount) is not int or not 0 < amount <= ceilings[device]
+                    for device, amount in estimate.items())):
+                raise ServerError(422, 'invalid_memory_estimate',
+                    'Request memory must be positive integer bytes within configured temporary_memory_bytes ceilings')
+            service['temporary_memory_bytes'] = dict(estimate)
+        if entry['config'].execution.admission_group:
+            service['admission_group'] = entry['config'].execution.admission_group
+        if service:
+            service['scope'] = self.redis_config.namespace if self.redis_config else self.config_scope
+            # This is trusted algorithm metadata, never accepted from a Deploy envelope.
+            if len(json.dumps(service, allow_nan=False).encode()) > 16384:
+                raise ServerError(422, 'invalid_service_metadata', 'Service metadata is too large')
         control = self.entry_controls.get(name)
         if control is not None and control['action'] == 'stop' and not control['task'].done():
             raise ServerError(503, 'not_ready', 'Entry is stopping', retryable=True)
@@ -1142,7 +982,7 @@ class Server:
                 lookup_key = idempotency_key
             record = await asyncio.to_thread(self.db.find_task, name, lookup_key, values['inputs'], values['parameters'], owner, callback_url)
             if record:
-                return self._record_future(record)
+                return self._record_future(record, observe=observe or self.redis_config is None)
             if not self.accepting(name, entry):
                 raise ServerError(503, 'not_ready', 'Entry is not accepting requests', retryable=True)
         if not self.accepting(name, entry):
@@ -1156,15 +996,16 @@ class Server:
                     queue_timeout=entry['config'].execution.queue_timeout_seconds, idempotency_key=idempotency_key, owner=owner,
                     retention_seconds=entry['config'].execution.task_retention_seconds, request_id=request_id,
                     max_tasks_per_subject=self.authentication.max_inflight_tasks_per_subject,
-                    input_state=entry['config'].streaming.input_state(), callback_url=callback_url, callback_scope=self.config_scope)
+                    input_state=entry['config'].streaming.input_state(), callback_url=callback_url, callback_scope=self.config_scope, service=service)
             finally:
                 self.inflight -= 1
-            identity, future = self._record_future(dict(task_id=accepted['task_id'], state='pending', queue_key=entry['queue'].key))
+            identity, future = self._record_future(dict(task_id=accepted['task_id'], state='pending', queue_key=entry['queue'].key), observe=observe)
             future.dispatch_pending = accepted['dispatch_pending']
             return identity, future
         identity = 'task_' + uuid.uuid4().hex
         values['_owner'] = owner
         values['_request_id'] = request_id
+        values['_service'] = service
         future = asyncio.get_running_loop().create_future()
         future.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
         # Reserve queue capacity without yielding. Persistence happens before the
@@ -1182,7 +1023,7 @@ class Server:
                 values['inputs'], values['parameters'], owner=owner, idempotency_key=idempotency_key,
                 retention_seconds=entry['config'].execution.task_retention_seconds, request_id=request_id,
                 max_tasks_per_subject=self.authentication.max_inflight_tasks_per_subject,
-                input_state=entry['config'].streaming.input_state(), callback_url=callback_url, callback_scope=self.config_scope)
+                input_state=entry['config'].streaming.input_state(), callback_url=callback_url, callback_scope=self.config_scope, service=service)
         except Exception as exc:
             entry['queue'].cancel_pending(identity)
             entry['futures'].pop(identity, None)
@@ -1199,7 +1040,7 @@ class Server:
             self.inflight -= 1
             entry['wake'].set()
             record = await asyncio.to_thread(self.db.get_task, accepted)
-            return self._record_future(record)
+            return self._record_future(record, observe=observe or self.redis_config is None)
         entry.setdefault('admitted', set()).add(identity)
         entry['wake'].set()
         return identity, future
@@ -1227,7 +1068,11 @@ class Server:
         # waiting belongs to that caller, not to the Server lifecycle.
         results, pending = await asyncio.shield(self.own(self._admit_batch(name, request, owner)))
         if request.mode == 'sync':
-            observers = [(index, self._observe_result(future)) for index, future in pending]
+            observers = []
+            for index, future in pending:
+                if self.redis_config is not None:
+                    _, future = self._record_future(dict(task_id=results[index]['task_id'], state='pending', queue_key='shared'))
+                observers.append((index, self._observe_result(future)))
             try:
                 if observers:
                     # One window after admission; only the readers are awaited.
@@ -1256,7 +1101,7 @@ class Server:
                 if unavailable is not None:
                     raise unavailable
                 identity, future = await self._submit(name, item.inputs, item.parameters, owner=owner,
-                    idempotency_key=item.idempotency_key, expected_entry=entry, callback_url=item.callback_url)
+                    idempotency_key=item.idempotency_key, expected_entry=entry, callback_url=item.callback_url, observe=False)
             except Exception as exc:
                 error = exc if isinstance(exc, ServerError) else ServerError(503, 'recording_unavailable', 'Could not record the task', retryable=True)
                 if error.code == 'recording_unavailable':
@@ -1268,53 +1113,8 @@ class Server:
                 pending.append((index, future))
         return results, pending
 
-    def _record_future(self, record):
-        from .errors import ServerError
-        if record is None:
-            raise ServerError(404, 'task_not_found', 'Task record is no longer available')
-        identity = record['task_id']
-        future = self.task_futures.get(identity)
-        if future is None:
-            future = asyncio.get_running_loop().create_future()
-            future.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
-            if record['state'] == 'succeeded':
-                future.set_result(dict(task_id=identity, outputs=record['outputs']))
-            elif record['queue_key'] and record['state'] in ('pending', 'running', 'dispatched') and self.redis_config is not None:
-                self.task_futures[identity] = future
-                self.inflight += 1
-                self.waiters[identity] = asyncio.create_task(self._wait_shared(identity, future))
-            else:
-                future.set_exception(ServerError.from_task(record))
-        return identity, future
-
-    async def _wait_shared(self, identity, future):
-        from .errors import ServerError
-        try:
-            while True:
-                try:
-                    record = await asyncio.to_thread(self.db.get_task, identity)
-                    if record is None:
-                        if not future.done():
-                            future.set_exception(ServerError(404, 'task_not_found', 'Task record is no longer available',
-                                                             task_id=identity))
-                        return
-                    if record and record['state'] in ('succeeded', 'failed', 'cancelled', 'expired'):
-                        if not future.done():
-                            if record['state'] == 'succeeded':
-                                future.set_result(dict(task_id=identity, outputs=record['outputs']))
-                            else:
-                                future.set_exception(ServerError.from_task(record))
-                        return
-                except Exception:
-                    logging.warning('Waiting for shared task database recovery: %s', identity)
-                await asyncio.sleep(.2)
-        finally:
-            if not future.done():
-                future.set_exception(ServerError(503, 'server_stopping', 'Task remains recorded; query its status after reconnecting',
-                                                 task_id=identity, retryable=True))
-            self.task_futures.pop(identity, None)
-            self.waiters.pop(identity, None)
-            self.inflight -= 1
+    def _record_future(self, record, *, observe=True):
+        return self.results.record(record, observe=observe)
 
     async def _shared_controls(self):
         while not self.shutting_down:
@@ -1451,7 +1251,7 @@ class Server:
                     return checked_at + remaining
                 limited = self.devices is not None and bool(self.devices.execution_devices(entry))
                 values = dict(inputs=record['inputs'], parameters=record['parameters'], _owner=record['owner'], _task_id=identity,
-                              _attempt=record['attempt'], _worker_token=record['worker_token'], _request_id=record['request_id'])
+                              _attempt=record['attempt'], _worker_token=record['worker_token'], _request_id=record['request_id'], _service=record.get('service'))
                 if limited:
                     values['_queue_deadline'] = await before_run()
                 if entry['config'].execution.batching.enabled:
@@ -1481,7 +1281,8 @@ class Server:
             result = dict(record=record, outputs=outputs, error=error, state=state)
             try:
                 await asyncio.to_thread(self._write_json_replace, journal, result)
-                await queue.finish(record, outputs=outputs, error=error, state=state)
+                with self.metrics.measure('result_commit', entry['config'].name):
+                    await queue.finish(record, outputs=outputs, error=error, state=state)
                 journal.unlink(missing_ok=True)
             except Exception:
                 # The durable result is replayed by maintenance. No successful
@@ -1566,7 +1367,8 @@ class Server:
                     else:
                         outputs = await execute()
                 await self._check_output_files(entry, outputs)
-                await asyncio.to_thread(self.db.finish_task, identity, 'succeeded', time.time(), outputs)
+                with self.metrics.measure('result_commit', entry['config'].name):
+                    await asyncio.to_thread(self.db.finish_task, identity, 'succeeded', time.time(), outputs)
             except Exception as exc:
                 error = exc if isinstance(exc, ServerError) else ServerError(500, 'execution_failed', 'Execution or result recording failed', task_id=identity)
                 if error.task_id is None:
@@ -1753,72 +1555,7 @@ class Server:
         return await self._control_entry(name, 'stop', stop)
 
     async def _stop_entry(self, name, entry, *, persist=True, shared_scope=True, drain_shared=None):
-        from .errors import ServerError
-        if entry['status'] in ('starting', 'reloading'):
-            raise ServerError(409, 'entry_busy', 'Entry is changing state', retryable=True)
-        if shared_scope and self.shared_runtime is not None and entry.get('shared_key'):
-            await self.shared_runtime.check(entry)
-        if entry['status'] in ('stopped', 'failed') and not entry['workers']:
-            if entry.get('release_pending'):
-                await self._release_entry_files(entry)
-                entry['status'], entry['error'] = 'stopped', None
-            if self.devices is not None:
-                await self.devices.release(entry)
-            if self.redis_config is not None and entry.get('queue') is not None and shared_scope:
-                usage = await asyncio.to_thread(self.db.queue_usage, entry['queue'].key)
-                await self._write_shared_control(entry, False, usage['control_token'])
-            if persist and entry['status'] == 'stopped':
-                await self._persist_entry(name, entry, False)
-            return self.describe(name)
-        if entry['closing'] is None:
-            async def drain():
-                usage = None
-                if self.redis_config is not None and entry.get('queue') is not None and shared_scope:
-                    usage = await asyncio.to_thread(self.db.queue_usage, entry['queue'].key)
-                if persist:
-                    await self._persist_entry(name, entry, False)
-                if usage is not None:
-                    await self._write_shared_control(entry, False, usage['control_token'])
-                entry['status'] = 'stopping'
-                entry['local_stop'] = not (shared_scope if drain_shared is None else drain_shared)
-                if entry.get('wake') is not None:
-                    entry['wake'].set()
-                consumer_results = await asyncio.gather(*entry.get('consumer_runs', entry['consumers']), return_exceptions=True)
-                await asyncio.gather(*entry['consumers'], return_exceptions=True)
-                if entry.get('maintenance'):
-                    entry['maintenance'].cancel()
-                    await asyncio.gather(entry['maintenance'], return_exceptions=True)
-                failure_message = 'Worker release was not confirmed'
-                try:
-                    closed = await asyncio.gather(*(worker.close() for worker in entry['workers']), return_exceptions=True)
-                    for result in closed:
-                        if isinstance(result, BaseException):
-                            raise result
-                    failure_message = 'Resource cleanup was not confirmed'
-                    if entry.get('consumer_failed'):
-                        await self._finish_abandoned_consumer_tasks(entry)
-                    await self._release_entry_files(entry)
-                except BaseException:
-                    entry['status'], entry['error'] = 'failed', failure_message
-                    raise
-                else:
-                    entry['workers'] = []
-                    entry['status'], entry['error'] = 'stopped', None
-                if entry.get('consumer_failed') or any(isinstance(result, BaseException) for result in consumer_results):
-                    entry['status'], entry['error'] = 'failed', 'Task consumer exited unexpectedly'
-                    raise ServerError(500, 'consumer_failed', 'Task consumer exited unexpectedly; Workers have been closed')
-            entry['closing'] = asyncio.create_task(drain())
-        closing = entry['closing']
-        try:
-            await asyncio.shield(closing)
-        except BaseException:
-            if entry['status'] in ('ready', 'failed') and closing.done() and entry['closing'] is closing:
-                # A later Stop may retry idempotent database cleanup. Workers
-                # remember actual close failures, so an unconfirmed physical
-                # release cannot be turned into success by this retry.
-                entry['closing'] = None
-            raise
-        return self.describe(name)
+        return await self.lifecycle.stop(name, entry, persist=persist, shared_scope=shared_scope, drain_shared=drain_shared)
 
     async def close(self):
         if self.closing_task is None:
@@ -1850,10 +1587,7 @@ class Server:
                                             return_exceptions=True))
         for entry, _ in list(self._asset_leases.values()):
             self._release_assets(entry)
-        if self.waiters:
-            for task in list(self.waiters.values()):
-                task.cancel()
-            await asyncio.gather(*list(self.waiters.values()), return_exceptions=True)
+        await self.results.close()
         if self.redis_config is not None:
             stopped.extend(await asyncio.gather(*(entry['queue'].close() for entry in self.entries.values()
                                                    if entry.get('queue') is not None), return_exceptions=True))

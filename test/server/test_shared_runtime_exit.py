@@ -210,7 +210,7 @@ def _running_server(options, isolation, marker, release, accepted, completed=Fal
 
 def test_real_completed_result_survives_owner_death_and_redis_ack_is_repaired(backend, tmp_path):
     database, redis = backend
-    settings = dict(data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
+    settings = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
     marker, accepted = tmp_path / 'executed', tmp_path / 'accepted'
     process = multiprocessing.get_context('spawn').Process(target=_running_server,
         args=(settings, 'process', str(marker), '', str(accepted), True))
@@ -260,7 +260,7 @@ def test_real_completed_result_survives_owner_death_and_redis_ack_is_repaired(ba
 @pytest.mark.parametrize('isolation,cancel', [('thread', False), ('process', False), ('process', True)])
 def test_real_worker_owner_crash_releases_only_after_child_exit_and_does_not_rerun(backend, tmp_path, isolation, cancel):
     database, redis = backend
-    settings = dict(data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
+    settings = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
     marker, release, accepted = [tmp_path / name for name in ('running', 'release', 'accepted')]
     process = multiprocessing.get_context('spawn').Process(target=_running_server,
         args=(settings, isolation, str(marker), str(release), str(accepted)))
@@ -339,7 +339,7 @@ def test_upgrade_does_not_invent_runtime_ownership_for_old_running_tasks(db, tmp
 def test_server_shutdown_joins_runtime_recovery_before_closing_database(backend, tmp_path, monkeypatch):
     import threading
     database, redis = backend
-    server = Server(name='model', deploy=shared_deploy, config=config('old'), data_dir=tmp_path / 'shared',
+    server = Server(name='model', deploy=shared_deploy, config=config('old'), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
     entered, release, closed = threading.Event(), threading.Event(), threading.Event()
     original_recover, original_close = server.db.shared.recover_runtime, server.db.close
@@ -372,7 +372,7 @@ def test_server_shutdown_joins_runtime_recovery_before_closing_database(backend,
 
 def test_one_corrupt_result_does_not_starve_other_exited_runtimes(backend, tmp_path):
     database, redis = backend
-    server = Server(name='model', deploy=shared_deploy, config=config('old'), data_dir=tmp_path / 'shared',
+    server = Server(name='model', deploy=shared_deploy, config=config('old'), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
     async def scenario():
         try:

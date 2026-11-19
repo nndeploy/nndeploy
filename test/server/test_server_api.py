@@ -36,12 +36,15 @@ def image_graph():
 
 def test_api_only_does_not_import_editor_or_modelscope(tmp_path):
     code = '''import sys
+import nndeploy
+loaded_before_server = set(sys.modules)
 from nndeploy.server import Server
-server = Server(data_dir=sys.argv[1])
+server = Server(resources=sys.argv[1], data_dir=sys.argv[1])
 assert 'nndeploy.server.frontend' not in sys.modules
 assert 'nndeploy.server.template' not in sys.modules
 assert 'modelscope' not in sys.modules
-assert 'redis' not in sys.modules
+# Optional PyTorch remote-cache support can import Redis during nndeploy import.
+assert 'redis' not in sys.modules or 'redis' in loaded_before_server
 assert not any(route.path == '/api/nodes/upload' for route in server.app.routes)
 '''
     result = subprocess.run([sys.executable, '-c', code, str(tmp_path)], capture_output=True, text=True)
@@ -51,7 +54,7 @@ assert not any(route.path == '/api/nodes/upload' for route in server.app.routes)
 def test_native_graph_reused_parameters_reset_and_records_survive_restart(tmp_path):
     config = dict(inputs={'text': dict(node=['source'], type='string', required=False, default='default')},
                   outputs={'text': dict(edge='text', type='string')})
-    server = Server(workflow=text_graph(), config=config, name='echo', data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=config, name='echo', resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         assert client.get('/health/ready').status_code == 200
         first = client.post('/v1/server/echo/deploy', json={'inputs': {'text': 'first'}})
@@ -60,13 +63,13 @@ def test_native_graph_reused_parameters_reset_and_records_survive_restart(tmp_pa
         assert client.post('/v1/server/echo/deploy', json={}).json()['outputs'] == {'text': 'default'}
         assert server.entries['echo']['workers'][0].executor.runner.graph is graph
         assert client.post('/v1/server/echo/deploy', json={'inputs': {'unknown': 1}}).status_code == 422
-    with TestClient(Server(data_dir=tmp_path).app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path).app) as client:
         record = client.get('/v1/tasks/' + first.json()['task_id']).json()
         assert record['state'] == 'succeeded' and record['outputs'] == {'text': 'first'}
 
 
 def test_native_image_file_roundtrip_and_independent_outputs(tmp_path):
-    with TestClient(Server(workflow=image_graph(), data_dir=tmp_path).app) as client:
+    with TestClient(Server(workflow=image_graph(), resources=tmp_path, data_dir=tmp_path).app) as client:
         picture = io.BytesIO()
         Image.new('RGB', (5, 7), (20, 40, 60)).save(picture, format='PNG')
         uploaded = client.post('/v1/files', files={'file': ('input.png', picture.getvalue(), 'image/png')})
@@ -90,7 +93,7 @@ def test_q01_q02_slow_entry_does_not_block_other_entry(tmp_path):
         entered.set()
         assert release.wait(10)
         return values
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     server.add(name='slow', deploy=blocked, config={'inputs': {'value': {'type': 'integer'}}, 'execution': {'max_queue_size': 0}})
     server.add(name='fast', deploy=lambda values: values)
     with TestClient(server.app) as client, ThreadPoolExecutor() as pool:
@@ -115,7 +118,7 @@ def test_worker_thread_owns_initialization_execution_and_close(tmp_path):
             calls.append(('deploy', threading.get_ident()))
             return inputs
         def deinit(self): calls.append(('deinit', threading.get_ident()))
-    with TestClient(Server(handler_factory=Handler, data_dir=tmp_path).app) as client:
+    with TestClient(Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path).app) as client:
         for _ in range(2):
             assert client.post('/v1/server/default/deploy', json={'inputs': {'text': 'test'}}).status_code == 200
     assert [name for name, _ in calls] == ['init', 'deploy', 'deploy', 'deinit']
@@ -146,7 +149,7 @@ def test_q04_two_workers_can_execute_same_entry_in_parallel(tmp_path):
         return graph
     config = {'inputs': {'value': {'type': 'string', 'edge': 'input'}},
               'outputs': {'value': {'type': 'string', 'edge': 'output'}}}
-    with TestClient(Server(graph_factory=factory, config=config, workers=2, data_dir=tmp_path).app) as client, ThreadPoolExecutor() as pool:
+    with TestClient(Server(graph_factory=factory, config=config, workers=2, resources=tmp_path, data_dir=tmp_path).app) as client, ThreadPoolExecutor() as pool:
         futures = [pool.submit(client.post, '/v1/server/default/deploy', json={'inputs': {'value': str(i)}}) for i in range(2)]
         assert [f.result().json()['outputs']['value'] for f in futures] == ['0', '1']
         assert len(instances) == 2 and instances[0][0] is not instances[1][0] and instances[0][1] is not instances[1][1]
@@ -159,7 +162,7 @@ def test_http_wait_cancellation_keeps_slot_and_native_work(tmp_path):
         assert release.wait(10)
         return values
     async def run():
-        server = Server(deploy=blocked, data_dir=tmp_path, config={'execution': {'max_queue_size': 0}})
+        server = Server(deploy=blocked, resources=tmp_path, data_dir=tmp_path, config={'execution': {'max_queue_size': 0}})
         await server.start()
         waiter = asyncio.create_task(server.deploy('default', {}))
         try:
@@ -180,7 +183,7 @@ def test_http_wait_cancellation_keeps_slot_and_native_work(tmp_path):
 
 def test_failed_admission_never_executes(tmp_path, monkeypatch):
     calls = []
-    server = Server(deploy=lambda inputs: calls.append(inputs), data_dir=tmp_path)
+    server = Server(deploy=lambda inputs: calls.append(inputs), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         def fail(*args): raise OSError('database unavailable')
         monkeypatch.setattr(server.db, 'create_task', fail)
@@ -197,7 +200,7 @@ def test_native_failure_rebuilds_graph(tmp_path, monkeypatch):
             raise ValueError('broken native execution')
         return original(node)
     monkeypatch.setattr(InputStr, 'run', run)
-    server = Server(workflow=text_graph(), data_dir=tmp_path)
+    server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         original_graph = server.entries['echo']['workers'][0].executor.runner.graph
         failed = client.post('/v1/server/echo/deploy', json={'inputs': {'source': 'fail'}})
@@ -213,7 +216,7 @@ def test_graph_factory_discovers_bindings(tmp_path):
         graph = Graph('echo')
         graph.deserialize(json.dumps(text_graph()))
         return graph
-    with TestClient(Server(graph_factory=factory, name='factory', data_dir=tmp_path).app) as client:
+    with TestClient(Server(graph_factory=factory, name='factory', resources=tmp_path, data_dir=tmp_path).app) as client:
         result = client.post('/v1/server/factory/deploy', json={'inputs': {'source': 'factory'}})
         assert result.status_code == 200, result.text
         assert result.json()['outputs'] == {'sink': 'factory'}
@@ -227,14 +230,14 @@ def test_async_function_and_typed_input(tmp_path):
     async def deploy(values):
         await asyncio.sleep(0)
         return {'value': values['value'] + 1}
-    with TestClient(Server(deploy=deploy, input_model=Input, output_model=Output, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=deploy, input_model=Input, output_model=Output, resources=tmp_path, data_dir=tmp_path).app) as client:
         assert client.post('/v1/server/default/deploy', json={'inputs': {'value': '1'}}).status_code == 422
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': 1}})
         assert response.json()['outputs'] == {'value': 2}
 
 
 def test_management_auth_and_stop_restart(tmp_path):
-    server = Server(workflow=text_graph(), data_dir=tmp_path, admin_token='test-token')
+    server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path, admin_token='test-token')
     headers = {'Authorization': 'Bearer test-token'}
     with TestClient(server.app) as client:
         assert client.post('/api/server/echo/stop').status_code == 401
@@ -257,7 +260,7 @@ def test_cli_api_mode_and_local_default():
 
 def test_q07_reload_failure_keeps_existing_graph_and_other_entry(tmp_path):
     async def scenario():
-        server = Server(workflow=text_graph(), data_dir=tmp_path)
+        server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path)
         server.add(name='other', deploy=lambda values: values)
         await server.start()
         original = server.entries['echo']['workers'][0].executor.runner.graph
@@ -291,7 +294,7 @@ def test_reload_accepts_new_requests_while_old_worker_drains(tmp_path):
         def deinit(self):
             self.closed = True
     async def scenario():
-        server = Server(handler_factory=Handler, data_dir=tmp_path)
+        server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
         await server.start()
         try:
             _, pending = await server.submit('default', {'block': True})
@@ -322,7 +325,7 @@ def test_stop_during_start_is_rejected_without_losing_worker(tmp_path):
         def deploy(self, values):
             return values
     async def scenario():
-        server = Server(handler_factory=Handler, data_dir=tmp_path)
+        server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
         starting = asyncio.create_task(server.start())
         try:
             assert await asyncio.to_thread(entered.wait, 5)
@@ -341,7 +344,7 @@ def test_stop_during_start_is_rejected_without_losing_worker(tmp_path):
 
 def test_declared_code_output_is_checked(tmp_path):
     config = {'outputs': {'count': {'type': 'integer'}}}
-    with TestClient(Server(deploy=lambda values: {'count': 'wrong'}, config=config, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=lambda values: {'count': 'wrong'}, config=config, resources=tmp_path, data_dir=tmp_path).app) as client:
         result = client.post('/v1/server/default/deploy', json={})
         assert result.status_code == 500
         task = client.get('/v1/tasks/' + result.json()['error']['task_id']).json()
@@ -385,7 +388,7 @@ def test_pending_cancel_frees_queue_and_does_not_execute(tmp_path):
         assert release.wait(10)
         return values
     async def scenario():
-        server = Server(deploy=deploy, data_dir=tmp_path)
+        server = Server(deploy=deploy, resources=tmp_path, data_dir=tmp_path)
         await server.start()
         try:
             _, first = await server.submit('default', {'first': True})
@@ -410,7 +413,7 @@ def test_idempotent_http_requests_reuse_result_and_reject_changed_input(tmp_path
     def deploy(values):
         calls.append(values)
         return values
-    with TestClient(Server(deploy=deploy, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=deploy, resources=tmp_path, data_dir=tmp_path).app) as client:
         headers = {'Idempotency-Key': 'one-call'}
         first = client.post('/v1/server/default/deploy', json={'inputs': {'value': 1}}, headers=headers)
         second = client.post('/v1/server/default/deploy', json={'inputs': {'value': 1}}, headers=headers)
@@ -425,7 +428,7 @@ def test_concurrent_idempotency_only_executes_once(tmp_path):
         calls.append(values)
         return values
     async def scenario():
-        server = Server(deploy=deploy, data_dir=tmp_path)
+        server = Server(deploy=deploy, resources=tmp_path, data_dir=tmp_path)
         await server.start()
         try:
             submissions = await asyncio.gather(*(server.submit('default', {'value': 1}, idempotency_key='same') for _ in range(10)))
@@ -440,7 +443,7 @@ def test_concurrent_idempotency_only_executes_once(tmp_path):
 def test_bad_entry_does_not_prevent_other_entry_startup(tmp_path):
     broken = text_graph()
     broken['node_repository_'][0]['key_'] = 'unknown.Node'
-    server = Server(name='broken', workflow=broken, data_dir=tmp_path)
+    server = Server(name='broken', workflow=broken, resources=tmp_path, data_dir=tmp_path)
     server.add(name='working', deploy=lambda values: values)
     with TestClient(server.app) as client:
         assert client.get('/health/ready').status_code == 200
@@ -497,7 +500,7 @@ def test_deploy_accepts_local_image_without_upload(tmp_path, monkeypatch, form):
     if form == 'relative': reference = {'path': 'input.jpg'}
     if form == 'string': reference = str(path)
     if form == 'legacy': reference = {'file_id': str(path)}
-    server = Server(workflow=image_graph(), name='image', data_dir=tmp_path / 'server')
+    server = Server(workflow=image_graph(), name='image', resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         body = {'inputs': {'decode': reference}}
         response = client.post('/v1/server/image/deploy', json=body, headers={'Idempotency-Key': 'local-image'})
@@ -520,7 +523,7 @@ def test_numeric_local_file_is_decoded_without_upload(tmp_path):
     config = {'inputs': {'values': {'type': 'array', 'dtype': 'float32', 'shape': [3], 'media_type': 'application/x-npy'}},
               'outputs': {'sum': {'type': 'number'}}}
     server = Server(name='sum', deploy=lambda inputs: {'sum': float(inputs['values'].sum())}, config=config,
-                    data_dir=tmp_path / 'server')
+                    resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         result = client.post('/v1/server/sum/deploy', json={'inputs': {'values': {'path': str(path)}}})
         assert result.status_code == 200, result.text
@@ -531,7 +534,7 @@ def test_node_parameters_override_input_output_and_restore_defaults(tmp_path):
     source = tmp_path / 'color.png'
     Image.new('RGB', (5, 7), (20, 40, 60)).save(source)
     output = tmp_path / 'custom.png'
-    server = Server(workflow=image_graph(), name='image', data_dir=tmp_path / 'server')
+    server = Server(workflow=image_graph(), name='image', resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         body = {'parameters': {'decode': {'path_': str(source), 'color_mode_': 'L'},
                                'encode': {'path_': str(output)}}}
@@ -584,7 +587,7 @@ def test_nested_intermediate_parameters_reinitialize_code_graph_and_restore(tmp_
         return graph
 
     options = {'graph_factory': make} if factory else {'graph': make()}
-    server = Server(name='nested', data_dir=tmp_path, **options)
+    server = Server(name='nested', resources=tmp_path, data_dir=tmp_path, **options)
     with TestClient(server.app) as client:
         for overrides, expected in [({'inner_prefix': {'param_': {'prefix': 'changed:'}}}, 'changed:value'),
                                     ({}, 'default:value'),
@@ -603,7 +606,7 @@ def test_node_body_exposure_and_legacy_requests_cannot_bypass_it(tmp_path):
     config = suggest_config(graph)
     config['parameters']['decode']['exposed'] = [['color_mode_']]
     config['parameters']['encode']['exposed'] = []
-    server = Server(workflow=graph, config=config, name='image', data_dir=tmp_path / 'server')
+    server = Server(workflow=graph, config=config, name='image', resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         response = client.post('/v1/server/image/deploy', json={'decode': {'color_mode_': 'L'}})
         assert response.status_code == 200, response.text

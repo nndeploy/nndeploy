@@ -95,7 +95,7 @@ def test_factory_discovery_keeps_export(tmp_path):
         graph = nndeploy.dag.Graph('echo')
         graph.deserialize(json.dumps(text_graph()))
         return graph
-    server = Server(data_dir=tmp_path, mcp_config={'enabled': True, 'allowed_hosts': ['testserver']})
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config={'enabled': True, 'allowed_hosts': ['testserver']})
     server.add(name='factory', graph_factory=factory, mcp={'name': 'factory_tool', 'description': 'Factory graph'})
     with TestClient(server.app) as client:
         assert 'factory_tool' in {tool['name'] for tool in rpc(client, 'tools/list')['tools']}

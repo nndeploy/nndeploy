@@ -198,11 +198,8 @@ class SharedRuntime:
 
     @staticmethod
     def replacement(old):
-        candidate = dict(old, source=dict(old['source']), workers=[], consumers=[], futures={}, admitted=set(),
-                         status='stopped', error=None, closing=None, shared_holders=[])
-        for key in ('queue', 'maintenance', 'wake', 'file_holder', 'control_guard', 'device_guard', 'release_pending', 'shared_candidate', 'shared_start_repair', 'shared_draining'):
-            candidate.pop(key, None)
-        return candidate
+        from .entry import replacement
+        return replacement(old)
 
     async def cleanup(self, entry):
         # Shutdown must join DB reconciliation before disposing dependencies.

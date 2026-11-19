@@ -15,10 +15,11 @@ MEDIA_EXTENSIONS = {
     'application/zip': '.zip',
     'audio/wav': '.wav', 'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/flac': '.flac',
     'audio/mp4': '.m4a', 'video/mp4': '.mp4', 'video/webm': '.webm',
+    'video/x-m4v': '.m4v', 'video/x-msvideo': '.avi', 'video/quicktime': '.mov', 'video/x-matroska': '.mkv',
 }
 
 
-def validate(path, media_type=None, *, max_archive_bytes=None):
+def validate(path, media_type=None, *, max_archive_bytes=None, max_duration_seconds=600, max_dimension=4096):
     from PIL import Image
     media_type = (media_type or 'image/*').split(';', 1)[0].strip().lower()
     if media_type == 'application/zip':
@@ -67,7 +68,8 @@ def validate(path, media_type=None, *, max_archive_bytes=None):
     if media_type == 'application/octet-stream':
         return '.bin', media_type
     supported = {'audio/wav': '.wav', 'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/flac': '.flac',
-                 'audio/mp4': '.m4a', 'video/mp4': '.mp4', 'video/webm': '.webm'}
+                 'audio/mp4': '.m4a', 'video/mp4': '.mp4', 'video/webm': '.webm',
+                 'video/x-m4v': '.m4v', 'video/x-msvideo': '.avi', 'video/quicktime': '.mov', 'video/x-matroska': '.mkv'}
     if media_type not in supported:
         raise ServerError(415, 'unsupported_media', 'Unsupported declared media type')
     probe = shutil.which('ffprobe')
@@ -75,11 +77,11 @@ def validate(path, media_type=None, *, max_archive_bytes=None):
         raise ServerError(503, 'media_unavailable', 'Audio and video validation requires ffprobe')
     try:
         result = subprocess.run([probe, '-v', 'error', '-protocol_whitelist', 'file,pipe',
-            '-format_whitelist', 'mov,matroska,webm,wav,mp3,ogg,flac', '-show_format', '-show_streams', '-of', 'json', str(path)],
+            '-format_whitelist', 'mov,matroska,webm,avi,wav,mp3,ogg,flac', '-show_format', '-show_streams', '-of', 'json', str(path)],
             capture_output=True, timeout=10, check=True)
         info = json.loads(result.stdout)
         duration = float(info['format'].get('duration', 0))
-        if not 0 < duration <= 600 or len(info['streams']) > 8:
+        if not 0 < duration <= max_duration_seconds or len(info['streams']) > 8:
             raise ValueError('Invalid duration or stream count')
         kinds = {stream.get('codec_type') for stream in info['streams']}
         if media_type.startswith('video/') and 'video' not in kinds:
@@ -88,11 +90,12 @@ def validate(path, media_type=None, *, max_archive_bytes=None):
             raise ValueError('Audio requires audio streams only')
         formats = set(info['format']['format_name'].split(','))
         required = {'audio/wav': 'wav', 'audio/mpeg': 'mp3', 'audio/ogg': 'ogg', 'audio/flac': 'flac',
-                    'audio/mp4': 'mov', 'video/mp4': 'mov', 'video/webm': 'webm'}[media_type]
+                    'audio/mp4': 'mov', 'video/mp4': 'mov', 'video/webm': 'webm',
+                    'video/x-m4v': 'mov', 'video/x-msvideo': 'avi', 'video/quicktime': 'mov', 'video/x-matroska': 'matroska'}[media_type]
         if required not in formats:
             raise ValueError('Media format does not match declared type')
         for stream in info['streams']:
-            if stream.get('width', 0) > 4096 or stream.get('height', 0) > 4096 or stream.get('channels', 0) > 8 or int(stream.get('sample_rate', 0)) > 192000:
+            if stream.get('width', 0) > max_dimension or stream.get('height', 0) > max_dimension or stream.get('channels', 0) > 8 or int(stream.get('sample_rate', 0)) > 192000:
                 raise ValueError('Media dimensions or channel limits exceeded')
     except (subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
         raise ServerError(422, 'invalid_media', 'Invalid or unsupported bounded audio/video') from exc

@@ -60,7 +60,7 @@ def config():
 def test_graph_formats_transform_input_and_output_with_durable_values(db, tmp_path, isolation):
     settings = config()
     settings['execution'] = {'isolation': isolation}
-    server = Server(name='formats', graph_factory=build_graph, config=settings, data_dir=tmp_path,
+    server = Server(name='formats', graph_factory=build_graph, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     source = np.arange(12, dtype=np.float32).reshape(1, 2, 2, 3)
     body = {'dtype': 'float32', 'shape': list(source.shape), 'data_format': 'NCHW', 'data': source.ravel().tolist()}
@@ -179,7 +179,7 @@ def test_shared_process_code_formats_and_warmup(backend, tmp_path):
         settings[group]['value'].pop('edge')
     body = {'dtype': 'float32', 'shape': [1, 2, 2, 3], 'data': list(range(12)), 'data_format': 'NCHW'}
     settings['execution'] = {'isolation': 'process', 'warmup': [{'inputs': {'value': body}}]}
-    server = Server(name='formats', deploy=code_output, config=settings, data_dir=tmp_path,
+    server = Server(name='formats', deploy=code_output, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/formats/deploy', json={'inputs': {'value': body}})
@@ -201,7 +201,7 @@ def test_format_conversion_in_streams_detaches_each_event(tmp_path, scheduling):
     from test_streaming import parse_events
     settings = config()
     settings.update(streaming={'enabled': True}, execution={'scheduling': scheduling})
-    server = Server(name='formats', deploy=format_stream, config=settings, data_dir=tmp_path)
+    server = Server(name='formats', deploy=format_stream, config=settings, resources=tmp_path, data_dir=tmp_path)
     body = {'dtype': 'float32', 'shape': [1, 2, 2, 3], 'data': list(range(12)), 'data_format': 'NCHW'}
     with TestClient(server.app) as client:
         response = client.post('/v1/server/formats/deploy', json={'mode': 'stream', 'inputs': {'value': body}})
@@ -220,7 +220,7 @@ def test_bad_format_is_rejected_at_http_admission(tmp_path):
     def deploy(values):
         calls.append(True)
         return code_output(values)
-    with TestClient(Server(name='formats', deploy=deploy, config=config(), data_dir=tmp_path).app) as client:
+    with TestClient(Server(name='formats', deploy=deploy, config=config(), resources=tmp_path, data_dir=tmp_path).app) as client:
         body = {'dtype': 'float32', 'shape': [1, 2, 2, 3], 'data': list(range(12)), 'data_format': 'OIHW'}
         result = client.post('/v1/server/formats/deploy', json={'inputs': {'value': body}})
         assert result.status_code == 422, result.text
@@ -252,7 +252,7 @@ def test_workflow_json_and_server_sidecar_use_existing_tensor_formats(tmp_path):
     saved = json.dumps(settings)
     sidecar.write_text(saved)
     body = {'dtype': 'float32', 'shape': [1, 2, 2, 3], 'data': list(range(12)), 'data_format': 'NCHW'}
-    with TestClient(Server(workflow=path, data_dir=tmp_path / 'server').app) as client:
+    with TestClient(Server(workflow=path, resources=tmp_path / 'server', data_dir=tmp_path / 'server').app) as client:
         result = client.post('/v1/server/formats/deploy', json={'inputs': {'value': body}})
         assert result.status_code == 200, result.text
         assert result.json()['outputs']['value']['data'] == [0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 5, 11]

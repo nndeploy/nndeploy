@@ -49,7 +49,7 @@ def test_multiple_tools_typed_inputs_idempotency_and_http(tmp_path):
         number: int
     class Input(BaseModel):
         item: Nested
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG)
     add(server)
     server.add(name='double', deploy=lambda values: {'number': values['item']['number'] * 2},
         input_model=Input, mcp={'name': 'double_number', 'description': 'Double a number'})
@@ -79,7 +79,7 @@ def test_identity_discovery_and_task_ownership(tmp_path, monkeypatch):
     auth = {'keys': [dict(subject=name, token_env='MCP_' + name.upper(), entries=entries,
                          permissions=['deploy', 'tasks:read', 'tasks:cancel'])
                      for name, entries in [('alice', ['echo']), ('bob', ['other'])]]}
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG, auth_config=auth)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG, auth_config=auth)
     add(server)
     add(server, 'other')
     with TestClient(server.app) as client:
@@ -99,7 +99,7 @@ def test_pending_cancel_and_backpressure(tmp_path):
         entered.set()
         assert release.wait(10)
         return inputs
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG)
     server.add(name='slow', deploy=blocked, config={'inputs': {}, 'execution': {'max_queue_size': 1}},
                mcp={'name': 'slow', 'description': 'Controlled task'})
     with TestClient(server.app) as client:
@@ -118,11 +118,11 @@ def test_pending_cancel_and_backpressure(tmp_path):
 
 
 def test_configuration_and_optional_loading(tmp_path):
-    server = Server(data_dir=tmp_path / 'off')
+    server = Server(resources=tmp_path / 'off', data_dir=tmp_path / 'off')
     assert not any(route.path == '/mcp' for route in server.app.routes)
     with pytest.raises(ValueError, match='Enable'):
         add(server)
-    server = Server(data_dir=tmp_path / 'on', mcp_config=CONFIG)
+    server = Server(resources=tmp_path / 'on', data_dir=tmp_path / 'on', mcp_config=CONFIG)
     add(server)
     with pytest.raises(ValueError, match='Duplicate MCP'):
         server.add(name='another', deploy=lambda v: v,
@@ -139,7 +139,7 @@ def test_configuration_and_optional_loading(tmp_path):
 
 def test_composite_native_workflow(tmp_path):
     from test_server_api import text_graph
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG)
     server.add(name='pipeline', workflow=text_graph(),
         config={'inputs': {'text': {'node': ['source'], 'type': 'string'}},
                 'outputs': {'text': {'edge': 'text', 'type': 'string'}}},
@@ -154,7 +154,7 @@ def test_official_sdk_client_and_audit(tmp_path):
     import httpx
     from mcp import ClientSession
     from mcp.client.streamable_http import streamable_http_client
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG, audit_config={})
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG, audit_config={})
     add(server)
 
     async def exercise():
@@ -189,7 +189,7 @@ def test_disabled_does_not_import_sdk(tmp_path):
     result = subprocess.run([sys.executable, '-c', '''
 import sys
 from nndeploy.server import Server
-server = Server(data_dir=sys.argv[1], mcp_config={'enabled': False})
+server = Server(resources=sys.argv[1], data_dir=sys.argv[1], mcp_config={'enabled': False})
 assert 'mcp' not in sys.modules
 assert server.mcp is None
 ''', str(tmp_path)], capture_output=True, text=True)
@@ -200,7 +200,7 @@ def test_file_schema_and_native_media_roundtrip(tmp_path):
     import io
     from PIL import Image
     from test_server_api import image_graph
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG)
     server.add(name='image', workflow=image_graph(),
         mcp={'name': 'process_image', 'description': 'Decode and encode an image'})
     with TestClient(server.app) as client:
@@ -220,7 +220,7 @@ def test_file_schema_and_native_media_roundtrip(tmp_path):
 def test_algorithm_registry_and_spa_order(tmp_path):
     from starlette.routing import Mount
     from starlette.responses import PlainTextResponse
-    server = Server(data_dir=tmp_path, mcp_config=CONFIG)
+    server = Server(resources=tmp_path, data_dir=tmp_path, mcp_config=CONFIG)
     server.register('echo_factory', lambda: dict(deploy=lambda v: v, config={'inputs': {'text': {'type': 'string'}}}))
     server.app.mount('/', PlainTextResponse('editor'))
     server.add(name='registered', algorithm='echo_factory',

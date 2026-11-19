@@ -22,7 +22,7 @@ def test_stop_retries_file_release_without_repeating_model_deinit(db, tmp_path, 
             return inputs
         def deinit(self):
             closed.append(True)
-    server = Server(name='echo', handler_factory=Handler, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()
@@ -65,7 +65,7 @@ def test_stop_retries_file_release_without_repeating_model_deinit(db, tmp_path, 
 @pytest.mark.parametrize('committed', [False, True], ids=['before-commit', 'lost-receipt'])
 def test_shared_stop_retains_runtime_identity_until_retirement_confirmed(backend, tmp_path, monkeypatch, committed):
     database, redis_config = backend
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     async def scenario():
         await server.start()
@@ -108,7 +108,7 @@ def test_stop_retry_never_converts_unconfirmed_physical_release_to_success(db, t
             closed.append(True)
             if len(closed) == 1:
                 raise RuntimeError('Physical release was not confirmed')
-    server = Server(name='echo', handler_factory=Handler, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()
@@ -133,7 +133,7 @@ def test_stop_retry_never_converts_unconfirmed_physical_release_to_success(db, t
 def test_retried_stop_is_owned_and_coalesces_cancelled_waiters(db, tmp_path, monkeypatch):
     import threading
     entered, resume = threading.Event(), threading.Event()
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()
@@ -206,14 +206,14 @@ def check_reload_cleanup_retry(server, monkeypatch):
 
 
 def test_stop_retries_old_reload_cleanup(db, tmp_path, monkeypatch):
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     check_reload_cleanup_retry(server, monkeypatch)
 
 
 def test_shared_stop_retries_old_reload_cleanup(backend, tmp_path, monkeypatch):
     database, redis_config = backend
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     check_reload_cleanup_retry(server, monkeypatch)
 
@@ -228,7 +228,7 @@ def test_failed_initialization_retries_cleanup_before_replacing_its_file_holder(
                 raise RuntimeError('Controlled initialization failure')
         def deploy(self, inputs):
             return inputs
-    server = Server(name='echo', handler_factory=Handler, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     identity = file_record(db)
     hold, release = server.db.hold_files, server.db.release_files
@@ -275,7 +275,7 @@ def test_rejected_shared_reload_keeps_failed_cleanup_reachable(backend, tmp_path
     database, redis_config = backend
     def config(value):
         return {'inputs': {'value': {'type': 'string', 'required': False, 'default': value}}}
-    server = Server(name='echo', deploy=echo, config=config('old'), data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, config=config('old'), resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     async def scenario():
         await server.start_entry('echo')
@@ -317,7 +317,7 @@ def test_rejected_shared_reload_keeps_failed_cleanup_reachable(backend, tmp_path
 
 def test_rejected_local_reload_keeps_failed_cleanup_reachable(db, tmp_path, monkeypatch):
     from nndeploy.server.worker import Worker
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start_entry('echo')
@@ -358,7 +358,7 @@ def test_rejected_local_reload_keeps_failed_cleanup_reachable(db, tmp_path, monk
 
 def test_http_stop_retry_preserves_failed_receipt_and_allows_a_new_attempt(db, tmp_path, monkeypatch):
     import httpx
-    server = Server(name='echo', deploy=echo, data_dir=tmp_path, admin_token='test-admin',
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path, admin_token='test-admin',
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()

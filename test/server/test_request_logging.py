@@ -40,7 +40,7 @@ def events(caplog, kind=None):
 @pytest.mark.parametrize('scheduling,isolation', [('serial', 'thread'), ('serial', 'process'), ('concurrent', 'thread'), ('engine', 'thread')])
 def test_http_and_worker_ids_are_isolated_and_headers_cannot_spoof_them(tmp_path, caplog, scheduling, isolation):
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
-    server = Server(name='echo', deploy=correlated_engine if scheduling == 'engine' else correlated_echo, data_dir=tmp_path,
+    server = Server(name='echo', deploy=correlated_engine if scheduling == 'engine' else correlated_echo, resources=tmp_path, data_dir=tmp_path,
                     config={'execution': {'scheduling': scheduling, 'isolation': isolation,
                                           'max_concurrency_per_worker': 1 if scheduling == 'serial' else 2}})
     with TestClient(server.app) as client, ThreadPoolExecutor(max_workers=2) as pool:
@@ -68,7 +68,7 @@ def test_http_and_worker_ids_are_isolated_and_headers_cannot_spoof_them(tmp_path
 
 def test_idempotent_replay_keeps_original_id_and_survives_restart(db, tmp_path, caplog):
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
-    options = dict(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False))
+    options = dict(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False))
     server = Server(name='echo', deploy=correlated_echo, **options)
     with TestClient(server.app) as client:
         headers = {'Idempotency-Key': uuid.uuid4().hex}
@@ -88,7 +88,7 @@ def test_idempotent_replay_keeps_original_id_and_survives_restart(db, tmp_path, 
 
 def test_errors_unknown_routes_and_secrets_only_emit_safe_metadata(tmp_path, caplog):
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
-    server = Server(name='echo', deploy=correlated_echo, data_dir=tmp_path, config={}, cors_origins=['http://client.test'])
+    server = Server(name='echo', deploy=correlated_echo, resources=tmp_path, data_dir=tmp_path, config={}, cors_origins=['http://client.test'])
 
     @server.app.get('/fail')
     async def fail():
@@ -122,7 +122,7 @@ def correlated_stream(inputs):
 def test_stream_has_one_http_id_and_records_original_id_in_events(tmp_path, caplog):
     from test_streaming import parse_events
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
-    server = Server(name='echo', deploy=correlated_stream, config={'streaming': {'enabled': True}}, data_dir=tmp_path)
+    server = Server(name='echo', deploy=correlated_stream, config={'streaming': {'enabled': True}}, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/echo/deploy', json={'mode': 'stream'})
         assert response.status_code == 200
@@ -144,7 +144,7 @@ class CorrelatedBatch:
 
 
 def test_dynamic_batch_keeps_per_item_ids_without_inventing_single_request_owner(tmp_path):
-    server = Server(name='echo', handler_factory=CorrelatedBatch, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=CorrelatedBatch, resources=tmp_path, data_dir=tmp_path,
                     config={'execution': {'batching': {'enabled': True, 'max_size': 2, 'max_wait_ms': 50}}})
     with TestClient(server.app) as client, ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(lambda _: client.post('/v1/server/echo/deploy', json={}), range(2)))
@@ -157,7 +157,7 @@ def test_dynamic_batch_keeps_per_item_ids_without_inventing_single_request_owner
 def test_shared_process_worker_gets_original_request_id_from_database(backend, tmp_path, caplog):
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
     db, redis_config = backend
-    server = Server(name='echo', deploy=correlated_echo, data_dir=tmp_path, redis_config=redis_config,
+    server = Server(name='echo', deploy=correlated_echo, resources=tmp_path, data_dir=tmp_path, redis_config=redis_config,
                     database_url=db.url.render_as_string(hide_password=False), config={'execution': {'isolation': 'process'}})
     with TestClient(server.app) as client:
         response = client.post('/v1/server/echo/deploy', json={})
@@ -171,7 +171,7 @@ def test_shared_process_worker_gets_original_request_id_from_database(backend, t
 
 def test_recreated_worker_logs_new_process_id_with_same_request_correlation(tmp_path, caplog):
     caplog.set_level(logging.INFO, logger='nndeploy.server.events')
-    server = Server(name='echo', deploy=correlated_echo, data_dir=tmp_path, config={'execution': {'isolation': 'process'}})
+    server = Server(name='echo', deploy=correlated_echo, resources=tmp_path, data_dir=tmp_path, config={'execution': {'isolation': 'process'}})
     with TestClient(server.app) as client:
         worker = server.entries['echo']['workers'][0]
         previous = worker.pid
@@ -194,7 +194,7 @@ def test_request_id_migration_preserves_existing_records(db, tmp_path):
     with db.engine.begin() as connection:
         connection.execute(text('ALTER TABLE server_tasks DROP COLUMN request_id'))
         connection.execute(text("UPDATE alembic_version SET version_num = '0013_task_payloads'"))
-    server = Server(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False))
+    server = Server(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         record = client.get('/v1/tasks/' + identity).json()
         assert record['inputs'] == {'text': 'keep me'} and record['request_id'] is None

@@ -68,7 +68,7 @@ def download(client, reference, tmp_path, *, channels=1, mime='audio/wav'):
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_audio_samples_code_and_graph_keep_original_files_and_results(db, tmp_path, kind, graph, isolation):
     options = {'graph_factory': tensor_graph if kind == 'tensor' else array_graph} if graph else {'deploy': echo}
-    server = Server(**options, config=settings(kind, graph, isolation=isolation), data_dir=tmp_path,
+    server = Server(**options, config=settings(kind, graph, isolation=isolation), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         outputs = []
@@ -96,7 +96,7 @@ def test_audio_samples_code_and_graph_keep_original_files_and_results(db, tmp_pa
 
 def test_audio_resampling_and_channel_mix_have_declared_shape(tmp_path):
     source = np.column_stack((np.full(800, 8192, dtype='int16'), np.full(800, -8192, dtype='int16')))
-    server = Server(graph_factory=array_graph, config=settings(graph=True), data_dir=tmp_path)
+    server = Server(graph_factory=array_graph, config=settings(graph=True), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         result = client.post('/v1/server/default/deploy', json={'inputs': {'value': upload(client, pcm(source, rate=8000))}})
         assert result.status_code == 200, result.text
@@ -109,7 +109,7 @@ def test_audio_resampling_and_channel_mix_have_declared_shape(tmp_path):
 def test_audio_encoders_produce_independently_decodable_files(tmp_path, mime):
     config = settings(mime=mime)
     config['inputs']['value']['media_type'] = 'audio/wav'
-    server = Server(deploy=echo, config=config, data_dir=tmp_path)
+    server = Server(deploy=echo, config=config, resources=tmp_path, data_dir=tmp_path)
     samples = (np.sin(np.arange(8000) * .05) * 4096).astype('int16')
     with TestClient(server.app) as client:
         result = client.post('/v1/server/default/deploy', json={'inputs': {'value': upload(client, pcm(samples))}})
@@ -121,7 +121,7 @@ def test_audio_encoders_produce_independently_decodable_files(tmp_path, mime):
         normalized = read_audio(io.BytesIO(encoded), FieldConfig(**field(mime)))
         assert abs(len(normalized) - len(samples)) <= 1024
         assert np.mean(np.abs(normalized[:len(samples)])) > .04
-        other = Server(deploy=echo, config=settings(mime=mime), data_dir=tmp_path / 'other')
+        other = Server(deploy=echo, config=settings(mime=mime), resources=tmp_path / 'other', data_dir=tmp_path / 'other')
         with TestClient(other.app) as second:
             converted = second.post('/v1/server/default/deploy', json={'inputs': {'value': upload(second, encoded, mime)}})
             assert converted.status_code == 200, converted.text
@@ -138,7 +138,7 @@ def test_audio_field_requires_explicit_valid_numeric_metadata(change):
 def test_audio_limits_and_bad_wav_fail_before_task_admission(tmp_path):
     config = settings()
     config['inputs']['value']['max_elements'] = 100
-    server = Server(deploy=echo, config=config, data_dir=tmp_path)
+    server = Server(deploy=echo, config=config, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         source = upload(client, pcm(np.zeros(101, dtype='int16')))
         result = client.post('/v1/server/default/deploy', json={'inputs': {'value': source}})
@@ -172,7 +172,7 @@ def test_audio_failure_does_not_leave_output_and_next_request_succeeds(tmp_path)
         if value[0] > 0:
             value[0] = np.nan
         return {'value': value}
-    server = Server(deploy=bad_once, config=settings(), data_dir=tmp_path)
+    server = Server(deploy=bad_once, config=settings(), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         first = upload(client, pcm(np.ones(800, dtype='int16')))
         failed = client.post('/v1/server/default/deploy', json={'inputs': {'value': first}})
@@ -197,7 +197,7 @@ def test_audio_shared_process_restores_input_and_output_from_minio(backend, s3_s
     monkeypatch.setenv('NNDEPLOY_AUDIO_SECRET', environment['MINIO_ROOT_PASSWORD'])
     storage = dict(backend='s3', bucket='nndeploy-tests', region='us-east-1', endpoint=endpoint,
                    prefix='audio-' + uuid.uuid4().hex, access_key_env='NNDEPLOY_AUDIO_ACCESS', secret_key_env='NNDEPLOY_AUDIO_SECRET')
-    server = Server(graph_factory=tensor_graph, config=settings('tensor', True, isolation='process'), data_dir=tmp_path,
+    server = Server(graph_factory=tensor_graph, config=settings('tensor', True, isolation='process'), resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config, storage_config=storage)
     with TestClient(server.app) as client:
         expected = np.arange(-800, 800, dtype='int16')
@@ -226,7 +226,7 @@ def test_audio_engine_transcode_is_detached_nonblocking_and_joined_on_cancel(tmp
     import nndeploy.server.audio as audio
     from test_engine import until
     server = Server(handler_factory=ReusingAudioEngine,
-                    config=settings(scheduling='engine', max_concurrency_per_worker=2, cooperative_cancel=True), data_dir=tmp_path)
+                    config=settings(scheduling='engine', max_concurrency_per_worker=2, cooperative_cancel=True), resources=tmp_path, data_dir=tmp_path)
     sources = [server.storage.save(io.BytesIO(pcm(np.full(800, value, dtype='int16'))), 'audio/wav') for value in (4096, -4096)]
     started, release = threading.Event(), threading.Event()
     original = audio.write_audio
@@ -269,7 +269,7 @@ def test_audio_engine_transcode_is_detached_nonblocking_and_joined_on_cancel(tmp
 def test_audio_warmup_and_schedulers_share_file_conversion(tmp_path, scheduling):
     from test_warmup import counts
     from test_arrays import NumericBatch
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     source = server.storage.save(io.BytesIO(pcm(np.zeros(800, dtype='int16'))), 'audio/wav')
     execution = {'batching': {'enabled': True}} if scheduling == 'batch' else {'scheduling': scheduling}
     if scheduling in ('concurrent', 'engine'):
@@ -292,10 +292,10 @@ def test_audio_codec_configuration_is_checked_before_algorithm_init(tmp_path):
         called.append(True)
         return ReusingAudioEngine()
     with pytest.raises(ValueError, match='sample_rate'):
-        with TestClient(Server(handler_factory=factory, config=settings(mime='audio/ogg', rate=44100), data_dir=tmp_path).app):
+        with TestClient(Server(handler_factory=factory, config=settings(mime='audio/ogg', rate=44100), resources=tmp_path, data_dir=tmp_path).app):
             pass
     with pytest.raises(ValueError, match='mono or stereo'):
-        with TestClient(Server(handler_factory=factory, config=settings(mime='audio/mpeg', channels=3), data_dir=tmp_path).app):
+        with TestClient(Server(handler_factory=factory, config=settings(mime='audio/mpeg', channels=3), resources=tmp_path, data_dir=tmp_path).app):
             pass
     assert called == []
 
@@ -317,7 +317,7 @@ def test_audio_workflow_json_and_sidecar_use_existing_graph_without_rewriting(tm
     sidecar = workflow.with_suffix('.server.json')
     saved = json.dumps(config(isolation))
     sidecar.write_text(saved)
-    server = Server(SimpleNamespace(resources=str(tmp_path / 'editor'), debug=True)) if editor else Server(data_dir=tmp_path / 'server')
+    server = Server(SimpleNamespace(resources=str(tmp_path / 'editor'), debug=True)) if editor else Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     server.add(workflow=workflow)
     with TestClient(server.app) as client:
         samples = np.arange(-800, 800, dtype='int16')
@@ -334,7 +334,7 @@ def test_audio_stream_events_keep_independent_files_after_buffer_reuse(tmp_path,
     from test_streaming import parse_events
     schema = settings(scheduling=scheduling)
     schema['streaming'] = {'enabled': True}
-    with TestClient(Server(deploy=array_stream, config=schema, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=array_stream, config=schema, resources=tmp_path, data_dir=tmp_path).app) as client:
         source = upload(client, pcm(np.full(800, 4096, dtype='int16')))
         result = client.post('/v1/server/default/deploy', json={'mode': 'stream', 'inputs': {'value': source}})
         assert result.status_code == 200, result.text
@@ -349,7 +349,7 @@ def test_audio_stream_events_keep_independent_files_after_buffer_reuse(tmp_path,
 def test_audio_ownership_checked_before_decoding(tmp_path, credentials, monkeypatch):
     import nndeploy.server.arrays as arrays
     auth, headers = credentials
-    server = Server(name='echo', deploy=echo, config=settings(), data_dir=tmp_path, auth_config=auth)
+    server = Server(name='echo', deploy=echo, config=settings(), resources=tmp_path, data_dir=tmp_path, auth_config=auth)
     with TestClient(server.app) as client:
         uploaded = client.post('/v1/files', files={'file': ('input.wav', pcm(np.zeros(800, dtype='int16')), 'audio/wav')},
                                headers=headers['alice'])
@@ -365,7 +365,7 @@ def test_audio_ownership_checked_before_decoding(tmp_path, credentials, monkeypa
 def test_audio_output_retention_releases_content_after_task_expiry(db, tmp_path):
     from test_file_cleanup import expire as expire_file
     from test_retention import expire as expire_task
-    server = Server(deploy=echo, config=settings(), data_dir=tmp_path,
+    server = Server(deploy=echo, config=settings(), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()

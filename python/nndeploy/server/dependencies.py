@@ -160,6 +160,7 @@ def get_deploy(request: Request):
     server = get_server(request)
 
     async def deploy(body: DeployRequest):
+        caller.require('deploy', name)
         if not isinstance(body, DeployRequest):
             raise TypeError('Algorithm routes must translate requests into DeployRequest')
         return await deploy_request(server, name, body, caller, request=request,

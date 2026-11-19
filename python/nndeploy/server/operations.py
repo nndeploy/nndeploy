@@ -19,8 +19,7 @@ async def cancel_task(server, identity, caller):
 
 async def submit_task(server, name, inputs, parameters, caller, *, idempotency_key=None, callback_url=None):
     caller.require('deploy', name)
-    identity, future = await server.submit(name, inputs, parameters, owner=caller.subject,
-                                          idempotency_key=idempotency_key, callback_url=callback_url)
-    future.cancel()  # Detach this observer; the durable accepted task continues.
+    identity, receipt = await server.submit(name, inputs, parameters, owner=caller.subject,
+                                          idempotency_key=idempotency_key, callback_url=callback_url, observe=False)
     return {'task_id': identity, 'status_url': f'/v1/tasks/{identity}',
-            'dispatch_pending': getattr(future, 'dispatch_pending', False)}
+            'dispatch_pending': getattr(receipt, 'dispatch_pending', False)}

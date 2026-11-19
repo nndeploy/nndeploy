@@ -52,7 +52,7 @@ def wait_callback(client, identity, state='delivered'):
 def test_http_callback_retries_and_idempotency(tmp_path, receiver):
     url, messages, statuses = receiver
     statuses.put(503)
-    server = Server(name='echo', deploy=lambda values: values, data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda values: values, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         body = {'text': 'hello', 'mode': 'async', 'callback_url': url}
         response = client.post('/v1/server/echo/deploy', json=body, headers={'Idempotency-Key': 'callback'})
@@ -76,7 +76,7 @@ def test_failed_task_callback_and_invalid_url(tmp_path, receiver):
     url, messages, _ = receiver
     def fail(values):
         raise ServerError(422, 'bad_input', 'Invalid input')
-    server = Server(name='fail', deploy=fail, data_dir=tmp_path)
+    server = Server(name='fail', deploy=fail, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/fail/deploy', json={'callback_url': url})
         assert response.status_code == 422
@@ -92,7 +92,7 @@ def test_failed_task_callback_and_invalid_url(tmp_path, receiver):
 
 def test_completed_callback_survives_server_recreation(tmp_path, receiver):
     url, messages, _ = receiver
-    first = Server(data_dir=tmp_path)
+    first = Server(resources=tmp_path, data_dir=tmp_path)
     first.db.create_task('task_callback_restart', 'echo', time.time(), {}, {},
                          callback_url=url, callback_scope=first.config_scope, retention_seconds=60)
     first.db.finish_task('task_callback_restart', 'cancelled', time.time(), error={'code': 'task_cancelled'})
@@ -102,7 +102,7 @@ def test_completed_callback_survives_server_recreation(tmp_path, receiver):
         connection.execute(update(tasks).where(tasks.c.task_id == 'task_callback_restart').values(purge_after=0))
     assert first.db.cleanup_tasks() == 0  # Keep result/files while delivery is pending.
     first.db.close()
-    second = Server(data_dir=tmp_path)
+    second = Server(resources=tmp_path, data_dir=tmp_path)
     with TestClient(second.app) as client:
         record = wait_callback(client, 'task_callback_restart')
         assert record['state'] == 'cancelled'
@@ -112,7 +112,7 @@ def test_completed_callback_survives_server_recreation(tmp_path, receiver):
 
 def test_batch_items_accept_callbacks(tmp_path, receiver):
     url, messages, _ = receiver
-    server = Server(name='echo', deploy=lambda values: values, data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda values: values, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/echo/deploy/batch', json={'items': [{'text': 'batch', 'callback_url': url}]})
         assert response.status_code == 200, response.text
@@ -124,7 +124,7 @@ def test_callback_attempt_limit_does_not_change_task_result(tmp_path, monkeypatc
     from sqlalchemy import update
     from nndeploy.server import callbacks
     from nndeploy.server.db import tasks
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     server.db.create_task('task_callback_limit', 'echo', time.time(), {}, {},
                          callback_url='http://127.0.0.1/callback', callback_scope=server.config_scope)
     server.db.finish_task('task_callback_limit', 'succeeded', time.time(), outputs={'text': 'ok'})

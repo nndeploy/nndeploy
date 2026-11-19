@@ -44,7 +44,7 @@ def test_real_text_graph_warmup_resets_defaults_and_creates_no_task_records(tmp_
     marker = tmp_path / 'executed.txt'
     workflow = text_graph()
     workflow['node_repository_'][1]['frontend_params'].update(save_to_file=True, file_path=str(marker))
-    server = Server(workflow=workflow, config=text_config(isolation=isolation), data_dir=tmp_path)
+    server = Server(workflow=workflow, config=text_config(isolation=isolation), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -54,7 +54,7 @@ def test_real_text_graph_warmup_resets_defaults_and_creates_no_task_records(tmp_
             assert (await server.deploy('default', {'text': 'actual'}))['outputs'] == {'text': 'actual'}
         finally:
             await server.close()
-        restored = Server(data_dir=tmp_path)
+        restored = Server(resources=tmp_path, data_dir=tmp_path)
         await restored.start()
         try:
             assert marker.read_text().splitlines() == ['warm', 'default', 'actual', 'warm']
@@ -77,7 +77,7 @@ def test_code_graph_warms_without_exporting_or_recreating_it(tmp_path, source):
         graph.deserialize(json.dumps(workflow))
         created.append(graph)
         return graph
-    server = Server(**{source: factory if source == 'graph_factory' else factory()}, config=text_config(), data_dir=tmp_path)
+    server = Server(**{source: factory if source == 'graph_factory' else factory()}, config=text_config(), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -94,7 +94,7 @@ def test_code_graph_warms_without_exporting_or_recreating_it(tmp_path, source):
 
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_real_image_warmup_is_ephemeral_and_retains_input_for_restart(tmp_path, isolation):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     picture = io.BytesIO()
     Image.new('RGB', (7, 9), (20, 30, 40)).save(picture, format='PNG')
     picture.seek(0)
@@ -116,7 +116,7 @@ def test_real_image_warmup_is_ephemeral_and_retains_input_for_restart(tmp_path, 
         with pytest.raises(ServerError) as protected:
             server.storage.remove(identity)
         assert protected.value.code == 'file_in_use'
-        restored = Server(data_dir=tmp_path)
+        restored = Server(resources=tmp_path, data_dir=tmp_path)
         await restored.start()
         try:
             assert counts(restored)[:2] == [1, 2]
@@ -141,7 +141,7 @@ def test_start_is_not_ready_until_every_worker_has_warmed_on_its_owner_thread(tm
             return values
     config = {'inputs': {'text': {'type': 'string'}},
               'execution': {'workers': 2, 'warmup': [{'inputs': {'text': 'warm'}}]}}
-    server = Server(handler_factory=Handler, config=config, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, config=config, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         starting = asyncio.create_task(server.start())
         try:
@@ -187,7 +187,7 @@ def test_code_warmup_uses_typed_inputs_stream_limits_and_output_validation(tmp_p
     target = (async_stream if streaming else asynchronous) if scheduling == 'engine' else (sync_stream if streaming else sync)
     config = {'execution': {'scheduling': scheduling, 'warmup': [{'inputs': {'text': 'warm'}}]},
               'streaming': {'enabled': streaming}}
-    server = Server(deploy=target, config=config, input_model=Input, output_model=Output, data_dir=tmp_path)
+    server = Server(deploy=target, config=config, input_model=Input, output_model=Output, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -216,7 +216,7 @@ def test_invalid_warmup_fails_start_and_releases_handler(tmp_path, failure):
     config = {'inputs': {'text': {'type': 'string'}}, 'outputs': {'text': {'type': 'string'}},
               'execution': {'warmup': [{'inputs': {'text': 123 if failure == 'input' else 'warm'}}]},
               'streaming': {'enabled': failure == 'stream', 'max_events': 1}}
-    server = Server(handler_factory=Handler, config=config, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, config=config, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         try:
             with pytest.raises((ValueError, ServerError)):
@@ -232,7 +232,7 @@ def test_invalid_warmup_fails_start_and_releases_handler(tmp_path, failure):
 
 def test_failed_reload_warmup_preserves_live_graph_and_saved_configuration(tmp_path):
     config = text_config()
-    server = Server(workflow=text_graph(), config=config, data_dir=tmp_path)
+    server = Server(workflow=text_graph(), config=config, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         old = server.entries['default']['workers'][0]
@@ -255,7 +255,7 @@ def test_reload_from_untyped_code_uses_new_schema_for_warmup_and_requests(tmp_pa
     def deploy(values):
         seen.append(copy.deepcopy(values))
         return values
-    server = Server(deploy=deploy, data_dir=tmp_path)
+    server = Server(deploy=deploy, resources=tmp_path, data_dir=tmp_path)
     config = {'inputs': {'text': {'type': 'string'}}, 'execution': {'warmup': [{'inputs': {'text': 123}}]}}
     async def scenario():
         await server.start()
@@ -286,7 +286,7 @@ def test_dynamic_batch_warmup_uses_the_actual_batch_method(tmp_path):
             return [item['inputs'] for item in items]
     config = {'inputs': {'text': {'type': 'string'}},
               'execution': {'batching': {'enabled': True}, 'warmup': [{'inputs': {'text': 'warm'}}]}}
-    server = Server(handler_factory=Handler, config=config, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, config=config, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -310,7 +310,7 @@ def test_process_startup_deadline_includes_warmup_and_confirms_exit(tmp_path):
     config = {'inputs': {'marker': {'type': 'string'}},
               'execution': {'isolation': 'process', 'startup_timeout_seconds': 2.0,
                             'warmup': [{'inputs': {'marker': str(marker)}}]}}
-    server = Server(deploy=blocked_process, config=config, data_dir=tmp_path)
+    server = Server(deploy=blocked_process, config=config, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         try:
             with pytest.raises(ServerError) as timeout:
@@ -337,7 +337,7 @@ def test_thread_warmup_deadline_waits_for_actual_computation_before_releasing(tm
         def deinit(self):
             closed.append(True)
     server = Server(handler_factory=Handler, config={'execution': {
-        'startup_timeout_seconds': .1, 'warmup': [{}]}}, data_dir=tmp_path)
+        'startup_timeout_seconds': .1, 'warmup': [{}]}}, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         starting = asyncio.create_task(server.start())
         try:
@@ -369,7 +369,7 @@ def test_engine_warmup_timeout_waits_for_async_cleanup_and_never_becomes_ready(t
         async def deinit(self):
             closed.append(True)
     server = Server(handler_factory=Handler, config={'execution': {
-        'scheduling': 'engine', 'startup_timeout_seconds': .1, 'warmup': [{}]}}, data_dir=tmp_path)
+        'scheduling': 'engine', 'startup_timeout_seconds': .1, 'warmup': [{}]}}, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         starting = asyncio.create_task(server.start())
         try:

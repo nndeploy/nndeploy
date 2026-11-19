@@ -281,7 +281,7 @@ async def main():
     import logging.config
     from nndeploy.server.request import logging_config
     logging.config.dictConfig(logging_config())
-    server = Server(deploy=deploy, config={"execution": {"isolation": "process"}}, data_dir=root / "data")
+    server = Server(deploy=deploy, config={"execution": {"isolation": "process"}}, resources=root, data_dir=root / "data")
     try:
         await server.start()
         (root / "started").touch()
@@ -490,7 +490,7 @@ def test_deploy_and_server_shutdown_finish_while_log_filesystem_is_blocked(tmp_p
     logger.setLevel(logging.INFO)
 
     async def scenario():
-        server = Server(deploy=lambda values: values, data_dir=tmp_path / 'data')
+        server = Server(deploy=lambda values: values, resources=tmp_path / 'data', data_dir=tmp_path / 'data')
         await server.start()
         try:
             result = await asyncio.wait_for(server.deploy('default', {'text': 'correct'}), timeout=5)

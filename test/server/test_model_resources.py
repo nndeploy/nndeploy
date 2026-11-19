@@ -43,7 +43,7 @@ def payload(directory):
                                               ('factory', 'thread'), ('factory', 'process'), ('graph', 'thread')])
 @pytest.mark.parametrize('directory', [False, True])
 def test_uploaded_model_resources_load_and_keep_existing_file_references(db, tmp_path, source, isolation, directory):
-    options = dict(data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False),
+    options = dict(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False),
                    admin_token='m' * 32)
     server = Server(**options)
     plugin = tmp_path / 'server' / 'plugin'
@@ -89,12 +89,12 @@ def test_json_restore_rejects_modified_managed_resource_content(tmp_path, direct
     weights, vocab = assets(tmp_path / 'original')
     workflow = json.loads(graph_with_resources([str(vocab if directory else weights)]).serialize())
     async def scenario():
-        first = Server(workflow=workflow, config=settings(), data_dir=tmp_path / 'server')
+        first = Server(workflow=workflow, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         await first.start()
         path = Path(first.entries['assets']['source']['workflow']['node_repository_'][0]['artifacts'][0])
         await first.close()
         (path / 'vocab.txt' if directory else path).write_text('corrupt')
-        second = Server(data_dir=tmp_path / 'server')
+        second = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         try:
             with pytest.raises(ValueError, match='integrity'):
                 await second.start()
@@ -115,7 +115,7 @@ def test_duplicate_asset_copy_rejects_corrupted_existing_destination(tmp_path):
 
 def test_model_file_cannot_be_deleted_during_native_initialization(tmp_path, monkeypatch):
     from test_declared_resources import ResourceNode
-    server = Server(data_dir=tmp_path / 'server')
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     record = server.storage.save(io.BytesIO(b'weights'), 'application/octet-stream')
     server.add(graph_factory=functools.partial(resource_graph, {'file_id': record['file_id']}), config=settings())
     initialize = ResourceNode.init
@@ -144,7 +144,7 @@ def test_object_storage_model_resources_download_before_graph_initialization(db,
     monkeypatch.setenv('NNDEPLOY_TEST_SECRET', environment['MINIO_ROOT_PASSWORD'])
     storage_config = dict(backend='s3', bucket='nndeploy-tests', region='us-east-1', endpoint=endpoint,
                           access_key_env='NNDEPLOY_TEST_ACCESS', secret_key_env='NNDEPLOY_TEST_SECRET')
-    options = dict(data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False),
+    options = dict(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False),
                    storage_config=storage_config)
     server = Server(**options)
     plugin = tmp_path / 'server' / 'plugin'
@@ -175,7 +175,7 @@ def test_object_storage_model_resources_download_before_graph_initialization(db,
 
 
 def test_corrupt_model_upload_cache_is_rejected_and_failed_start_releases_reference(tmp_path):
-    server = Server(data_dir=tmp_path / 'server')
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     record = server.storage.save(io.BytesIO(b'weights'), 'application/octet-stream')
     path, _ = server.storage.resolve(record['file_id'])
     path.write_bytes(b'corrupt')
@@ -194,7 +194,7 @@ def test_corrupt_model_upload_cache_is_rejected_and_failed_start_releases_refere
 
 
 def test_directory_model_resource_rejects_an_ordinary_uploaded_file(tmp_path):
-    server = Server(data_dir=tmp_path / 'server')
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     record = server.storage.save(io.BytesIO(b'weights'), 'application/octet-stream')
     server.add(graph_factory=functools.partial(resource_graph, {'file_id': record['file_id']}, True), config=settings())
     async def scenario():
@@ -210,7 +210,7 @@ def test_directory_model_resource_rejects_an_ordinary_uploaded_file(tmp_path):
 def test_native_codec_deserializes_a_managed_file_reference_before_loading(tmp_path):
     from PIL import Image
     from test_native_media import image_graph
-    server = Server(data_dir=tmp_path / 'server')
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     data = io.BytesIO()
     Image.new('RGB', (8, 6), (12, 34, 56)).save(data, format='PNG')
     record = server.storage.save(io.BytesIO(data.getvalue()), 'image/png')
@@ -249,7 +249,7 @@ def test_asset_publication_rejects_a_redirected_checksum_directory_before_writin
 
 def test_failed_model_file_reload_keeps_old_file_and_releases_candidate_reference(db, tmp_path, monkeypatch):
     from test_declared_resources import ResourceNode
-    options = dict(data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+    options = dict(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
     server = Server(**options)
     old = server.storage.save(io.BytesIO(b'weights'), 'application/octet-stream')
     candidate = server.storage.save(io.BytesIO(b'invalid'), 'application/octet-stream')
@@ -294,7 +294,7 @@ def shared_model_factory():
 @pytest.mark.parametrize('directory', [False, True])
 def test_shared_model_file_references_survive_one_server_exit_and_restart(backend, tmp_path, monkeypatch, source, directory):
     database, redis_config = backend
-    options = dict(data_dir=tmp_path / 'server', database_url=database.url.render_as_string(hide_password=False),
+    options = dict(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=database.url.render_as_string(hide_password=False),
                    redis_config=redis_config)
     first = Server(**options)
     plugin = tmp_path / 'server' / 'plugin'
@@ -344,7 +344,7 @@ def test_model_directory_uses_configured_file_capacity_above_the_legacy_archive_
             for _ in range(65):
                 output.write(chunk)
     stream.seek(0)
-    server = Server(data_dir=tmp_path / 'server', storage_config={'max_bytes': 128 * 1024**2})
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server', storage_config={'max_bytes': 128 * 1024**2})
     async def scenario():
         try:
             record = server.storage.save(stream, 'application/zip')
@@ -360,7 +360,7 @@ def test_model_directory_uses_configured_file_capacity_above_the_legacy_archive_
 
 
 def test_autodetected_resource_defaults_are_not_caller_owned_task_inputs(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     data, media = payload(False)
     record = server.storage.save(io.BytesIO(data), media, owner='editor:workspace')
     workflow = json.loads(resource_graph({'file_id': record['file_id']}).serialize())

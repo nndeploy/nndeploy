@@ -27,7 +27,7 @@ def test_shared_stopped_workflow_does_not_warm_until_explicitly_resumed(backend,
     marker = tmp_path / 'executions.txt'
     workflow = text_graph()
     workflow['node_repository_'][1]['frontend_params'].update(save_to_file=True, file_path=str(marker))
-    options = dict(data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
+    options = dict(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
     server = Server(name=name, workflow=workflow, config=text_config(), **options)
     async def scenario():
         await server.start()
@@ -59,7 +59,7 @@ def test_shared_graph_outputs_are_owned_before_result_commit_and_survive_until_r
     from test_file_cleanup import expire as expire_file
     from test_retention import expire as expire_task
     db, redis_config = backend
-    server = Server(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
+    server = Server(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
     file = server.storage.save(io.BytesIO(picture()), 'image/png')['file_id']
     server.add(name='images', workflow=image_graph(), config={
         'inputs': {'image': {'type': 'image', 'node': ['decode']}},
@@ -89,9 +89,9 @@ def test_shared_retention_survives_replay_and_another_server_can_clean(backend, 
     db, redis_config = backend
     config = entry_config()
     config['execution']['task_retention_seconds'] = 60.0
-    server = Server(name='retained', deploy=shared_deploy, config=config, data_dir=tmp_path / 'worker',
+    server = Server(name='retained', deploy=shared_deploy, config=config, resources=tmp_path / 'worker', data_dir=tmp_path / 'worker',
                     database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
-    observer = Server(data_dir=tmp_path / 'observer', database_url=db.url.render_as_string(hide_password=False))
+    observer = Server(resources=tmp_path / 'observer', data_dir=tmp_path / 'observer', database_url=db.url.render_as_string(hide_password=False))
     async def request():
         _, future = await server.submit('retained', {'text': 'once'}, idempotency_key='same')
         return await asyncio.shield(future)
@@ -127,7 +127,7 @@ def test_shared_dynamic_batch_and_expiry_keep_independent_durable_tasks(backend,
     from test_engine import until
     db, redis_config = backend
     server = Server(name='vectors', handler_factory=VectorBatch, output_model=BatchOutput, config=batch_config(size=3, wait=200),
-                    data_dir=tmp_path / 'batch', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
+                    resources=tmp_path / 'batch', data_dir=tmp_path / 'batch', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
     server.add(name='expired', handler_factory=VectorBatch, config=batch_config(size=4, wait=150, timeout=.04))
     async def scenario():
         await server.start()
@@ -156,8 +156,8 @@ def test_remote_batch_cancel_waits_for_actual_compute_and_keeps_other_items(back
     from test_engine import until
     db, redis_config = backend
     server = Server(name='vectors', handler_factory=VectorBatch, config=batch_config(size=2, queue_size=0),
-                    data_dir=tmp_path / 'worker', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
-    observer = Server(data_dir=tmp_path / 'observer', database_url=db.url.render_as_string(hide_password=False))
+                    resources=tmp_path / 'worker', data_dir=tmp_path / 'worker', database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
+    observer = Server(resources=tmp_path / 'observer', data_dir=tmp_path / 'observer', database_url=db.url.render_as_string(hide_password=False))
     release, marker = tmp_path / 'release', tmp_path / 'marker'
     async def scenario():
         await server.start()
@@ -209,7 +209,7 @@ def entry_config():
 def test_shared_identity_and_idempotency_survive_cross_instance_queries(backend, tmp_path, credentials):
     db, redis_config = backend
     auth_config, headers = credentials
-    servers = [Server(name='echo', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'shared',
+    servers = [Server(name='echo', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config,
                       auth_config=auth_config) for _ in range(2)]
     async def scenario():
@@ -248,7 +248,7 @@ async def until(predicate, timeout=10):
 def test_shared_engine_capacity_and_remote_request_scoped_cancellation(backend, tmp_path):
     db, redis_config = backend
     servers = [Server(name='engine', handler_factory=build_engine, config=engine_config(cooperative=True),
-                      data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
+                      resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
                       redis_config=redis_config) for _ in range(2)]
     async def scenario():
         release = tmp_path / 'release'
@@ -278,7 +278,7 @@ def test_shared_engine_capacity_and_remote_request_scoped_cancellation(backend, 
 def test_shared_batch_partial_admission_and_per_item_retries(backend, tmp_path):
     db, redis_config = backend
     servers = [Server(name='engine', handler_factory=build_engine, config=engine_config(),
-                      data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
+                      resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
                       redis_config=redis_config) for _ in range(2)]
     async def scenario():
         release = tmp_path / 'release'
@@ -308,7 +308,7 @@ def test_shared_batch_partial_admission_and_per_item_retries(backend, tmp_path):
 
 def test_shared_stream_can_replay_from_another_instance_after_writer_closes(backend, tmp_path):
     db, redis_config = backend
-    servers = [Server(name='echo', deploy=output_stream, config=stream_config('process'), data_dir=tmp_path / 'shared',
+    servers = [Server(name='echo', deploy=output_stream, config=stream_config('process'), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config) for _ in range(2)]
     async def scenario():
         try:
@@ -334,7 +334,7 @@ def test_shared_stream_can_replay_from_another_instance_after_writer_closes(back
 def test_http_request_crosses_to_another_server_worker(backend, tmp_path):
     db, redis_config = backend
     location = db.url.render_as_string(hide_password=False)
-    servers = [Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'shared',
+    servers = [Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=location, redis_config=redis_config) for _ in range(2)]
     async def scenario():
         release = tmp_path / 'release'
@@ -366,7 +366,7 @@ def test_http_request_crosses_to_another_server_worker(backend, tmp_path):
 def test_shared_stop_start_and_instance_shutdown_have_explicit_scope(backend, tmp_path):
     db, redis_config = backend
     location = db.url.render_as_string(hide_password=False)
-    servers = [Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'shared',
+    servers = [Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=location, redis_config=redis_config) for _ in range(2)]
     async def scenario():
         try:
@@ -389,7 +389,7 @@ def test_shared_stop_start_and_instance_shutdown_have_explicit_scope(backend, tm
 
 def test_http_accepts_durable_pending_task_during_redis_outage(backend, redis_service, tmp_path):
     db, redis_config = backend
-    server = Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'shared',
+    server = Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                     database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config)
     async def scenario():
         try:
@@ -416,9 +416,9 @@ def test_completed_result_recovers_after_db_failure_and_server_restart(backend, 
     db, redis_config = backend
     directory = tmp_path / 'shared'
     location = db.url.render_as_string(hide_password=False)
-    first = Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=directory,
+    first = Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=directory, data_dir=directory,
                    database_url=location, redis_config=redis_config)
-    second = Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=directory,
+    second = Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=directory, data_dir=directory,
                     database_url=location, redis_config=redis_config)
     def unavailable(*args, **kwargs):
         raise OperationalError('UPDATE task', {}, RuntimeError('injected database outage'))
@@ -453,9 +453,9 @@ def test_completed_result_recovers_after_db_failure_and_server_restart(backend, 
 def test_shared_workers_reject_inaccessible_local_file_storage(backend, tmp_path):
     db, redis_config = backend
     location = db.url.render_as_string(hide_password=False)
-    first = Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'one',
+    first = Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'one', data_dir=tmp_path / 'one',
                    database_url=location, redis_config=redis_config)
-    other = Server(name='shared', deploy=shared_deploy, config=entry_config(), data_dir=tmp_path / 'two',
+    other = Server(name='shared', deploy=shared_deploy, config=entry_config(), resources=tmp_path / 'two', data_dir=tmp_path / 'two',
                    database_url=location, redis_config=redis_config)
     async def scenario():
         try:

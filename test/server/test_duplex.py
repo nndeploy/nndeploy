@@ -47,7 +47,7 @@ def test_duplex_http_produces_output_before_end_and_retries_are_idempotent(db, t
     settings = config()
     if mode != 'engine':
         settings['execution'] = {'isolation': mode}
-    server = Server(name='echo', deploy=echo, config=settings, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         accepted = client.post('/v1/server/echo/deploy', json={'mode': 'async', 'inputs': {'prefix': '>'}})
@@ -73,7 +73,7 @@ def test_duplex_http_produces_output_before_end_and_retries_are_idempotent(db, t
 
 def test_websocket_reconnect_replays_output_and_deduplicates_input(db, tmp_path, credentials):
     auth, headers = credentials
-    server = Server(name='echo', deploy=echo, config=config(), data_dir=tmp_path, auth_config=auth,
+    server = Server(name='echo', deploy=echo, config=config(), resources=tmp_path, data_dir=tmp_path, auth_config=auth,
                     audit_config={}, cors_origins=['https://trusted.example'],
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
@@ -154,7 +154,7 @@ def test_input_buffer_backpressure_fencing_and_task_retention(db):
 
 def test_duplex_timeout_and_explicit_cancel_stop_waiting_for_input(tmp_path):
     for cancel in (False, True):
-        server = Server(name='echo', deploy=echo, config=config(max_duration_seconds=.2), data_dir=tmp_path / str(cancel))
+        server = Server(name='echo', deploy=echo, config=config(max_duration_seconds=.2), resources=tmp_path / str(cancel), data_dir=tmp_path / str(cancel))
         with TestClient(server.app) as client:
             identity = client.post('/v1/server/echo/deploy', json={'mode': 'async'}).json()['task_id']
             if cancel:
@@ -167,7 +167,7 @@ def test_duplex_timeout_and_explicit_cancel_stop_waiting_for_input(tmp_path):
 def test_websocket_limits_invalid_frames_and_disconnect_do_not_cancel_task(tmp_path, monkeypatch):
     from nndeploy.server.api import stream
     monkeypatch.setattr(stream, 'RECEIVE_SECONDS', .1)
-    server = Server(name='echo', deploy=echo, config=config(max_event_bytes=128), data_dir=tmp_path, max_inflight_tasks=1)
+    server = Server(name='echo', deploy=echo, config=config(max_event_bytes=128), resources=tmp_path, data_dir=tmp_path, max_inflight_tasks=1)
     with TestClient(server.app) as client:
         identity = client.post('/v1/server/echo/deploy', json={'mode': 'async'}).json()['task_id']
         path = f'/v1/tasks/{identity}/stream'
@@ -257,7 +257,7 @@ def test_shared_duplex_inputs_cross_servers_and_run_in_an_isolated_worker(backen
     database, redis_config = backend
     settings = config()
     settings['execution'] = {'isolation': 'process'}
-    servers = [Server(name='echo', deploy=echo, config=settings, data_dir=tmp_path / 'shared',
+    servers = [Server(name='echo', deploy=echo, config=settings, resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config) for _ in range(2)]
 
     async def scenario():
@@ -303,7 +303,7 @@ def test_duplex_over_real_http_and_websocket_connections(tmp_path):
     import requests
     from websockets.sync.client import connect
     from test_streaming import live_server
-    server = Server(name='echo', deploy=echo, config=config(), data_dir=tmp_path, audit_config={})
+    server = Server(name='echo', deploy=echo, config=config(), resources=tmp_path, data_dir=tmp_path, audit_config={})
     with live_server(server) as address:
         response = requests.post(address + '/v1/server/echo/deploy', json={'mode': 'async'}, timeout=3)
         assert response.status_code == 202, response.text
@@ -339,7 +339,7 @@ def test_stream_capacity_is_reserved_before_database_lookup(tmp_path, monkeypatc
     from nndeploy.server.dependencies import Identity
     entered, release = threading.Event(), threading.Event()
     reads = []
-    server = Server(data_dir=tmp_path, max_inflight_tasks=1)
+    server = Server(resources=tmp_path, data_dir=tmp_path, max_inflight_tasks=1)
     endpoint = next(route.endpoint for route in server.app.routes if route.path == '/v1/tasks/{task_id}/stream')
 
     def blocked(identity):

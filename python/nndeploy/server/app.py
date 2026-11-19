@@ -300,7 +300,7 @@ def cli(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default=None)
     ap.add_argument("--port", type=int, default=8000)
-    ap.add_argument("--resources", default="./resources")
+    ap.add_argument("--resources", default="./resources", help="Resource root; SQLite database is <resources>/db/nndeploy.db")
     ap.add_argument("--log", default="./logs/nndeploy_server.log")
     ap.add_argument("--front-end-version", default="!", help="GitHub frontend, as owner/repo@0.0.1 or @latest,default latest")
     ap.add_argument("--front-end-dir", help="Serve a local frontend build instead of downloading a release")
@@ -311,6 +311,10 @@ def cli(argv=None):
     ap.add_argument("--plugin", type=str, nargs='*', default=[], required=False)
     ap.add_argument("--api-only", action="store_true", help="Start the Deploy API without the editor")
     ap.add_argument("--workflow", help="Workflow JSON to run through the Deploy API")
+    ap.add_argument("--services", help="JSON algorithm services to register on one API Server")
+    ap.add_argument('--register-algorithm', action='append', default=[], metavar='NAME=MODULE:FACTORY',
+                    help='Register a trusted Python algorithm factory for --services; repeat for multiple algorithms')
+    ap.add_argument("--data-dir", help="API managed files/work directory; does not change the database (default: <resources>/server)")
     ap.add_argument("--config", help="Optional workflow.server.json path")
     ap.add_argument("--name", help="Name used in the Deploy URL")
     ap.add_argument("--admin-token-env", help="Environment variable containing the management token")
@@ -345,6 +349,19 @@ def cli(argv=None):
     )
     ap.set_defaults(debug=False)
     args = ap.parse_args(argv)
+    if args.register_algorithm:
+        if not args.api_only or not args.services:
+            ap.error('--register-algorithm requires --api-only and --services')
+        from .registry import Registry
+        registrations = Registry()
+        for specification in args.register_algorithm:
+            name, separator, factory = specification.partition('=')
+            try:
+                if not separator:
+                    raise ValueError('Use NAME=MODULE:FACTORY')
+                registrations.register(name, factory)
+            except ValueError as exc:
+                ap.error(str(exc))
     if not 1 <= args.port <= 65535:
         ap.error("--port must be between 1 and 65535")
     if args.editor_history_retention_seconds is not None:
@@ -355,16 +372,18 @@ def cli(argv=None):
         ap.error("--json_file imports editor workflows; use --workflow with --api-only")
     if not 0 < args.database_operation_timeout_seconds <= 86400:
         ap.error('--database-operation-timeout-seconds must be finite, positive and at most 86400')
-    if (args.database_backup or args.database_restore or args.database_export or args.database_import) and (not args.database_url_env or args.api_only or args.workflow or args.config or args.name):
+    if (args.database_backup or args.database_restore or args.database_export or args.database_import) and (not args.database_url_env or args.api_only or args.workflow or args.services or args.data_dir or args.config or args.name):
         ap.error('Database operations require --database-url-env and cannot start a workflow or API server')
     if args.database_timeout_seconds is not None and not 0 < args.database_timeout_seconds <= 86400:
         ap.error('--database-timeout-seconds must be finite, positive and at most 86400')
     if args.max_sync_connections is not None and args.max_sync_connections < 1:
         ap.error('--max-sync-connections must be positive')
-    if not args.api_only and any((args.workflow, args.config, args.name)):
-        ap.error("--workflow, --config and --name require --api-only")
-    if args.api_only and not args.workflow:
-        ap.error("--api-only requires --workflow")
+    if not args.api_only and any((args.workflow, args.services, args.data_dir, args.config, args.name)):
+        ap.error("--workflow, --services, --data-dir, --config and --name require --api-only")
+    if args.api_only and bool(args.workflow) == bool(args.services):
+        ap.error("--api-only requires exactly one of --workflow or --services")
+    if args.services and (args.config or args.name):
+        ap.error("--config and --name apply to --workflow; configure service entries in --services")
     args.host = args.host or ("127.0.0.1" if args.api_only else "0.0.0.0")
     return args
 
@@ -959,18 +978,31 @@ def main(argv=None) -> None:
         from .config import load_json
         device_limits = load_json(args.device_limits)
     if args.api_only:
+        services = None
+        if args.services:
+            from .services import load_services, register_services
+            services = load_services(args.services)
         for plugin in args.plugin:
             add_global_import_lib(str(Path(plugin).resolve()))
         if args.plugin:
             import_global_import_lib()
         server = NnDeployServer(workflow=args.workflow, config=args.config, name=args.name,
-                                data_dir=Path(args.resources) / "server", admin_token=token, database_url=database_url,
+                                resources=args.resources, data_dir=args.data_dir, admin_token=token, database_url=database_url,
                                 database_timeout_seconds=args.database_timeout_seconds,
                                 storage_config=storage_config, redis_config=redis_config, auth_config=auth_config, audit_config=audit_config,
                                 mcp_config=dict(enabled=args.mcp, path=args.mcp_path,
                                     **({'allowed_hosts': args.mcp_allowed_host} if args.mcp_allowed_host else {}),
                                     **({'allowed_origins': args.mcp_allowed_origin} if args.mcp_allowed_origin else {})),
                                 cors_origins=args.cors_origin, max_sync_connections=args.max_sync_connections, device_limits=device_limits)
+        if services is not None:
+            try:
+                for specification in args.register_algorithm:
+                    name, factory = specification.split('=', 1)
+                    server.register(name, factory)
+                register_services(server, services)
+            except BaseException:
+                asyncio.run(server.close())
+                raise
         server.run(host=args.host, port=args.port)
         return
     install_taskid_logrecord_factory()

@@ -47,7 +47,7 @@ def download(client, reference):
 @pytest.mark.parametrize('kind,graph', [('array', False), ('array', True), ('tensor', True)])
 def test_npy_code_and_graph_keep_immutable_task_inputs_and_outputs(db, tmp_path, isolation, kind, graph):
     server = Server(**({'graph_factory': tensor_graph if kind == 'tensor' else array_graph} if graph else {'deploy': echo}),
-                    config=settings(kind, 'int64', [None, 2], graph, isolation=isolation), data_dir=tmp_path,
+                    config=settings(kind, 'int64', [None, 2], graph, isolation=isolation), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False), admin_token='test-admin')
     with TestClient(server.app) as client:
         outputs = []
@@ -69,7 +69,7 @@ def test_npy_code_and_graph_keep_immutable_task_inputs_and_outputs(db, tmp_path,
 @pytest.mark.parametrize('array', [np.array(2**63, dtype='uint64'), np.zeros((0, 2, 1), dtype='float16'),
     np.asfortranarray(np.arange(12, dtype='>i4').reshape(3, 4)), np.ones((2, 1, 1, 1, 1, 1, 1, 1), dtype=bool)])
 def test_npy_endian_fortran_scalar_empty_and_rank_eight(tmp_path, array):
-    server = Server(deploy=echo, config=settings(dtype=array.dtype.name, shape=list(array.shape)), data_dir=tmp_path)
+    server = Server(deploy=echo, config=settings(dtype=array.dtype.name, shape=list(array.shape)), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         source = upload(client, array)
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': source}})
@@ -85,7 +85,7 @@ def test_npy_endian_fortran_scalar_empty_and_rank_eight(tmp_path, array):
     content(np.array([np.nan], dtype='float32')), content(np.ones(2))[:-1], content(np.ones(2)) + b'junk',
     b'\x93NUMPY\x02\x00' + struct.pack('<I', 2**32-1)])
 def test_npy_invalid_upload_does_not_create_a_file(tmp_path, data):
-    server = Server(deploy=echo, config=settings(), data_dir=tmp_path)
+    server = Server(deploy=echo, config=settings(), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/files', files={'file': ('input.npy', data, MIME)})
         assert response.status_code == 422, response.text
@@ -98,7 +98,7 @@ def test_npy_invalid_upload_does_not_create_a_file(tmp_path, data):
 def test_npy_schema_rejected_before_task_admission(tmp_path, array):
     schema = settings(shape=[2])
     schema['inputs']['value']['maximum'] = 10
-    server = Server(deploy=echo, config=schema, data_dir=tmp_path, admin_token='test-admin')
+    server = Server(deploy=echo, config=schema, resources=tmp_path, data_dir=tmp_path, admin_token='test-admin')
     with TestClient(server.app) as client:
         source = upload(client, array)
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': source}})
@@ -124,7 +124,7 @@ def test_npy_v2_header_supported():
 def test_npy_element_bounds_do_not_round_to_array_dtype(tmp_path, dtype, number, maximum):
     schema = settings(dtype=dtype, shape=[1])
     schema['inputs']['value']['maximum'] = maximum
-    with TestClient(Server(deploy=echo, config=schema, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=echo, config=schema, resources=tmp_path, data_dir=tmp_path).app) as client:
         source = upload(client, np.array([number], dtype=dtype))
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': source}})
         assert response.status_code == 422, response.text
@@ -141,7 +141,7 @@ def test_npy_streams_detach_every_event_before_buffer_reuse(tmp_path, scheduling
     from test_streaming import parse_events
     schema = settings(scheduling=scheduling)
     schema['streaming'] = {'enabled': True}
-    server = Server(deploy=array_stream, config=schema, data_dir=tmp_path)
+    server = Server(deploy=array_stream, config=schema, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         source = upload(client, np.arange(4, dtype='float32'))
         response = client.post('/v1/server/default/deploy', json={'mode': 'stream', 'inputs': {'value': source}})
@@ -158,7 +158,7 @@ def test_npy_streams_detach_every_event_before_buffer_reuse(tmp_path, scheduling
 @pytest.mark.parametrize('graph,isolation', [(False, 'thread'), (False, 'process'), (True, 'thread'), (True, 'process')])
 def test_npy_warmup_publishes_no_files_or_tasks(tmp_path, graph, isolation):
     from test_warmup import counts
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     source = server.storage.save(io.BytesIO(content(np.arange(4, dtype='float32'))), MIME)
     schema = settings(shape=[4], graph=graph, isolation=isolation,
                       warmup=[{'inputs': {'value': {'file_id': source['file_id']}}}])
@@ -173,7 +173,7 @@ def test_npy_warmup_publishes_no_files_or_tasks(tmp_path, graph, isolation):
 def test_npy_batch_results_keep_individual_task_ownership(tmp_path):
     from test_arrays import NumericBatch
     schema = settings(batching={'enabled': True, 'max_size': 4, 'max_wait_ms': 50})
-    server = Server(handler_factory=NumericBatch, config=schema, data_dir=tmp_path)
+    server = Server(handler_factory=NumericBatch, config=schema, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         source = upload(client, np.arange(4, dtype='float32'))
         response = client.post('/v1/server/default/deploy/batch', json={'items': [{'inputs': {'value': source}}] * 3})
@@ -189,7 +189,7 @@ def test_npy_batch_results_keep_individual_task_ownership(tmp_path):
 
 def test_npy_ownership_checked_before_reading_content(tmp_path, credentials, monkeypatch):
     auth, headers = credentials
-    server = Server(name='echo', deploy=echo, config=settings(), data_dir=tmp_path, auth_config=auth)
+    server = Server(name='echo', deploy=echo, config=settings(), resources=tmp_path, data_dir=tmp_path, auth_config=auth)
     with TestClient(server.app) as client:
         uploaded = client.post('/v1/files', files={'file': ('input.npy', content(np.ones(2, dtype='float32')), MIME)},
                                headers=headers['alice'])
@@ -211,7 +211,7 @@ def test_npy_shared_process_restores_input_and_output_from_minio(backend, s3_ser
     storage = dict(backend='s3', bucket='nndeploy-tests', region='us-east-1', endpoint=endpoint,
                    prefix='npy-' + uuid.uuid4().hex, access_key_env='NNDEPLOY_ARRAY_ACCESS', secret_key_env='NNDEPLOY_ARRAY_SECRET')
     schema = settings('tensor', 'float32', [None, 2], True, isolation='process')
-    server = Server(graph_factory=tensor_graph, config=schema, data_dir=tmp_path,
+    server = Server(graph_factory=tensor_graph, config=schema, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config, storage_config=storage)
     with TestClient(server.app) as http:
         expected = np.arange(8, dtype='float32').reshape(4, 2)
@@ -233,7 +233,7 @@ def test_npy_engine_file_writes_allow_other_requests_and_cancellation_joins_io(t
     import threading
     from test_engine import until
     server = Server(deploy=engine_echo, config=settings(scheduling='engine', max_concurrency_per_worker=2,
-                    cooperative_cancel=True), data_dir=tmp_path)
+                    cooperative_cancel=True), resources=tmp_path, data_dir=tmp_path)
     source = server.storage.save(io.BytesIO(content(np.arange(4, dtype='float32'))), MIME)
     started, release = threading.Event(), threading.Event()
     save = server.storage.save
@@ -274,7 +274,7 @@ def test_npy_tensor_file_uses_declared_layout_and_converts_output(tmp_path):
     schema = settings('tensor', 'float32', [1, 2, 2, 3])
     schema['inputs']['value']['data_format'] = 'NCHW'
     schema['outputs']['value'].update(data_format='NHWC', shape=[1, 2, 3, 2])
-    with TestClient(Server(deploy=echo, config=schema, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=echo, config=schema, resources=tmp_path, data_dir=tmp_path).app) as client:
         array = np.arange(12, dtype='float32').reshape(1, 2, 2, 3)
         source = upload(client, array)
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': source}})
@@ -290,7 +290,7 @@ def test_npy_task_failure_releases_partial_output_for_cleanup(tmp_path, monkeypa
     schema['outputs']['second'] = dict(schema['outputs']['value'])
     def wrong(values):
         return {'value': values['value'], 'second': np.array([np.nan], dtype='float32') if failure == 'validation' else values['value']}
-    server = Server(deploy=wrong, config=schema, data_dir=tmp_path)
+    server = Server(deploy=wrong, config=schema, resources=tmp_path, data_dir=tmp_path)
     original = server.storage.save
     published = []
     def save(stream, *args, **kwargs):
@@ -317,7 +317,7 @@ def test_npy_multi_megabyte_file_avoids_json_expansion_and_idempotent_replay(db,
     schema = settings('array', 'float64', [None])
     for group in ('inputs', 'outputs'):
         schema[group]['value'].update(max_elements=1048576, max_bytes=8 * 1024**2)
-    server = Server(deploy=echo, config=schema, data_dir=tmp_path,
+    server = Server(deploy=echo, config=schema, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         array = np.arange(1048576, dtype='float64') / 3
@@ -345,7 +345,7 @@ def test_npy_engine_captures_output_before_yielding_to_storage_thread(tmp_path, 
     import threading
     from test_engine import until
     server = Server(handler_factory=ReusingArrayEngine,
-                    config=settings(scheduling='engine', max_concurrency_per_worker=2), data_dir=tmp_path)
+                    config=settings(scheduling='engine', max_concurrency_per_worker=2), resources=tmp_path, data_dir=tmp_path)
     sources = [server.storage.save(io.BytesIO(content(value)), MIME) for value in
                (np.arange(4, dtype='float32'), np.zeros(4, dtype='float32'))]
     started, release = threading.Event(), threading.Event()
@@ -388,7 +388,7 @@ def test_npy_workflow_json_sidecar_and_inline_fields_can_mix(tmp_path, file_grou
     sidecar = workflow.with_suffix('.server.json')
     saved = json.dumps(schema)
     sidecar.write_text(saved)
-    with TestClient(Server(workflow=workflow, data_dir=tmp_path / 'server').app) as client:
+    with TestClient(Server(workflow=workflow, resources=tmp_path / 'server', data_dir=tmp_path / 'server').app) as client:
         array = np.arange(12, dtype='float32').reshape(1, 2, 3, 2)
         body = upload(client, array) if file_group == 'inputs' else {
             'dtype': 'float32', 'shape': list(array.shape), 'data_format': 'NHWC', 'data': array.ravel().tolist()}
@@ -407,7 +407,7 @@ def test_npy_workflow_json_sidecar_and_inline_fields_can_mix(tmp_path, file_grou
 def test_npy_code_warmup_other_schedulers_publishes_no_files(tmp_path, scheduling):
     from test_warmup import counts
     from test_arrays import NumericBatch
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     source = server.storage.save(io.BytesIO(content(np.arange(4, dtype='float32'))), MIME)
     execution = {'batching': {'enabled': True}} if scheduling == 'batch' else {'scheduling': scheduling, 'max_concurrency_per_worker': 2}
     execution['warmup'] = [{'inputs': {'value': {'file_id': source['file_id']}}}]

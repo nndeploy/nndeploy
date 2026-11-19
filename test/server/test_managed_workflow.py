@@ -23,14 +23,14 @@ def test_workflow_and_assets_survive_draft_deletion_and_restart(tmp_path):
     sidecar = path.with_suffix('.server.json')
     sidecar.write_text(json.dumps(config))
     data_dir = tmp_path / 'server'
-    with TestClient(Server(workflow=path, data_dir=data_dir).app) as client:
+    with TestClient(Server(workflow=path, resources=data_dir, data_dir=data_dir).app) as client:
         assert json.loads(path.read_text()) == original
         path.unlink()
         sidecar.unlink()
         asset.unlink()
         output = client.post('/v1/server/image/deploy', json={})
         assert output.status_code == 200, output.text
-    with TestClient(Server(data_dir=data_dir).app) as client:
+    with TestClient(Server(resources=data_dir, data_dir=data_dir).app) as client:
         output = client.post('/v1/server/image/deploy', json={})
         assert output.status_code == 200, output.text
         identity = output.json()['outputs']['image']['file_id']
@@ -40,10 +40,10 @@ def test_workflow_and_assets_survive_draft_deletion_and_restart(tmp_path):
 
 
 def test_explicit_stop_stays_stopped_after_restart(tmp_path):
-    server = Server(workflow=text_graph(), data_dir=tmp_path, admin_token='test')
+    server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path, admin_token='test')
     with TestClient(server.app) as client:
         assert client.post('/api/server/echo/stop', headers={'Authorization': 'Bearer test'}).status_code == 200
-    with TestClient(Server(data_dir=tmp_path, admin_token='test').app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path, admin_token='test').app) as client:
         assert client.get('/v1/server/echo/schema').json()['status'] == 'stopped'
         assert client.post('/api/server/echo/start', headers={'Authorization': 'Bearer test'}).status_code == 200
         assert client.post('/v1/server/echo/deploy', json={'inputs': {'source': 'again'}}).json()['outputs']['sink'] == 'again'
@@ -53,7 +53,7 @@ def test_failed_reload_preserves_restart_configuration(tmp_path):
     import asyncio
     async def scenario():
         import pytest
-        server = Server(workflow=text_graph(), data_dir=tmp_path)
+        server = Server(workflow=text_graph(), resources=tmp_path, data_dir=tmp_path)
         await server.start()
         broken = text_graph()
         broken['node_repository_'][0]['key_'] = 'unknown.Node'
@@ -61,7 +61,7 @@ def test_failed_reload_preserves_restart_configuration(tmp_path):
             await server.reload_entry('echo', workflow=broken)
         await server.close()
     asyncio.run(scenario())
-    with TestClient(Server(data_dir=tmp_path).app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path).app) as client:
         result = client.post('/v1/server/echo/deploy', json={'inputs': {'source': 'original'}})
         assert result.status_code == 200, result.text
         assert result.json()['outputs']['sink'] == 'original'

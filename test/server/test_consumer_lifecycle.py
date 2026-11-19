@@ -48,7 +48,7 @@ def test_consumer_cancel_keeps_execution_owned_until_real_completion(db, tmp_pat
     root = tmp_path / 'execution'
     root.mkdir()
     server = Server(name='echo', deploy=held_async if mode == 'engine' else held, config=settings(mode),
-                    data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+                    resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
 
     async def scenario():
         closing = None
@@ -93,7 +93,7 @@ def test_shared_consumer_cancel_preserves_claim_execution_and_result(backend, tm
     root = tmp_path / 'execution'
     root.mkdir()
     server = Server(name='echo', deploy=held_async if mode == 'engine' else held, config=settings(mode),
-                    data_dir=tmp_path / 'server', database_url=database.url.render_as_string(hide_password=False),
+                    resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=database.url.render_as_string(hide_password=False),
                     redis_config=redis_config)
     blocked, release = threading.Event(), threading.Event()
     method = 'claim_task' if stage == 'claim' else 'finish_task'
@@ -155,7 +155,7 @@ def test_consumer_exception_still_closes_every_worker_and_dependency(tmp_path, m
             return values
         def deinit(self):
             released.append('worker')
-    server = Server(name='echo', handler_factory=Handler, data_dir=tmp_path)
+    server = Server(name='echo', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     server.add(name='other', handler_factory=Handler)
     original = server._consume
     async def faulty(entry, worker):
@@ -189,7 +189,7 @@ def test_abandoned_local_requests_fail_after_worker_release_and_other_entry_stay
             return inputs
         def deinit(self):
             released.append(True)
-    server = Server(name='broken', handler_factory=Handler, data_dir=tmp_path,
+    server = Server(name='broken', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     server.add(name='healthy', deploy=lambda values: values)
     original = server._consume
@@ -226,7 +226,7 @@ def test_abandoned_local_requests_fail_after_worker_release_and_other_entry_stay
 
 def test_failed_shared_consumer_only_finalizes_its_own_runtime_after_exit(backend, tmp_path, monkeypatch):
     database, redis_config = backend
-    servers = [Server(name='echo', deploy=held, config=settings('process'), data_dir=tmp_path / 'shared',
+    servers = [Server(name='echo', deploy=held, config=settings('process'), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config) for _ in range(2)]
     failed_root, healthy_root = tmp_path / 'failed', tmp_path / 'healthy'
     failed_root.mkdir()
@@ -273,7 +273,7 @@ def test_idle_consumer_cancel_does_not_skip_worker_deinit(tmp_path):
             return inputs
         def deinit(self):
             released.append(True)
-    server = Server(handler_factory=Handler, data_dir=tmp_path)
+    server = Server(handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         workers = server.entries['default']['workers'][:]
@@ -289,7 +289,7 @@ def test_idle_consumer_cancel_does_not_skip_worker_deinit(tmp_path):
 def test_explicit_cancel_racing_failed_consumer_stop_releases_capacity_once(tmp_path, monkeypatch):
     committed, release = threading.Event(), threading.Event()
     gate = asyncio.Event()
-    server = Server(name='echo', deploy=lambda values: values, data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda values: values, resources=tmp_path, data_dir=tmp_path)
     async def consumer(entry, worker):
         await gate.wait()
         raise RuntimeError('Controlled consumer exit')
@@ -365,7 +365,7 @@ def check_algorithm_cancel(server):
 @pytest.mark.parametrize('mode', ['thread', 'process', 'concurrent', 'engine'])
 def test_algorithm_cancelled_error_is_not_reported_as_success(db, tmp_path, mode):
     server = Server(name='echo', deploy=abort_or_return_sync if mode == 'concurrent' else abort_or_return,
-                    config=abort_config(mode), data_dir=tmp_path,
+                    config=abort_config(mode), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     check_algorithm_cancel(server)
 
@@ -374,7 +374,7 @@ def test_algorithm_cancelled_error_is_not_reported_as_success(db, tmp_path, mode
 def test_shared_algorithm_cancelled_error_keeps_worker_available(backend, tmp_path, mode):
     database, redis_config = backend
     server = Server(name='echo', deploy=abort_or_return_sync if mode == 'concurrent' else abort_or_return,
-                    config=abort_config(mode), data_dir=tmp_path,
+                    config=abort_config(mode), resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     check_algorithm_cancel(server)
 
@@ -382,7 +382,7 @@ def test_shared_algorithm_cancelled_error_keeps_worker_available(backend, tmp_pa
 def test_unexpected_consumer_abort_never_settles_an_empty_success(db, tmp_path, monkeypatch):
     class ConsumerAbort(BaseException):
         pass
-    server = Server(name='echo', deploy=lambda values: values, data_dir=tmp_path,
+    server = Server(name='echo', deploy=lambda values: values, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def abort(*args, **kwargs):
         raise ConsumerAbort('Unexpected execution boundary failure')
@@ -422,7 +422,7 @@ def test_batch_algorithm_cancel_keeps_scheduler_and_worker_available(db, tmp_pat
             return [abort_or_return_sync(item['inputs']) for item in items]
     config = {'inputs': {'abort': {'type': 'boolean'}},
               'execution': {'batching': {'enabled': True, 'max_size': 2, 'max_wait_ms': 10}}}
-    server = Server(name='echo', handler_factory=Handler, config=config, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=Handler, config=config, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()
@@ -447,7 +447,7 @@ def test_batch_algorithm_cancel_keeps_scheduler_and_worker_available(db, tmp_pat
 
 def test_shared_stop_with_failed_consumer_does_not_wait_on_its_abandoned_task(backend, tmp_path, monkeypatch):
     database, redis_config = backend
-    server = Server(name='echo', deploy=held_async, config=settings('engine'), data_dir=tmp_path,
+    server = Server(name='echo', deploy=held_async, config=settings('engine'), resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     consume = server._consume_shared
     selected = False

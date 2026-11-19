@@ -4,6 +4,7 @@ import copy
 import json
 import math
 from contextlib import contextmanager
+from .stages import measured, stage
 
 # Node implementation details stay here, not in workflow.server.json.
 _NODE_FIELDS = {
@@ -80,6 +81,7 @@ class GraphIO:
         self.native_originals = native_originals or {}
         self.steps = 1
         self.parameter_nodes = {}
+        self.runtime_paths = {}
         if not config.outputs:
             raise ValueError("Graph requires at least one declared output")
         for group in ("inputs", "parameters", "outputs"):
@@ -92,6 +94,22 @@ class GraphIO:
                             raise ValueError(f"Unknown node: {field.node}")
                     if group == 'parameters' and field.type == 'json' and isinstance(field.default, dict):
                         self.parameter_nodes[name] = (node, json.loads(node.serialize()))
+                        from .parameters import parameter_paths
+                        declare = getattr(node, 'get_runtime_parameter_paths', None)
+                        declared = declare() if callable(declare) else ()
+                        available = {tuple(path) for path in parameter_paths(field.default)}
+                        if not isinstance(declared, (list, tuple)) or any(
+                                not isinstance(path, (list, tuple)) or not path or
+                                any(not isinstance(part, str) for part in path) for path in declared):
+                            raise ValueError('Runtime parameter declarations must be lists of leaf paths')
+                        supported = {tuple(path) for path in declared}
+                        serialized = {tuple(path) for path in parameter_paths(self.parameter_nodes[name][1])}
+                        if not supported <= serialized or (supported and not callable(getattr(node, 'set_runtime_parameters', None))):
+                            raise ValueError('Runtime parameter declarations require serialized fields and a setter')
+                        selected = supported & available if field.runtime is None else {tuple(path) for path in field.runtime}
+                        if not selected <= supported:
+                            raise ValueError('Configured runtime parameters are not supported by the node')
+                        self.runtime_paths[name] = selected
                         continue
                     mapping = _NODE_FIELDS.get((group, node.get_key()))
                     native_kind = _NATIVE_CODECS.get((group, node.get_key()))
@@ -129,15 +147,30 @@ class GraphIO:
         if not videos and any(group == 'outputs' and kind == 'video' for (group, _), (_, kind) in self.native_codecs.items()):
             raise ValueError('Native video output requires a video decoder input')
 
+    def parameter_modes(self):
+        from .parameters import parameter_paths
+        modes = {}
+        for name, supported in self.runtime_paths.items():
+            field = self.config.parameters[name]
+            visible = list(parameter_paths(field.default)) if field.exposed is None else field.exposed
+            if visible:
+                modes[name] = {'runtime': [path for path in visible if tuple(path) in supported],
+                               'initialization': [path for path in visible if tuple(path) not in supported]}
+        return modes
+
     @contextmanager
     def parameters(self, graph, values, output_paths, before_init=None):
-        from .parameters import merge_parameters, parameter_changes
+        from .parameters import merge_parameters, parameter_changes, parameter_paths, exposed_defaults
         changes = []
+        runtime = []
         requested = {}
         for name, (node, original) in self.parameter_nodes.items():
             patch = parameter_changes(self.config.parameters[name].default, values['parameters'][name], name)
             if patch:
                 changes.append((node, original, merge_parameters(original, patch)))
+                paths = list(parameter_paths(patch))
+                if all(tuple(path) in self.runtime_paths[name] for path in paths):
+                    runtime.append((node, patch, exposed_defaults(original, paths)))
                 requested[tuple(self.config.parameters[name].node)] = patch
         for name, field in self.config.outputs.items():
             patch = requested.get(tuple(field.node or ()), {})
@@ -148,6 +181,21 @@ class GraphIO:
                 output_paths[name] = Path(patch['path_']).expanduser().resolve()
         if not changes:
             yield requested
+            return
+
+        if len(runtime) == len(changes):
+            from contextlib import ExitStack
+            @measured('parameter_update')
+            def apply(node, patch):
+                status = node.set_runtime_parameters(copy.deepcopy(patch))
+                if status is not None:
+                    _check_status(status)
+            with ExitStack() as restore:
+                for node, patch, original in runtime:
+                    # Register first, so a partially failing setter is restored.
+                    restore.callback(apply, node, original)
+                    apply(node, patch)
+                yield requested
             return
 
         def deserialize(node, data):
@@ -163,26 +211,31 @@ class GraphIO:
                     data['ref_path_'] = ''
             _check_status(node.deserialize(json.dumps(data, ensure_ascii=False)))
 
-        _check_status(graph.deinit())
+        def initialize(values, *, release=False):
+            with stage('parameter_reinitialize'):
+                if release:
+                    _check_status(graph.deinit())
+                for node, data in values:
+                    deserialize(node, data)
+                if before_init is not None:
+                    before_init(graph)
+                _check_status(graph.init())
+        # A failed initial deinit cannot safely be retried by parameter restore.
+        with stage('parameter_reinitialize'):
+            _check_status(graph.deinit())
         try:
-            for node, _, updated in changes:
-                deserialize(node, updated)
-            if before_init is not None:
-                before_init(graph)
-            _check_status(graph.init())
+            initialize([(node, updated) for node, _, updated in changes])
             yield requested
         finally:
-            _check_status(graph.deinit())
-            for node, original, _ in changes:
-                deserialize(node, original)
-            if before_init is not None:
-                before_init(graph)
-            _check_status(graph.init())
+            initialize([(node, original) for node, original, _ in changes], release=True)
 
     @contextmanager
     def bind(self, graph, values, input_paths, output_paths, before_init=None):
         with self.parameters(graph, values, output_paths, before_init) as requested:
-            with self._bind(graph, values, input_paths, output_paths, requested):
+            from contextlib import ExitStack
+            with ExitStack() as bindings:
+                with stage('graph_bind'):
+                    bindings.enter_context(self._bind(graph, values, input_paths, output_paths, requested))
                 yield
 
     @contextmanager
@@ -252,6 +305,7 @@ class GraphIO:
             if path.exists() and path.stat().st_size > self.max_bytes:
                 raise ValueError('Graph output exceeds the file byte limit')
 
+    @measured('graph_collect')
     def collect(self, graph, output_paths):
         result = {}
         for name, field in self.config.outputs.items():

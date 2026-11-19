@@ -58,7 +58,7 @@ def test_existing_environment_including_empty_values_wins(tmp_path, monkeypatch)
 
 def test_server_resolves_auth_from_local_file(tmp_path):
     (tmp_path / 'server.env').write_text('TEST_ENV_AUTH_TOKEN=local-test-token-with-at-least-32-characters\n')
-    server = Server(data_dir=tmp_path / 'data', auth_config={
+    server = Server(resources=tmp_path / 'data', data_dir=tmp_path / 'data', auth_config={
         'keys': [{'subject': 'local-user', 'token_env': 'TEST_ENV_AUTH_TOKEN'}]})
     with TestClient(server.app) as client:
         assert client.get('/v1/models').status_code == 401

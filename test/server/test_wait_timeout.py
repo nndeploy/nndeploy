@@ -41,7 +41,10 @@ def config(**execution):
 
 
 def completed(client, path, **options):
-    for _ in range(200):
+    # Process cancellation may require a fresh interpreter and native imports.
+    # This helper observes eventual completion, not the HTTP wait deadline.
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
         response = client.get(path, **options)
         assert response.status_code == 200, response.text
         value = response.json()
@@ -53,7 +56,7 @@ def completed(client, path, **options):
 
 @pytest.mark.parametrize('scheduling,isolation', [('serial', 'thread'), ('serial', 'process'), ('concurrent', 'thread'), ('engine', 'thread')])
 def test_http_timeout_keeps_task_and_capacity_and_allows_idempotent_replay(tmp_path, scheduling, isolation):
-    server = Server(name='echo', deploy=blocked_engine if scheduling == 'engine' else blocked, data_dir=tmp_path,
+    server = Server(name='echo', deploy=blocked_engine if scheduling == 'engine' else blocked, resources=tmp_path, data_dir=tmp_path,
                     config=config(scheduling=scheduling, isolation=isolation, max_queue_size=0))
     release = tmp_path / 'release'
     body = {'inputs': {'release': str(release)}, 'wait_timeout_seconds': .02}
@@ -88,14 +91,14 @@ def test_http_timeout_keeps_task_and_capacity_and_allows_idempotent_replay(tmp_p
 ])
 def test_invalid_or_excessive_wait_is_rejected_before_admission(tmp_path, body):
     calls = []
-    server = Server(name='echo', deploy=lambda inputs: calls.append(inputs), config=config(), data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda inputs: calls.append(inputs), config=config(), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         assert client.post('/v1/server/echo/deploy', json=body).status_code == 422
         assert not calls and not server.task_futures
 
 
 def test_entry_default_wait_limit_and_python_wait_policy(tmp_path):
-    server = Server(name='echo', deploy=blocked, config=config(http_wait_timeout_seconds=.02), data_dir=tmp_path)
+    server = Server(name='echo', deploy=blocked, config=config(http_wait_timeout_seconds=.02), resources=tmp_path, data_dir=tmp_path)
     release = tmp_path / 'release'
     with TestClient(server.app) as client:
         try:
@@ -106,7 +109,7 @@ def test_entry_default_wait_limit_and_python_wait_policy(tmp_path):
             assert completed(client, response.json()['error']['status_url'])['state'] == 'succeeded'
         finally:
             release.touch()
-    other = Server(name='echo', deploy=blocked_engine, config=config(scheduling='engine'), data_dir=tmp_path / 'python')
+    other = Server(name='echo', deploy=blocked_engine, config=config(scheduling='engine'), resources=tmp_path / 'python', data_dir=tmp_path / 'python')
     gate = tmp_path / 'python-release'
     async def scenario():
         await other.start()
@@ -130,7 +133,7 @@ def test_entry_default_wait_limit_and_python_wait_policy(tmp_path):
 @pytest.mark.parametrize('number', ['NaN', 'Infinity', '-Infinity'])
 def test_nonfinite_wait_values_return_validation_errors_without_admission(tmp_path, number):
     calls = []
-    server = Server(name='echo', deploy=lambda inputs: calls.append(inputs), config=config(), data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda inputs: calls.append(inputs), config=config(), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app, raise_server_exceptions=False) as client:
         response = client.post('/v1/server/echo/deploy', content='{"wait_timeout_seconds":' + number + '}',
                                headers={'Content-Type': 'application/json'})
@@ -139,10 +142,11 @@ def test_nonfinite_wait_values_return_validation_errors_without_admission(tmp_pa
 
 
 def test_batch_wait_uses_one_window_and_retains_completed_and_pending_items(tmp_path):
-    server = Server(name='echo', deploy=blocked, data_dir=tmp_path, config=config())
+    server = Server(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path,
+                    config=config(http_wait_timeout_seconds=1))
     release = tmp_path / 'release'
     body = {'items': [{}, {'inputs': {'unknown': 1}}, {'inputs': {'release': str(release)}, 'idempotency_key': 'one'}],
-            'wait_timeout_seconds': .05}
+            'wait_timeout_seconds': .5}
     with TestClient(server.app) as client:
         try:
             response = client.post('/v1/server/echo/deploy/batch', json=body)
@@ -164,7 +168,7 @@ def test_batch_wait_uses_one_window_and_retains_completed_and_pending_items(tmp_
 
 def test_timed_out_task_records_keep_owner_and_survive_server_restart(db, tmp_path, credentials):
     auth, headers = credentials
-    options = dict(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth)
+    options = dict(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth)
     release = tmp_path / 'release'
     server = Server(name='echo', deploy=blocked, config=config(), **options)
     with TestClient(server.app) as client:
@@ -184,7 +188,7 @@ def test_timed_out_task_records_keep_owner_and_survive_server_restart(db, tmp_pa
 
 def test_wait_timeout_does_not_replace_queue_expiry_or_explicit_process_cancel(tmp_path):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=blocked, config=config(isolation='process', queue_timeout_seconds=.05), data_dir=tmp_path)
+    server = Server(name='echo', deploy=blocked, config=config(isolation='process', queue_timeout_seconds=.05), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         try:
             first = client.post('/v1/server/echo/deploy', json={'inputs': {'release': str(release)}, 'wait_timeout_seconds': .02})
@@ -204,7 +208,7 @@ def test_wait_timeout_does_not_replace_queue_expiry_or_explicit_process_cancel(t
 
 def test_shared_task_survives_http_timeout_and_wait_policy_does_not_split_queue(backend, tmp_path):
     db, redis_config = backend
-    options = dict(name='echo', deploy=blocked, data_dir=tmp_path, redis_config=redis_config,
+    options = dict(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, redis_config=redis_config,
                    database_url=db.url.render_as_string(hide_password=False))
     server = Server(**options, config=config())
     other = Server(**options, config=config(http_wait_timeout_seconds=.5))
@@ -237,7 +241,7 @@ class WaitingBatch:
 
 def test_timeout_during_dynamic_batch_collection_keeps_item_for_actual_batch(tmp_path):
     WaitingBatch.calls = []
-    server = Server(name='echo', handler_factory=WaitingBatch, data_dir=tmp_path,
+    server = Server(name='echo', handler_factory=WaitingBatch, resources=tmp_path, data_dir=tmp_path,
                     config=config(batching={'enabled': True, 'max_size': 2, 'max_wait_ms': 150}))
     with TestClient(server.app) as client:
         first = client.post('/v1/server/echo/deploy', json={'wait_timeout_seconds': .02})
@@ -258,7 +262,7 @@ def test_sync_stream_can_finish_and_replay_events_after_http_wait_timeout(tmp_pa
     from test_streaming import parse_events
     settings = config()
     settings['streaming'] = {'enabled': True}
-    server = Server(name='echo', deploy=waiting_stream, data_dir=tmp_path, config=settings)
+    server = Server(name='echo', deploy=waiting_stream, resources=tmp_path, data_dir=tmp_path, config=settings)
     release = tmp_path / 'release'
     with TestClient(server.app) as client:
         try:
@@ -284,7 +288,7 @@ def test_algorithm_route_uses_same_wait_limit_and_task_status(tmp_path):
     async def calculate(body: DeployRequest, deploy=Depends(get_deploy)):
         return await deploy(body)
 
-    server = Server(name='echo', deploy=blocked, router=router, data_dir=tmp_path, config=config())
+    server = Server(name='echo', deploy=blocked, router=router, resources=tmp_path, data_dir=tmp_path, config=config())
     release = tmp_path / 'release'
     with TestClient(server.app) as client:
         try:

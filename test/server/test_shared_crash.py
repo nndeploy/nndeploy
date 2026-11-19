@@ -194,7 +194,7 @@ def _exited(pid):
                                                   ('process', 'ready', False), ('thread', 'warmup', True)])
 def test_controller_crash_waits_for_actual_child_exit_then_unblocks_update(backend, tmp_path, isolation, phase, restart):
     database, redis = backend
-    options = dict(data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
+    options = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
     observer = Server(name='model', deploy=shared_deploy, config=config('old'), **options)
     marker, release = tmp_path / 'warmup', tmp_path / 'release'
     candidate = config('candidate', isolation)
@@ -270,7 +270,7 @@ def test_late_isolated_child_cannot_initialize_after_recovery(tmp_path):
     marker = tmp_path / 'warmup'
     options = config('new', 'process')
     options['execution']['warmup'] = [{'inputs': {'marker': str(marker)}}]
-    server = Server(deploy=shared_deploy, config=options, data_dir=tmp_path / 'server')
+    server = Server(deploy=shared_deploy, config=options, resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     entry = server.entries['default']
     worker = ProcessWorker(entry['source'], entry['config'], server.storage, tmp_path / 'worker')
     worker.control_guard_path = str(guard.path)

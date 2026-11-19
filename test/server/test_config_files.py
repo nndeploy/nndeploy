@@ -133,7 +133,7 @@ def image_file(server, color):
 
 
 def test_default_file_is_protected_before_first_task_and_across_stop_and_restart(tmp_path):
-    server = Server(data_dir=tmp_path, admin_token='admin')
+    server = Server(resources=tmp_path, data_dir=tmp_path, admin_token='admin')
     file = image_file(server, (10, 20, 30))
     value = config_value(file)
     server.add(workflow=value['workflow'], config=value['config'])
@@ -142,7 +142,7 @@ def test_default_file_is_protected_before_first_task_and_across_stop_and_restart
         assert client.delete('/v1/files/' + file, headers=headers).status_code == 409
         assert client.post('/api/server/image/stop', headers=headers).status_code == 200
         assert client.delete('/v1/files/' + file, headers=headers).status_code == 409
-    restored = Server(data_dir=tmp_path, admin_token='admin')
+    restored = Server(resources=tmp_path, data_dir=tmp_path, admin_token='admin')
     with TestClient(restored.app) as client:
         assert client.get('/v1/server/image/schema').json()['status'] == 'stopped'
         assert client.delete('/v1/files/' + file, headers=headers).status_code == 409
@@ -159,7 +159,7 @@ def test_default_file_is_protected_before_first_task_and_across_stop_and_restart
 
 
 def test_reload_keeps_old_default_until_old_worker_really_closes(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     first, second = image_file(server, (1, 2, 3)), image_file(server, (40, 50, 60))
     server.add(workflow=image_graph(), config=config_value(first)['config'])
     async def scenario():
@@ -187,7 +187,7 @@ def test_reload_keeps_old_default_until_old_worker_really_closes(tmp_path):
             await reloading
             await server.close()
     asyncio.run(scenario())
-    with TestClient(Server(data_dir=tmp_path).app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path).app) as client:
         result = client.post('/v1/server/image/deploy', json={})
         assert result.status_code == 200
         with Image.open(io.BytesIO(client.get('/v1/files/' + result.json()['outputs']['image']['file_id'] + '/content').content)) as image:
@@ -195,7 +195,7 @@ def test_reload_keeps_old_default_until_old_worker_really_closes(tmp_path):
 
 
 def test_failed_reload_releases_candidate_files_and_preserves_saved_defaults(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     first, second = image_file(server, (1, 2, 3)), image_file(server, (4, 5, 6))
     server.add(workflow=image_graph(), config=config_value(first)['config'])
     async def scenario():
@@ -214,9 +214,9 @@ def test_failed_reload_releases_candidate_files_and_preserves_saved_defaults(tmp
 
 
 def test_two_code_servers_hold_their_own_default_files(tmp_path):
-    first = Server(data_dir=tmp_path)
+    first = Server(resources=tmp_path, data_dir=tmp_path)
     file = image_file(first, (1, 2, 3))
-    second = Server(data_dir=tmp_path)
+    second = Server(resources=tmp_path, data_dir=tmp_path)
     config = {'inputs': {'file': {'type': 'file', 'required': False, 'default': {'file_id': file}}}}
     for server in (first, second):
         server.add(name='code', deploy=lambda values: values, config=config)
@@ -241,7 +241,7 @@ def test_defaults_are_protected_while_handler_initializes(tmp_path):
             assert release.wait(5)
         def deploy(self, values):
             return values
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     file = image_file(server, (1, 2, 3))
     server.add(name='code', handler_factory=Handler,
                config={'inputs': {'file': {'type': 'file', 'required': False, 'default': {'file_id': file}}}})
@@ -260,7 +260,7 @@ def test_defaults_are_protected_while_handler_initializes(tmp_path):
 
 
 def test_failed_worker_release_keeps_runtime_file_protection(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     file = image_file(server, (1, 2, 3))
     server.add(name='code', deploy=lambda values: values,
                config={'inputs': {'file': {'type': 'file', 'required': False, 'default': {'file_id': file}}}})
@@ -297,7 +297,7 @@ def test_partial_initialization_with_failed_cleanup_does_not_release_defaults(tm
     class AsyncHandler(Handler):
         async def deploy(self, values):
             return values
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     file = image_file(server, (1, 2, 3))
     server.add(name='code', handler_factory=AsyncHandler if scheduling == 'engine' else Handler,
                config={'execution': {'scheduling': scheduling},
@@ -319,7 +319,7 @@ def test_partial_initialization_with_failed_cleanup_does_not_release_defaults(tm
 
 
 def test_legacy_config_import_is_one_way_and_preserves_stopped_workflow(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     first, second = image_file(server, (1, 2, 3)), image_file(server, (4, 5, 6))
     saved = config_value(first, enabled=False)
     directory = tmp_path / 'entries'
@@ -331,7 +331,7 @@ def test_legacy_config_import_is_one_way_and_preserves_stopped_workflow(tmp_path
         assert_protected(server.db, first)
         server.db.save_server_config(server.config_scope, 'image', config_value(second, False))
     assert json.loads(legacy.read_text()) == saved
-    reopened = Server(data_dir=tmp_path)
+    reopened = Server(resources=tmp_path, data_dir=tmp_path)
     with TestClient(reopened.app):
         assert reopened.entries['image']['config'].inputs['image'].default == {'file_id': second}
         assert_protected(reopened.db, second)

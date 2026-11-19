@@ -101,7 +101,7 @@ def test_json_declared_resources_survive_source_and_draft_deletion(db, tmp_path,
     plugin.mkdir(parents=True)
     (plugin / 'resource_node.py').write_text('import test_declared_resources\n')
     url = db.url.render_as_string(hide_password=False)
-    first = Server(workflow=path, data_dir=directory, database_url=url)
+    first = Server(workflow=path, resources=directory, data_dir=directory, database_url=url)
     with TestClient(first.app) as client:
         runtime = first.entries['assets']['source']['workflow']['node_repository_'][0]['artifacts']
         assert all(Path(value).is_relative_to(directory / 'assets') for value in runtime)
@@ -115,7 +115,7 @@ def test_json_declared_resources_survive_source_and_draft_deletion(db, tmp_path,
         response = client.post('/v1/server/assets/deploy', json={})
         assert response.status_code == 200, response.text
         assert response.json()['outputs'] == {'text': 'weights|tokens'}
-    with TestClient(Server(data_dir=directory, database_url=url).app) as client:
+    with TestClient(Server(resources=directory, data_dir=directory, database_url=url).app) as client:
         response = client.post('/v1/server/assets/deploy', json={})
         assert response.status_code == 200, response.text
         assert response.json()['outputs'] == {'text': 'weights|tokens'}
@@ -128,7 +128,7 @@ def test_code_graph_keeps_objects_and_declared_assets_after_source_deletion(tmp_
     original_node = graph.get_node('model')
     arguments = {'graph': graph} if source == 'graph' else {
         'graph_factory': functools.partial(graph_with_resources, [str(weights), str(vocab)])}
-    server = Server(**arguments, config=settings(isolation), data_dir=tmp_path / 'server')
+    server = Server(**arguments, config=settings(isolation), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         if isolation == 'thread':
             actual = server.entries['assets']['workers'][0].executor.runner.graph
@@ -197,7 +197,7 @@ def test_failed_resource_reload_keeps_the_running_and_saved_graph(db, tmp_path):
     weights, vocab = assets(tmp_path / 'files')
     workflow = json.loads(graph_with_resources([str(weights), str(vocab)]).serialize())
     directory = tmp_path / 'server'
-    server = Server(workflow=workflow, config=settings(), data_dir=directory,
+    server = Server(workflow=workflow, config=settings(), resources=directory, data_dir=directory,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         await server.start()
@@ -214,7 +214,7 @@ def test_failed_resource_reload_keeps_the_running_and_saved_graph(db, tmp_path):
             assert (await server.deploy('assets', {}))['outputs'] == {'text': 'weights|tokens'}
         finally:
             await server.close()
-        restored = Server(data_dir=directory, database_url=db.url.render_as_string(hide_password=False))
+        restored = Server(resources=directory, data_dir=directory, database_url=db.url.render_as_string(hide_password=False))
         await restored.start()
         try:
             assert (await restored.deploy('assets', {}))['outputs'] == {'text': 'weights|tokens'}
@@ -230,7 +230,7 @@ def test_code_graph_resource_preparation_does_not_require_json_export(tmp_path, 
         raise AssertionError('Code Graph must not require JSON serialization')
     monkeypatch.setattr(graph, 'serialize', unavailable)
     monkeypatch.setattr(graph.get_node('model'), 'serialize', unavailable)
-    server = Server(graph=graph, config=settings(), data_dir=tmp_path / 'server')
+    server = Server(graph=graph, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         weights.unlink()
         (vocab / 'vocab.txt').unlink()
@@ -260,7 +260,7 @@ def test_factory_resources_survive_stop_start_and_registered_server_restart(db, 
     factory = functools.partial(graph_with_resources, [str(weights), str(vocab)])
     config = settings(isolation)
     config['execution']['workers'] = 2
-    options = dict(graph_factory=factory, config=config, data_dir=tmp_path / 'server',
+    options = dict(graph_factory=factory, config=config, resources=tmp_path / 'server', data_dir=tmp_path / 'server',
                    database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         first = Server(**options)
@@ -275,7 +275,7 @@ def test_factory_resources_survive_stop_start_and_registered_server_restart(db, 
         finally:
             await first.close()
         # Persisted metadata must never instantiate Python code by itself.
-        without_code = Server(data_dir=tmp_path / 'server', database_url=options['database_url'])
+        without_code = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=options['database_url'])
         await without_code.start()
         try:
             assert 'assets' not in without_code.entries
@@ -296,7 +296,7 @@ def test_factory_rebuild_rejects_modified_saved_resources(tmp_path, directory):
     weights, vocab = assets(tmp_path / 'original')
     factory = functools.partial(graph_with_resources, [str(weights), str(vocab)])
     async def scenario():
-        server = Server(graph_factory=factory, config=settings(), data_dir=tmp_path / 'server')
+        server = Server(graph_factory=factory, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         await server.start()
         try:
             node = server.entries['assets']['workers'][0].executor.runner.graph.get_node('model')
@@ -315,7 +315,7 @@ def test_new_factory_registration_adopts_existing_sources_and_retains_missing_so
     import asyncio
     weights, vocab = assets(tmp_path / 'original')
     options = dict(graph_factory=functools.partial(graph_with_resources, [str(weights), str(vocab)]),
-                   config=settings(), data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+                   config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         first = Server(**options)
         await first.start()
@@ -343,7 +343,7 @@ def test_failed_factory_reload_preserves_saved_resources(db, tmp_path):
     import asyncio
     weights, vocab = assets(tmp_path / 'original')
     options = dict(graph_factory=functools.partial(graph_with_resources, [str(weights), str(vocab)]),
-                   config=settings(), data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+                   config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         server = Server(**options)
         await server.start()
@@ -373,7 +373,7 @@ def test_factory_resource_commit_receipt_loss_is_reconciled(db, tmp_path, monkey
     import asyncio
     weights, vocab = assets(tmp_path / 'original')
     options = dict(graph_factory=functools.partial(graph_with_resources, [str(weights), str(vocab)]),
-                   config=settings(), data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+                   config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         server = Server(**options)
         save = server.db.save_server_config
@@ -428,7 +428,7 @@ def test_factory_getter_setter_preserves_original_resource_declarations(tmp_path
     weights, _ = assets(tmp_path / 'original')
     async def scenario():
         factory = functools.partial(graph_with_resources, [str(weights)], GetterResources)
-        server = Server(graph_factory=factory, config=settings(), data_dir=tmp_path / 'server')
+        server = Server(graph_factory=factory, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         await server.start()
         try:
             weights.unlink()
@@ -451,7 +451,7 @@ def test_shared_factory_resources_restore_in_the_registered_workspace(backend, t
     weights, vocab = assets(tmp_path / 'original')
     monkeypatch.setenv('NNDEPLOY_TEST_RESOURCE_ROOT', str(tmp_path / 'original'))
     options = dict(graph_factory=environment_resource_graph, config=settings('process'),
-                   data_dir=tmp_path / 'server', redis_config=redis_config,
+                   resources=tmp_path / 'server', data_dir=tmp_path / 'server', redis_config=redis_config,
                    database_url=database.url.render_as_string(hide_password=False))
     async def scenario():
         server = Server(**options)
@@ -482,12 +482,12 @@ def test_factory_cache_does_not_reinterpret_relative_paths_in_another_directory(
     factory = functools.partial(graph_with_resources, [str(first_dir / 'weights.bin') if absolute else 'weights.bin'])
     async def scenario():
         monkeypatch.chdir(first_dir)
-        first = Server(graph_factory=factory, config=settings(), data_dir=tmp_path / 'server')
+        first = Server(graph_factory=factory, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         await first.start()
         await first.close()
         (first_dir / 'weights.bin').unlink()
         monkeypatch.chdir(second_dir)
-        second = Server(graph_factory=factory, config=settings(), data_dir=tmp_path / 'server')
+        second = Server(graph_factory=factory, config=settings(), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         try:
             if absolute:
                 await second.start()
@@ -505,7 +505,7 @@ def test_factory_process_recovery_keeps_the_loaded_resource_version(tmp_path):
     weights, vocab = assets(tmp_path / 'original')
     factory = functools.partial(graph_with_resources, [str(weights), str(vocab)])
     async def scenario():
-        server = Server(graph_factory=factory, config=settings('process'), data_dir=tmp_path / 'server')
+        server = Server(graph_factory=factory, config=settings('process'), resources=tmp_path / 'server', data_dir=tmp_path / 'server')
         await server.start()
         try:
             worker = server.entries['assets']['workers'][0]

@@ -3,6 +3,24 @@
 Install nndeploy with its Server dependencies and working native bindings first.
 These examples use the same Server, TaskQueue and task records as workflow JSON.
 
+## Multiple instances from a service manifest
+
+From the repository root, register the trusted text factory and start two named
+instances using the common launcher:
+
+```bash
+python -m nndeploy.server --api-only \
+  --register-algorithm text=demo.server.text.server:create_entry \
+  --services demo/server/text/services.json --resources ./resources/text-services
+```
+
+POST `{"text":"Hello"}` to `/v1/server/upper/text` or
+`/v1/server/lower/text` for uppercase or lowercase output. Both also expose the
+standard `/v1/server/{name}/deploy` route and share the Server task lifecycle.
+Algorithm factories validate their own options; JSON only refers to registered
+names, while `--register-algorithm` explicitly authorizes importing trusted code.
+Installed plugins can use the same mechanism without changing Server sources.
+
 Model files and directories use the Node's existing I/O declarations:
 
 ```python

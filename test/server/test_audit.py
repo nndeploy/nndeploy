@@ -31,7 +31,7 @@ def get_record(db, request_id):
 
 
 def make(db, path, **kwargs):
-    return Server(data_dir=path, database_url=db.url.render_as_string(hide_password=False),
+    return Server(resources=path, data_dir=path, database_url=db.url.render_as_string(hide_password=False),
                   admin_token='audit-admin', audit_config=kwargs.pop('audit_config', {}), **kwargs)
 
 

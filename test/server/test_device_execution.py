@@ -286,7 +286,7 @@ def test_commit_ack_loss_and_release_failure_do_not_repeat_or_fail_computation(d
 def test_redis_replicas_share_device_gate_and_preserve_task_results(backend, tmp_path, batch):
     db, redis = backend
     settings = limits(host=uuid.uuid4().hex)
-    servers = [Server(data_dir=tmp_path / 'shared', device_limits=settings,
+    servers = [Server(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', device_limits=settings,
                       database_url=db.url.render_as_string(hide_password=False), redis_config=redis) for i in range(2)]
     for server in servers:
         server.add(name='busy', deploy=shared_deploy, config=config())
@@ -325,7 +325,7 @@ def test_redis_replicas_share_device_gate_and_preserve_task_results(backend, tmp
 def test_redis_device_wait_obeys_deadline_and_remote_cancellation(backend, tmp_path, cancel):
     db, redis = backend
     settings = limits(host=uuid.uuid4().hex)
-    servers = [Server(data_dir=tmp_path / 'shared', device_limits=settings,
+    servers = [Server(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', device_limits=settings,
                       database_url=db.url.render_as_string(hide_password=False), redis_config=redis) for i in range(2)]
     for server in servers:
         server.add(name='busy', deploy=shared_deploy, config=config())

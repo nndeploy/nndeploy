@@ -150,7 +150,7 @@ def test_http_cleanup_requires_management_and_expiry_allows_new_idempotent_reque
     def deploy(inputs):
         calls.append(inputs)
         return inputs
-    server = Server(name='echo', deploy=deploy, data_dir=tmp_path, admin_token='admin',
+    server = Server(name='echo', deploy=deploy, resources=tmp_path, data_dir=tmp_path, admin_token='admin',
                     config={'inputs': {'text': {'type': 'string'}}, 'execution': {'task_retention_seconds': 60.0}})
     headers = {'Idempotency-Key': 'same'}
     body = {'inputs': {'text': 'hello'}}
@@ -175,13 +175,13 @@ def test_http_cleanup_requires_management_and_expiry_allows_new_idempotent_reque
 
 
 def test_restart_cleans_retained_tasks_with_original_policy(tmp_path):
-    server = Server(name='echo', deploy=lambda inputs: inputs, data_dir=tmp_path,
+    server = Server(name='echo', deploy=lambda inputs: inputs, resources=tmp_path, data_dir=tmp_path,
                     config={'execution': {'task_retention_seconds': 60.0}})
     with TestClient(server.app) as client:
         identity = client.post('/v1/server/echo/deploy', json={}).json()['task_id']
         expire(server.db, identity)
     # No entry or retention configuration on the replacement process.
-    reopened = Server(data_dir=tmp_path)
+    reopened = Server(resources=tmp_path, data_dir=tmp_path)
     with TestClient(reopened.app):
         deadline = time.monotonic() + 5
         while reopened.db.get_task(identity) is not None:
@@ -190,7 +190,7 @@ def test_restart_cleans_retained_tasks_with_original_policy(tmp_path):
 
 
 def test_shutdown_waits_for_current_cleanup_transaction(tmp_path, monkeypatch):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     entered, release, closed = threading.Event(), threading.Event(), threading.Event()
     original_close = server.db.close
     def cleanup():
@@ -218,7 +218,7 @@ def test_shutdown_waits_for_current_cleanup_transaction(tmp_path, monkeypatch):
 
 
 def test_background_cleanup_recovers_after_database_error(tmp_path, monkeypatch, caplog):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     attempts = []
     original = server.db.cleanup_tasks
     def cleanup():
@@ -241,7 +241,7 @@ def test_background_cleanup_recovers_after_database_error(tmp_path, monkeypatch,
 
 
 def test_sse_reports_retention_loss_without_fabricating_task_terminal_state(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         response = TaskEventResponse(server, 'gone', reserved=True)
         chunks = [chunk async for chunk in response.events('gone', 0)]

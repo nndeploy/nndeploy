@@ -73,7 +73,7 @@ def build_thread_safe_stream():
 @pytest.mark.parametrize('stream', [False, True])
 def test_concurrent_handler_reuses_initialization_without_serializing_requests(tmp_path, stream):
     server = Server(name='code', handler_factory=build_thread_safe_stream if stream else build_thread_safe_handler,
-                    data_dir=tmp_path, config=concurrent_config(stream))
+                    resources=tmp_path, data_dir=tmp_path, config=concurrent_config(stream))
     async def scenario():
         release, marker = tmp_path / 'release', tmp_path / 'marker'
         await server.start()
@@ -97,7 +97,7 @@ def test_concurrent_handler_reuses_initialization_without_serializing_requests(t
 
 
 def test_concurrent_cancellation_keeps_blocked_threads_counted(tmp_path):
-    server = Server(name='code', handler_factory=build_thread_safe_handler, data_dir=tmp_path, config=concurrent_config())
+    server = Server(name='code', handler_factory=build_thread_safe_handler, resources=tmp_path, data_dir=tmp_path, config=concurrent_config())
     async def scenario():
         release = tmp_path / 'release'
         markers = [tmp_path / str(index) for index in range(2)]
@@ -125,7 +125,7 @@ def test_concurrent_rejects_async_handlers_and_graphs(tmp_path):
     from test_server_api import text_graph
     async def scenario():
         for source in ({'workflow': text_graph()}, {'handler_factory': build_engine}):
-            server = Server(name='invalid', data_dir=tmp_path, config=concurrent_config(), **source)
+            server = Server(name='invalid', resources=tmp_path, data_dir=tmp_path, config=concurrent_config(), **source)
             try:
                 with pytest.raises(ValueError, match='Graph|synchronous'):
                     await server.start()

@@ -25,7 +25,7 @@ REQUEST_ID = 'req_' + 'c' * 32
 
 def crash_after_result(url, directory, marker, committed, failed=False):
     async def scenario():
-        server = Server(data_dir=directory, database_url=url, admin_token='management-token')
+        server = Server(resources=directory, data_dir=directory, database_url=url, admin_token='management-token')
         original = server.controls.finish
         def finish(*args):
             if committed:
