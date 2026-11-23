@@ -43,10 +43,11 @@ Transformer block 和模型优化策略属于算法实现；通用 Attention、�
 
 ## 环境
 
-先构建可运行的 nndeploy 原生绑定，再在仓库的 `python/` 目录执行 `python -m pip install -e .`。
-普通安装现在默认包含 DiT 计算库和所有 Server 扩展依赖，不再需要指定 `[e-dit]` 或 `[server-*]`。
-原来的 extra 名称保留为空别名，已有安装命令仍然可用。
-这些默认版本仍受各依赖支持的 Python、操作系统和硬件范围限制。
+先构建可运行的 nndeploy 原生绑定。CI 和使用基础功能的环境，在仓库的 `python/` 目录执行
+`python -m pip install -e .` 即可。默认安装包含 Server 扩展。
+运行 DiT 推理时，在同一目录执行 `python -m pip install -e ".[e_dit]"`，安装 PyTorch、torchvision、diffusers 等计算依赖。
+使用已发布的 wheel 时，对应命令为 `python -m pip install "nndeploy[e_dit]"`。
+DiT 依赖的版本和平台要求仅适用于选择该功能的环境。
 
 `algorithms/eraserdit/requirements.txt` 是 EraserDiT 的特定环境依赖配置（Python 3.10、Torch 2.6.0+cu126、Triton 3.2.0），
 包含默认安装之外的优化、测试和测量工具。普通安装不加载它；选择 EraserDiT 安装时，会应用其中所有依赖。
@@ -72,7 +73,7 @@ python python/install.py /absolute/path/to/eraserdit --editable
 
 仍支持 `--algorithm eraserdit` 简写，与直接传文件路径二选一。
 省略 `--editable` 可执行普通源码安装。脚本使用当前 Python 解释器的 pip，因此请先激活目标虚拟环境。
-它在同一次 pip 安装中传入算法 requirements 和 nndeploy 源码；`setup.py` 在依赖解析前替换默认要求，
+选择算法配置会自动启用 DiT。脚本在同一次 pip 安装中传入算法 requirements 和 nndeploy 源码，`setup.py` 在依赖解析前替换默认要求，
 最终包元数据也记录替换后的版本。已有库版本不符合算法要求时，由 pip 升级或降级。
 后续安装其他算法时，传入对应的依赖文件路径。文件不存在时直接报错，不会静默回退。
 不会在运行模型时自动调用 pip；安装完成后需重启服务和计算进程。

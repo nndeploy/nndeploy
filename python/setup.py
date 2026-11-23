@@ -19,8 +19,6 @@ from packaging.utils import canonicalize_name
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.install import install as InstallCommandBase
 
-is_ci = os.environ.get('CI') == 'true' or os.environ.get('GITHUB_ACTIONS') == 'true'
-
 manylinux_tags = [
     "manylinux1_x86_64",
     "manylinux1_i686",
@@ -51,11 +49,6 @@ try:
         def finalize_options(self):
             _bdist_wheel.finalize_options(self)
             self.root_is_pure = False
-            if platform.system() != "Linux":
-                import sys
-                python_version = f"{sys.version_info.major}{sys.version_info.minor}"
-                self.python_tag = f"cp{python_version}"
-                self.abi_tag = f"cp{python_version}"
         
         if platform.system() == "Linux":
             def get_tag(self):
@@ -327,6 +320,11 @@ def get_internal_so_path():
                     subprocess.run(["patchelf", "--set-rpath", "$ORIGIN", lib_path])
             except Exception as e:
                 print(f"Warning: Error processing {lib_path}: {e}")
+            if platform.system() == "Darwin":
+                # Rewriting Mach-O load commands can invalidate the linker signature.
+                signature = subprocess.run(["codesign", "--verify", lib_path], capture_output=True)
+                if signature.returncode != 0:
+                    subprocess.run(["codesign", "--force", "--sign", "-", lib_path], check=True)
                 
     # Return list of all dynamic library file names
     return [os.path.basename(match) for match in all_matches]
@@ -353,80 +351,6 @@ install_requires = [
         'numpy',  # Numerical computation
         'opencv-python>=4.10.0',  # Image processing
     ]
-    
-
-# # Detect if CUDA is available and its version
-# def get_cuda_version():
-#     """Detect CUDA version in the system"""
-#     try:
-#         # Method 1: Try to get CUDA version through nvidia-smi
-#         import subprocess
-#         result = subprocess.run(['nvidia-smi'], capture_output=True, text=True)
-#         if result.returncode == 0:
-#             # Extract CUDA version from nvidia-smi output
-#             lines = result.stdout.split('\n')
-#             for line in lines:
-#                 if 'CUDA Version:' in line:
-#                     version = line.split('CUDA Version:')[1].strip().split()[0]
-#                     # Remove decimal point, e.g., "11.8" -> "118"
-#                     version_str = version.replace('.','')
-#                     return version_str
-#     except:
-#         pass
-    
-#     try:
-#         # Method 2: Try to import torch to detect CUDA
-#         import torch
-#         if torch.cuda.is_available():
-#             # Get CUDA version, e.g., "11.8" 
-#             version = torch.version.cuda
-#             if version:
-#                 # Remove decimal point, e.g., "118"
-#                 version_str = version.replace('.','')
-#                 return version_str
-#     except ImportError:
-#         pass
-#     except Exception:
-#         pass
-    
-#     try:
-#         # Method 3: Check CUDA environment variables
-#         import os
-#         cuda_home = os.environ.get('CUDA_HOME') or os.environ.get('CUDA_PATH')
-#         if cuda_home and os.path.exists(cuda_home):
-#             # Try to extract version information from path
-#             version_file = os.path.join(cuda_home, 'version.txt')
-#             if os.path.exists(version_file):
-#                 with open(version_file, 'r') as f:
-#                     content = f.read()
-#                     # Search for version number pattern
-#                     import re
-#                     match = re.search(r'CUDA Version (\d+\.\d+)', content)
-#                     if match:
-#                         version = match.group(1)
-#                         version_str = version.replace('.','')
-#                         return version_str
-#     except:
-#         pass
-    
-#     return None
-
-# # Add corresponding dependency packages based on CUDA version
-# if is_ci:
-#     print("CI environment detected, using CPU-only dependencies")
-#     install_requires.extend([
-#         'torch>=2.0.0',  # Force CPU version
-#         'torchvision>=0.15.0',  # Force CPU version
-#     ])
-# else:
-#     cuda_version = get_cuda_version()
-#     install_requires.extend([
-#         'torch>=2.0.0', 
-#         'torchvision>=0.15.0', 
-#         'diffusers',
-#         'accelerate',
-#         'transformers',
-#     ])
 
 # Add server-related dependencies
 server_requires = [
@@ -450,14 +374,15 @@ server_requires = [
 
 install_requires.extend(server_requires)
 
-# These groups are all installed by default. Keep their names as empty extras
-# below so existing installation commands continue to work without re-pinning
-# packages replaced by an algorithm's requirements.
-dependency_groups = {
-    'e-dit': ['torch==2.6.0', 'torchvision==0.21.0', 'diffusers==0.40.0', 'transformers==5.3.0',
-              'accelerate==1.13.0', 'peft>=0.12', 'einops', 'sentencepiece',
-              'safetensors>=0.8', 'rich', 'imageio-ffmpeg', 'ffmpeg-python',
-              'decord', 'moviepy', 'pycocotools', 'pandas', 'av>=16.1,<20', 'scipy', 'ftfy==6.3.1'],
+# PyAV is shared with DiT and is already installed for server audio.
+e_dit_requires = [
+    'torch==2.6.0', 'torchvision==0.21.0', 'diffusers==0.40.0',
+    'transformers==5.3.0', 'accelerate==1.13.0', 'peft>=0.12',
+    'einops', 'sentencepiece', 'safetensors>=0.8', 'rich', 'imageio-ffmpeg',
+    'ffmpeg-python', 'decord', 'moviepy', 'pycocotools', 'pandas', 'scipy', 'ftfy==6.3.1',
+]
+
+server_extensions = {
     'server-mcp': ['mcp>=1.30,<2'],
     'server-audio': ['av>=16.1,<20'],
     'server-mysql': ['pymysql>=1.1,<2'],
@@ -468,9 +393,8 @@ dependency_groups = {
     'server-oss': ['alibabacloud-oss-v2>=1.4,<2'],
     'server-obs': ['esdk-obs-python>=3.25,<4'],
 }
-for requirements in dependency_groups.values():
+for requirements in server_extensions.values():
     install_requires.extend(requirements)
-install_requires = list(dict.fromkeys(install_requires))
 
 
 def apply_dependency_overrides(requirements, filename):
@@ -483,8 +407,6 @@ def apply_dependency_overrides(requirements, filename):
     """
     import re
 
-    if not filename:
-        return list(requirements)
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
@@ -537,7 +459,13 @@ if algorithm:
     if override_file:
         raise ValueError('Set only one of NNDEPLOY_DIT_ALGORITHM and NNDEPLOY_REQUIREMENTS_OVERRIDE')
     override_file = algorithm_requirements_file(algorithm)
-install_requires = apply_dependency_overrides(install_requires, override_file)
+if override_file:
+    # An explicit algorithm profile opts into DiT, including unmodified defaults.
+    install_requires = apply_dependency_overrides(install_requires + e_dit_requires, override_file)
+
+# Server extensions are installed by default. Their old extra names remain valid.
+extras_require = {name: [] for name in server_extensions}
+extras_require['e_dit'] = [] if override_file else e_dit_requires
 
 print(f"Final dependency list: {install_requires}")
 
@@ -636,7 +564,7 @@ setup(
             'nndeploy-clean=nndeploy.server.clean:main',
         ],
     },
-    extras_require={name: [] for name in dependency_groups},
+    extras_require=extras_require,
     cmdclass={"bdist_wheel": bdist_wheel},
     # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode

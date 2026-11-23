@@ -131,7 +131,7 @@ python -m nndeploy.e_dit.algorithms.wan.wan_videoedit_workflow
 通过 `DiTParams.model` 选择算法，内部节点和连线由代码创建。
 服务 schema 可由算法适配器的 `server_config()` 获取，与现有服务执行控制共享取消和进度接口。
 
-安装 `nndeploy[e-dit]`，VideoEdit 文件输出还需要 PATH 中的 `ffmpeg` 和 `ffprobe`。
+安装 `nndeploy[e_dit]`，VideoEdit 文件输出还需要 PATH 中的 `ffmpeg` 和 `ffprobe`。
 新增公共能力包括独立 cos/sin RoPE、时间嵌入接口、UniPC/FM 调度器、时序相似度缓存、
 图像编码器 offload 选项及分数帧率 MP4 封装。`repack.py` 保留官方格式 checkpoint 的转换工具。
 
@@ -189,7 +189,7 @@ python -m nndeploy.server --api-only --services services.json \
   --resources ./resources --host 127.0.0.1 --port 30000
 ```
 
-安装 `nndeploy[e-dit,server]`，对象存储另安装 `nndeploy[server-s3]`，PATH 中需有
+安装 `nndeploy[e_dit]`，PATH 中需有
 `ffmpeg`、`ffprobe`。文件大小、配额及保留策略统一由公共 Server 管理；默认上限为
 16 MiB、600 秒、4096 像素，需要按视频大小通过公共 `--storage-config` 显式配置。
 同一份服务配置可同时注册 VSR，共享数据库、存储和生命周期，详见

@@ -10,7 +10,7 @@ vocoder、latent upsampler、LTX float32 FlowMatch scheduler，以及单阶段/�
 
 ## 使用
 
-安装 `nndeploy[e-dit]` 和可用的原生绑定。模型使用本地 diffusers 布局，根目录需包含
+安装 `nndeploy[e_dit]` 和可用的原生绑定。模型使用本地 diffusers 布局，根目录需包含
 `model_index.json`，组件目录为 `transformer`、`text_encoder`、`tokenizer`、`scheduler`、
 `vae`、`audio_vae`、`vocoder`、`connectors`。默认使用 BF16 Transformer/Gemma/connector 和 FP32 音频组件。
 

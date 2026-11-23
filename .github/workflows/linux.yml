@@ -18,6 +18,8 @@ on:
       - 'framework/**'     # Framework core code directory
       - 'plugin/**'        # Plugin extension code directory
       - 'python/src/**'    # Python binding code directory (pybind11 related)
+      - 'python/setup.py'
+      - 'requirements.txt'
       - 'test/**'          # Unit test and integration test code directory
       - 'demo/**'          # Example and demo code directory
       - 'cmake/**'         # CMake build configuration file directory
@@ -30,6 +32,8 @@ on:
       - 'framework/**'     # Framework core code directory
       - 'plugin/**'        # Plugin extension code directory
       - 'python/src/**'    # Python binding code directory
+      - 'python/setup.py'
+      - 'requirements.txt'
       - 'test/**'          # Test code directory
       - 'demo/**'          # Example code directory
       - 'cmake/**'         # CMake configuration file directory
@@ -68,6 +72,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pybind11 setuptools wheel twine requests pathlib cython
+
+      - name: Verify Python package dependencies
+        run: python test/python/test_package_dependencies.py
             
       # Step 5: Install Rust toolchain
       - name: Setup Rust toolchain

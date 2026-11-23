@@ -20,12 +20,12 @@ class PackageDependenciesTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.build = self.root / 'python'
         (self.build / 'nndeploy').mkdir(parents=True)
         # get_package_data requires a native library; all inspection/patching
         # subprocesses are mocked and only this disposable file is touched.
-        (self.build / 'nndeploy' / 'stub.so').touch()
+        (self.build / 'nndeploy' / ('stub.pyd' if os.name == 'nt' else 'stub.so')).touch()
 
     def metadata(self, override=None, algorithm=None):
         previous = os.getcwd()
@@ -49,25 +49,37 @@ class PackageDependenciesTest(unittest.TestCase):
         filename.write_text(content, encoding='utf-8')
         return filename
 
-    def test_all_former_extras_are_default_dependencies(self):
+    def test_default_install_and_requirements_file_exclude_dit_dependencies(self):
         metadata = self.metadata()
         requirements = metadata['install_requires']
         by_name = {canonicalize_name(Requirement(item).name): item for item in requirements}
-        self.assertEqual(len(requirements), 48)
         self.assertEqual(len(by_name), len(requirements))
+        root_requirements = {
+            line for line in (SETUP.parents[1] / 'requirements.txt').read_text().splitlines()
+            if line and not line.startswith('#')
+        }
+        self.assertTrue(set(requirements).issubset(root_requirements))
+        root_names = {canonicalize_name(Requirement(item).name) for item in root_requirements}
+        self.assertTrue({'triton', 'flash-attn'}.isdisjoint(root_names))
+        extras = metadata['extras_require']
         for item in (
             'torch==2.6.0', 'torchvision==0.21.0', 'diffusers==0.40.0',
             'transformers==5.3.0', 'accelerate==1.13.0', 'peft>=0.12',
             'einops', 'sentencepiece', 'safetensors>=0.8', 'rich',
             'imageio-ffmpeg', 'ffmpeg-python', 'decord', 'moviepy',
-            'pycocotools', 'pandas', 'av>=16.1,<20', 'scipy', 'ftfy==6.3.1',
+            'pycocotools', 'pandas', 'scipy', 'ftfy==6.3.1',
+        ):
+            self.assertIn(item, extras['e_dit'])
+            self.assertNotIn(canonicalize_name(Requirement(item).name), root_names)
+        for item in (
+            'av>=16.1,<20',
             'mcp>=1.30,<2', 'pymysql>=1.1,<2', 'psycopg[binary]>=3.2,<4',
             'redis>=5,<8', 'boto3>=1.34,<2', 'cos-python-sdk-v5>=1.9,<2',
             'alibabacloud-oss-v2>=1.4,<2', 'esdk-obs-python>=3.25,<4',
         ):
             self.assertIn(item, requirements)
-        self.assertEqual(len(metadata['extras_require']), 10)
-        self.assertTrue(all(items == [] for items in metadata['extras_require'].values()))
+        self.assertEqual(len(extras), 10)
+        self.assertTrue(all(not items for name, items in extras.items() if name.startswith('server-')))
 
     def test_replace_versions_add_packages_and_emit_updated_metadata(self):
         filename = self.override(
@@ -88,6 +100,7 @@ class PackageDependenciesTest(unittest.TestCase):
         self.assertIn('new-algorithm-lib>=1', requirements)
         self.assertIn('psycopg[binary]==3.2.6', requirements)
         self.assertIn('fastapi>=0.104.0', requirements)
+        self.assertIn('diffusers==0.40.0', requirements)
         # Check serialized distribution metadata, including absence of extras
         # that would silently reintroduce the original pins.
         distribution = Distribution({
@@ -103,7 +116,7 @@ class PackageDependenciesTest(unittest.TestCase):
         filename = self.override('torch==2.7.0\n')
         relative = os.path.relpath(filename, SETUP.parent)
         self.assertIn('torch==2.7.0', self.metadata(relative)['install_requires'])
-        self.assertIn('torch==2.6.0', self.metadata()['install_requires'])
+        self.assertIn('torch==2.6.0', self.metadata()['extras_require']['e_dit'])
 
     def test_markers_and_url_fragments_are_preserved(self):
         filename = self.override(
@@ -125,9 +138,11 @@ class PackageDependenciesTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             self.metadata(self.root / 'missing.txt')
 
-    def test_empty_override_preserves_defaults(self):
-        self.assertEqual(self.metadata()['install_requires'],
-                         self.metadata(self.override('# No overrides\n'))['install_requires'])
+    def test_empty_algorithm_profile_uses_default_dit_versions(self):
+        defaults = self.metadata()
+        profile = self.metadata(self.override('# No overrides\n'))
+        self.assertEqual(defaults['install_requires'] + defaults['extras_require']['e_dit'],
+                         profile['install_requires'])
 
     def test_algorithm_selection_reads_real_profile_and_replaces_defaults(self):
         metadata = self.metadata(algorithm='eraserdit')
@@ -141,7 +156,7 @@ class PackageDependenciesTest(unittest.TestCase):
         self.assertFalse(any(item.startswith('--') for item in requirements))
         self.assertIn('e_dit/algorithms/*/requirements.txt', metadata['package_data']['nndeploy'])
         # A subsequent plain installation must not inherit the selected profile.
-        self.assertIn('torch==2.6.0', self.metadata()['install_requires'])
+        self.assertNotIn('torch==2.6.0+cu126', self.metadata()['extras_require']['e_dit'])
 
     def test_algorithm_selection_rejects_missing_invalid_or_ambiguous_profiles(self):
         with self.assertRaisesRegex(FileNotFoundError, 'Algorithm requirements not found'):
