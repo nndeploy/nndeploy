@@ -94,6 +94,7 @@ import nndeploy.gan
 import nndeploy.diffusion
 import nndeploy.api_llm
 import nndeploy.api_aigc
+import nndeploy.e_dit
 # import nndeploy.e_base
 # import nndeploy.e_llm
 

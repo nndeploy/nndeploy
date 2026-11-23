@@ -42,7 +42,7 @@ def echo(values):
     ('uint32', [0, 2**32-1]), ('int64', [-2**63, 2**63-1]), ('uint64', [0, 2**64-1]),
     ('float16', [0.5, -2.0]), ('float32', [0.5, -2.0]), ('float64', [0.5, -2.0])])
 def test_numpy_http_dtype_roundtrip_and_durable_result(tmp_path, dtype, values):
-    server = Server(deploy=echo, config=config(dtype=dtype), data_dir=tmp_path)
+    server = Server(deploy=echo, config=config(dtype=dtype), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         body = wire(values, dtype)
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': body}})
@@ -131,7 +131,7 @@ def test_native_tensor_graph_roundtrip_and_buffer_reuse(tmp_path, isolation, dty
     settings = graph_config(dtype=dtype, shape=shape, isolation=isolation)
     body = wire(data, dtype, shape)
     settings['execution']['warmup'] = [{'inputs': {'value': body}}]
-    server = Server(graph_factory=tensor_graph, config=settings, data_dir=tmp_path)
+    server = Server(graph_factory=tensor_graph, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         first = client.post('/v1/server/default/deploy', json={'inputs': {'value': body}})
         assert first.status_code == 200, first.text
@@ -146,7 +146,7 @@ def test_native_tensor_graph_roundtrip_and_buffer_reuse(tmp_path, isolation, dty
 @pytest.mark.parametrize('shape', [[2, 2], [2, 2, 3]])
 def test_graph_numpy_edges_preserve_supported_opencv_shapes(tmp_path, shape):
     body = wire(list(range(int(np.prod(shape)))), 'float32', shape)
-    with TestClient(Server(graph_factory=array_graph, config=graph_config('array', shape=shape), data_dir=tmp_path).app) as client:
+    with TestClient(Server(graph_factory=array_graph, config=graph_config('array', shape=shape), resources=tmp_path, data_dir=tmp_path).app) as client:
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': body}})
         assert response.status_code == 200, response.text
         assert response.json()['outputs']['value'] == body
@@ -169,7 +169,7 @@ def test_bad_arrays_are_rejected_before_algorithm_execution(tmp_path, invalid):
     def deploy(values):
         seen.append(True)
         return values
-    with TestClient(Server(deploy=deploy, config=config(), data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=deploy, config=config(), resources=tmp_path, data_dir=tmp_path).app) as client:
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': invalid}})
         assert response.status_code == 422, response.text
         assert not seen
@@ -210,7 +210,7 @@ def test_element_minimum_and_maximum_apply_to_inputs_and_native_outputs(tmp_path
     settings = config()
     settings['inputs']['value']['minimum'] = 0.0
     settings['outputs']['value']['maximum'] = 1.0
-    with TestClient(Server(deploy=echo, config=settings, data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=echo, config=settings, resources=tmp_path, data_dir=tmp_path).app) as client:
         assert client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([-1])}}).status_code == 422
         assert client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([2])}}).status_code == 500
         assert client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([1])}}).status_code == 200
@@ -222,7 +222,7 @@ def test_element_minimum_and_maximum_apply_to_inputs_and_native_outputs(tmp_path
     ('tensor', 'float32', [2, 2], array_graph),
 ])
 def test_incompatible_graph_numeric_binding_fails_before_ready(tmp_path, kind, dtype, shape, factory):
-    server = Server(graph_factory=factory, config=graph_config(kind, dtype, shape), data_dir=tmp_path)
+    server = Server(graph_factory=factory, config=graph_config(kind, dtype, shape), resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         try:
             with pytest.raises(ValueError):
@@ -245,7 +245,7 @@ def test_bad_native_outputs_fail_without_corrupting_following_requests(tmp_path,
             else:
                 array[0] = np.inf
         return {'value': array}
-    with TestClient(Server(deploy=deploy, config=config(), data_dir=tmp_path).app) as client:
+    with TestClient(Server(deploy=deploy, config=config(), resources=tmp_path, data_dir=tmp_path).app) as client:
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([1])}})
         assert response.status_code == 500
         good = client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([2])}})
@@ -262,7 +262,7 @@ def test_streaming_arrays_are_encoded_before_event_persistence(tmp_path, schedul
             yield value
     settings = config(scheduling=scheduling)
     settings['streaming'] = {'enabled': True}
-    server = Server(deploy=async_stream if scheduling == 'engine' else stream, config=settings, data_dir=tmp_path)
+    server = Server(deploy=async_stream if scheduling == 'engine' else stream, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/default/deploy', json={'inputs': {'value': wire([2, 3])}})
         assert response.status_code == 200, response.text
@@ -282,7 +282,7 @@ class NumericBatch:
 
 def test_dynamic_batches_receive_native_arrays_and_keep_json_task_records(tmp_path):
     settings = config(batching={'enabled': True}, warmup=[{'inputs': {'value': wire([1, 2])}}])
-    server = Server(handler_factory=NumericBatch, config=settings, data_dir=tmp_path)
+    server = Server(handler_factory=NumericBatch, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/default/deploy/batch', json={'items': [
             {'inputs': {'value': wire([1, 2])}}, {'inputs': {'value': wire([4, 5])}}]})
@@ -305,7 +305,7 @@ def test_large_numeric_tasks_and_mysql_legacy_text_migration(db, tmp_path):
     settings = config(dtype='float64')
     for group in ('inputs', 'outputs'):
         settings[group]['value'].update(max_elements=16384, max_bytes=262144)
-    server = Server(deploy=echo, config=settings, data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
+    server = Server(deploy=echo, config=settings, resources=tmp_path / 'server', data_dir=tmp_path / 'server', database_url=db.url.render_as_string(hide_password=False))
     assert db.get_task(legacy)['inputs'] == {'text': 'keep'}
     if db.engine.dialect.name == 'mysql':
         assert all(isinstance(column['type'], LONGTEXT) for column in inspect(db.engine).get_columns('server_tasks')

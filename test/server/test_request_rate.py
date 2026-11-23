@@ -33,7 +33,7 @@ def test_http_routes_share_subject_budget_and_rejections_do_not_deploy(tmp_path,
         return await deploy(DeployRequest(inputs={'text': caller.subject}))
 
     server = Server(name='echo', deploy=lambda x: calls.append(x) or x, router=router,
-                    auth_config=config, admin_token='admin', data_dir=tmp_path)
+                    auth_config=config, admin_token='admin', resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         assert client.get('/v1/models').status_code == 401
         assert client.get('/v1/models', headers={'Authorization': 'Bearer invalid'}).status_code == 401
@@ -87,7 +87,7 @@ def test_custom_identity_override_keeps_rate_and_entry_permissions(tmp_path, cre
     def custom():
         return {'ok': True}
 
-    server = Server(name='echo', deploy=lambda x: x, router=router, auth_config=config, data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda x: x, router=router, auth_config=config, resources=tmp_path, data_dir=tmp_path)
     server.app.dependency_overrides[current_identity] = lambda: Identity('external', frozenset(), frozenset())
     with TestClient(server.app) as client:
         # Valid external identity, but no deploy permission. Forbidden attempts
@@ -218,7 +218,7 @@ def test_http_shared_rate_outage_rejects_without_local_fallback(redis_service, m
     async def scenario():
         # HTTP quota admission needs no loaded model. Omit application startup
         # here so queue recovery cannot mask the limiter's own Redis outage.
-        servers = [Server(data_dir=tmp_path / str(i), auth_config=config,
+        servers = [Server(resources=tmp_path / str(i), data_dir=tmp_path / str(i), auth_config=config,
                           redis_config=redis.model_dump()) for i in range(2)]
         try:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=servers[0].app), base_url='http://test') as a, \
@@ -254,7 +254,7 @@ def test_shared_deploy_replay_consumes_request_quota_not_another_task(backend, t
     auth, headers = credentials
     auth['request_rate'] = {'requests': 2, 'window_seconds': 86400}
     servers = [Server(name='echo', deploy=shared_deploy, config=entry_config(),
-                      data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
+                      resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
                       redis_config=redis, auth_config=auth) for _ in range(2)]
 
     async def scenario():

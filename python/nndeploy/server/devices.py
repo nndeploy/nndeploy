@@ -292,7 +292,7 @@ class Devices:
         rows = {row['task_id']: row for row in connection.execute(select(
             tasks.c.task_id, tasks.c.state, tasks.c.attempt, tasks.c.worker_token, tasks.c.cancel_requested,
             tasks.c.expires_at, tasks.c.created_at).where(tasks.c.task_id.in_([item['_task_id'] for item in values]))).mappings()}
-        remaining, failures = [], []
+        remaining, failures, members = [], [], []
         for item in values:
             identity = item['_task_id']
             row = rows.get(identity)
@@ -309,15 +309,17 @@ class Devices:
                     failures.append(ServerError(504, 'queue_timeout', 'Task expired while waiting for a device', task_id=identity))
                 else:
                     remaining.append(seconds)
+                    members.append(item)
         if not remaining:
             raise failures[0] if failures else ServerError(422, 'invalid_request', 'Device execution requires an existing task')
-        return max(remaining), len(remaining)
+        return max(remaining), members
 
     def _begin(self, token, entry, values, devices, *, startup_deadline=None, editor=None):
         runtime = entry['device_guard'].path.name
         name = entry['config'].name
         members = encode({'editor': editor} if editor is not None else {'startup': True} if startup_deadline is not None else
                          [{key: value[key] for key in ('_task_id', '_attempt', '_worker_token') if key in value} for value in values])
+        active_values = [{}]  # Warmup/editor runs reserve the configured ceiling.
         with self.db.engine.begin() as connection:
             if self._lock(connection) != encode(self.policy):
                 raise ServerError(409, 'device_policy_conflict', 'Device execution policy changed')
@@ -347,7 +349,7 @@ class Devices:
                 if remaining <= 0:
                     raise ServerError(504, 'startup_timeout', 'Worker expired while waiting for a device')
             else:
-                remaining, units = self._valid_members(connection, values, entry['config'], now)
+                remaining, active_values = self._valid_members(connection, values, entry['config'], now)
             if current is None:
                 # One priority point advances one second. A waiting request
                 # eventually precedes all newly arriving requests at any priority.
@@ -360,7 +362,9 @@ class Devices:
             elif current['expires_at'] <= now:
                 raise ServerError(504, 'startup_timeout' if startup_deadline is not None else 'queue_timeout', 'Device wait expired')
             usage = self._usage(connection)
-            needed = {self.settings.devices[alias].identity or alias: amount * units
+            needed = {self.settings.devices[alias].identity or alias:
+                      sum((item.get('_service') or {}).get('temporary_memory_bytes', {}).get(alias, amount)
+                          for item in active_values)
                       for alias, amount in entry['config'].execution.temporary_memory_bytes.items()}
             for device in devices:
                 policy, current_usage = self.policy[device], usage[device]

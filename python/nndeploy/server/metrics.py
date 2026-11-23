@@ -28,6 +28,9 @@ def outcome(error):
 class Metrics:
     def __init__(self):
         self.registry = CollectorRegistry()
+        self.stages = Histogram('nndeploy_execution_stage_seconds',
+                                'Summed stage time per request (per physical batch for batched compute); nested stages can overlap.',
+                                ['entry', 'stage', 'outcome'], buckets=BUCKETS, registry=self.registry)
         self.http = Histogram('nndeploy_http_request_seconds', 'HTTP lifetime through final response body or disconnect.',
                               ['method', 'route', 'entry', 'status'], buckets=BUCKETS, registry=self.registry)
         self.first_byte = Histogram('nndeploy_http_first_byte_seconds', 'Time until the first nonempty response body.',
@@ -114,8 +117,9 @@ class Metrics:
             families.append(family)
             return family
 
-        gauge('inflight', 'Local accepted tasks being tracked, including shared-task waiters.').add_metric([], server.inflight)
-        gauge('inflight_limit', 'Maximum local admission and tracked task slots.').add_metric([], server.max_inflight_tasks)
+        gauge('inflight', 'Local accepted tasks, or in-progress admission calls when using shared queues.').add_metric([], server.inflight)
+        gauge('inflight_limit', 'Maximum local tasks or concurrent shared admission calls; shared task capacity is enforced in DB.').add_metric([], server.max_inflight_tasks)
+        gauge('shared_result_waiters', 'Active shared task result readers, independent of admission capacity.').add_metric([], len(server.waiters))
         gauge('stream_connections', 'Active SSE connections in this process.').add_metric([], server.stream_connections)
         gauge('sync_connections', 'Synchronous HTTP responses held through body delivery.').add_metric([], server.sync_connections)
         gauge('sync_connections_limit', 'Maximum synchronous HTTP responses in this process.').add_metric([], server.max_sync_connections)

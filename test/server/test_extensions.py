@@ -52,7 +52,7 @@ def echo(values):
 def test_custom_protocol_shares_ownership_idempotency_and_task_history(db, tmp_path, credentials):
     auth, headers = credentials
     router = algorithm_router()
-    server = Server(name='echo', deploy=echo, router=router, auth_config=auth, data_dir=tmp_path,
+    server = Server(name='echo', deploy=echo, router=router, auth_config=auth, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     server.add(name='private', deploy=echo, router=router)
     with TestClient(server.app) as client:
@@ -91,7 +91,7 @@ def test_custom_route_and_standard_route_share_bounded_queue_and_stop(tmp_path):
         assert release.wait(10)
         return echo(values)
 
-    server = Server(name='echo', deploy=slow, router=algorithm_router(), data_dir=tmp_path,
+    server = Server(name='echo', deploy=slow, router=algorithm_router(), resources=tmp_path, data_dir=tmp_path,
                     admin_token='admin', config={'inputs': {'text': {'type': 'string'}}, 'execution': {'max_queue_size': 0}})
     with TestClient(server.app) as client, ThreadPoolExecutor() as pool:
         future = pool.submit(client.post, '/v1/server/echo/messages', json={'text': 'one'})
@@ -112,7 +112,7 @@ def stream(values):
 
 
 def test_custom_stream_uses_accept_limit_events_and_existing_replay(tmp_path):
-    server = Server(name='echo', deploy=stream, router=algorithm_router(), data_dir=tmp_path,
+    server = Server(name='echo', deploy=stream, router=algorithm_router(), resources=tmp_path, data_dir=tmp_path,
                     config={'inputs': {'text': {'type': 'string'}}, 'streaming': {'enabled': True}})
     with TestClient(server.app) as client:
         url = '/v1/server/echo/messages'
@@ -138,7 +138,7 @@ def test_lazy_registry_is_local_and_missing_optional_dependency_does_not_load(tm
         '        return {"text": value["text"] + suffix}\n'
         '    return {"deploy": deploy}\n')
     monkeypatch.syspath_prepend(str(tmp_path))
-    server = Server(data_dir=tmp_path / 'server')
+    server = Server(resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     server.register('optional', module_name + ':create')
     server.register('missing', 'nndeploy_test_missing_optional_sdk:create')
     assert not marker.exists() and module_name not in sys.modules
@@ -151,7 +151,7 @@ def test_lazy_registry_is_local_and_missing_optional_dependency_does_not_load(tm
         with TestClient(server.app) as client:
             assert client.post('/v1/server/echo/messages', json={'text': 'hello'}).json()['text'] == 'hello?'
             assert client.post('/v1/server/nndeploy_test_missing_optional_sdk:create/deploy', json={}).status_code == 404
-        other = Server(data_dir=tmp_path / 'other')
+        other = Server(resources=tmp_path / 'other', data_dir=tmp_path / 'other')
         with pytest.raises(ValueError, match='Unknown registered algorithm'):
             other.add(algorithm='optional')
         asyncio.run(other.close())
@@ -163,7 +163,7 @@ def test_lazy_registry_is_local_and_missing_optional_dependency_does_not_load(tm
 def test_custom_routes_cannot_shadow_standard_routes(tmp_path, path):
     router = APIRouter()
     router.add_api_route(path, lambda: {})
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     before = len(server.app.routes)
     with pytest.raises(ValueError, match='literal first path'):
         server.add(name='echo', deploy=echo, router=router)
@@ -172,7 +172,7 @@ def test_custom_routes_cannot_shadow_standard_routes(tmp_path, path):
 
 
 def test_duplicate_registry_bad_factories_and_late_routes_fail_without_mutation(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     server.register('echo', lambda: {'deploy': echo})
     with pytest.raises(ValueError, match='Duplicate'):
         server.register('echo', lambda: {})
@@ -197,7 +197,7 @@ def shared_algorithm():
 
 def test_registered_algorithm_uses_real_redis_and_shared_task_records(backend, tmp_path):
     db, redis_config = backend
-    server = Server(data_dir=tmp_path, redis_config=redis_config, database_url=db.url.render_as_string(hide_password=False))
+    server = Server(resources=tmp_path, data_dir=tmp_path, redis_config=redis_config, database_url=db.url.render_as_string(hide_password=False))
     server.register('text', shared_algorithm).add(name='echo', algorithm='text')
     with TestClient(server.app) as client:
         assert client.get('/v1/server/echo/redis').json() == {'ready': True}
@@ -213,7 +213,7 @@ def test_registered_algorithm_uses_real_redis_and_shared_task_records(backend, t
 def test_algorithm_route_can_use_real_graph_and_precedes_editor_catchall(tmp_path, isolation):
     from fastapi.responses import PlainTextResponse
     from test_server_api import text_graph
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
 
     async def frontend(scope, receive, send):
         await PlainTextResponse('editor')(scope, receive, send)

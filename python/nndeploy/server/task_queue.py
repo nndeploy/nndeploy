@@ -650,7 +650,7 @@ class RedisTaskQueue:
         return hashlib.sha256(encode([self.config.namespace, self.name, owner, value]).encode()).hexdigest()
 
     async def put(self, inputs, parameters=None, *, queue_timeout=30, idempotency_key=None, owner=None,
-                  retention_seconds=None, request_id=None, max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None):
+                  retention_seconds=None, request_id=None, max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None, service=None):
         import asyncio
         import uuid
         from redis.exceptions import RedisError
@@ -664,7 +664,7 @@ class RedisTaskQueue:
         identity = await asyncio.to_thread(self.db.create_shared_task, 'task_' + uuid.uuid4().hex,
             self.name, self.key, self.group_key, inputs, parameters, queue_timeout, key, owner,
             retention_seconds=retention_seconds, request_id=request_id, max_tasks_per_subject=max_tasks_per_subject,
-            input_state=input_state, callback_url=callback_url, callback_scope=callback_scope)
+            input_state=input_state, callback_url=callback_url, callback_scope=callback_scope, service=service)
         pending = True
         try:
             pending = not await self._publish(identity)

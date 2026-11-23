@@ -136,7 +136,7 @@ def test_unknown_configuration_write_retains_copies_until_confirmed(db, tmp_path
 
 def test_editor_worker_holds_materialized_input_until_graph_release(tmp_path):
     from nndeploy.server.editor_inputs import prepare_worker_inputs
-    server = Server(data_dir=tmp_path / 'runtime')
+    server = Server(resources=tmp_path / 'runtime', data_dir=tmp_path / 'runtime')
     record = server.storage.save(io.BytesIO(b'weights'), 'application/octet-stream')
     options = dict(root=str(server.storage.root), database_url=server.db.url.render_as_string(hide_password=False),
                    timeout_seconds=10, max_bytes=server.storage.max_bytes, config=server.storage.config.model_dump())
@@ -212,7 +212,7 @@ def test_stop_start_and_server_restart_keep_required_copies(db, tmp_path, source
                  {'graph_factory': functools.partial(graph_with_resources, [str(weights)])} if source == 'factory' else
                  {'workflow': json.loads(graph_with_resources([str(weights)]).serialize())})
     directory = tmp_path / 'runtime'
-    options = dict(data_dir=directory, database_url=db.url.render_as_string(hide_password=False))
+    options = dict(resources=directory, data_dir=directory, database_url=db.url.render_as_string(hide_password=False))
     server = Server(**options, **arguments, config=settings(isolation))
     plugin = directory / 'plugin'
     plugin.mkdir()
@@ -245,7 +245,12 @@ def test_reload_discards_previous_and_failed_candidate_copies(tmp_path, monkeypa
     source = tmp_path / 'model.bin'
     source.write_text('first')
     workflow = json.loads(graph_with_resources([str(source)]).serialize())
-    server = Server(workflow=workflow, config=settings(), data_dir=tmp_path / 'runtime')
+    server = Server(workflow=workflow, config=settings(), resources=tmp_path / 'runtime', data_dir=tmp_path / 'runtime')
+    async def idle_maintenance(*args, **kwargs):
+        # This test asserts the manual cleanup count. Automatic maintenance
+        # must not race it and legitimately collect the same obsolete copy.
+        await server.maintenance_stop.wait()
+    monkeypatch.setattr(server, '_maintain_tasks', idle_maintenance)
     def paths():
         return [path for path in (server.data_dir / 'assets').glob('*/model.bin')]
     async def scenario():

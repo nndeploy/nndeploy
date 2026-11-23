@@ -88,7 +88,7 @@ def batch_config(size=4, wait=100, queue_size=8, timeout=5):
 
 def make_server(tmp_path, **options):
     return Server(name='vectors', handler_factory=VectorBatch, config=batch_config(**options),
-                  output_model=BatchOutput, data_dir=tmp_path)
+                  output_model=BatchOutput, resources=tmp_path, data_dir=tmp_path)
 
 
 def test_requests_share_one_native_call_and_preserve_task_ids_and_defaults(tmp_path):
@@ -225,7 +225,7 @@ def test_rejects_unsupported_batch_execution_combinations(tmp_path):
         ServerConfig.model_validate(config)
     async def scenario():
         for index, source in enumerate(({'workflow': text_graph()}, {'deploy': lambda values: values})):
-            server = Server(config=batch_config(), data_dir=tmp_path / str(index), **source)
+            server = Server(config=batch_config(), resources=tmp_path / str(index), data_dir=tmp_path / str(index), **source)
             with pytest.raises(ValueError, match='Dynamic batching'):
                 await server.start()
             assert server.describe('default')['status'] == 'failed'

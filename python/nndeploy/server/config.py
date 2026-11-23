@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator, model_serializer
+from .mcp.config import ToolConfig
 
 
 def _object(pairs):
@@ -37,6 +38,7 @@ class FieldConfig(StrictModel):
     required: bool = True
     default: Any = None
     exposed: list[list[str]] | None = None
+    runtime: list[list[str]] | None = None
     minimum: float | None = None
     maximum: float | None = None
     dtype: Literal['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32', 'uint64',
@@ -52,6 +54,8 @@ class FieldConfig(StrictModel):
         value = handler(self)
         if self.exposed is None:
             value.pop('exposed', None)
+        if self.runtime is None:
+            value.pop('runtime', None)
         if self.media_type is None:
             value.pop('media_type', None)
         if self.sample_rate is None:
@@ -67,6 +71,13 @@ class FieldConfig(StrictModel):
 
     @model_validator(mode="after")
     def check(self):
+        if self.runtime is not None:
+            from .parameters import parameter_paths
+            if self.node is None or self.type != 'json' or not isinstance(self.default, dict):
+                raise ValueError('runtime requires a node parameter object')
+            available = {tuple(path) for path in parameter_paths(self.default)}
+            if any(tuple(path) not in available for path in self.runtime):
+                raise ValueError('runtime must name existing node parameter fields')
         if self.exposed is not None:
             from .parameters import parameter_paths
             if self.node is None or self.type != 'json' or not isinstance(self.default, dict):
@@ -207,12 +218,16 @@ class ExecutionConfig(StrictModel):
     scheduling: Literal['serial', 'concurrent', 'engine'] = 'serial'
     max_concurrency_per_worker: int = Field(default=1, ge=1, le=64)
     cooperative_cancel: bool = False
+    cancellation_grace_seconds: float = Field(default=5.0, gt=0, allow_inf_nan=False)
     workers: int = Field(default=1, ge=1, le=64)
     max_queue_size: int = Field(default=32, ge=0)
+    admission_group: str | None = Field(default=None, min_length=1, max_length=128)
     queue_timeout_seconds: float = Field(default=30.0, gt=0, allow_inf_nan=False)
     isolation: Literal['thread', 'process'] = 'thread'
+    allow_child_processes: bool = False
     cpu_threads: int | None = Field(default=None, ge=1, le=65536)
     startup_timeout_seconds: float = Field(default=60.0, gt=0, allow_inf_nan=False)
+    shutdown_timeout_seconds: float = Field(default=5.0, gt=0, allow_inf_nan=False)
     execution_timeout_seconds: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     http_wait_timeout_seconds: float = Field(default=60.0, gt=0, le=3600, allow_inf_nan=False)
     restore_on_restart: bool = True
@@ -228,6 +243,8 @@ class ExecutionConfig(StrictModel):
     def serialize(self, handler):
         value = handler(self)
         # Optional budgeting must not change existing shared fingerprints.
+        if self.admission_group is None:
+            value.pop('admission_group', None)
         if not self.devices:
             value.pop('devices', None)
         if not self.memory_bytes:
@@ -259,8 +276,12 @@ class ExecutionConfig(StrictModel):
             raise ValueError('Dynamic batching requires a serial thread worker; engines manage their own batches')
         if self.scheduling == 'serial' and self.max_concurrency_per_worker != 1:
             raise ValueError('Serial execution requires one request per worker')
-        if self.cooperative_cancel and self.scheduling != 'engine':
-            raise ValueError('Cooperative cancellation requires an async engine')
+        if self.allow_child_processes:
+            import sys
+            if self.isolation != 'process' or not sys.platform.startswith('linux'):
+                raise ValueError('Child process groups require Linux process isolation')
+        if self.cooperative_cancel and self.scheduling != 'engine' and self.isolation != 'process':
+            raise ValueError('Cooperative cancellation requires process isolation or an async engine')
         if self.scheduling != 'serial' and self.isolation != 'thread':
             raise ValueError('Concurrent and engine scheduling currently require thread isolation')
         if self.execution_timeout_seconds is not None and self.isolation != 'process' and not (
@@ -307,6 +328,15 @@ class StreamingConfig(StrictModel):
 
 
 class ServerConfig(StrictModel):
+    mcp: ToolConfig | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        if self.mcp is None:
+            value.pop("mcp", None)
+        return value
+
     name: str = Field(default="default", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
     inputs: dict[str, FieldConfig] = Field(default_factory=dict)
     parameters: dict[str, FieldConfig] = Field(default_factory=dict)
@@ -323,6 +353,8 @@ class ServerConfig(StrictModel):
         seen = set()
         for group in ("inputs", "parameters", "outputs"):
             for name, field in getattr(self, group).items():
+                if field.runtime is not None and group != 'parameters':
+                    raise ValueError('runtime applies only to node parameters')
                 if group == 'outputs' and field.device is not None:
                     raise ValueError('Output tensors are copied to host; target device only applies to inputs')
                 if not name:
@@ -353,10 +385,14 @@ class ServerConfig(StrictModel):
                     result[group][name] = field.validate_value(values.get(name, field.default), allow_local_files=True)
                     if group == 'parameters' and field.node is not None and field.type == 'json' and isinstance(field.default, dict):
                         from .parameters import parameter_changes
-                        parameter_changes(field.default, result[group][name], name)
+                        changes = parameter_changes(field.default, result[group][name], name)
                         if name in values and field.exposed is not None:
                             from .parameters import exposed_defaults
                             parameter_changes(exposed_defaults(field.default, field.exposed), values[name], name)
+                        # Defaults are resident configuration, protected by the
+                        # entry's resource lease. Only request overrides belong
+                        # to the task and its caller-owned file references.
+                        result[group][name] = changes
                 except (ValueError, TypeError, OverflowError) as exc:
                     raise ValueError(f"Invalid {group}.{name}: {exc}") from exc
         return result

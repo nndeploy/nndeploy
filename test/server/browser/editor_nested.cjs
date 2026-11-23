@@ -86,10 +86,13 @@ async function until(check, description) {
       'Expanded Graph previews overlap or remain outside the editor viewport');
     await page.screenshot({ path: file('nested-canvas.png') });
     await page.getByRole('button', { name: 'Webui', exact: true }).click();
-    const outputs = page.getByLabel('Output files', { exact: true });
+    const outputs = page.locator('.semi-sidesheet:visible');
     for (const output of result.output_files) {
-      await outputs.getByRole('link', { name: output.node_path.join(' / ') + ' / path_', exact: true }).waitFor();
-      await rendered(outputs, output);
+      const card = outputs.getByRole('article').filter({
+        has: page.getByText(output.node_path.join(' / ') + ' / path_', { exact: true }),
+      });
+      await card.getByRole('link', { name: 'Download file', exact: true }).waitFor();
+      await rendered(card, output);
     }
     await page.screenshot({ path: file('nested-webui.png') });
     await page.locator('.semi-sidesheet-footer').getByRole('button', { name: 'close', exact: true }).click();

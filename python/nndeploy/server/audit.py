@@ -127,7 +127,8 @@ class Audit:
 
     def covers(self, scope):
         return self.config is not None and scope['type'] in ('http', 'websocket') and (
-            scope['path'] in ('/api', '/v1') or scope['path'].startswith(('/api/', '/v1/')))
+            scope['path'] in ('/api', '/v1') or scope['path'].startswith(('/api/', '/v1/')) or
+            (self.server.mcp is not None and scope['path'] == self.server.mcp.config.path))
 
     async def database(self, operation, *args):
         if self.config is None or self.closed:

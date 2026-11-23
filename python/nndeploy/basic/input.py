@@ -36,6 +36,14 @@ class InputStr(nndeploy.dag.Node):
         self.str_ = json_obj["str_"]
         return super().deserialize(target)
 
+    def get_runtime_parameter_paths(self):
+        return (("str_",),)
+
+    def set_runtime_parameters(self, changes):
+        if set(changes) != {"str_"} or not isinstance(changes["str_"], str):
+            raise ValueError("InputStr runtime parameters require str_")
+        self.str_ = changes["str_"]
+
 class InputStrCreator(nndeploy.dag.NodeCreator):
     def __init__(self):
         super().__init__()

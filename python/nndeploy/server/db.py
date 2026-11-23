@@ -72,6 +72,10 @@ templates = _workflow_table('templates', True)
 tasks = Table('server_tasks', metadata,
     Column('task_id', String(64), primary_key=True), Column('name', String(128), nullable=False),
     Column('request_id', String(36)),
+    Column('service', Text), Column('service_scope', String(64)), Column('external_key', String(64)), Column('admission_key', String(64)),
+    Column('progress_sequence', Integer, nullable=False, server_default='0'),
+    Column('progress_next_at', Double, nullable=False, server_default='0'),
+    Column('progress_delivery', Text),
     Column('callback_url', Text), Column('callback_scope', String(64)),
     Column('callback_state', String(16)), Column('callback_attempts', Integer, nullable=False, server_default='0'),
     Column('callback_next_at', Double, nullable=False, server_default='0'),
@@ -91,6 +95,8 @@ tasks = Table('server_tasks', metadata,
     Column('published_at', Double), Column('event_seq', Integer, nullable=False, server_default='0'),
     Column('retention_seconds', Double), Column('purge_after', Double),
     UniqueConstraint('name', 'idempotency_key', name='uq_server_tasks_idempotency'),
+    Index('uq_server_tasks_external', 'external_key', unique=True),
+    Index('ix_server_tasks_admission', 'admission_key', 'state'),
     Index('ix_server_tasks_callbacks', 'callback_scope', 'callback_state', 'callback_next_at'),
     Index('ix_server_tasks_name', 'name', 'created_at'),
     Index('ix_server_tasks_purge', 'purge_after', 'task_id'),
@@ -768,8 +774,108 @@ class DB:
             raise ServerError(429, 'subject_tasks_full', 'Identity task limit reached', retryable=True)
         return key
 
+    @staticmethod
+    def external_key(name, external_id, owner, scope):
+        return hashlib.sha256(encode([scope, name, owner, external_id]).encode()).hexdigest()
+
+    def latest_progress(self, task_id):
+        row = self._one(select(task_events.c.data).where(task_events.c.task_id == task_id,
+            task_events.c.kind == 'delta').order_by(task_events.c.sequence.desc()).limit(1))
+        return json.loads(row['data'])['data'] if row else {}
+
+    def external_task(self, name, external_id, owner, scope):
+        key = self.external_key(name, external_id, owner, scope)
+        row = self._one(select(tasks.c.task_id).where(tasks.c.external_key == key))
+        return self.get_task(row['task_id']) if row else None
+
+    def service_busy(self, scope, group):
+        key = hashlib.sha256(encode([scope, group]).encode()).hexdigest()
+        return self._one(select(tasks.c.task_id).where(tasks.c.admission_key == key,
+                         ~tasks.c.state.in_(TERMINAL))) is not None
+
+    def service_tasks(self, name, scope, *, owner=None, administrator=False, limit=100,
+                      after=None, order='desc', states=None):
+        names = [name] if isinstance(name, str) else list(name)
+        conditions = [tasks.c.name.in_(names), tasks.c.service_scope == hashlib.sha256(scope.encode()).hexdigest()]
+        if not administrator:
+            conditions.append(tasks.c.owner_key == self.subject_key(owner))
+        if states is not None:
+            conditions.append(tasks.c.state.in_(states))
+        ascending = order == 'asc'
+        with self.engine.connect() as connection:
+            if after is not None:
+                from sqlalchemy import and_, or_
+                keys = [self.external_key(entry, after, owner, scope) for entry in names]
+                cursors = connection.execute(select(tasks.c.created_at, tasks.c.task_id).where(
+                    *conditions, or_(tasks.c.task_id == after, tasks.c.external_key.in_(keys))).limit(2)).all()
+                if not cursors:
+                    return []
+                if len(cursors) > 1:
+                    raise ServerError(409, 'ambiguous_task', 'Use entry or an internal task_id for this cursor')
+                cursor = cursors[0]
+                comparison = tasks.c.created_at > cursor.created_at if ascending else tasks.c.created_at < cursor.created_at
+                tie = tasks.c.task_id > cursor.task_id if ascending else tasks.c.task_id < cursor.task_id
+                conditions.append(or_(comparison, and_(tasks.c.created_at == cursor.created_at, tie)))
+            sorting = [column.asc() if ascending else column.desc() for column in (tasks.c.created_at, tasks.c.task_id)]
+            query = select(tasks.c.task_id).where(*conditions).order_by(*sorting)
+            if limit is not None:
+                query = query.limit(limit)
+            ids = connection.execute(query).scalars().all()
+        result = []
+        for identity in ids:
+            record = self.get_task(identity)
+            if record:
+                record['_progress'] = self.latest_progress(identity)
+                result.append(record)
+        return result
+
+    def resource_task(self, names, identity, scope, *, owner=None, administrator=False):
+        """Resolve a scoped resource ID, refusing ambiguous external IDs."""
+        from sqlalchemy import or_
+        keys = [self.external_key(name, identity, owner, scope) for name in names]
+        conditions = [tasks.c.name.in_(names),
+                      tasks.c.service_scope == hashlib.sha256(scope.encode()).hexdigest(),
+                      or_(tasks.c.task_id == identity, tasks.c.external_key.in_(keys))]
+        if not administrator:
+            conditions.append(tasks.c.owner_key == self.subject_key(owner))
+        with self.engine.connect() as connection:
+            ids = connection.execute(select(tasks.c.task_id).where(*conditions).limit(2)).scalars().all()
+        if len(ids) > 1:
+            raise ServerError(409, 'ambiguous_task', 'Use entry or an internal task_id to select the video')
+        record = self.get_task(ids[0]) if ids else None
+        if record:
+            record['_progress'] = self.latest_progress(record['task_id'])
+        return record
+
+    def service_counts(self, name, scope):
+        from sqlalchemy import func
+        with self.engine.connect() as connection:
+            return connection.execute(select(tasks.c.state, tasks.c.cancel_requested, func.count()).where(
+                tasks.c.name == name, tasks.c.service_scope == hashlib.sha256(scope.encode()).hexdigest()
+            ).group_by(tasks.c.state, tasks.c.cancel_requested)).all()
+
+    def _admit_service(self, connection, name, owner, service):
+        if not service:
+            return {}
+        scope = service['scope']
+        external = service.get('external_id')
+        group = service.get('admission_group')
+        admission = hashlib.sha256(encode([scope, group]).encode()).hexdigest() if group else None
+        external_key = self.external_key(name, external, owner, scope) if external is not None else None
+        # The write lock precedes reads on every supported SQL backend.
+        if admission or external_key:
+            self._lock_subject_key(connection, admission or external_key)
+            if admission and external_key:
+                self._lock_subject_key(connection, external_key)
+        if external_key and connection.execute(select(tasks.c.task_id).where(tasks.c.external_key == external_key)).first():
+            raise ServerError(409, 'duplicate_task', 'Task ID already exists')
+        if admission and connection.execute(select(tasks.c.task_id).where(
+                tasks.c.admission_key == admission, ~tasks.c.state.in_(TERMINAL))).first():
+            raise ServerError(429, 'service_busy', 'A task is running.', retryable=True)
+        return dict(service=encode(service), service_scope=hashlib.sha256(scope.encode()).hexdigest(), external_key=external_key, admission_key=admission)
+
     def create_task(self, task_id, name, created_at, inputs=None, parameters=None, owner=None, idempotency_key=None,
-                    *, retention_seconds=None, request_id=None, max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None):
+                    *, retention_seconds=None, request_id=None, max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None, service=None):
         self._validate_retention(retention_seconds)
         if idempotency_key is not None and (not idempotency_key or len(idempotency_key) > 128):
             raise ValueError('Idempotency key must contain 1 to 128 characters')
@@ -777,8 +883,9 @@ class DB:
         fingerprint = task_fingerprint(inputs, parameters, owner, callback_url)
         try:
             with self.engine.begin() as connection:
+                service_values = self._admit_service(connection, name, owner, service)
                 owner_key = self._admit_subject(connection, owner, max_tasks_per_subject)
-                connection.execute(insert(tasks).values(**task_values(callback_url, callback_scope), task_id=task_id, name=name, state='pending', created_at=created_at,
+                connection.execute(insert(tasks).values(**service_values, **task_values(callback_url, callback_scope), task_id=task_id, name=name, state='pending', created_at=created_at,
                     inputs=encode(inputs), parameters=encode(parameters), input_state=encode(input_state) if input_state else None,
                     owner=owner, owner_key=owner_key,
                     idempotency_key=idempotency_key, fingerprint=fingerprint, retention_seconds=retention_seconds, request_id=request_id))
@@ -858,6 +965,9 @@ class DB:
             if routing and routing.queue_key:
                 for key in (routing.group_key, routing.queue_key):
                     connection.execute(update(queue_limits).where(queue_limits.c.queue_key == key).values(inflight=queue_limits.c.inflight - 1))
+        notifications = getattr(self, 'event_notifications', None)
+        if notifications is not None:
+            notifications.notify(task_id, sequence, terminal=True)
         metrics = getattr(self, 'metrics', None)
         if metrics is not None:
             metrics.terminal.labels(final.name, state).inc()
@@ -931,12 +1041,13 @@ class DB:
 
     def create_shared_task(self, task_id, name, queue_key, group_key, inputs, parameters,
                            queue_timeout, idempotency_key=None, owner=None, *, retention_seconds=None, request_id=None,
-                           max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None):
+                           max_tasks_per_subject=None, input_state=None, callback_url=None, callback_scope=None, service=None):
         self._validate_retention(retention_seconds)
         from .callbacks import fingerprint as task_fingerprint, task_values
         fingerprint = task_fingerprint(inputs, parameters, owner, callback_url)
         try:
             with self.engine.begin() as connection:
+                service_values = self._admit_service(connection, name, owner, service)
                 owner_key = self._admit_subject(connection, owner, max_tasks_per_subject)
                 now = self.clock(connection)
                 for key in (group_key, queue_key):
@@ -949,7 +1060,7 @@ class DB:
                         if row and not row.accepting:
                             raise ServerError(503, 'not_ready', 'Shared entry is stopped', retryable=True)
                         raise ServerError(429, 'queue_full', 'Shared task capacity reached', retryable=True)
-                connection.execute(insert(tasks).values(**task_values(callback_url, callback_scope), task_id=task_id, name=name, queue_key=queue_key, group_key=group_key,
+                connection.execute(insert(tasks).values(**service_values, **task_values(callback_url, callback_scope), task_id=task_id, name=name, queue_key=queue_key, group_key=group_key,
                     state='pending', created_at=now, expires_at=now + queue_timeout, inputs=encode(inputs), parameters=encode(parameters),
                     fingerprint=fingerprint, owner=owner, owner_key=owner_key, idempotency_key=idempotency_key,
                     input_state=encode(input_state) if input_state else None,
@@ -1145,7 +1256,7 @@ class DB:
             result['callback'] = ({'url': result['callback_url'], 'state': result['callback_state'],
                 'attempts': result['callback_attempts'], 'status_code': result['callback_status_code'],
                 'error': result['callback_error']} if result['callback_url'] else None)
-            for field in ('inputs', 'parameters', 'outputs', 'error'):
+            for field in ('inputs', 'parameters', 'outputs', 'error', 'service'):
                 result[field] = json.loads(result[field]) if result[field] is not None else None
         return result
 

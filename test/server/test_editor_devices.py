@@ -166,7 +166,7 @@ nndeploy.dag.register_node('test.editor.BudgetImage', creator)
     settings = limits(host=uuid.uuid4().hex if separate_server else None)
     server = runtime.start(lambda jobs, plugins, cancellations: Server(args, jobs, plugins, cancellations,
                             database_url=location, device_limits=settings))
-    peer = Server(data_dir=tmp_path / 'peer', database_url=server.db.url.render_as_string(hide_password=False),
+    peer = Server(resources=tmp_path / 'peer', data_dir=tmp_path / 'peer', database_url=server.db.url.render_as_string(hide_password=False),
                   device_limits=settings) if separate_server else server
     config = entry_config()
     config['execution'].update(isolation='thread', devices=['cpu'])

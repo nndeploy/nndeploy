@@ -41,7 +41,7 @@ def test_sequence_cache_is_bounded_shared_and_database_scoped(backend):
 @pytest.mark.parametrize('unavailable', [False, True])
 def test_http_stream_and_replay_use_db_when_notifications_fail(backend, tmp_path, monkeypatch, unavailable):
     db, config = backend
-    servers = [Server(name='echo', deploy=output_stream, config=stream_config(), data_dir=tmp_path / 'shared',
+    servers = [Server(name='echo', deploy=output_stream, config=stream_config(), resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                       database_url=db.url.render_as_string(hide_password=False), redis_config=config) for _ in range(2)]
     if unavailable:
         def fail(*args, **kwargs):
@@ -67,7 +67,9 @@ def test_http_stream_and_replay_use_db_when_notifications_fail(backend, tmp_path
             if unavailable:
                 assert not await signals.wait(identity, 0)
             else:
-                assert await signals.reader.xrange(signals.prefix + identity) == [('3-0', {'sequence': '3'})]
+                # Terminal commits wake both SSE readers and result-only waiters.
+                assert await signals.reader.xrange(signals.prefix + identity) == [('5-0', {'sequence': '5'})]
+                assert await signals.reader.xrange(signals.prefix + identity + ':result') == [('5-0', {'sequence': '5'})]
             # Loss/expiry of the entire cache must not affect replay or history.
             await signals.reader.delete(signals.prefix + identity)
             await servers[0].close()

@@ -160,6 +160,13 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+*.env
+*.env.*
+# Only sanitized example templates may be committed.
+!.env.example
+!*.example.env
+!*.env.example
 .venv
 env/
 venv/
@@ -239,6 +246,7 @@ compile_commands.json
 *.onnx
 *.onnx.data
 *.json
+!/demo/server/text/services.json
 *.safetensors
 *.pth
 *.pt

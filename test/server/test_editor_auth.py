@@ -136,8 +136,8 @@ def test_anonymous_local_editor_is_compatible_but_cross_origin_is_denied(tmp_pat
 
 def test_explicit_cors_origins_and_api_only_has_no_editor_sessions(tmp_path):
     with pytest.raises(ValueError, match='Origins'):
-        Server(data_dir=tmp_path, cors_origins=['*'])
-    server = Server(data_dir=tmp_path, cors_origins=['https://editor.example'])
+        Server(resources=tmp_path, data_dir=tmp_path, cors_origins=['*'])
+    server = Server(resources=tmp_path, data_dir=tmp_path, cors_origins=['https://editor.example'])
     with TestClient(server.app) as client:
         headers = {'Origin': 'https://editor.example', 'Access-Control-Request-Method': 'POST',
                    'Access-Control-Request-Headers': 'Authorization,Content-Type'}

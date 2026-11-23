@@ -1,3 +1,4 @@
+import type { MCPToolConfig } from '../../../components/tools/server-request';
 import {
   EditorRenderer,
   FreeLayoutEditorProvider,
@@ -152,6 +153,14 @@ const Flow: React.FC<FlowProps> = (props) => {
   const restoredGraphLoaded = useRef(false);
 
   useEffect(() => {
+    if (loading || props.activeKey !== props.tabId) return;
+    // Home hides the editor without destroying it. Re-measure on return while
+    // preserving the user's pan/zoom and unsaved canvas edits.
+    const frame = requestAnimationFrame(() => ref.current?.playground.resize());
+    return () => cancelAnimationFrame(frame);
+  }, [loading, props.activeKey, props.tabId]);
+
+  useEffect(() => {
     if (!restoredRun || loading || props.activeKey !== props.tabId || restoredViewFitted.current) return;
     const frame = requestAnimationFrame(() => {
       const context = ref.current;
@@ -297,10 +306,10 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
-  async function onStartServer(flowJson: FlowDocumentJSON, token: string, name: string, exposed: Record<string, string[][]>) {
+  async function onStartServer(flowJson: FlowDocumentJSON, token: string, name: string, exposed: Record<string, string[][]>, mcp?: MCPToolConfig | null) {
     const businessContent = designDataToBusinessData(flowJson, graphTopNode, flowJson.nodes, ref.current!);
     const info = await serverRequest('/api/workflow/server/start', token, {
-      id: flowType === EnumFlowType.workspace ? entity.id : '', businessContent, name, exposed_parameters: exposed,
+      id: flowType === EnumFlowType.workspace ? entity.id : '', businessContent, name, exposed_parameters: exposed, mcp,
     });
     if (info.workflow_id) {
       onflowSaveDrawrSure({ ...entity, id: info.workflow_id, designContent: flowJson, businessContent });

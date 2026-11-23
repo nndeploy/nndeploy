@@ -6,6 +6,119 @@ nndeploy的后端基于 *FastAPI* 实现，向前端提供 RESTful API 与 WebSo
 
 当前开发分支同时提供可在代码中创建的 `nndeploy.server.Server`；原 `NnDeployServer` 名称和编辑器入口保持兼容。新增调用路径复用 Server、TaskQueue、Worker 和 GraphRunner，以入口为单位独立排队。
 
+## 使用配置部署已注册算法
+
+`services.json` 可通过 `algorithm` 引用应用已注册的算法工厂，同一种算法可用不同 `name` 部署多个实例。`options` 由算法工厂校验，可以省略。配置文件不接受 Python 导入路径。
+
+从仓库根目录运行文本算法的双实例示例：
+
+```bash
+python -m nndeploy.server --api-only \
+  --register-algorithm text=demo.server.text.server:create_entry \
+  --services demo/server/text/services.json \
+  --resources ./resources/text-services --port 8000
+```
+
+`--register-algorithm NAME=MODULE:FACTORY` 可重复指定，仅用于 `--api-only --services`。这是部署者对可信 Python 代码的显式注册；模块必须已安装或位于 Python 搜索路径中，工厂在被配置引用时才导入。文本示例配置为：
+
+```json
+{
+  "services": [
+    {"algorithm": "text", "name": "upper", "options": {"uppercase": true}},
+    {"algorithm": "text", "name": "lower", "options": {"uppercase": false}}
+  ]
+}
+```
+
+向 `/v1/server/upper/text` 和 `/v1/server/lower/text` 提交 `{"text":"Hello"}`，分别返回大写和小写文本。两者也支持标准 `/v1/server/{name}/deploy`，共用 Server 的鉴权、任务查询、幂等处理和关闭流程。
+
+Python 接入使用同一注册表：
+
+```python
+from nndeploy.server import Server
+from nndeploy.server.services import load_services, register_services
+
+server = Server(resources='./resources/text-services')
+server.register('text', 'demo.server.text.server:create_entry')
+register_services(server, load_services('demo/server/text/services.json'))
+server.run()
+```
+
+普通工厂返回 `Server.add` 的执行源、配置、输入输出模型和可选路由，工厂本身不加载模型、不启动 Worker。模型初始化属于 `handler_factory` 或 Graph 生命周期。需要装配共享 HTTP 资源的插件可以返回 `nndeploy.server.ServiceAdapter(install, exclusive_key=...)`：`install(server, *, name)` 在传入的 Server 上调用 `server.add` 并挂载资源；固定 URL 的适配器通过 `exclusive_key` 声明单实例限制，不影响普通算法多实例。
+
+加载器先检查全部算法名称，随后解析工厂并校验普通入口的配置、路由冲突及适配器排他约束，再开始注册。适配器的安装阶段仍可能失败；CLI 会关闭已创建的 Server，不会启动模型。直接调用 `register_services` 的应用应在失败后关闭该 Server，适配器安装不提供事务回滚。VSR/VideoEdit 保留默认的延迟注册名称和原有接口，其参数校验位于各自的算法模块。
+
+## 视频编辑与超分的统一任务资源
+
+WAN 编辑与 VSR 超分可以注册到同一个 Server。算法保留各自的提交参数，查询、取消和下载共用一套视频路由：
+
+```python
+from nndeploy.server import Server
+from nndeploy.e_dit import DiTParams
+from nndeploy.e_dit.algorithms.wan.server import add_videoedit
+from nndeploy.e_dit.algorithms.vsr.server import add_vsr
+
+server = Server(resources='./resources')
+add_videoedit(server, {'normal': {'model_path': '/models/videoedit'}})
+add_vsr(server, DiTParams('/models/vsr', model='wan_vsr', wan_root='/models/wan'))
+server.run()
+```
+
+命令行也由公共 Server 创建和启动，算法目录仅提供注册适配器。将下面配置保存为 `services.json`：
+
+```json
+{
+  "services": [
+    {
+      "algorithm": "vsr",
+      "name": "vsr",
+      "options": {
+        "params": {
+          "model": "wan_vsr",
+          "model_path": "/models/vsr",
+          "wan_root": "/models/wan",
+          "weight_dtype": "bf16"
+        }
+      }
+    },
+    {
+      "algorithm": "videoedit",
+      "name": "videoedit",
+      "options": {"models": {"normal": {"model_path": "/models/videoedit"}}}
+    }
+  ]
+}
+```
+
+```bash
+python -m nndeploy.server --api-only --services services.json \
+  --resources ./resources --host 127.0.0.1 --port 8000
+```
+
+仅部署 VSR 或 VideoEdit 时，保留对应的一条配置即可。编辑器、纯 API、视频服务默认使用同一个 `<resources>/db/nndeploy.db`，所有业务模块的数据保存在同一库的不同表中。Python 使用 `Server(resources='./resources')` 指定根目录；`data_dir` / `--data-dir` 只控制受管理文件和临时工作目录，默认 `<resources>/server`，不改变数据库位置。`--database-url-env` 或 Python `database_url` 显式指定数据库时，所有模块和 Worker 使用该同一连接地址；MySQL/PG 不按算法另建库，也不额外创建 SQLite，连接失败不会自动回退到本地数据库。
+
+`--storage-config`、`--auth-config`、`--redis-config`、`--device-limits` 均由公共入口处理。Redis 用于可选的队列协调；视频等文件内容仍存放在受管理文件目录或对象存储，文件元数据进入统一 SQL 库。`--services` 与 `--workflow` 互斥，服务名称在配置中指定；VSR 和 VideoEdit 因固定路由各只注册一次，WAN 的 normal/DMD 放在同一条配置的 `models` 内。模型路径相对启动工作目录解析，建议使用绝对路径。原 VSR `create_server()`、VSR/WAN 独立 CLI 已移除，不提供兼容启动入口。旧 `server.db` 不再自动打开或合并，也不会被删除；已有数据需要显式迁移后再使用新目录布局。
+
+每条服务的 `options.execution` 可设置 Worker 和调度参数，`options.secret_key_env` 指定存储请求凭据使用的密钥环境变量；VSR 优化及卸载参数放在 `options.params` 中。视频文件大小和媒体限制统一遵循公共存储配置，不再由算法 CLI 隐式放宽；大视频部署请显式传入 `--storage-config`。
+
+`POST /v1/videos/repairs` 与 `POST /v1/videos/restorations` 保留算法提交协议；`GET /v1/videos`、`GET /v1/videos/{id}`、`/progress`、`/content` 及 `DELETE /v1/videos/{id}` 只注册一次。两个算法默认各有一个串行 Worker、各自不允许等待队列；模型使用的设备需分别配置，两个入口不会自动分配到不同 GPU。
+
+外部 ID 按入口和调用者隔离。公共查询支持 `?entry=vsr` 或 `?entry=videoedit`；同一调用者在多个入口使用相同外部 ID 时，未指定入口的查询、下载、取消和分页游标返回 409，不能隐式选中某一个。多入口或管理员响应额外提供 `entry` 和内部 `task_id`；内部 ID 也可用于资源查询和 `after` 分页。列表只包含调用者有权限且拥有的任务；管理员可查看全部，并通过内部 ID 查询其他调用者的任务。`/health` 在单入口时保留原响应，多入口时返回各入口的状态；公共 `/health/live`、`/health/ready` 保持原有用途。
+
+VSR 的下载、媒体探测、推理、上传和受管理文件写入现在属于同一个持久 Task。上传或推理失败会写入任务失败状态；不再维护独立内存任务表、回调协程和取消标记文件。存储凭据在入库前加密，输出复用 `FileArtifact` 的身份、文件引用及保留机制。显式请求的对象存储输出在上传成功后仍保存受管理产物；默认远端对象名使用内部 Task ID，显式 `outputObjectKey` 保留调用者指定的名称。
+
+VSR 提交返回 `code: 0` 表示任务已持久接收，不再等待 URL 下载和媒体探测完成；这些阶段的错误通过任务查询和回调返回。请求字段及已明确不存在的本地输入仍在接收前校验。
+
+VSR `timeout` 从提交时开始计算，涵盖输入准备到结果归档；URL/对象存储输入使用有大小限制的分块下载。进度包含 preparing/restoring/uploading 阶段，不代表已经提供逐 tile 百分比或 ETA。`DELETE` 请求取消后可能返回 `cancelling`，调用者应继续查询终态。视频查询、进度和回调明确区分 `cancelled`（主动取消）、`expired`（超过期限）、`failed`（执行失败）；错误保留原始 `code` 和 `message`，所有终态均带完成时间。客户端需处理这些终态，不再将取消解释为超时失败。
+
+WAN/VSR 的进程 Worker 默认启用 `execution.cooperative_cancel=True`：通过共享控制信号通知请求，在 `RequestContext.check()` 或 DAG 的执行上下文检查点停止；只有算法完成异常展开及请求目录清理后才确认终态并释放资源，模型和进程可供下一请求复用。`execution.cancellation_grace_seconds` 默认 5 秒，宽限期届满仍未退出则终止进程及其受管理子进程，下次请求重建模型。`execution_timeout_seconds` 和流持续时间限制同样使用这一机制；普通线程不提供强制终止能力。已完整返回的请求错误不会单独触发模型重载；进程崩溃、IPC 错误或无法确认的事件提交仍会回收进程。
+
+两个算法注册函数支持 `memory_estimator(request) -> {设备别名: 临时字节数}`，由服务部署者传入同步函数，接收规范化、已校验且不含存储密钥的请求副本。可根据模型实测的分辨率、帧数、tile 配置建立预算表；估算器应快速返回，不应下载媒体或加载模型。返回值持久化到 Task，并参与公共设备调度，在真实执行退出前保持占用。必须配置 `device_limits`、`execution.devices`、驻留 `memory_bytes` 和每请求上限 `temporary_memory_bytes`；估算值必须为正整数且不超过对应上限，未估算的设备使用上限。模型加载及保留槽位仍按配置上限预留，客户端不能直接声明较低预算绕过限制。未提供估算器时全部使用固定上限；框架不自带未经实测的显存公式，也不提供 GPU 内存硬隔离。
+
+同一数据目录重启后，可继续查询历史任务、下载保留产物、投递未完成回调；这不代表支持 GPU 推理断点续跑。VSR 的 `file_path` 指向受管理文件；客户端应优先使用 content 接口或返回的对象存储 URL。数据目录始终由公共 Server 管理，算法不创建独立数据库或输出根目录。
+
+算法适配器通过 `ServiceTasks` 提交、读取和列举任务，使用 `Server.service_status()` 查询模型变体就绪状态；公共视频资源路由负责入口权限和任务归属检查。算法只实现请求转换、响应投影、内容访问规则与执行 Handler，不需要直接访问 Worker 私有结构。
+
 ## 直接使用本地文件
 
 Deploy 的图片、文件、NumPy 和音频文件输入支持 `{"path":"resources/input.jpg"}` 或直接传路径字符串，无需先上传。也兼容将本地路径放入 `file_id` 的旧调用写法；真正的 `file_...` 标识仍按已有上传文件解析。
@@ -56,7 +169,7 @@ Server 向指定地址发送 HTTP POST JSON，包括 `event: "task.finished"`、
 
 ## 音频采样输入输出
 
-安装可选依赖 `pip install 'nndeploy[server-audio]'`，上传校验还需要系统 `ffprobe`。数值字段沿用 `array` / `tensor`，声明 `dtype="float32"`、`sample_rate` 和 `media_type`，输入输出继续使用 `{"file_id":"..."}`。Server 自动解码、重采样和声道转换，算法只读写 NumPy 数组或原生 Tensor。运行 `python demo/server/audio.py --isolation process` 验证普通 Graph 的完整上传、Deploy、下载链路；调用示例见 [Audio Graph](../../../demo/server/README.md#audio-graph)。
+音频依赖 `av` 已随 nndeploy 默认安装，上传校验还需要系统 `ffprobe`。数值字段沿用 `array` / `tensor`，声明 `dtype="float32"`、`sample_rate` 和 `media_type`，输入输出继续使用 `{"file_id":"..."}`。Server 自动解码、重采样和声道转换，算法只读写 NumPy 数组或原生 Tensor。运行 `python demo/server/audio.py --isolation process` 验证普通 Graph 的完整上传、Deploy、下载链路；调用示例见 [Audio Graph](../../../demo/server/README.md#audio-graph)。
 
 形状为 `[frames]` 或 `[frames, channels]`，帧数可为 null，声道数固定为 1–8；Tensor 轴格式可选 N / NC。采样率为 8000–192000 Hz，具体输出编码器还须支持该采样率；MP3 仅支持单/双声道，Ogg 输出使用 Opus。支持 WAV、FLAC、MP3、Ogg 和 M4A 的对应 MIME。WAV 输出保留 float32 数值；压缩输出要求样本在 [-1, 1]，FLAC 编码会量化，有损编码还可能改变幅值及解码帧数，建议使用可变帧维度。固定帧数按实际解码后形状严格检查，不自动补齐或截断。
 
@@ -205,7 +318,7 @@ Start、Stop、Reload 和编辑器保存并启动沿用原 HTTP 路由，支持 
 
 单次状态查询的 HTTP 等待同样最多五秒，暂不可读时返回可重试 503。已经确认接收的 POST 若在其结果等待期内读不到记录，返回原操作的 202 和原查询地址。客户端断连或停止查询不取消后台操作，接收前断连同样不取消可能已经提交的事务。同实例的相同在途 key 合并到一个操作，同一个在途状态查询也合并；每实例最多 64 个未结束的 HTTP 控制操作和 64 个在途状态查询，满额拒绝新工作，已有工作继续。控制记录 I/O 使用独立的四线程池，避免阻塞 Deploy 使用的公共线程池。关闭时等待已开始的事务返回，再关闭线程池和 DB；HTTP 超时不会强行终止数据库驱动调用；连接层期限见下文，完整关闭总期限仍需完善。
 
-已有数据库升级前先生成原生备份，成功后才执行 Alembic 改表。SQLite 保留相邻的 `数据库名.backup-<id>.sqlite3`；MySQL/PostgreSQL 分别使用 `mysqldump` SQL 和 `pg_dump` custom 格式。API Server 的自动备份在 `<data_dir>/db-backups`，编辑器在 `<resources>/db/backups`；直接使用 `DB` 可传 `backup_dir`，默认 `./resources/db/backups`。空库首次建表不需要外部备份工具，已处于当前版本不会重复备份。备份工具缺失、失败或超时会阻止升级，未完成文件不会发布。POSIX 上备份权限为 0600，已有目标文件不会被覆盖。
+已有数据库升级前先生成原生备份，成功后才执行 Alembic 改表。SQLite 保留相邻的 `数据库名.backup-<id>.sqlite3`；MySQL/PostgreSQL 分别使用 `mysqldump` SQL 和 `pg_dump` custom 格式。所有 Server 入口的 MySQL/PostgreSQL 自动备份统一在 `<resources>/db/backups`；直接使用 `DB` 可传 `backup_dir`，默认 `./resources/db/backups`。这些是升级前的离线备份，不是运行中的业务库。空库首次建表不需要外部备份工具，已处于当前版本不会重复备份。备份工具缺失、失败或超时会阻止升级，未完成文件不会发布。POSIX 上备份权限为 0600，已有目标文件不会被覆盖。
 
 可通过已有启动入口单独执行备份/恢复，不启动 HTTP、编辑器或模型；数据库 URL 仍从环境变量获取：
 
@@ -645,3 +758,468 @@ server/
 * 项目通过模块化设计将 HTTP 接口、队列调度、执行引擎与持久化解耦，便于分别扩展与维护。
 * 依托 FastAPI 的异步能力、Pydantic 的类型约束以及多进程执行隔离。
 * 增加了对回传Graph json的解析功能，可以读取Graph中的参数，实现模型资源的自动下载。
+
+## MCP: export multiple algorithms or workflows
+
+The official MCP SDK is installed by default with nndeploy (Python 3.10+):
+
+```bash
+pip install nndeploy
+python demo/server/mcp_algorithms.py
+# In another terminal:
+python demo/server/mcp_client.py
+```
+
+Connect a Streamable HTTP MCP client to `http://127.0.0.1:8000/mcp`.
+This is a protocol endpoint, not a browser page. One connection discovers all
+exported tools allowed by the caller's entry permissions.
+
+```python
+from pydantic import BaseModel
+from nndeploy.server import Server
+
+class TextInput(BaseModel):
+    text: str
+
+server = Server(mcp_config={"enabled": True})
+server.add(
+    name="uppercase", deploy=lambda inputs: {"text": inputs["text"].upper()},
+    input_model=TextInput,
+    mcp={"name": "uppercase_text", "description": "Convert text to uppercase."},
+)
+server.add(
+    name="pipeline", workflow="workflows/pipeline.json",
+    mcp={"name": "run_pipeline", "description": "Execute the complete image processing workflow."},
+)
+server.run(host="127.0.0.1", port=8000)
+```
+
+The pipeline path must refer to your existing Graph JSON; all its nodes execute
+as one Server task. Graph objects, graph factories, handler factories and registered
+algorithms use the same `add(..., mcp=...)` option. Exports are explicit: entries
+without `mcp` remain available through their existing Server interfaces only.
+Tool names must be unique and contain only ASCII letters, digits, `_`, `-`, or `.`
+(up to 128 characters). `get_task` and `cancel_task` are reserved.
+Code exports require `input_model` or explicit input configuration; workflow
+schemas use the existing input/parameter discovery. Configure exports in Python startup code or in the editor Server panel. Workflow
+exports are saved with their Server configuration and restored on restart when
+the MCP transport is enabled. Code factories still require explicit registration.
+
+Each algorithm tool accepts:
+
+```json
+{
+  "inputs": {"text": "Hello nndeploy"},
+  "parameters": {},
+  "idempotency_key": "optional-stable-operation-key"
+}
+```
+
+`inputs` and `parameters` follow the tool's advertised JSON Schema. Empty groups
+may be omitted if none of their fields are required. Server validation remains
+authoritative for file formats, node parameters and array constraints.
+The result contains `task_id`, `status_url`, and `dispatch_pending`. Call
+`get_task({"task_id": "..."})` until `state` is `succeeded`, `failed`, `cancelled`,
+or `expired`. A task can already be executing when its submission response arrives.
+`cancel_task` requests cancellation; inspect `state` and `cancel_requested` rather
+than assuming cancellation has completed. Business errors return `isError=true`
+with a structured `error`; accepted tasks continue after a client disconnect.
+Retry submissions with the same idempotency key and identical arguments.
+
+Algorithm tools share the existing queue, Worker, quotas, task ownership and
+file storage. Upload media through `POST /v1/files` and pass `{"file_id": "..."}`
+in the declared input field. Outputs keep their existing Server file references;
+use authenticated HTTP file interfaces to retrieve content. MCP does not expose
+local paths or inline large media. Independent tools can be submitted concurrently;
+actual execution concurrency follows existing Worker and device limits. For a
+fixed sequence, export the complete Graph as one tool; for an ad hoc sequence,
+wait for the first task and pass its output to the next compatible input.
+
+MCP is disabled by default and its SDK is not imported when disabled. Configuration:
+
+```python
+server = Server(
+    mcp_config={
+        "enabled": True,
+        "path": "/mcp",
+        "allowed_hosts": ["inference.example.com"],
+        "allowed_origins": ["https://client.example.com"],
+    },
+    auth_config={
+        "keys": [{
+            "subject": "assistant",
+            "token_env": "NNDEPLOY_MCP_TOKEN",
+            "entries": ["uppercase", "pipeline"],
+            "permissions": ["deploy", "tasks:read", "tasks:cancel", "files:read", "files:write"],
+        }],
+    },
+)
+```
+
+The token environment variable must contain at least 32 characters. Configure
+`Authorization: Bearer ...` in the client (the example client reads
+`NNDEPLOY_MCP_TOKEN`). Default Host/Origin allowlists accept loopback addresses;
+configure your actual hostname when serving remotely, and provide HTTPS at the
+proxy. Requests without Origin are allowed after Host/authentication checks.
+The endpoint uses existing Bearer authentication, not OAuth discovery. An
+unauthenticated Server also has an unauthenticated MCP endpoint.
+
+This implementation uses the official SDK 1.x stateless Streamable HTTP transport,
+with JSON responses and no server-initiated tool-list notifications. Clients should
+list tools again after entry schema changes. It does not advertise MCP protocol
+Tasks: task IDs belong to nndeploy's existing task system. Resources, prompts,
+stdio and MCP-specific uploads are not implemented. Tested with SDK 1.30.0;
+client compatibility depends on its supported transport and authentication options.
+
+
+### Configure MCP in the editor Server panel
+
+Start the editor with the optional MCP dependencies installed:
+
+```bash
+nndeploy-app --mcp
+# Serve a locally built editor when developing from source:
+nndeploy-app --mcp --front-end-dir app/workflow/dist
+```
+
+In **Server → MCP tool export**, enable **Enable tool export**, enter a unique
+**Tool name** and a **Tool description**, then select **Start** or **Update**.
+An entire multi-node workflow is exported as one tool. **Copy MCP URL** copies
+the shared Streamable HTTP address without credentials. Configure any required
+Bearer token separately in the client. Clearing the checkbox and selecting
+**Update** removes the tool export while retaining the HTTP entry.
+
+The panel restores saved settings when reopened after a page reload. Changes to
+a running workflow apply only after a successful Update; failed reloads preserve
+the previous tool. Tool names are checked against other entries, including updates
+in progress. Use a unique tool name when renaming a service that retains an older
+entry. Existing configurations without MCP remain unchanged.
+
+If the transport is disabled, the panel shows how to enable it and does not offer
+a live connection address. The CLI also accepts `--mcp-path`, repeated
+`--mcp-allowed-host` and repeated `--mcp-allowed-origin`. Hosts must match the
+address clients actually use. The development proxy forwards the default `/mcp`
+path; custom paths require a matching proxy rule.
+
+### Repository command-line entry points
+
+`python app.py` and `python server.py` share the same CLI as
+`python -m nndeploy.server`. The default port is **8000**; the editor binds to
+`0.0.0.0`, while `--api-only --workflow graph.json` defaults to `127.0.0.1`.
+Use `--help` to see deployment, authentication, MCP and database options.
+
+```bash
+python server.py --api-only --workflow graph.json --port 9000
+python app.py --resources ./my_resources --front-end-dir ./frontend/dist
+python clean.py --resources ./my_resources --db --dry-run
+python clean.py --resources ./my_resources --server
+python run_json.py --json_file graph.json --parallel_type sequential
+```
+
+Stop processes using the selected directories before cleanup. `clean.py`
+supports `--resources`, `--logs-dir`, `--frontend-dir`, and `--dry-run`.
+With no selectors it retains the historical cleanup set: logs, template, db,
+frontend and plugin. The `db` directory contains the shared editor and Deploy
+database. Managed files and workspaces under `resources/server` are only removed by
+explicit `--server`; `--keep` excludes directories from the historical set and
+cannot be mixed with individual selectors. Directory symlinks are unlinked,
+without deleting their targets. Templates currently use `./resources/template`
+even when the editor is started with a custom resource directory; select that
+resource root when clearing the template cache.
+
+`run_json.py` accepts both underscore and hyphen spellings for its JSON, task,
+node and parallel options. `--parallel_type` supports `none`, `sequential`,
+`task`, and `pipeline` (also their canonical enum names). Omit it to retain the
+workflow's setting. Existing resource directories are reused without copying
+over their contents. Execution and cleanup failures return exit code 1;
+invalid CLI arguments return exit code 2.
+
+### Shutdown failure handling
+
+`await server.close()` owns a single shutdown operation. Cancelling a caller
+waiting for it does not cancel worker cleanup; another caller can await the
+same operation. Unexpected maintenance or callback-dispatch failures are
+reported after worker and dependency cleanup has been attempted. Repeated
+calls retain the original shutdown result, including an unconfirmed release
+failure; create a new `Server` to restart.
+
+HTTP node shorthand accepts declared input and parameter names; untyped code
+entries also accept arbitrary input names. Unknown
+request-envelope fields are rejected with 422, including batch items, before
+any task in that batch is admitted. Per-item input validation and execution
+failures continue to appear in the batch response.
+
+Node parameter defaults remain part of the resident configuration. Tasks store
+only changed node parameters, so configured model files stay protected by the
+entry resource lease without being mistaken for caller-owned request uploads.
+
+### PostgreSQL, Redis and Tencent COS configuration
+
+Connection URLs and credentials stay in environment variables. The CLI reads
+`DATABASE_URL` only when `--database-url-env DATABASE_URL` is supplied. A plain
+`postgresql://` URL is normalized to the installed Psycopg driver.
+
+For a Redis URL stored in `REDIS_URL`, use a Redis configuration file such as:
+
+```json
+{
+  "url_env": "REDIS_URL",
+  "namespace": "agentx:dev",
+  "event_stream_prefix": "agentx_dev:run_stream:"
+}
+```
+
+Namespaces support letters, digits, `_`, `.`, `-` and `:` (up to 64 characters).
+`event_stream_prefix` is optional (up to 128 characters with the same character
+set). It prefixes event-notification Streams; namespace and database identity
+are still appended to prevent cross-application notification collisions. Queue
+Streams continue to use the namespace. Omitting it retains existing key names.
+`REDIS_PREFIX` and `REDIS_STREAM_PREFIX` are application environment conventions,
+not automatically loaded settings: map their values to these JSON fields.
+Redis is coordination/cache infrastructure; task state and event replay remain
+in the database, including when Redis notifications are unavailable.
+
+For COS, use a storage configuration file such as:
+
+```json
+{
+  "backend": "cos",
+  "bucket": "your-bucket-1234567890",
+  "region": "ap-beijing",
+  "prefix": "nndeploy",
+  "access_key_env": "COS_ACCESS_KEY_ID",
+  "secret_key_env": "COS_ACCESS_KEY_SECRET"
+}
+```
+
+Set `bucket` from `COS_BUCKET_NAME` (or `COS_BUCKET`) and `region` from
+`COS_REGION` when preparing the configuration; JSON values are not interpolated
+from the environment. Temporary credentials can additionally use `token_env`.
+For example, after saving the two files as `redis.json` and `cos.json`:
+
+```bash
+python server.py --api-only --workflow ./graph.json \
+  --database-url-env DATABASE_URL \
+  --redis-config ./redis.json --storage-config ./cos.json
+```
+
+COS uploads up to 8 MiB use a single request; larger files use 8 MiB parts and
+at most two concurrent writers. Server owns each multipart upload and attempts
+to abort it after a part/completion failure, after joining active writers. An
+abort failure is logged without SDK exception text or signed URLs. A process
+crash or unavailable COS abort API can still leave incomplete parts; configure
+the bucket's incomplete-multipart lifecycle cleanup for those cases.
+
+Opt-in remote tests are separate from destructive fault tests that start/stop
+local services. Enable only the services you intend to validate:
+
+```bash
+NNDEPLOY_TEST_REMOTE_POSTGRES=1 python -m pytest test/server/test_remote_services.py -q
+NNDEPLOY_TEST_REMOTE_REDIS=1 python -m pytest test/server/test_remote_services.py -q
+NNDEPLOY_TEST_REMOTE_COS=1 python -m pytest test/server/test_remote_services.py -q
+```
+
+These tests read the environment names above. PostgreSQL tests require permission
+to create and remove a uniquely named schema. Redis tests use a generated suffix
+under `REDIS_PREFIX`, never `FLUSHDB`. COS tests write only to a generated
+`nndeploy-validation/<uuid>/` prefix and verify cleanup of their objects and
+multipart uploads. They require object read/write/delete and prefix listing
+permissions. Keep credentials and signed URLs out of shared test output.
+
+To include the two-Server native Graph test across all three real services,
+enable all three flags together:
+
+```bash
+NNDEPLOY_TEST_REMOTE_POSTGRES=1 NNDEPLOY_TEST_REMOTE_REDIS=1 NNDEPLOY_TEST_REMOTE_COS=1 \
+  python -m pytest test/server/test_remote_services.py -q
+```
+
+This additionally checks cross-replica idempotency, shared queue accounting,
+persistent task events, and an output read from COS through another replica's
+cold cache. These checks do not stop or restart the supplied remote services.
+
+### Private environment files
+
+The repository root contains `server.example.env`, a sanitized template with
+variable descriptions and loading commands. From the repository root, run
+`cp server.example.env server.env`, then edit `server.env` with actual values
+and set its permissions with `chmod 600 server.env`. This private file is ignored
+by Git. CLI launchers (`app.py`, `server.py`, `python -m nndeploy.server`) and
+Python `Server(...)` construction automatically read `server.env` from the current
+working directory before resolving environment-based settings. A missing file
+is allowed; existing environment variables take precedence, including empty
+values. Importing the module alone does not load it. No parent-directory search,
+shell command execution or `${...}` interpolation is performed. Quoted values,
+comments and optional `export` prefixes use dotenv syntax.
+
+This loads environment variables only: backend selection still uses
+`--database-url-env`, `--redis-config`, `--storage-config` or the corresponding
+Python arguments. Manual loading with `set -a; source ./server.env; set +a` is
+optional for other programs. Do not fill real values into the tracked example.
+
+Git ignores private environment files while allowing example templates. Docker
+build context rules and Python source/wheel packaging rules exclude environment
+files, including templates. Production deployments should inject secrets at
+runtime instead of copying environment files into build artifacts.
+
+## 长任务 Graph 进度与计算子进程
+
+Python 节点可以通过 `nndeploy.dag.execution.current_execution()` 获取可选的请求上下文。
+`context.publish({...})` 向已有任务事件流报告 JSON 进度；`context.cancelled()` 查询 GraphRunner 的协作中断状态。
+开启 `streaming.enabled` 后，普通 Graph 可以报告进度并在结束时返回正常输出；双向输入流仍要求算法入口。
+上下文仅在本次 Graph 执行期间有效，节点不应将它保存到常驻资源。
+
+Linux 隔离 Worker 可配置 `execution.allow_child_processes: true`，用于需要 multiprocessing/NCCL 的算法。
+该 Worker 使用独立进程组；停止、取消、超时及异常回收时，会终止同组计算进程，并检查它们已退出或成为不再持有计算资源的 zombie。
+默认值为 false，现有 Worker 行为保持原样。计算子进程应保留所属进程组，不自行脱离。
+EraserDiT 的 NCCL ranks 另外设置 Linux parent-death signal，使模型所有者异常消失时退出。
+
+`execution.shutdown_timeout_seconds` 设置隔离 Worker 优雅关闭的等待时间，默认 5 秒。大型模型或计算子进程需要更长清理时间时可增大；超时后仍会终止 Worker 及已启用监管的子进程组。
+
+### Algorithm request protocols and explicit field mapping
+
+Algorithm-specific request models and routes belong in the algorithm package
+(for example `nndeploy.e_dit.algorithms.wan.server`). They reuse Server admission,
+validation, task ownership and Worker execution.
+
+`Server.add(router=...)` retains its default `/v1/server/{name}` prefix. Set
+`router_prefix=""` to mount complete paths declared by the algorithm, or supply
+another literal prefix. Conflicting methods/paths are rejected before adding the
+entry. Routes must be registered before Server startup.
+
+Routes require `deploy` permission by default. Read/cancel/file routes can declare
+`router_permissions={("GET", "/status"): "tasks:read"}`; keys use the router's
+path before `router_prefix` is applied. This changes entry authorization only:
+the route must still use the shared task/file operations to check ownership.
+`get_deploy` always requires deploy permission even on a read-authorized route.
+
+Simple business requests can map explicitly to the existing Deploy envelope:
+
+```python
+from pydantic import BaseModel, ConfigDict, Field
+from nndeploy.server import Server
+from nndeploy.server.request_mapping import RequestMapping
+
+class DetectRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    image: str = Field(alias="imagePath")
+    threshold: float = Field(default=0.5, ge=0, le=1)
+
+mapping = RequestMapping(DetectRequest, {
+    "image": "inputs.image",
+    "threshold": "parameters.detector.threshold",
+})
+
+def detect(inputs, detector):
+    return {"image": inputs["image"], "threshold": detector["threshold"]}
+
+server = Server(name="detect", deploy=detect,
+    config={"inputs": {"image": {"type": "string"}},
+            "parameters": {"detector": {"type": "json"}}},
+    router=mapping.router("/detect"), router_prefix="/v1")
+```
+
+`POST /v1/detect` accepts `{"imagePath":"input.png","threshold":0.7}` or the
+explicit `inputs`/`parameters` envelope. Envelope requests retain normal
+`mode`, `callback_url` and wait options. OpenAPI exposes both request models.
+`mapping.to_deploy(...)` and `mapping.from_deploy(...)` also work in Python.
+Reverse conversion returns the business model only; use `parse(...)` to retain
+transport options and apply defaults to an envelope.
+
+Mappings require every model field to have a unique, non-overlapping target;
+no unmapped envelope fields are silently dropped. String aliases are supported;
+complex alias rules and algorithm preparation belong in an explicit adapter.
+Converted values still pass the entry's normal validation and exposed-parameter
+checks. The existing generic deploy endpoint is unchanged.
+
+
+### Long-running algorithm service adapters
+
+`ExecutionConfig.admission_group` gives related algorithms one transactional
+admission slot, shared by DB connections and replicas. Trusted Python callers
+can pass `service` metadata to `Server.submit`; it is not an HTTP deploy option.
+External IDs are scoped by service, entry and subject, with a unique DB index.
+Migration `0035_service_tasks` adds the metadata and progress callback fields.
+
+Resident handlers may set `reports_progress = True`, publish through
+`nndeploy.server.request_context.current_request()`, and return ordinary output.
+The context provides the internal task ID, temporary working directory, service
+metadata, `check()` for cancellation/deadline, and `publish(dict)` for durable
+progress. The optional handler `service_status` snapshot is transferred during
+Worker startup for algorithm-specific health reporting.
+
+Return `FileArtifact(path, media_type)` inside dict/list outputs to stream files
+into existing managed storage, with ownership, quotas and cleanup intact. The
+source file can live in the request directory: storage completes before that
+directory is removed. `include_local_path=True` additionally returns a durable
+local path when using local storage; the default returns only `file_id`.
+
+Wan owns the original repairs API and payload formatter under
+`nndeploy.e_dit.algorithms.wan.server`. Its adapter uses these primitives for
+admission, preparation, normal/DMD selection, cancellation, progress and terminal
+callbacks. Other algorithms can reuse the primitives without importing Wan's
+request model. See `../e_dit/algorithms/wan/README.md` for startup and contracts.
+
+## 按需共享结果等待与执行阶段指标
+
+共享队列的任务归属、容量和最终结果仍由数据库维护。HTTP 异步提交、流式提交、MCP 提交和异步 batch 不创建后台结果等待器；Python 调用可使用 `await server.submit(name, inputs, observe=False)` 获取 `(task_id, receipt)`，其中 `receipt` 只表示已接收，不表示执行完成。默认 `observe=True` 保留等待结果的原有行为。
+
+同一 Server 内，同一任务的同步读者复用一个等待器。最后一个读者断开或超时后，等待器退出，任务继续执行。结果提交后发出 Redis 终态通知；通知丢失或 Redis 不可用时，以 0.5、1、2、4、5 秒封顶的间隔查询数据库。终态通知与进度通知分开，流式 token 不会唤醒结果等待器。
+
+`nndeploy_inflight` 在本地队列模式统计已接收的未完成任务；共享模式统计正在执行接收操作的调用数，共享任务总容量继续由数据库原子限制。`nndeploy_shared_result_waiters` 单独统计共享结果等待器，不占用任务接收额度。
+
+新增 `nndeploy_execution_stage_seconds{entry,stage,outcome}`，阶段包括：
+
+| stage | 含义 |
+|---|---|
+| `input_decode` | 算法输入解码 |
+| `graph_bind` / `graph_collect` | Graph 输入绑定 / 输出提取 |
+| `parameter_update` | 运行时参数应用与恢复 |
+| `parameter_reinitialize` | 初始化参数应用与恢复所需的图重初始化 |
+| `compute` | 算法调用、生成器消费，或 Graph run + synchronize |
+| `output_encode` / `output_validate` | 输出编码与结果校验 |
+| `batch_key` | 动态合批兼容键计算 |
+
+重复阶段在一次请求内累加后记录，物理 batch 的计算时间按一次 batch 记录。某些阶段嵌套，不能相加作为总请求耗时。流式 `compute` 包含生成器消费与事件发布等待。进程 Worker 通过内部 IPC 回传有限的阶段统计；被强制终止、未完成清理的请求可能没有完整阶段样本。已有的 `admission`、`device_wait`、`worker_request` 等操作指标继续保留，新增 `result_commit` 记录成功本地结果提交或共享结果提交/ACK 耗时。
+
+## 运行时参数与初始化参数
+
+节点默认不声明运行时参数，已有参数仍使用 deinit / deserialize / init。Python 节点可以显式声明序列化字段中的叶子路径，并实现更新方法：
+
+```python
+def get_runtime_parameter_paths(self):
+    return (("param_", "threshold"),)
+
+def set_runtime_parameters(self, changes):
+    self.param.threshold = changes["param_"]["threshold"]
+```
+
+声明者负责保证字段可在已初始化的节点上安全更新，且更新方法能应用及恢复这些字段。Server 在 Worker 所属执行线程内调用该方法，传入嵌套 patch；返回 `None` 或成功 Status。字段必须存在于节点序列化数据中，正常执行或执行异常后都会恢复原值；部分失败的 setter 也会尝试恢复。模型路径、设备和精度等影响资源初始化的字段应保持初始化参数。
+
+只修改运行时字段时不会重新初始化 Graph。同一请求包含初始化字段时，整个参数修改继续走原有重初始化路径。内置 `InputStr.str_` 已声明支持运行时更新。
+
+服务配置中的节点参数对象可设置 `runtime` 为路径列表，缩小节点声明的范围；`runtime: []` 强制使用重初始化，未填写时使用节点声明与服务参数的交集。配置不能将节点未声明支持的字段升级为运行时参数。服务启动后的 schema/describe 响应增加 `parameter_modes`，按节点列出公开字段中的 `runtime` 与 `initialization` 路径；停止状态或非 Graph 算法返回空对象。`exposed` 仍独立控制调用者能修改哪些字段，运行时声明不扩大权限。
+
+```json
+{"parameters": {"postprocess": {
+  "type": "json", "node": ["postprocess"], "required": false,
+  "default": {"param_": {"threshold": 0.5}},
+  "exposed": [["param_", "threshold"]],
+  "runtime": [["param_", "threshold"]]
+}}}
+```
+
+## Entry 生命周期与压测入口
+
+`entry.py` 定义 `EntrySource`、`Entry`、Worker 协议与新一代 Entry 的创建方法，保留现有 mapping 访问方式。`lifecycle.py` 管理启动、重载和排空停止；Server 原有方法保留为兼容入口。候选 Entry 只继承配置来源和必要的持久化身份，队列、Worker、消费者、Future、设备锁和文件持有者不从旧实例复制。
+
+`demo/server/benchmark.py` 提供无需下载模型的服务开销基线，覆盖短任务、长任务、流式任务，以及运行时参数/强制重初始化对照。它使用真实 ASGI 应用、数据库与 Worker，但不包含网络代理或真实模型/GPU 开销：
+
+```bash
+python demo/server/benchmark.py --requests 100 --concurrency 1 4 16 --output /tmp/serving.json
+python demo/server/benchmark.py --scenario short --isolation process --requests 100 --output /tmp/process.json
+# 使用独立测试 Redis；参数为已设置的环境变量名
+python demo/server/benchmark.py --scenario short --redis-url-env NNDEPLOY_TEST_REDIS_URL --output /tmp/shared.json
+```
+
+JSON 保存成功吞吐、P50/P95/P99、错误/响应状态、主进程 SQL 次数、阶段计时及进程生命周期 RSS 高水位。预热不计入指标增量。ASGI 流式基线测量完整流完成时间，不提供真实网络首 token 延迟；SQL 统计不包含子进程独立连接上的语句。RSS 是当前基准进程生命周期峰值，不能解释为某个场景独占内存。比较时应固定机器、依赖、隔离方式和并发参数，避免与编译或其他压测同时运行。

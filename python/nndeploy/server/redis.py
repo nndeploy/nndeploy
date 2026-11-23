@@ -9,7 +9,8 @@ from .config import StrictModel
 
 class RedisConfig(StrictModel):
     url_env: str = 'NNDEPLOY_REDIS_URL'
-    namespace: str = Field(default='nndeploy', pattern=r'^[A-Za-z0-9_.-]{1,64}$')
+    namespace: str = Field(default='nndeploy', pattern=r'^[A-Za-z0-9_.:-]{1,64}$')
+    event_stream_prefix: str | None = Field(default=None, pattern=r'^[A-Za-z0-9_.:-]{1,128}$')
     socket_timeout_seconds: float = Field(default=2.0, gt=0, le=30)
     lease_seconds: float = Field(default=30.0, ge=1, le=3600)
     max_inflight_tasks: int = Field(default=64, ge=1)
@@ -33,14 +34,16 @@ class RedisEvents:
     """
     def __init__(self, config, database_identity):
         import redis
-        self.prefix = f'{config.namespace}:db:{database_identity}:events:'
+        self.prefix = f'{config.event_stream_prefix or ""}{config.namespace}:db:{database_identity}:events:'
         self.reader = config.connect()
+        self.result_reader = config.connect()
+        self.result_reader.connection_pool.connection_kwargs["socket_timeout"] = max(6.0, config.socket_timeout_seconds)
         self.writer = redis.Redis.from_url(os.environ[config.url_env], decode_responses=True,
             socket_connect_timeout=config.socket_timeout_seconds, socket_timeout=config.socket_timeout_seconds)
         self.closed = False
         self.retry_after = 0.0
 
-    def notify(self, task_id, sequence):
+    def notify(self, task_id, sequence, *, terminal=False):
         # Called on the existing event-writer thread only after DB commit.
         # Optional notification failures must not fail successful computation.
         if self.closed or time.monotonic() < self.retry_after:
@@ -50,25 +53,31 @@ class RedisEvents:
             with self.writer.pipeline(transaction=True) as pipeline:
                 pipeline.xadd(key, {'sequence': sequence}, id=f'{sequence}-0', maxlen=1, approximate=False)
                 pipeline.expire(key, 60)
+                if terminal:
+                    pipeline.xadd(key + ':result', {'sequence': sequence}, id=f'{sequence}-0', maxlen=1, approximate=False)
+                    pipeline.expire(key + ':result', 60)
                 pipeline.execute()
         except Exception:
             self.retry_after = time.monotonic() + 1
 
-    async def wait(self, task_id, after):
+    async def wait(self, task_id, after, *, timeout_seconds=.1, terminal=False):
         if not self.closed:
             try:
                 # DB event sequence is the Stream ID: an event arriving before
                 # the reader starts waiting remains observable in the cache.
-                return bool(await self.reader.xread({self.prefix + task_id: f'{after}-0'}, count=1, block=100))
+                reader = self.result_reader if timeout_seconds > .1 else self.reader
+                key = self.prefix + task_id + (':result' if terminal else '')
+                return bool(await reader.xread({key: f'{after}-0'}, count=1, block=max(1, int(timeout_seconds * 1000))))
             except Exception:
                 pass
-        await asyncio.sleep(.1)
+        await asyncio.sleep(timeout_seconds)
         return False
 
     async def close(self):
         self.closed = True
         self.writer.close()
         await self.reader.aclose()
+        await self.result_reader.aclose()
 
 
 def source_identity(source):
@@ -82,6 +91,10 @@ def source_identity(source):
         value = source['workflow']
     else:
         target = next(source[key] for key in ('graph_factory', 'handler_factory', 'deploy') if source.get(key) is not None)
+        import dataclasses
+        factory_options = dataclasses.asdict(target) if dataclasses.is_dataclass(target) and not isinstance(target, type) else None
+        if factory_options is not None:
+            target = type(target)
         name = getattr(target, '__qualname__', '')
         module = getattr(target, '__module__', '')
         if not name or '<locals>' in name or '<lambda>' in name or not module:
@@ -91,6 +104,8 @@ def source_identity(source):
         except (TypeError, OSError) as exc:
             raise ValueError('Shared code must expose inspectable source for worker matching') from exc
         value = [module, name, code]
+        if factory_options is not None:
+            value.append(factory_options)
     return hashlib.sha256(encode(value).encode()).hexdigest()
 
 

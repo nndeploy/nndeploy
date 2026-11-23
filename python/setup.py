@@ -14,6 +14,8 @@ import shutil
 from setuptools import setup, find_packages, Extension 
 
 from packaging.tags import sys_tags
+from packaging.requirements import Requirement, InvalidRequirement
+from packaging.utils import canonicalize_name
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.install import install as InstallCommandBase
 
@@ -337,7 +339,7 @@ def get_package_data():
     
     # Ensure returning a dictionary with a simple string list as value
     package_data = {
-        "nndeploy": so_files,  # so_files is already a string list
+        "nndeploy": so_files + ["e_dit/algorithms/*/requirements.txt"],
         "nndeploy.segment.sam3": [
             "assets/*.gz", "LICENSE", "README.md", "requirements.txt", "MIGRATION.json"
         ],
@@ -438,15 +440,107 @@ server_requires = [
     'uvicorn>=0.24.0',  # ASGI server
     'websockets>=11.0',  # WebSocket support
     'python-multipart>=0.0.6',  # File upload support
+    'python-dotenv>=1.0,<2',  # Optional server.env loading
+    'cryptography>=41.0',  # Encrypted per-request service credentials
     'pydantic>=2.0.0',  # Data validation
     'chardet>=5.2.0',  # Character encoding detection
     'SQLAlchemy>=2.0,<3',
     'alembic>=1.13,<2',
     'prometheus-client>=0.20,<1',
     'threadpoolctl>=3.6,<4',
+    'psutil>=5.9',  # Confirm termination of optional compute child processes
 ]
 
 install_requires.extend(server_requires)
+
+# These groups are all installed by default. Keep their names as empty extras
+# below so existing installation commands continue to work without re-pinning
+# packages replaced by an algorithm's requirements.
+dependency_groups = {
+    'e-dit': ['torch==2.6.0', 'torchvision==0.21.0', 'diffusers==0.40.0', 'transformers==5.3.0',
+              'accelerate==1.13.0', 'peft>=0.12', 'einops', 'sentencepiece',
+              'safetensors>=0.8', 'rich', 'imageio-ffmpeg', 'ffmpeg-python',
+              'decord', 'moviepy', 'pycocotools', 'pandas', 'av>=16.1,<20', 'scipy', 'ftfy==6.3.1'],
+    'server-mcp': ['mcp>=1.30,<2'],
+    'server-audio': ['av>=16.1,<20'],
+    'server-mysql': ['pymysql>=1.1,<2'],
+    'server-postgresql': ['psycopg[binary]>=3.2,<4'],
+    'server-redis': ['redis>=5,<8'],
+    'server-s3': ['boto3>=1.34,<2'],
+    'server-cos': ['cos-python-sdk-v5>=1.9,<2'],
+    'server-oss': ['alibabacloud-oss-v2>=1.4,<2'],
+    'server-obs': ['esdk-obs-python>=3.25,<4'],
+}
+for requirements in dependency_groups.values():
+    install_requires.extend(requirements)
+install_requires = list(dict.fromkeys(install_requires))
+
+
+def apply_dependency_overrides(requirements, filename):
+    """Replace entire requirements by normalized package name before packaging.
+
+    The file contains PEP 508 requirements and optional pip index options.
+    Index options are consumed by pip via -r, not distribution metadata.
+    Relative paths are resolved against setup.py, independent of the build cwd.
+    Multiple marked requirements for a package replace its default together.
+    """
+    import re
+
+    if not filename:
+        return list(requirements)
+    if not os.path.isabs(filename):
+        filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+
+    overrides = []
+    names = set()
+    with open(filename, encoding='utf-8-sig') as stream:
+        for lineno, line in enumerate(stream, 1):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            line = re.split(r'\s+#', line, maxsplit=1)[0].rstrip()
+            if line.startswith('--'):
+                option = shlex.split(re.sub(r'^(--[a-z-]+)=', r'\1 ', line))
+                if (len(option) == 2 and option[0] in {
+                        '--index-url', '--extra-index-url', '--find-links', '--trusted-host'}):
+                    continue
+                if option == ['--no-index']:
+                    continue
+            try:
+                requirement = Requirement(line)
+            except InvalidRequirement as error:
+                raise ValueError(
+                    f'{filename}:{lineno}: expected a PEP 508 requirement; '
+                    'only index options are supported in addition to requirements'
+                ) from error
+            names.add(canonicalize_name(requirement.name))
+            overrides.append(str(requirement))
+
+    retained = [item for item in requirements
+                if canonicalize_name(Requirement(item).name) not in names]
+    return list(dict.fromkeys(retained + overrides))
+
+
+def algorithm_requirements_file(algorithm):
+    """Select one algorithm without importing model or native dependencies."""
+    import re
+
+    if not re.fullmatch(r'[a-z][a-z0-9_]*', algorithm):
+        raise ValueError(f'Invalid algorithm name: {algorithm!r}')
+    filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'nndeploy', 'e_dit', 'algorithms', algorithm, 'requirements.txt')
+    if not os.path.isfile(filename):
+        raise FileNotFoundError(f'Algorithm requirements not found: {filename}')
+    return filename
+
+
+algorithm = os.environ.get('NNDEPLOY_DIT_ALGORITHM')
+override_file = os.environ.get('NNDEPLOY_REQUIREMENTS_OVERRIDE')
+if algorithm:
+    if override_file:
+        raise ValueError('Set only one of NNDEPLOY_DIT_ALGORITHM and NNDEPLOY_REQUIREMENTS_OVERRIDE')
+    override_file = algorithm_requirements_file(algorithm)
+install_requires = apply_dependency_overrides(install_requires, override_file)
 
 print(f"Final dependency list: {install_requires}")
 
@@ -535,6 +629,8 @@ setup(
     package_dir={"nndeploy": "nndeploy"},
     # package_data=package_data,
     package_data=get_package_data(),
+    exclude_package_data={"": [".env", ".env.*", "*.env", "*.env.*",
+                               "**/.env", "**/.env.*", "**/*.env", "**/*.env.*"]},
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
@@ -543,16 +639,7 @@ setup(
             'nndeploy-clean=nndeploy.server.clean:main',
         ],
     },
-    extras_require={
-        'server-audio': ['av>=16.1,<20'],
-        'server-mysql': ['pymysql>=1.1,<2'],
-        'server-postgresql': ['psycopg[binary]>=3.2,<4'],
-        'server-redis': ['redis>=5,<8'],
-        'server-s3': ['boto3>=1.34,<2'],
-        'server-cos': ['cos-python-sdk-v5>=1.9,<2'],
-        'server-oss': ['alibabacloud-oss-v2>=1.4,<2'],
-        'server-obs': ['esdk-obs-python>=3.25,<4'],
-    },
+    extras_require={name: [] for name in dependency_groups},
     cmdclass={"bdist_wheel": bdist_wheel},
     # cmdclass=cmd_classes,
     zip_safe=False,  # Added: Disable zip safe mode

@@ -1,0 +1,6 @@
+{
+  "services": [
+    {"algorithm": "text", "name": "upper", "options": {"uppercase": true}},
+    {"algorithm": "text", "name": "lower", "options": {"uppercase": false}}
+  ]
+}

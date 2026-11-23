@@ -26,7 +26,7 @@ class DeployRequest(BaseModel):
         return self
 
 
-def node_request(config, body):
+def node_request(config, body, *, untyped=False):
     """Keep transport options compatible while accepting nodes at the root."""
     if (('inputs' in body or 'parameters' in body)
             and not ({'inputs', 'parameters'} & (config.inputs.keys() | config.parameters.keys()))):
@@ -35,8 +35,13 @@ def node_request(config, body):
     fields = config.inputs.keys() | config.parameters.keys()
     options = {key: value for key, value in body.items()
                if key in ('mode', 'wait_timeout_seconds', 'idempotency_key', 'callback_url') and key not in fields}
-    inputs, parameters = split_node_request(config, {key: value for key, value in body.items() if key not in options})
-    return dict(inputs=inputs, parameters=parameters, **options)
+    # Only declared node fields belong to the shorthand. Preserve unknown
+    # envelope keys so strict transport validation rejects them before any
+    # batch item is admitted. Untyped code entries also accept free-form inputs.
+    nodes = {key: value for key, value in body.items() if key in fields or untyped and key not in options}
+    unknown = {key: value for key, value in body.items() if key not in nodes and key not in options}
+    inputs, parameters = split_node_request(config, nodes)
+    return {'inputs': inputs, 'parameters': parameters, **options, **unknown}
 
 
 class TaskResponse(BaseModel):

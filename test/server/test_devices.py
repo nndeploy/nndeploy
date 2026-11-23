@@ -41,7 +41,7 @@ def configuration(memory=40, workers=1, isolation='thread'):
 
 
 def make(database, directory, settings=None):
-    return Server(data_dir=directory, device_limits=settings or budget(), admin_token='test',
+    return Server(resources=directory, data_dir=directory, device_limits=settings or budget(), admin_token='test',
                   database_url=database.url.render_as_string(hide_password=False))
 
 
@@ -285,7 +285,7 @@ def test_policy_mismatch_and_missing_declarations_fail_before_model_loading(db, 
 
 def test_shared_reload_reserves_every_replica_and_releases_only_its_own_claim(backend, tmp_path):
     database, redis = backend
-    options = dict(data_dir=tmp_path, database_url=database.url.render_as_string(hide_password=False), redis_config=redis,
+    options = dict(resources=tmp_path, data_dir=tmp_path, database_url=database.url.render_as_string(hide_password=False), redis_config=redis,
                    device_limits=budget(4, 160))
     servers = [Server(name='model', deploy=shared_deploy, config=configuration(), **options) for _ in range(2)]
     async def scenario():
@@ -344,7 +344,7 @@ def test_real_owner_death_preserves_budget_until_all_compute_exits(db, tmp_path,
     host = uuid.uuid4().hex
     settings = budget(1, 90, host=host)
     settings['devices']['cpu']['max_concurrency'] = 1
-    options = dict(data_dir=tmp_path / 'original', device_limits=settings,
+    options = dict(resources=tmp_path / 'original', data_dir=tmp_path / 'original', device_limits=settings,
                    database_url=db.url.render_as_string(hide_password=False))
     marker, release, accepted = [tmp_path / name for name in ('running', 'release', 'accepted')]
     owner = multiprocessing.get_context('spawn').Process(target=_running_budgeted_server,
@@ -536,7 +536,7 @@ def test_one_failed_recovery_does_not_block_other_models_and_copied_evidence_is_
 
 
 def test_declared_budgets_require_a_configured_coordinator(db, tmp_path):
-    server = Server(name='model', deploy=shared_deploy, config=configuration(), data_dir=tmp_path,
+    server = Server(name='model', deploy=shared_deploy, config=configuration(), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     async def scenario():
         try:
@@ -551,7 +551,7 @@ def test_declared_budgets_require_a_configured_coordinator(db, tmp_path):
 def test_cpu_budget_example_runs_both_endpoints_and_has_reload_headroom(tmp_path):
     import runpy
     example = runpy.run_path(str(Path(__file__).resolve().parents[2] / 'demo/server/device_limits.py'))
-    server = example['create_server'](tmp_path)
+    server = example['create_server'](tmp_path, resources=tmp_path)
     async def scenario():
         try:
             await server.start()

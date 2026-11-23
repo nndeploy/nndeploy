@@ -71,12 +71,14 @@ class GraphRunner:
         if self._owner != threading.get_ident():
             raise RuntimeError("Resident Graph must be used on its owning thread")
 
-    def execute(self, bind, collect, *, steps=None, after_step=None):
+    def execute(self, bind, collect, *, steps=None, after_step=None, progress=None, measure=None):
         """Bind a request, run its finite steps, then detach its outputs.
 
         The caller bounds the step count after binding inputs; ordinary requests
         run once. Per-step checks run after synchronization, before collection.
         """
+        from contextlib import nullcontext
+        measure = measure or (lambda name: nullcontext())
         self._check_owner()
         if self._close_error is not None:
             raise self._close_error
@@ -88,9 +90,11 @@ class GraphRunner:
                 if type(count) is not int or count < 1:
                     raise ValueError('Resident Graph execution requires a finite positive step count')
                 for _ in range(count):
-                    self._check_status(self.graph.run())
-                    if not self.graph.synchronize():
-                        raise RuntimeError("Graph synchronization failed")
+                    from .execution import ExecutionContext, execution_scope
+                    with measure('compute'), execution_scope(ExecutionContext(lambda: self.is_cancel, progress)):
+                        self._check_status(self.graph.run())
+                        if not self.graph.synchronize():
+                            raise RuntimeError("Graph synchronization failed")
                     if after_step is not None:
                         after_step()
                 return collect(self.graph)
@@ -181,8 +185,9 @@ class GraphRunner:
             self.graph.set_time_profile_flag(True)
             if args is not None and args.debug:
                 self.graph.set_debug_flag(True)
-            # self.graph.set_parallel_type(nndeploy.base.ParallelType.Task)
-            # self.graph.set_parallel_type(nndeploy.base.ParallelType.Pipeline)
+            if args is not None and getattr(args, "parallel_type", ""):
+                self.graph.set_parallel_type(
+                    nndeploy.base.ParallelType.from_name(args.parallel_type))
 
             if self.is_cancel:
                 raise RuntimeError(f"graph interrupted!")
@@ -209,7 +214,9 @@ class GraphRunner:
             count = self.graph.get_loop_count()
             for i in range(count):
                 t0_0 = time.perf_counter()
-                status = self.graph.run()
+                from .execution import ExecutionContext, execution_scope
+                with execution_scope(ExecutionContext(lambda: self.is_cancel)):
+                    status = self.graph.run()
                 self._check_status(status)
                 t1_0 = time.perf_counter()
                 print(f"run {i} times, time: {t1_0 - t0_0}")

@@ -30,7 +30,7 @@ def servers_for(backend, tmp_path):
     db, redis_config = backend
     config = entry_config()
     config['execution']['isolation'] = 'thread'
-    return [Server(name='shared', deploy=shared_deploy, config=config, data_dir=tmp_path / 'shared',
+    return [Server(name='shared', deploy=shared_deploy, config=config, resources=tmp_path / 'shared', data_dir=tmp_path / 'shared',
                    database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config) for _ in range(2)]
 
 
@@ -173,7 +173,7 @@ def test_slow_follower_initialization_does_not_block_other_entry_controls(backen
     database, redis_config = backend
     settings = entry_config()
     settings['execution']['isolation'] = 'thread'
-    server = Server(data_dir=tmp_path, database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
+    server = Server(resources=tmp_path, data_dir=tmp_path, database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     for name in ('slow', 'fast'):
         server.add(name=name, deploy=shared_deploy, config=settings)
 
@@ -246,7 +246,7 @@ def test_control_token_migration_preserves_stopped_queue_and_capacity(db):
 
 def test_first_factory_discovery_cannot_resume_a_stop_it_could_not_observe(backend, tmp_path):
     database, redis_config = backend
-    options = dict(name='factory', graph_factory=text_factory, data_dir=tmp_path,
+    options = dict(name='factory', graph_factory=text_factory, resources=tmp_path, data_dir=tmp_path,
                    database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     first, second = Server(**options), Server(**options)
 
@@ -269,7 +269,7 @@ def test_first_factory_discovery_cannot_resume_a_stop_it_could_not_observe(backe
 
 def test_factory_schema_drift_does_not_silently_switch_shared_queue_on_restart(backend, tmp_path, monkeypatch):
     database, redis_config = backend
-    server = Server(name='factory', graph_factory=text_factory, data_dir=tmp_path,
+    server = Server(name='factory', graph_factory=text_factory, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
 
     async def scenario():

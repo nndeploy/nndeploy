@@ -20,6 +20,8 @@ class StorageConfig(StrictModel):
     secret_key_env: str | None = None
     token_env: str | None = None
     max_bytes: int = Field(default=16 * 1024 * 1024, ge=1, le=5 * 1024**3)
+    media_max_duration_seconds: float = Field(default=600, gt=0, le=86400, allow_inf_nan=False)
+    media_max_dimension: int = Field(default=4096, ge=1, le=32768)
     retention_seconds: float | None = Field(default=None, ge=60, allow_inf_nan=False)
     max_files_per_subject: int | None = Field(default=None, ge=1, le=1_000_000)
     max_storage_bytes_per_subject: int | None = Field(default=None, ge=1, le=2**63 - 1)
@@ -106,14 +108,53 @@ class ObjectBackend:
             self.client.upload_file(str(path), bucket, key, ExtraArgs={'ContentType': media_type},
                 Config=TransferConfig(multipart_threshold=8 * 1024**2, multipart_chunksize=8 * 1024**2, max_concurrency=2))
         elif provider == 'cos':
-            self.client.upload_file(Bucket=bucket, Key=key, LocalFilePath=str(path), PartSize=8,
-                MAXThread=2, EnableMD5=True, ContentType=media_type)
+            self._cos_put_file(bucket, key, path, media_type)
         elif provider == 'oss':
             import alibabacloud_oss_v2 as oss
             self.client.put_object_from_file(oss.PutObjectRequest(bucket=bucket, key=key, content_type=media_type), str(path))
         else:
             from obs import PutObjectHeader
             self._obs(self.client.putFile(bucket, key, str(path), headers=PutObjectHeader(contentType=media_type)))
+
+    def _cos_put_file(self, bucket, key, path, media_type):
+        # COS upload_file deliberately leaves failed uploads resumable. Managed
+        # files have unique keys and discard failed writes, so own the upload
+        # explicitly instead of leaking incomplete parts on that SDK path.
+        from concurrent.futures import ThreadPoolExecutor
+        import logging
+        part_size = 8 * 1024**2
+        size = os.path.getsize(path)
+        if size <= part_size:
+            with open(path, 'rb') as source:
+                self.client.put_object(Bucket=bucket, Key=key, Body=source,
+                                       EnableMD5=True, ContentType=media_type)
+            return
+        upload_id = self.client.create_multipart_upload(
+            Bucket=bucket, Key=key, ContentType=media_type)['UploadId']
+        try:
+            def upload(part):
+                number, offset = part
+                # Bound memory to two chunks, independent of the file size.
+                with open(path, 'rb') as source:
+                    source.seek(offset)
+                    chunk = source.read(min(part_size, size - offset))
+                result = self.client.upload_part(Bucket=bucket, Key=key, Body=chunk,
+                    PartNumber=number, UploadId=upload_id, EnableMD5=True)
+                return {'PartNumber': number, 'ETag': result['ETag']}
+            # Join active writers before aborting; map cancels pending futures
+            # if a part fails. Completion receives parts in numeric order.
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                parts = list(pool.map(upload, enumerate(range(0, size, part_size), 1)))
+            self.client.complete_multipart_upload(Bucket=bucket, Key=key,
+                UploadId=upload_id, MultipartUpload={'Part': parts})
+        except BaseException:
+            try:
+                self.client.abort_multipart_upload(Bucket=bucket, Key=key, UploadId=upload_id)
+            except Exception:
+                # SDK exception text may contain signed URLs. Keep diagnostics
+                # credential-free and preserve the original upload failure.
+                logging.getLogger(__name__).error('COS multipart abort failed for key %s, upload %s', key, upload_id)
+            raise
 
     @contextmanager
     def open(self, key):

@@ -62,7 +62,7 @@ def current_task(values):
 
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_serial_workers_use_the_same_isolated_task_context(tmp_path, isolation):
-    server = Server(name='context', deploy=current_task, data_dir=tmp_path, config={'execution': {'isolation': isolation}})
+    server = Server(name='context', deploy=current_task, resources=tmp_path, data_dir=tmp_path, config={'execution': {'isolation': isolation}})
     async def scenario():
         await server.start()
         try:
@@ -106,7 +106,7 @@ async def until(predicate):
 
 
 def test_q05_one_engine_accepts_second_request_while_first_is_running(tmp_path):
-    server = Server(name='engine', handler_factory=build_engine, data_dir=tmp_path, config=engine_config())
+    server = Server(name='engine', handler_factory=build_engine, resources=tmp_path, data_dir=tmp_path, config=engine_config())
     async def scenario():
         release, marker = tmp_path / 'release', tmp_path / 'marker'
         await server.start()
@@ -130,7 +130,7 @@ def test_q05_one_engine_accepts_second_request_while_first_is_running(tmp_path):
 
 @pytest.mark.parametrize('cooperative', [False, True])
 def test_engine_cancellation_is_request_scoped_and_capacity_tracks_actual_work(tmp_path, cooperative):
-    server = Server(name='engine', handler_factory=build_engine, data_dir=tmp_path, config=engine_config(cooperative=cooperative))
+    server = Server(name='engine', handler_factory=build_engine, resources=tmp_path, data_dir=tmp_path, config=engine_config(cooperative=cooperative))
     async def scenario():
         release = [tmp_path / f'release-{index}' for index in range(2)]
         markers = [tmp_path / f'marker-{index}' for index in range(2)]
@@ -165,7 +165,7 @@ def test_engine_cancellation_is_request_scoped_and_capacity_tracks_actual_work(t
 
 
 def test_engine_failure_and_stop_do_not_destroy_other_inflight_requests(tmp_path):
-    server = Server(name='engine', handler_factory=build_engine, data_dir=tmp_path, config=engine_config())
+    server = Server(name='engine', handler_factory=build_engine, resources=tmp_path, data_dir=tmp_path, config=engine_config())
     async def scenario():
         release, marker = tmp_path / 'release', tmp_path / 'marker'
         await server.start()
@@ -194,7 +194,7 @@ def test_engine_mode_requires_explicit_async_code_and_rejects_shared_graph(tmp_p
     from test_server_api import text_graph
     async def scenario():
         for source in ({'workflow': text_graph()}, {'deploy': lambda values: values}):
-            server = Server(name='invalid', data_dir=tmp_path, config=engine_config(), **source)
+            server = Server(name='invalid', resources=tmp_path, data_dir=tmp_path, config=engine_config(), **source)
             try:
                 with pytest.raises(ValueError, match='Graph|async'):
                     await server.start()
@@ -207,7 +207,7 @@ def test_engine_mode_requires_explicit_async_code_and_rejects_shared_graph(tmp_p
 def test_q05_second_stream_finishes_while_first_stream_is_still_open(tmp_path):
     from test_streaming import live_server, parse_events
     import requests
-    server = Server(name='engine', handler_factory=build_streaming_engine, data_dir=tmp_path, config=engine_config(stream=True))
+    server = Server(name='engine', handler_factory=build_streaming_engine, resources=tmp_path, data_dir=tmp_path, config=engine_config(stream=True))
     release = tmp_path / 'release'
     with live_server(server) as address:
         try:
@@ -231,7 +231,7 @@ def test_q05_second_stream_finishes_while_first_stream_is_still_open(tmp_path):
 def test_engine_cooperative_deadline_is_per_request(tmp_path):
     config = engine_config(cooperative=True)
     config['execution']['execution_timeout_seconds'] = .2
-    server = Server(name='engine', handler_factory=build_engine, data_dir=tmp_path, config=config)
+    server = Server(name='engine', handler_factory=build_engine, resources=tmp_path, data_dir=tmp_path, config=config)
     async def scenario():
         await server.start()
         try:
@@ -248,7 +248,7 @@ def test_engine_cooperative_deadline_is_per_request(tmp_path):
 
 def test_engine_event_failure_keeps_capacity_until_uncancellable_work_finishes(tmp_path, monkeypatch):
     release, marker = tmp_path / 'release', tmp_path / 'marker'
-    server = Server(name='engine', handler_factory=build_streaming_engine, data_dir=tmp_path,
+    server = Server(name='engine', handler_factory=build_streaming_engine, resources=tmp_path, data_dir=tmp_path,
                     config=engine_config(stream=True, concurrency=1))
     def fail(*args, **kwargs):
         raise RuntimeError('event store unavailable')
@@ -283,7 +283,7 @@ def test_cooperative_cancel_waits_for_engine_cleanup_before_releasing_slot(tmp_p
             cleaning.set()
             while not released.is_set():
                 await asyncio.sleep(.01)
-    server = Server(name='engine', deploy=deploy, data_dir=tmp_path, config=engine_config(concurrency=1, cooperative=True))
+    server = Server(name='engine', deploy=deploy, resources=tmp_path, data_dir=tmp_path, config=engine_config(concurrency=1, cooperative=True))
     async def scenario():
         await server.start()
         try:
@@ -320,7 +320,7 @@ def test_stream_failure_cleanup_is_not_interrupted_by_later_deadline(tmp_path, m
                 await asyncio.sleep(.01)
     config = engine_config(concurrency=1, cooperative=True, stream=True)
     config['streaming']['max_duration_seconds'] = .1
-    server = Server(name='engine', deploy=stream, data_dir=tmp_path, config=config)
+    server = Server(name='engine', deploy=stream, resources=tmp_path, data_dir=tmp_path, config=config)
     def unavailable(*args, **kwargs):
         raise RuntimeError('event write unavailable')
     monkeypatch.setattr(server.db, 'append_task_event', unavailable)

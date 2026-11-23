@@ -23,7 +23,7 @@ def config(value, isolation='thread'):
 
 def replicas(backend, tmp_path, *, isolation='thread'):
     db, redis = backend
-    options = dict(data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
+    options = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=db.url.render_as_string(hide_password=False),
                    redis_config=redis, admin_token='test-admin')
     return [Server(name='model', deploy=shared_deploy, config=config('old', isolation), **options) for _ in range(2)]
 
@@ -224,7 +224,7 @@ def test_activate_commit_ack_loss_retries_without_reinitializing_workers(backend
 
 def test_native_workflow_restores_active_config_without_a_second_saved_snapshot(backend, tmp_path):
     db, redis = backend
-    options = dict(data_dir=tmp_path / 'graph', database_url=db.url.render_as_string(hide_password=False), redis_config=redis)
+    options = dict(resources=tmp_path / 'graph', data_dir=tmp_path / 'graph', database_url=db.url.render_as_string(hide_password=False), redis_config=redis)
     first = Server(name='echo', workflow=text_graph(), config=configuration('old'), **options)
     async def scenario():
         restored = None
@@ -290,7 +290,7 @@ def test_shared_workflow_files_release_only_after_every_replica_exits_old_config
     from test_storage import picture
     from test_config_files import assert_protected
     db, redis = backend
-    options = dict(data_dir=tmp_path / 'files', database_url=db.url.render_as_string(hide_password=False), redis_config=redis)
+    options = dict(resources=tmp_path / 'files', data_dir=tmp_path / 'files', database_url=db.url.render_as_string(hide_password=False), redis_config=redis)
     first, second = Server(**options), Server(**options)
     old_file = first.storage.save(io.BytesIO(picture()), 'image/png')['file_id']
     new_file = first.storage.save(io.BytesIO(picture()), 'image/png')['file_id']

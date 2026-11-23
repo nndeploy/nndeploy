@@ -28,7 +28,7 @@ def deploy_item(values):
 
 def test_batch_preserves_order_errors_ownership_and_per_item_idempotency(db, tmp_path, credentials):
     auth, headers = credentials
-    server = Server(name='echo', deploy=deploy_item, input_model=BatchInputs, data_dir=tmp_path,
+    server = Server(name='echo', deploy=deploy_item, input_model=BatchInputs, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False), auth_config=auth)
     prefix = uuid.uuid4().hex
     items = [{'inputs': {'text': value}, 'idempotency_key': prefix + str(index)} for index, value in enumerate(('first', 'fail', 'last'))]
@@ -59,7 +59,7 @@ def test_batch_preserves_order_errors_ownership_and_per_item_idempotency(db, tmp
 
 
 def test_async_batch_capacity_and_cancellation_use_existing_tasks(tmp_path):
-    server = Server(name='engine', handler_factory=build_engine, data_dir=tmp_path, config=engine_config(cooperative=True))
+    server = Server(name='engine', handler_factory=build_engine, resources=tmp_path, data_dir=tmp_path, config=engine_config(cooperative=True))
     release = tmp_path / 'release'
     async def scenario():
         await server.start()
@@ -80,7 +80,7 @@ def test_async_batch_capacity_and_cancellation_use_existing_tasks(tmp_path):
 
 def test_batch_stops_admission_after_database_failure_without_executing(tmp_path, monkeypatch):
     calls = []
-    server = Server(name='echo', deploy=lambda value: calls.append(value), data_dir=tmp_path)
+    server = Server(name='echo', deploy=lambda value: calls.append(value), resources=tmp_path, data_dir=tmp_path)
     writes = []
     def fail(*args, **kwargs):
         writes.append(1)
@@ -99,7 +99,7 @@ def test_batch_runs_native_image_graph_with_independent_outputs(tmp_path, isolat
     graph = image_graph()
     config = suggest_config(graph)
     config['execution'] = {'isolation': isolation}
-    server = Server(workflow=graph, config=config, data_dir=tmp_path)
+    server = Server(workflow=graph, config=config, resources=tmp_path, data_dir=tmp_path)
     colors = [(11, 22, 33), (44, 55, 66)]
     with TestClient(server.app) as client:
         items = []
@@ -128,7 +128,7 @@ def test_batch_does_not_silently_mix_entries_during_reload(tmp_path, monkeypatch
             versions.append(self.version)
         def deploy(self, values):
             return {'version': self.version}
-    server = Server(name='code', handler_factory=Handler, data_dir=tmp_path)
+    server = Server(name='code', handler_factory=Handler, resources=tmp_path, data_dir=tmp_path)
     entered, release = threading.Event(), threading.Event()
     create = server.db.create_task
     def delayed(*args, **kwargs):
@@ -165,7 +165,7 @@ def test_cancelled_python_waiter_does_not_break_subsequent_batch_execution(tmp_p
         if not release.wait(10):
             raise RuntimeError('Test computation was not released')
         return values
-    server = Server(name='echo', deploy=deploy, data_dir=tmp_path)
+    server = Server(name='echo', deploy=deploy, resources=tmp_path, data_dir=tmp_path)
     async def scenario():
         await server.start()
         try:
@@ -184,3 +184,23 @@ def test_cancelled_python_waiter_does_not_break_subsequent_batch_execution(tmp_p
             release.set()
             await server.close()
     asyncio.run(scenario())
+
+
+def test_node_shorthand_batch_rejects_unknown_envelope_before_admission(tmp_path):
+    calls = []
+
+    def echo(inputs):
+        calls.append(inputs)
+        return inputs
+
+    server = Server(name='echo', deploy=echo, resources=tmp_path, data_dir=tmp_path,
+                    config={'inputs': {'text': {'type': 'string'}}})
+    with TestClient(server.app) as client:
+        response = client.post('/v1/server/echo/deploy/batch',
+                               json={'items': [{'text': 'valid'}, {'text': 'invalid', 'unknown': 1}]})
+        assert response.status_code == 422
+        assert calls == []
+        response = client.post('/v1/server/echo/deploy/batch', json={'items': [{'text': 'valid'}]})
+        assert response.status_code == 200
+        assert response.json()['items'][0]['outputs'] == {'text': 'valid'}
+        assert calls == [{'text': 'valid'}]

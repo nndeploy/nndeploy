@@ -311,7 +311,7 @@ def test_host_startup_wait_is_owned_after_caller_cancel_and_preserves_reserved_c
 def test_shared_worker_warmup_uses_same_device_capacity_as_existing_redis_tasks(backend, tmp_path):
     db, redis = backend
     settings = limits()
-    options = dict(data_dir=tmp_path / 'shared', device_limits=settings, redis_config=redis,
+    options = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', device_limits=settings, redis_config=redis,
                    database_url=db.url.render_as_string(hide_password=False))
     first, second = Server(**options), Server(**options)
     first.add(name='busy', deploy=shared_deploy, config=config())

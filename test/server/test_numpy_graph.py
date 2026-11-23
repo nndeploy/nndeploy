@@ -28,7 +28,7 @@ def test_general_numpy_graph_roundtrip_and_reused_buffers(tmp_path, isolation, d
     settings = graph_config('array', dtype=dtype, shape=shape, isolation=isolation)
     body = wire(data, dtype, shape)
     settings['execution']['warmup'] = [{'inputs': {'value': body}}]
-    server = Server(graph_factory=array_graph, config=settings, data_dir=tmp_path)
+    server = Server(graph_factory=array_graph, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         first = client.post('/v1/server/default/deploy', json={'inputs': {'value': body}})
         assert first.status_code == 200, first.text
@@ -43,7 +43,7 @@ def test_general_numpy_graph_roundtrip_and_reused_buffers(tmp_path, isolation, d
 
 def test_numpy_dynamic_rank_dimensions_and_durable_database_values(db, tmp_path):
     settings = graph_config('array', dtype='int64', shape=[None, None, None, None])
-    server = Server(graph_factory=array_graph, config=settings, data_dir=tmp_path,
+    server = Server(graph_factory=array_graph, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         for shape in ([1, 2, 3, 1], [2, 1, 2, 2], [1, 0, 3, 1]):
@@ -57,7 +57,7 @@ def test_numpy_dynamic_rank_dimensions_and_durable_database_values(db, tmp_path)
 def test_shared_process_numpy_graph_keeps_single_channel_dimension(backend, tmp_path):
     database, redis_config = backend
     settings = graph_config('array', dtype='float16', shape=[2, 3, 1], isolation='process')
-    server = Server(graph_factory=array_graph, config=settings, data_dir=tmp_path,
+    server = Server(graph_factory=array_graph, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     body = wire([.5, 1, 1.5, 2, 2.5, 3], 'float16', [2, 3, 1])
     with TestClient(server.app) as client:
@@ -105,7 +105,7 @@ def test_numpy_vector_flows_into_native_opencv_encoder(tmp_path, source):
     options = {'workflow': workflow} if source == 'json' else {'graph_factory': vector_image_graph}
     settings = {'inputs': {'value': {'type': 'array', 'dtype': 'uint8', 'shape': [12], 'edge': 'input'}},
                 'outputs': {'image': {'type': 'image', 'node': ['encode']}}}
-    server = Server(name='vector', config=settings, data_dir=tmp_path, **options)
+    server = Server(name='vector', config=settings, resources=tmp_path, data_dir=tmp_path, **options)
     with TestClient(server.app) as client:
         for bgr, rgb in [([0, 0, 255], (255, 0, 0)), ([255, 0, 0], (0, 0, 255))]:
             result = client.post('/v1/server/vector/deploy', json={'inputs': {'value': wire(bgr * 4, 'uint8', [12])}})

@@ -251,7 +251,7 @@ def test_verified_legacy_deletion_can_retry_after_content_is_gone(db, tmp_path, 
 
 
 def test_http_reader_is_protected_until_last_byte_and_cancellation_releases_hold(tmp_path):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     file = server.storage.save(io.BytesIO(b'x' * 200000), 'application/octet-stream')['file_id']
     expire(server.db, file)
     async def scenario():
@@ -282,7 +282,7 @@ def test_http_reader_is_protected_until_last_byte_and_cancellation_releases_hold
 
 
 def test_cancel_during_reader_registration_waits_before_releasing(tmp_path, monkeypatch):
-    server = Server(data_dir=tmp_path)
+    server = Server(resources=tmp_path, data_dir=tmp_path)
     file = upload(server.storage)
     entered, release = threading.Event(), threading.Event()
     hold = server.db.hold_files
@@ -313,7 +313,7 @@ def test_cancel_during_reader_registration_waits_before_releasing(tmp_path, monk
 
 
 def test_cleanup_management_and_range_response(tmp_path):
-    server = Server(data_dir=tmp_path, admin_token='admin')
+    server = Server(resources=tmp_path, data_dir=tmp_path, admin_token='admin')
     with TestClient(server.app) as client:
         file = upload(server.storage)
         response = client.get('/v1/files/' + file + '/content', headers={'Range': 'bytes=0-3'})

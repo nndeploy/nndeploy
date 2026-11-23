@@ -2,6 +2,8 @@
 
 
 def create_entry(*, uppercase=True):
+    if type(uppercase) is not bool:
+        raise ValueError('uppercase must be a boolean')
     from .api import router
     from .executor import deploy
     return {

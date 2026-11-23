@@ -6,6 +6,7 @@ from typing import Union
 import numpy as np
 import json
 import importlib
+import logging
 
 import nndeploy.base
 import nndeploy.device
@@ -81,6 +82,19 @@ class Node(_C.dag.Node):
         else:
             super().__init__(name, inputs, outputs)
         
+    def get_runtime_parameter_paths(self):
+        """Serialized leaf paths safely changeable on an initialized node.
+
+        Opt in only when set_runtime_parameters can apply and restore these
+        values without replacing model/device resources. Other fields retain
+        the Server's deinit/deserialize/init lifecycle.
+        """
+        return ()
+
+    def set_runtime_parameters(self, changes):
+        """Apply a validated nested patch on the owning execution thread."""
+        raise NotImplementedError('This node does not support runtime parameters')
+
     def __del__(self):
         """Destructor that ensures proper cleanup of initialized nodes."""
         if self.get_initialized():
@@ -994,7 +1008,15 @@ def get_all_node_json():
     # Add leaf nodes
     for namespace, node_keys_in_namespace in namespace_groups.items():
         for node_key in node_keys_in_namespace:
-            json_str = get_node_json(node_key)
+            try:
+                json_str = get_node_json(node_key)
+            except ModuleNotFoundError as exc:
+                # Optional plugins must not prevent the editor from listing
+                # nodes whose dependencies are available.
+                logging.getLogger(__name__).warning(
+                    "Skipping node %s: missing dependency %s", node_key, exc.name
+                )
+                continue
             if json_str != "":
                 node_data = json.loads(json_str)
                 

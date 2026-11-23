@@ -1,0 +1,4 @@
+# Environment files must never enter Python source distributions.
+include install.py
+recursive-include nndeploy/e_dit/algorithms requirements.txt
+global-exclude .env .env.* *.env *.env.*

@@ -473,7 +473,7 @@ def test_migration_preserves_live_legacy_ownership_without_fabricating_memory_us
 
 def test_redis_replicas_share_temporary_memory_and_keep_completed_results(backend, tmp_path):
     database, redis = backend
-    options = dict(data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False),
+    options = dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False),
                    redis_config=redis, device_limits=memory_limits())
     servers = [Server(name='model', deploy=shared_deploy, config=memory_config(10, 50), **options) for _ in range(2)]
     marker, blocked, release = [tmp_path / name for name in ('busy', 'blocked', 'release')]
@@ -577,4 +577,58 @@ def test_device_identifiers_remain_distinct_after_legacy_case_insensitive_mysql_
                 with db.engine.begin() as connection:
                     for table, column in columns:
                         connection.execute(text(f'ALTER TABLE {table} MODIFY {column} VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL'))
+    asyncio.run(scenario())
+
+
+def test_request_estimates_share_capacity_and_missing_estimate_uses_ceiling(db, tmp_path):
+    server = make(db, tmp_path, memory_limits(100))
+    server.add(name='video', deploy=shared_deploy, config=memory_config(resident=10, temporary=70, workers=3))
+    releases = [tmp_path / f'release-{i}' for i in range(3)]
+    markers = [tmp_path / f'marker-{i}' for i in range(3)]
+    async def scenario():
+        try:
+            await server.start()
+            first_id, first = await server.submit('video', {'marker': str(markers[0]), 'release': str(releases[0])},
+                service={'temporary_memory_bytes': {'cpu': 20}})
+            await until(markers[0].exists)
+            _, second = await server.submit('video', {'marker': str(markers[1]), 'release': str(releases[1])},
+                service={'temporary_memory_bytes': {'cpu': 30}})
+            await until(markers[1].exists)
+            assert memory(server)['temporary_bytes'] == 50
+            assert db.get_task(first_id)['service']['temporary_memory_bytes'] == {'cpu': 20}
+            _, third = await server.submit('video', {'marker': str(markers[2]), 'release': str(releases[2])})
+            await until(lambda: activity(server)['waiting'] == 1)
+            assert not markers[2].exists()
+            releases[0].touch()
+            await first
+            assert not markers[2].exists()
+            releases[1].touch()
+            await second
+            await until(markers[2].exists)
+            assert memory(server)['temporary_bytes'] == 70
+            releases[2].touch()
+            await third
+            await until(lambda: memory(server)['temporary_bytes'] == 0)
+        finally:
+            for release in releases:
+                release.touch()
+            await server.close()
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize('estimate', [None, [], {'cpu': 0}, {'cpu': -1}, {'cpu': True},
+                                       {'cpu': 1.5}, {'cpu': 71}, {'gpu': 1}])
+def test_invalid_request_memory_is_rejected_before_admission(db, tmp_path, estimate):
+    server = make(db, tmp_path, memory_limits(100))
+    server.add(name='video', deploy=shared_deploy, config=memory_config(10, 70))
+    async def scenario():
+        try:
+            await server.start()
+            with pytest.raises(ServerError) as rejected:
+                await server.submit('video', {}, service={'temporary_memory_bytes': estimate})
+            assert rejected.value.code == 'invalid_memory_estimate'
+            assert server.inflight == 0
+            assert activity(server) == {'running': 0, 'waiting': 0}
+        finally:
+            await server.close()
     asyncio.run(scenario())

@@ -27,7 +27,7 @@ def credentials(monkeypatch):
 
 def test_identity_scopes_idempotency_tasks_and_entries(db, tmp_path, credentials):
     config, headers = credentials
-    server = Server(name='echo', deploy=lambda value: value, data_dir=tmp_path,
+    server = Server(name='echo', deploy=lambda value: value, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False), auth_config=config, admin_token='admin')
     server.add(name='private', deploy=lambda value: value)
     with TestClient(server.app) as client:
@@ -57,7 +57,7 @@ def test_identity_scopes_idempotency_tasks_and_entries(db, tmp_path, credentials
         own = client.get('/v1/tasks/' + results['alice'], headers=headers['alice'])
         assert own.status_code == 200 and 'owner' not in own.json()
         assert db.get_task(results['alice'])['owner'] == 'alice'
-    with TestClient(Server(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=config).app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=config).app) as client:
         assert client.get('/v1/tasks/' + results['alice'], headers=headers['alice']).status_code == 200
         assert client.get('/v1/tasks/' + results['alice'], headers=headers['bob']).status_code == 404
 
@@ -65,7 +65,7 @@ def test_identity_scopes_idempotency_tasks_and_entries(db, tmp_path, credentials
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_native_graph_output_files_keep_owner_and_forbid_cross_user_references(db, tmp_path, credentials, isolation):
     config, headers = credentials
-    server = Server(workflow=image_graph(), data_dir=tmp_path, auth_config=config,
+    server = Server(workflow=image_graph(), resources=tmp_path, data_dir=tmp_path, auth_config=config,
                     database_url=db.url.render_as_string(hide_password=False))
     server.entries['image']['config'].execution.isolation = isolation
     server.add(name='echo', deploy=lambda value: value)

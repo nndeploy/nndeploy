@@ -118,7 +118,7 @@ def test_native_video_graph_runs_all_frames_and_reuses_models(db, tmp_path, sour
                 'outputs': {'video': {'type': 'file', 'media_type': 'video/mp4', 'node': ['encode']}},
                 'execution': {'isolation': isolation}}
     options = {'workflow': workflow} if source == 'json' else {'graph_factory': video_graph}
-    server = Server(name='video', config=settings, data_dir=tmp_path / 'server',
+    server = Server(name='video', config=settings, resources=tmp_path / 'server', data_dir=tmp_path / 'server',
                     database_url=db.url.render_as_string(hide_password=False), **options)
     with TestClient(server.app) as client:
         worker = server.entries['video']['workers'][0]
@@ -151,7 +151,7 @@ def test_native_video_graph_runs_all_frames_and_reuses_models(db, tmp_path, sour
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_video_frames_pass_through_resident_algorithm(backend, tmp_path, isolation):
     database, redis_config = backend
-    server = Server(name='video', graph_factory=resize_graph, data_dir=tmp_path / 'server',
+    server = Server(name='video', graph_factory=resize_graph, resources=tmp_path / 'server', data_dir=tmp_path / 'server',
                     database_url=database.url.render_as_string(hide_password=False),
                     redis_config=redis_config, config={
                         'inputs': {'decode': {'type': 'file', 'media_type': 'video/mp4', 'node': ['decode']}},
@@ -180,7 +180,7 @@ def test_video_frames_pass_through_resident_algorithm(backend, tmp_path, isolati
 
 
 def test_native_image_nodes_are_discovered_and_reused(tmp_path):
-    with TestClient(Server(graph_factory=image_graph, data_dir=tmp_path).app) as client:
+    with TestClient(Server(graph_factory=image_graph, resources=tmp_path, data_dir=tmp_path).app) as client:
         for color in ['red', 'blue']:
             data = io.BytesIO()
             Image.new('RGB', (5, 7), color).save(data, format='PNG')
@@ -234,7 +234,7 @@ def test_native_video_encoder_rejects_frame_size_changes(tmp_path):
 def test_failed_video_request_discards_partial_output_and_next_request_recovers(tmp_path):
     from sqlalchemy import select, func
     from nndeploy.server.db import files
-    server = Server(name='video', graph_factory=changing_graph, data_dir=tmp_path / 'server')
+    server = Server(name='video', graph_factory=changing_graph, resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         for color, expected in [('red', 500), ('blue', 200)]:
             data = clip(tmp_path / 'input.mp4', color, '16x16', 3)
@@ -259,7 +259,7 @@ def test_video_request_limits_reject_input_and_allow_next_request(tmp_path, fram
     workflow = json.loads(video_graph().serialize())
     settings = suggest_config(workflow)
     settings['execution'] = {'isolation': isolation}
-    server = Server(name='video', workflow=workflow, config=settings, data_dir=tmp_path / 'server')
+    server = Server(name='video', workflow=workflow, config=settings, resources=tmp_path / 'server', data_dir=tmp_path / 'server')
     with TestClient(server.app) as client:
         for count, rate, expected in [(frames, fps, 422), (3, 5, 200)]:
             data = clip(tmp_path / 'input.mp4', 'red', '16x16', count, rate)
@@ -291,7 +291,7 @@ def test_native_video_autodetect_preserves_draft_paths_without_opening_them(tmp_
     workflow = json.loads(graph.serialize())
     original = json.dumps(workflow, sort_keys=True)
     options = {'graph': graph} if source == 'graph' else {'workflow': workflow}
-    server = Server(name='default', data_dir=tmp_path / 'server', **options)
+    server = Server(name='default', resources=tmp_path / 'server', data_dir=tmp_path / 'server', **options)
     with TestClient(server.app) as client:
         data = clip(tmp_path / 'input.mp4', 'red', '16x16', 3)
         upload = client.post('/v1/files', files={'file': ('input.mp4', data, 'video/mp4')})

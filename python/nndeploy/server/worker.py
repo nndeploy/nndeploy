@@ -2,6 +2,7 @@ import gc
 import logging
 import os
 import threading
+import time
 import traceback
 import pickle
 from pathlib import Path
@@ -365,8 +366,17 @@ class Worker:
         return self.executor.config
 
     @property
+    def service_status(self):
+        return dict(getattr(self.executor.handler, 'service_status', {}))
+
+    @property
     def resource_snapshot(self):
         return self.executor.source.get('resource_snapshot')
+
+    @property
+    def parameter_modes(self):
+        binding = self.executor.binding
+        return binding.parameter_modes() if binding is not None else {}
 
     @property
     def asset_paths(self):
@@ -630,12 +640,15 @@ class ConcurrentWorker(EngineWorker):
             await asyncio.to_thread(self.compute_pool.shutdown, wait=True)
 
 
-def _resident_process(connection, source_bytes, config, storage_options, workdir, control_guard_path=None, device_guard_path=None, startup_deadline=None):
+def _resident_process(connection, source_bytes, config, storage_options, workdir, control_guard_path=None, device_guard_path=None, startup_deadline=None, interruption=None):
     """Construct and destroy native objects in the child's owning thread."""
     from .config import ServerConfig
     from .db import DB
     from .executor import Executor
     from .storage import LocalStorage
+    # A dedicated session lets the controller stop the complete compute group.
+    if config.get('execution', {}).get('allow_child_processes'):
+        os.setsid()
     executor = None
     db = None
     guard = None
@@ -657,9 +670,13 @@ def _resident_process(connection, source_bytes, config, storage_options, workdir
             cpu = CpuThreads(settings.execution.cpu_threads)
         db = DB(storage_options['database_url'])
         storage = LocalStorage(storage_options['root'], db, max_bytes=storage_options['max_bytes'], config=storage_options['config'])
+        storage.stage_sink = lambda values: connection.send(('stages', values))
         executor = Executor(pickle.loads(source_bytes), settings, storage, workdir, cpu=cpu)
+        executor.interruption = interruption
         executor.open(startup_deadline)
         connection.send(('ready', dict(config=executor.config.model_dump(),
+                                       parameter_modes=executor.binding.parameter_modes() if executor.binding is not None else {},
+                                       service_status=getattr(executor.handler, 'service_status', {}),
                                        resources=executor.source.get('resource_snapshot'),
                                        assets=executor.asset_lease.paths if executor.asset_lease is not None else [])))
         while True:
@@ -707,6 +724,7 @@ def _resident_process(connection, source_bytes, config, storage_options, workdir
 class ProcessWorker:
     """One bounded IPC command per isolated process, with confirmed termination."""
     def __init__(self, source, config, storage, workdir):
+        self.storage = storage
         from concurrent.futures import ThreadPoolExecutor
         if source.get('graph') is not None:
             raise ValueError('Process isolation requires a workflow or graph_factory')
@@ -726,6 +744,8 @@ class ProcessWorker:
         self.closed = False
         self.resource_snapshot = None
         self.asset_paths = []
+        self.interruption = None
+        self.response_received = False
 
     @property
     def pid(self):
@@ -733,12 +753,37 @@ class ProcessWorker:
 
     def _terminate(self):
         if self.process is not None:
+            descendants = []
+            if self.config.execution.allow_child_processes:
+                import signal
+                import psutil
+            if self.config.execution.allow_child_processes and self.process.pid:
+                # The owner may already have exited; find surviving group members
+                # as well as descendants still visible through the owner PID.
+                for candidate in psutil.process_iter():
+                    try:
+                        if candidate.pid != self.process.pid and os.getpgid(candidate.pid) == self.process.pid:
+                            descendants.append(candidate)
+                    except (ProcessLookupError, PermissionError, psutil.NoSuchProcess):
+                        continue
+                try:
+                    os.killpg(self.process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass  # Child may not yet have established its own session.
             if self.process.is_alive():
                 self.process.terminate()
             self.process.join(timeout=2)
             if self.process.is_alive():
                 self.process.kill()
                 self.process.join()
+            if self.config.execution.allow_child_processes:
+                _, alive = psutil.wait_procs(descendants, timeout=5)
+                for child in alive:
+                    try:
+                        if child.is_running() and child.status() != psutil.STATUS_ZOMBIE:
+                            raise RuntimeError('Worker descendants have not confirmed termination')
+                    except psutil.NoSuchProcess:
+                        pass
             self.process.close()
             self.process = None
         if self.connection is not None:
@@ -749,34 +794,68 @@ class ProcessWorker:
         import time
         from .errors import ServerError
         deadline = None if timeout is None else time.monotonic() + timeout
+        failure = None
+        grace_deadline = None
+
+        def check_interruption():
+            nonlocal failure, grace_deadline
+            now = time.monotonic()
+            if failure is None:
+                if cancellable and self.cancelled.is_set():
+                    failure = ServerError(409, 'task_cancelled', 'Request cancelled.')
+                    reason = 1
+                elif deadline is not None and now >= deadline:
+                    failure = ServerError(504, 'execution_timeout', 'Isolated worker exceeded its deadline')
+                    reason = 2
+                else:
+                    return
+                if not cancellable or not self.config.execution.cooperative_cancel:
+                    self._terminate()
+                    raise failure
+                self.interruption.value = reason
+                grace_deadline = now + self.config.execution.cancellation_grace_seconds
+            if now >= grace_deadline:
+                self._terminate()
+                raise failure
+
         while True:
-            if cancellable and self.cancelled.is_set():
-                self._terminate()
-                raise ServerError(409, 'task_cancelled', 'Isolated worker stopped')
-            if deadline is not None and time.monotonic() >= deadline:
-                self._terminate()
-                raise ServerError(504, 'execution_timeout', 'Isolated worker exceeded its deadline')
+            check_interruption()
             try:
                 if self.connection.poll(.05):
                     kind, value = self.connection.recv()
+                    if kind in ('result', 'error'):
+                        # Only a terminal response acknowledges that execution and
+                        # request cleanup finished. Never reuse a half-read pipe.
+                        self.response_received = True
+                        check_interruption()
+                        if failure is not None:
+                            raise failure
+                    if kind == 'stages':
+                        from .stages import record
+                        record(self.storage, self.config.name, value)
+                        continue
                     if kind == 'error':
                         if isinstance(value, dict):
                             raise ServerError(value['status'], value['code'], value['message'])
                         raise ServerError(500, 'execution_failed', value)
                     if kind == 'event':
+                        if failure is not None:
+                            continue  # Drain events while waiting for the stop acknowledgement.
                         if emit is None:
                             raise RuntimeError('Worker emitted an unexpected stream event')
                         from concurrent.futures import wait
                         self.pending_event = self.event_pool.submit(emit, value)
                         while not wait([self.pending_event], timeout=.02).done:
-                            if cancellable and self.cancelled.is_set():
-                                self._terminate()
-                                raise ServerError(409, 'task_cancelled', 'Isolated worker stopped')
-                            if deadline is not None and time.monotonic() >= deadline:
-                                self._terminate()
-                                raise ServerError(504, 'execution_timeout', 'Isolated worker exceeded its deadline')
-                        self.pending_event.result()
-                        self.pending_event = None
+                            check_interruption()
+                        try:
+                            self.pending_event.result()
+                        except ServerError as exc:
+                            if not cancellable or not self.config.execution.cooperative_cancel or exc.code != 'task_cancelled':
+                                raise
+                            self.cancelled.set()
+                            check_interruption()
+                        finally:
+                            self.pending_event = None
                         continue
                     return kind, value
             except (OSError, EOFError) as exc:
@@ -791,10 +870,13 @@ class ProcessWorker:
         import time
         from .config import ServerConfig
         context = multiprocessing.get_context('spawn')
+        self.interruption = context.Value('i', 0)
         self.connection, child = context.Pipe()
         self.process = context.Process(target=_resident_process,
             args=(child, self.source_bytes, self.config.model_dump(), self.storage_options, self.workdir,
-                  getattr(self, 'control_guard_path', None), getattr(self, 'device_guard_path', None), deadline), daemon=True)
+                  getattr(self, 'control_guard_path', None), getattr(self, 'device_guard_path', None), deadline,
+                  self.interruption),
+            daemon=not self.config.execution.allow_child_processes)
         try:
             self.process.start()
             child.close()
@@ -809,6 +891,8 @@ class ProcessWorker:
             if kind != 'ready':
                 raise RuntimeError('Worker did not become ready')
             self.config = ServerConfig.model_validate(value['config'])
+            self.parameter_modes = value.get('parameter_modes', {})
+            self.service_status = value.get('service_status', {})
             self.resource_snapshot = value['resources']
             self.asset_paths = value['assets']
             if self.resource_snapshot is not None:
@@ -841,11 +925,19 @@ class ProcessWorker:
         if self.process is None or not self.process.is_alive():
             self._terminate()
             self._start()
+        self.response_received = False
+        self.interruption.value = 0
         try:
-            self.connection.send(('deploy', values))
             timeout = self.config.execution.execution_timeout_seconds
+            deadline = (values.get('_service') or {}).get('deadline')
+            if deadline is not None:
+                remaining = max(0, deadline - time.time())
+                timeout = min(timeout, remaining) if timeout is not None else remaining
             if self.config.streaming.enabled:
-                timeout = min(timeout, self.config.streaming.max_duration_seconds) if timeout else self.config.streaming.max_duration_seconds
+                timeout = min(timeout, self.config.streaming.max_duration_seconds) if timeout is not None else self.config.streaming.max_duration_seconds
+            if timeout is not None:
+                values = {**values, '_execution_deadline': time.monotonic() + timeout}
+            self.connection.send(('deploy', values))
             kind, value = self._receive(timeout, cancellable=True, emit=emit)
             if kind != 'result':
                 raise RuntimeError('Invalid worker response')
@@ -857,7 +949,8 @@ class ProcessWorker:
         except BaseException:
             # A failed event commit must stop the emitting process before the
             # next request can reuse it or release its execution slot.
-            self._terminate()
+            if not self.response_received:
+                self._terminate()
             raise
 
     async def deploy(self, values, emit=None):
@@ -872,7 +965,7 @@ class ProcessWorker:
         try:
             if self.process is not None and self.process.is_alive():
                 self.connection.send(('close', None))
-                self._receive(5)
+                self._receive(self.config.execution.shutdown_timeout_seconds)
         finally:
             self._terminate()
             self.event_pool.shutdown(wait=True)

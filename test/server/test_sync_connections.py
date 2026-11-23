@@ -73,7 +73,7 @@ def test_slot_covers_actual_response_delivery_without_blocking_control_or_async(
     def calculate(inputs):
         calls.append(inputs)
         return inputs
-    server = Server(name='echo', deploy=calculate, router=router, data_dir=tmp_path,
+    server = Server(name='echo', deploy=calculate, router=router, resources=tmp_path, data_dir=tmp_path,
                     max_sync_connections=1, admin_token='admin')
     path = '/v1/server/echo/' + {'standard': 'deploy', 'batch': 'deploy/batch', 'algorithm': 'calculate'}[kind]
     body = {'items': [{}, {}]} if kind == 'batch' else {}
@@ -124,7 +124,7 @@ def test_subject_limit_groups_multiple_keys_and_preserves_other_callers(tmp_path
     monkeypatch.setenv('TEST_ALICE_SECOND_KEY', token)
     auth['keys'].append(dict(auth['keys'][0], token_env='TEST_ALICE_SECOND_KEY'))
     auth['max_sync_connections_per_subject'] = 1
-    server = Server(name='echo', deploy=lambda inputs: inputs, data_dir=tmp_path, auth_config=auth, max_sync_connections=3)
+    server = Server(name='echo', deploy=lambda inputs: inputs, resources=tmp_path, data_dir=tmp_path, auth_config=auth, max_sync_connections=3)
 
     async def scenario():
         await server.start()
@@ -156,7 +156,7 @@ def test_subject_limit_groups_multiple_keys_and_preserves_other_callers(tmp_path
 @pytest.mark.parametrize('cancel_http', [False, True])
 def test_disconnect_releases_reader_but_keeps_task_and_idempotency(tmp_path, scheduling, isolation, cancel_http):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=blocked_engine if scheduling == 'engine' else blocked, data_dir=tmp_path,
+    server = Server(name='echo', deploy=blocked_engine if scheduling == 'engine' else blocked, resources=tmp_path, data_dir=tmp_path,
                     config=config(scheduling=scheduling, isolation=isolation, http_wait_timeout_seconds=10), max_sync_connections=1)
     body = {'inputs': {'release': str(release)}}
     headers = {'Idempotency-Key': 'same'}
@@ -198,7 +198,7 @@ def test_disconnect_releases_reader_but_keeps_task_and_idempotency(tmp_path, sch
 def test_slow_or_failed_response_send_releases_slot(tmp_path, monkeypatch, failure):
     import nndeploy.server.request as request_module
     monkeypatch.setattr(request_module, 'SYNC_SEND_SECONDS', .05)
-    server = Server(name='echo', deploy=lambda inputs: inputs, data_dir=tmp_path, max_sync_connections=1)
+    server = Server(name='echo', deploy=lambda inputs: inputs, resources=tmp_path, data_dir=tmp_path, max_sync_connections=1)
 
     async def scenario():
         await server.start()
@@ -232,7 +232,7 @@ def test_slow_or_failed_response_send_releases_slot(tmp_path, monkeypatch, failu
 
 def test_shared_replicas_limit_their_own_connections_not_the_shared_task(backend, tmp_path):
     db, redis_config = backend
-    options = dict(name='echo', deploy=blocked, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10),
+    options = dict(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10),
                    database_url=db.url.render_as_string(hide_password=False), redis_config=redis_config, max_sync_connections=1)
     first, second = Server(**options), Server(**options)
     release = tmp_path / 'release'
@@ -269,7 +269,7 @@ def test_shared_replicas_limit_their_own_connections_not_the_shared_task(backend
 @pytest.mark.parametrize('batch', [False, True])
 def test_real_http_disconnect_keeps_compute_and_releases_connection(tmp_path, batch):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=blocked, data_dir=tmp_path, max_sync_connections=1,
+    server = Server(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, max_sync_connections=1,
                     config=config(http_wait_timeout_seconds=10))
     item = {'inputs': {'release': str(release)}}
     path = '/v1/server/echo/deploy' + ('/batch' if batch else '')
@@ -327,7 +327,7 @@ def test_rejections_execution_failure_and_response_conversion_failure_do_not_lea
             raise RuntimeError('Algorithm failed')
         return inputs
 
-    server = Server(name='echo', deploy=calculate, router=router, data_dir=tmp_path, max_sync_connections=1,
+    server = Server(name='echo', deploy=calculate, router=router, resources=tmp_path, data_dir=tmp_path, max_sync_connections=1,
                     config={'inputs': {'text': {'type': 'string'}}})
 
     async def scenario():
@@ -347,7 +347,7 @@ def test_rejections_execution_failure_and_response_conversion_failure_do_not_lea
 
 def test_disconnected_batch_does_not_leave_an_owned_result_waiter(tmp_path):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=blocked, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10))
+    server = Server(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10))
 
     async def scenario():
         await server.start()
@@ -371,7 +371,7 @@ def test_disconnected_batch_does_not_leave_an_owned_result_waiter(tmp_path):
 
 def test_disconnect_during_batch_database_admission_finishes_admission_without_result_waiter(tmp_path, monkeypatch):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=blocked, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10))
+    server = Server(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, config=config(http_wait_timeout_seconds=10))
     entered, release_database = threading.Event(), threading.Event()
     create = server.db.create_task
     writes = 0
@@ -416,7 +416,7 @@ def test_finished_http_readers_do_not_accumulate_observers_on_a_running_task(tmp
     settings = config()
     if mode == 'stream':
         settings['streaming'] = {'enabled': True}
-    server = Server(name='echo', deploy=waiting_stream if mode == 'stream' else blocked, data_dir=tmp_path, config=settings)
+    server = Server(name='echo', deploy=waiting_stream if mode == 'stream' else blocked, resources=tmp_path, data_dir=tmp_path, config=settings)
     release = tmp_path / 'release'
     observers = []
     submit = server.submit
@@ -452,7 +452,7 @@ def test_finished_http_readers_do_not_accumulate_observers_on_a_running_task(tmp
 
 
 def test_timed_out_batch_waiters_are_reclaimed_while_computation_runs(tmp_path, monkeypatch):
-    server = Server(name='echo', deploy=blocked, data_dir=tmp_path, config=config())
+    server = Server(name='echo', deploy=blocked, resources=tmp_path, data_dir=tmp_path, config=config())
     release = tmp_path / 'release'
     readers = []
     deploy = server.deploy_batch

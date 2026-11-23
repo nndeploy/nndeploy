@@ -80,7 +80,7 @@ def stream_config(isolation='thread', **limits):
 def test_stream_replay_and_final_state_are_durable(db, tmp_path, credentials, isolation, handler):
     auth_config, headers = credentials
     server = Server(name='echo', deploy=handler, config=stream_config(isolation),
-                    data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth_config)
+                    resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth_config)
     with TestClient(server.app) as client:
         result = client.post('/v1/server/echo/deploy', json={'mode': 'stream'}, headers=headers['alice'])
         assert result.status_code == 200, result.text
@@ -96,7 +96,7 @@ def test_stream_replay_and_final_state_are_durable(db, tmp_path, credentials, is
         for invalid in ('-1', 'bad', '6'):
             assert client.get(f'/v1/tasks/{identity}/events', headers=dict(headers['alice'], **{'Last-Event-ID': invalid})).status_code in (409, 422)
         assert client.post('/v1/server/echo/deploy', json={'mode': 'stream'}, headers=dict(headers['alice'], Accept='application/json')).status_code == 406
-    with TestClient(Server(data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth_config).app) as client:
+    with TestClient(Server(resources=tmp_path, data_dir=tmp_path, database_url=db.url.render_as_string(hide_password=False), auth_config=auth_config).app) as client:
         replay = client.get(f'/v1/tasks/{identity}/events', headers=dict(headers['alice'], **{'Last-Event-ID': '2'}))
         assert [event['sequence'] for event in parse_events(replay.text)] == [3, 4, 5]
 
@@ -110,7 +110,10 @@ def live_server(server):
     thread = threading.Thread(target=http.run, kwargs={'sockets': [listener]}, daemon=True)
     thread.start()
     try:
-        for _ in range(200):
+        # Spawn may import optional model libraries on installations with DiT.
+        # This helper tests HTTP streaming, not the Worker's startup deadline.
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
             if http.started:
                 break
             if not thread.is_alive():
@@ -129,7 +132,7 @@ def live_server(server):
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_real_http_disconnect_does_not_cancel_stream_and_can_resume(tmp_path, isolation):
     release = tmp_path / 'release'
-    server = Server(name='echo', deploy=output_stream, data_dir=tmp_path,
+    server = Server(name='echo', deploy=output_stream, resources=tmp_path, data_dir=tmp_path,
                     config=stream_config(isolation))
     with live_server(server) as address:
         try:
@@ -157,7 +160,7 @@ def test_real_http_disconnect_does_not_cancel_stream_and_can_resume(tmp_path, is
 def test_stream_limits_fail_without_more_output_or_reexecution(tmp_path, isolation, oversize):
     config = stream_config(isolation, max_events=2, max_event_bytes=100)
     config['inputs']['oversize'] = {'type': 'boolean'}
-    server = Server(name='echo', deploy=invalid_stream, data_dir=tmp_path, config=config)
+    server = Server(name='echo', deploy=invalid_stream, resources=tmp_path, data_dir=tmp_path, config=config)
     with TestClient(server.app) as client:
         response = client.post('/v1/server/echo/deploy', json={'mode': 'stream', 'inputs': {'oversize': oversize}})
         events = parse_events(response.text)
@@ -169,7 +172,7 @@ def test_stream_limits_fail_without_more_output_or_reexecution(tmp_path, isolati
 
 @pytest.mark.parametrize('spec_version', ['2.0', '2.4'])
 def test_slow_transport_is_bounded_and_keeps_task_ownership(tmp_path, spec_version):
-    server = Server(name='echo', deploy=output_stream, data_dir=tmp_path,
+    server = Server(name='echo', deploy=output_stream, resources=tmp_path, data_dir=tmp_path,
                     config=stream_config(), max_inflight_tasks=1)
     release = tmp_path / 'release'
     async def scenario():
@@ -206,7 +209,7 @@ def test_accept_header_honors_explicit_exclusion_and_wildcards():
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_stream_cancel_stops_iteration_and_next_request_remains_usable(tmp_path, isolation):
     release, closed = tmp_path / 'release', tmp_path / 'closed'
-    server = Server(name='echo', deploy=output_stream, data_dir=tmp_path, config=stream_config(isolation))
+    server = Server(name='echo', deploy=output_stream, resources=tmp_path, data_dir=tmp_path, config=stream_config(isolation))
     with live_server(server) as address:
         try:
             response = requests.post(address + '/v1/server/echo/deploy', json={'mode': 'async',
@@ -225,7 +228,8 @@ def test_stream_cancel_stops_iteration_and_next_request_remains_usable(tmp_path,
             assert len([event for event in events if event['kind'] == 'delta']) == 1
             if isolation == 'thread':
                 assert closed.exists()  # cooperative generator close, not only a status update
-            following = requests.post(address + '/v1/server/echo/deploy', json={}, timeout=5)
+            # A cancelled process worker is rebuilt before this request runs.
+            following = requests.post(address + '/v1/server/echo/deploy', json={}, timeout=20)
             assert following.status_code == 200 and following.json()['outputs'] == {'text': 'last'}
         finally:
             release.touch()
@@ -234,7 +238,7 @@ def test_stream_cancel_stops_iteration_and_next_request_remains_usable(tmp_path,
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_async_stream_deadline_closes_waiting_iterator(tmp_path, isolation):
     closed = tmp_path / 'closed'
-    server = Server(name='echo', deploy=waiting_stream, data_dir=tmp_path,
+    server = Server(name='echo', deploy=waiting_stream, resources=tmp_path, data_dir=tmp_path,
                     config=stream_config(isolation, max_duration_seconds=.1))
     with TestClient(server.app) as client:
         result = client.post('/v1/server/echo/deploy', json={'mode': 'stream', 'inputs': {'closed': str(closed)}})
@@ -247,7 +251,7 @@ def test_async_stream_deadline_closes_waiting_iterator(tmp_path, isolation):
 
 @pytest.mark.parametrize('isolation', ['thread', 'process'])
 def test_event_recording_failure_stops_generator_and_does_not_publish_success(tmp_path, monkeypatch, isolation):
-    server = Server(name='echo', deploy=output_stream, data_dir=tmp_path, config=stream_config(isolation))
+    server = Server(name='echo', deploy=output_stream, resources=tmp_path, data_dir=tmp_path, config=stream_config(isolation))
     append = server.db.append_task_event
     def fail(*args, **kwargs):
         raise RuntimeError('Event database temporarily unavailable')
@@ -262,10 +266,12 @@ def test_event_recording_failure_stops_generator_and_does_not_publish_success(tm
 
 
 @pytest.mark.parametrize('stop', ['cancel', 'deadline'])
-def test_process_control_remains_live_during_blocked_event_write(tmp_path, monkeypatch, stop):
+@pytest.mark.parametrize('cooperative', [False, True])
+def test_process_control_remains_live_during_blocked_event_write(tmp_path, monkeypatch, stop, cooperative):
     entered, release = threading.Event(), threading.Event()
     config = stream_config('process', max_duration_seconds=.5 if stop == 'deadline' else 5.0)
-    server = Server(name='echo', deploy=output_stream, data_dir=tmp_path, config=config)
+    config['execution'].update(cooperative_cancel=cooperative, cancellation_grace_seconds=.2)
+    server = Server(name='echo', deploy=output_stream, resources=tmp_path, data_dir=tmp_path, config=config)
     append = server.db.append_task_event
     def blocked(*args, **kwargs):
         entered.set()

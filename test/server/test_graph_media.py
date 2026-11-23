@@ -64,7 +64,7 @@ def wav_bytes():
 
 @pytest.mark.parametrize('factory', [pil_graph, cv_graph])
 def test_image_ports_roundtrip_real_pixels_and_keep_graph_resident(db, tmp_path, factory):
-    server = Server(graph_factory=factory, config=config('image'), data_dir=tmp_path,
+    server = Server(graph_factory=factory, config=config('image'), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         graph = server.entries['default']['workers'][0].executor.runner.graph
@@ -87,7 +87,7 @@ def test_image_ports_roundtrip_real_pixels_and_keep_graph_resident(db, tmp_path,
 
 
 def test_audio_bytes_ports_validate_mime_and_publish_independent_files(db, tmp_path):
-    server = Server(graph_factory=byte_graph, config=config('file', 'audio/wav'), data_dir=tmp_path,
+    server = Server(graph_factory=byte_graph, config=config('file', 'audio/wav'), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     data = wav_bytes()
     with TestClient(server.app) as client:
@@ -137,7 +137,7 @@ def test_video_and_text_file_ports_roundtrip_with_explicit_content_type(db, tmp_
     for media_type, data in [('video/mp4', path.read_bytes()), ('text/plain', b'hello UTF-8')]:
         settings = config('file', media_type)
         settings['execution'] = {'isolation': isolation}
-        server = Server(graph_factory=factory, config=settings, data_dir=tmp_path / media_type.replace('/', '-'),
+        server = Server(graph_factory=factory, config=settings, resources=tmp_path / media_type.replace('/', '-'), data_dir=tmp_path / media_type.replace('/', '-'),
                         database_url=db.url.render_as_string(hide_password=False))
         with TestClient(server.app) as client:
             uploaded = client.post('/v1/files', files={'file': ('input', data, media_type)})
@@ -148,7 +148,14 @@ def test_video_and_text_file_ports_roundtrip_with_explicit_content_type(db, tmp_
                 output = client.get(f"/v1/files/{result.json()['outputs']['media']['file_id']}/content")
                 assert output.headers['content-type'].startswith(media_type)
                 assert output.content == data
-            assert client.post('/v1/server/default/deploy', json={'inputs': {'media': str(path)}}).status_code == 422
+            local_input = tmp_path / ('local.mp4' if media_type == 'video/mp4' else 'local.txt')
+            local_input.write_bytes(data)
+            local = client.post('/v1/server/default/deploy', json={'inputs': {'media': str(local_input)}})
+            assert local.status_code == 200, local.text
+            content = client.get(f"/v1/files/{local.json()['outputs']['media']['file_id']}/content")
+            assert content.content == data
+            assert client.post('/v1/server/default/deploy',
+                json={'inputs': {'media': str(tmp_path / 'missing')}}).status_code == 422
 
 
 def test_media_output_format_and_original_workflow_stay_independent(db, tmp_path):
@@ -158,7 +165,7 @@ def test_media_output_format_and_original_workflow_stay_independent(db, tmp_path
     original = copy.deepcopy(workflow)
     settings = {'inputs': {'image': {'node': ['decode'], 'type': 'image'}},
                 'outputs': {'image': {'node': ['encode'], 'type': 'image', 'media_type': 'image/jpeg'}}}
-    server = Server(workflow=workflow, config=settings, data_dir=tmp_path,
+    server = Server(workflow=workflow, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False))
     with TestClient(server.app) as client:
         image = io.BytesIO()
@@ -194,7 +201,7 @@ def test_optional_mime_constraint_does_not_change_existing_config_fingerprints()
 def test_code_output_reference_must_match_declared_mime_without_deleting_input(tmp_path):
     settings = {'inputs': {'media': {'type': 'file'}},
                 'outputs': {'media': {'type': 'file', 'media_type': 'audio/wav'}}}
-    server = Server(deploy=lambda values: values, config=settings, data_dir=tmp_path)
+    server = Server(deploy=lambda values: values, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         uploaded = client.post('/v1/files', files={'file': ('text.txt', b'not audio', 'text/plain')}).json()
         result = client.post('/v1/server/default/deploy', json={'inputs': {'media': {'file_id': uploaded['file_id']}}})
@@ -204,7 +211,7 @@ def test_code_output_reference_must_match_declared_mime_without_deleting_input(t
 
 @pytest.mark.parametrize('factory,kind', [(pil_graph, 'image'), (byte_graph, 'file')])
 def test_known_exposed_media_ports_are_discovered_without_extra_configuration(tmp_path, factory, kind):
-    server = Server(graph_factory=factory, data_dir=tmp_path)
+    server = Server(graph_factory=factory, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         schema = server.describe('default')['schema']
         assert schema['inputs']['input']['type'] == kind
@@ -236,7 +243,7 @@ def amplify_graph():
 
 
 def test_file_output_size_limit_fails_without_publication_and_graph_recovers(tmp_path):
-    server = Server(graph_factory=amplify_graph, config=config('file'), data_dir=tmp_path,
+    server = Server(graph_factory=amplify_graph, config=config('file'), resources=tmp_path, data_dir=tmp_path,
                     storage_config={'max_bytes': 128})
     with TestClient(server.app) as client:
         for data, expected in [(b'expand', 500), (b'ok', 200)]:
@@ -263,7 +270,7 @@ def invalid_audio_graph():
 def test_file_output_must_validate_actual_media_not_just_extension(tmp_path):
     from sqlalchemy import select, func
     from nndeploy.server.db import files
-    server = Server(graph_factory=invalid_audio_graph, config=config('file', 'audio/wav'), data_dir=tmp_path)
+    server = Server(graph_factory=invalid_audio_graph, config=config('file', 'audio/wav'), resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         uploaded = client.post('/v1/files', files={'file': ('input.wav', wav_bytes(), 'audio/wav')}).json()
         result = client.post('/v1/server/default/deploy', json={'inputs': {'media': {'file_id': uploaded['file_id']}}})
@@ -277,7 +284,7 @@ def test_shared_graph_audio_ports_work_through_process_worker(backend, tmp_path)
     database, redis_config = backend
     settings = config('file', 'audio/wav')
     settings['execution'] = {'isolation': 'process'}
-    server = Server(graph_factory=byte_graph, config=settings, data_dir=tmp_path,
+    server = Server(graph_factory=byte_graph, config=settings, resources=tmp_path, data_dir=tmp_path,
                     database_url=database.url.render_as_string(hide_password=False), redis_config=redis_config)
     data = wav_bytes()
     with TestClient(server.app) as client:
@@ -316,7 +323,7 @@ def test_workflow_json_file_binding_reuses_existing_input_node_and_restores_valu
     settings = config('file', 'audio/wav')
     settings['inputs']['media'].pop('edge')
     settings['inputs']['media']['node'] = ['source']
-    server = Server(workflow=path, config=settings, data_dir=tmp_path / 'server',
+    server = Server(workflow=path, config=settings, resources=tmp_path / 'server', data_dir=tmp_path / 'server',
                     database_url=db.url.render_as_string(hide_password=False))
     data = wav_bytes()
     with TestClient(server.app) as client:
@@ -337,7 +344,7 @@ def test_media_graph_restores_input_and_output_from_object_storage(db, s3_servic
     storage = dict(backend='s3', bucket='nndeploy-tests', region='us-east-1', endpoint=endpoint,
                    prefix='media-' + uuid.uuid4().hex,
                    access_key_env='NNDEPLOY_MEDIA_TEST_ACCESS', secret_key_env='NNDEPLOY_MEDIA_TEST_SECRET')
-    server = Server(graph_factory=byte_graph, config=config('file', 'audio/wav'), data_dir=tmp_path,
+    server = Server(graph_factory=byte_graph, config=config('file', 'audio/wav'), resources=tmp_path, data_dir=tmp_path,
                     database_url=db.url.render_as_string(hide_password=False), storage_config=storage)
     data = wav_bytes()
     with TestClient(server.app) as http:
@@ -369,7 +376,7 @@ def test_invalid_second_output_removes_already_published_first_output(tmp_path):
     settings = {'inputs': {'media': {'type': 'file', 'edge': 'input'}},
                 'outputs': {'first': {'type': 'file', 'edge': 'first'},
                             'second': {'type': 'file', 'edge': 'second', 'media_type': 'audio/wav'}}}
-    server = Server(graph_factory=two_file_outputs_graph, config=settings, data_dir=tmp_path)
+    server = Server(graph_factory=two_file_outputs_graph, config=settings, resources=tmp_path, data_dir=tmp_path)
     with TestClient(server.app) as client:
         uploaded = client.post('/v1/files', files={'file': ('input.bin', b'not audio', 'application/octet-stream')}).json()
         response = client.post('/v1/server/default/deploy', json={'inputs': {'media': {'file_id': uploaded['file_id']}}})

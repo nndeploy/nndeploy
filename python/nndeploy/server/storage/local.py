@@ -71,7 +71,8 @@ class LocalStorage:
                     reserve = lambda size: self.db.grow_file(identity, owner, size, self.config.max_storage_bytes_per_subject)
                 size, checksum = self._copy(stream, target, self.max_bytes, reserve=reserve)
             from .archive import MAX_BYTES
-            suffix, media = validate(pending, media_type, max_archive_bytes=max(MAX_BYTES, self.max_bytes))
+            suffix, media = validate(pending, media_type, max_archive_bytes=max(MAX_BYTES, self.max_bytes),
+                max_duration_seconds=self.config.media_max_duration_seconds, max_dimension=self.config.media_max_dimension)
             destination = self.root / (identity + suffix)
             if quota:
                 # Record both names before rename, so either side of a crash

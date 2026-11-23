@@ -3,6 +3,24 @@
 Install nndeploy with its Server dependencies and working native bindings first.
 These examples use the same Server, TaskQueue and task records as workflow JSON.
 
+## Multiple instances from a service manifest
+
+From the repository root, register the trusted text factory and start two named
+instances using the common launcher:
+
+```bash
+python -m nndeploy.server --api-only \
+  --register-algorithm text=demo.server.text.server:create_entry \
+  --services demo/server/text/services.json --resources ./resources/text-services
+```
+
+POST `{"text":"Hello"}` to `/v1/server/upper/text` or
+`/v1/server/lower/text` for uppercase or lowercase output. Both also expose the
+standard `/v1/server/{name}/deploy` route and share the Server task lifecycle.
+Algorithm factories validate their own options; JSON only refers to registered
+names, while `--register-algorithm` explicitly authorizes importing trusted code.
+Installed plugins can use the same mechanism without changing Server sources.
+
 Model files and directories use the Node's existing I/O declarations:
 
 ```python
@@ -715,3 +733,11 @@ Algorithms declare `streaming.enabled: true` and `streaming.duplex: true`, and r
 `max_pending_inputs` bounds unconsumed input (default 64). When full, HTTP returns retryable 429 and WebSocket sends a nonterminal `input_queue_full` error; retry the same sequence after the algorithm consumes earlier input. One final end marker can be appended even when full. `max_events` and `max_event_bytes` apply independently to input and output. Accepted input remains with its Task until the configured task retention cleanup, enabling idempotent retries. Migration `0030_task_inputs` adds internal input records; no workflow JSON changes are needed.
 
 WebSocket requires the Task owner's `deploy` and `tasks:read` permissions (or administrator access), uses the normal Bearer header and same-origin/explicit CORS checks, and shares the existing Server stream connection limit with SSE. This header authentication is intended for SDK clients; browser-native WebSocket cannot supply an arbitrary Authorization header. Cookies and query-string tokens are not accepted as substitutes. Connections last at most 60 seconds, input inactivity closes them after 30 seconds, sends have a 5-second limit, and output has a 10-second heartbeat. Reconnect when needed. With audit enabled, input frames produce metadata-only audit records; denied handshakes and every read-only WebSocket action are not yet covered by complete WebSocket audit.
+
+### MCP tools
+
+`mcp_algorithms.py` exports two typed Python algorithms at `/mcp`, with optional
+`--workflow path/to/workflow.json` to export an entire multi-node Graph as a third
+tool. `mcp_client.py` discovers and calls them using the official MCP SDK, then
+polls task results. Install `nndeploy[server-mcp]` first. See the Server README's
+MCP section for authentication, media inputs and deployment configuration.

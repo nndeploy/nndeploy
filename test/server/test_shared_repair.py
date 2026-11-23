@@ -24,7 +24,7 @@ from test_control import configuration
 
 def options(backend, tmp_path):
     database, redis = backend
-    return dict(data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
+    return dict(resources=tmp_path / 'shared', data_dir=tmp_path / 'shared', database_url=database.url.render_as_string(hide_password=False), redis_config=redis)
 
 
 @pytest.mark.parametrize('restart', [False, True])

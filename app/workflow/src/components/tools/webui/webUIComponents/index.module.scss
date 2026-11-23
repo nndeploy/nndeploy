@@ -91,3 +91,24 @@
   }
 
 }
+.webui-components-container {
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  h3 { margin: 0 0 8px; }
+  .section-description { color: var(--semi-color-text-2); margin: 0 0 20px; }
+  .result-card {
+    border: 1px solid var(--semi-color-border);
+    background: var(--semi-color-bg-1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    header { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; margin-bottom: 12px; overflow-wrap: anywhere; }
+    header span { color: var(--semi-color-text-2); font-size: 12px; }
+    img, video { display: block; width: 100%; max-height: 480px; object-fit: contain; border-radius: 8px; background: var(--semi-color-fill-0); }
+    audio { width: 100%; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 480px; overflow: auto; margin: 0; font-size: 13px; line-height: 1.6; }
+    .download-link { display: inline-block; margin-top: 12px; }
+  }
+  @media (max-width: 760px) { grid-template-columns: minmax(0, 1fr); }
+}

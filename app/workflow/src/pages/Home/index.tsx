@@ -54,11 +54,11 @@ export default function Home() {
   const [item, setItem] = useState<IWorkFlowShortEntity | null>(null)
 
   function onCreateNewWorkFlow() {
-    navigate('/design')
+    navigate('/design', { state: { createWorkflow: true } })
   }
 
   function onWorkFlowClick(item: IWorkFlowShortEntity) {
-    navigate(`/design?id=${item.id}&name=${item.name_}&flowType=workspace`)
+    navigate(`/design?id=${encodeURIComponent(item.id)}&name=${encodeURIComponent(item.name_)}&flowType=workspace`)
   }
 
   async function onAddToWorkspace(item: IWorkFlowShortEntity) {
@@ -70,7 +70,7 @@ export default function Home() {
       return
 
     }
-    navigate(`/design?id=${item.id}&name=${item.name_}&flowType=template`)
+    navigate(`/design?id=${encodeURIComponent(item.id)}&name=${encodeURIComponent(item.name_)}&flowType=template`)
   }
   const [visible, setVisible] = useState(false);
 
@@ -79,7 +79,7 @@ export default function Home() {
   };
   const handleOk = () => {
     setVisible(false);
-    navigate(`/design?id=${item?.id}&name=${item?.name_}&flowType=template`)
+    navigate(`/design?id=${encodeURIComponent(item!.id)}&name=${encodeURIComponent(item!.name_)}&flowType=template`)
   };
   const handleCancel = () => {
     setVisible(false);

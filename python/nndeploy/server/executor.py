@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from nndeploy.dag import GraphRunner
+from .stages import stage, measured, execution_stages
 
 class GraphExecutor:
     """Encapsulate nndeploy load and run logic"""
@@ -181,8 +182,8 @@ class Executor:
                     load_existing_plugins(plugin_dir)
             if self.config.execution.batching.enabled:
                 raise ValueError('Dynamic batching requires an algorithm handler with deploy_batch and batch_key')
-            if self.config.streaming.enabled:
-                raise ValueError('Streaming requires a code entry that yields incremental outputs')
+            if self.config.streaming.duplex:
+                raise ValueError('Duplex streaming requires an algorithm code entry')
             from .io import GraphIO, prepare_native_workflow, prepare_native_graph
             workflow = self.source.get('workflow')
             if workflow is not None:
@@ -196,7 +197,8 @@ class Executor:
                 if self.source.get('autodetect'):
                     from .config import ServerConfig, suggest_config
                     generated = suggest_config(json.loads(graph.serialize()))
-                    generated.update(name=self.config.name, execution=self.config.execution.model_dump())
+                    generated.update(name=self.config.name, execution=self.config.execution.model_dump(),
+                                     mcp=self.config.mcp.model_dump() if self.config.mcp else None)
                     self.config = ServerConfig.model_validate(generated)
                 prepare_native_graph(graph, self.config, native_originals)
                 if self.source.get('workflow') is None:
@@ -267,6 +269,7 @@ class Executor:
                         field.check_file(record)
             yield dict(values, _task_id='warmup_' + uuid.uuid4().hex, _warmup=True)
 
+    @execution_stages
     def deploy(self, values, emit=None):
         import asyncio
         from .errors import ServerError
@@ -274,7 +277,9 @@ class Executor:
         token = set_task_id(values.get('_task_id', '0'))
         request_token = set_request_id(values.get('_request_id'))
         try:
-            return self._deploy(values, emit)
+            from .request_context import request_scope
+            with request_scope(self, values, emit):
+                return self._deploy(values, emit)
         except asyncio.CancelledError as exc:
             # This boundary runs on the owning compute thread/process. The
             # algorithm has unwound; HTTP waiter cancellation never enters it.
@@ -297,9 +302,10 @@ class Executor:
             inputs, parameters = self.decode_inputs(values)
             if self.config.streaming.duplex:
                 parameters['input_stream'] = self.input_stream(values)
-            result = target(inputs, **parameters)
-            if inspect.isawaitable(result):
-                result = self.loop.run_until_complete(result)
+            with stage('compute'):
+                result = target(inputs, **parameters)
+                if inspect.isawaitable(result):
+                    result = self.loop.run_until_complete(result)
             if inspect.isgenerator(result) or inspect.isasyncgen(result):
                 if not self.config.streaming.enabled or emit is None:
                     if inspect.isasyncgen(result):
@@ -307,19 +313,21 @@ class Executor:
                     else:
                         result.close()
                     raise ValueError('Generator entries must explicitly enable streaming')
-                result = self._consume_stream(result, emit, values)
-            elif self.config.streaming.enabled:
+                with stage('compute'):
+                    result = self._consume_stream(result, emit, values)
+            elif self.config.streaming.enabled and not getattr(self.handler, 'reports_progress', False):
                 raise ValueError('Streaming entries must return a generator')
             return self.validate_result(result, values)
         if self.runner.graph is None:
             self.open()
         input_paths = {}
-        for group in ('inputs', 'parameters'):
-            for name, field in getattr(self.config, group).items():
-                if field.is_file():
-                    path, record = self.storage.resolve_input(values[group][name], field)
-                    field.check_file(record)
-                    input_paths[group, name] = path
+        with stage('input_decode'):
+            for group in ('inputs', 'parameters'):
+                for name, field in getattr(self.config, group).items():
+                    if field.is_file():
+                        path, record = self.storage.resolve_input(values[group][name], field)
+                        field.check_file(record)
+                        input_paths[group, name] = path
         published = []
         try:
             with tempfile.TemporaryDirectory(prefix='request-', dir=self.workdir) as directory:
@@ -327,12 +335,20 @@ class Executor:
                 paths = {name: Path(directory) / f'output-{index}{MEDIA_EXTENSIONS[field.output_media_type()]}'
                          for index, (name, field) in enumerate(self.config.outputs.items())
                          if field.is_file()}
+                import time
+                progress_started = time.monotonic()
+                def publish_progress(value):
+                    if time.monotonic() - progress_started > self.config.streaming.max_duration_seconds:
+                        from .errors import ServerError
+                        raise ServerError(504, 'execution_timeout', 'Graph progress exceeded its execution duration')
+                    return emit(value)
                 result = self.runner.execute(
                     lambda graph: self.binding.bind(graph, values, input_paths, paths,
                         before_init=self.cpu.configure_graph if self.cpu is not None else None),
                     lambda graph: self.binding.collect(graph, paths),
                     steps=lambda: self.binding.steps,
-                    after_step=lambda: self.binding.check_output_sizes(paths))
+                    after_step=lambda: self.binding.check_output_sizes(paths),
+                    progress=publish_progress if emit is not None else None, measure=stage)
                 if values.get('_warmup'):
                     from .storage.media import validate
                     from .errors import ServerError
@@ -343,13 +359,14 @@ class Executor:
                     # The temporary directory owns warmup output. Nothing is
                     # published to storage, tasks or the event history.
                     return None
-                for name in paths:
-                    with result[name].open('rb') as stream:
-                        record = self.storage.save(stream, self.config.outputs[name].output_media_type(),
-                                                   owner=values.get('_owner'), task_id=values['_task_id'],
-                                                   attempt=values.get('_attempt', 1), worker_token=values.get('_worker_token'))
-                        result[name] = {'file_id': record['file_id']}
-                    published.append(result[name]['file_id'])
+                with stage('output_encode'):
+                    for name in paths:
+                        with result[name].open('rb') as stream:
+                            record = self.storage.save(stream, self.config.outputs[name].output_media_type(),
+                                                       owner=values.get('_owner'), task_id=values['_task_id'],
+                                                       attempt=values.get('_attempt', 1), worker_token=values.get('_worker_token'))
+                            result[name] = {'file_id': record['file_id']}
+                        published.append(result[name]['file_id'])
                 return result
         except BaseException:
             for identity in published:
@@ -360,6 +377,8 @@ class Executor:
                     logging.exception('Could not clean failed output %s', identity)
             raise
 
+    @execution_stages
+    @measured('batch_key')
     def batch_key(self, values):
         from .logging_taskid import set_task_id, reset_task_id, set_request_id, reset_request_id
         task_token = set_task_id(values.get('_task_id', '0'))
@@ -400,6 +419,7 @@ class Executor:
             return result
         raise ValueError('Dynamic batch methods must return synchronous values')
 
+    @execution_stages
     def deploy_batch(self, values):
         import copy
         from .errors import ServerError
@@ -412,7 +432,8 @@ class Executor:
             for value in values:
                 inputs, parameters = self.decode_inputs(value)
                 items.append(dict(task_id=value['_task_id'], request_id=value.get('_request_id'), inputs=inputs, parameters=parameters))
-            results = self._batch_call(self.handler.deploy_batch, items)
+            with stage('compute'):
+                results = self._batch_call(self.handler.deploy_batch, items)
             if not isinstance(results, list) or len(results) != len(items):
                 raise ServerError(500, 'batch_result_mismatch', 'Algorithm must return one result for each batch item')
             validated = []
@@ -426,6 +447,7 @@ class Executor:
             reset_request_id(request_context)
             reset_task_id(context)
 
+    @measured('input_decode')
     def decode_inputs(self, values):
         import copy
         from .arrays import decode
@@ -491,10 +513,15 @@ class Executor:
             for stream in files.values():
                 stream.close()
 
+    @measured('output_encode')
     def encode_output(self, result, values=None):
+        from .request_context import save_artifacts
+        if values is not None and not values.get('_warmup'):
+            result = save_artifacts(result, self.storage, values)
         result, files = self._prepare_output(result)
         return self._save_array_files(result, files, values)
 
+    @measured('output_encode')
     async def encode_output_async(self, result, values):
         # Capture every numeric buffer on the algorithm's loop before the first
         # await. Another engine request may reuse the same buffer while storage
@@ -504,6 +531,7 @@ class Executor:
             return result
         return await self.array_file_io(self._save_array_files, result, files, values)
 
+    @measured('output_validate')
     def validate_result(self, result, values=None):
         import copy
         result = self.encode_output(result, values)
@@ -543,6 +571,7 @@ class Executor:
             if inspect.isawaitable(result):
                 await result
 
+    @execution_stages
     async def deploy_async(self, values, publish):
         import copy
         import inspect
@@ -550,16 +579,18 @@ class Executor:
         inputs, parameters = await self.array_file_io(self.decode_inputs, values)
         if self.config.streaming.duplex:
             parameters['input_stream'] = self.input_stream(values)
-        result = target(inputs, **parameters)
-        if inspect.isawaitable(result):
-            result = await result
+        with stage('compute'):
+            result = target(inputs, **parameters)
+            if inspect.isawaitable(result):
+                result = await result
         if self.config.streaming.enabled:
             if not inspect.isasyncgen(result):
                 raise ValueError('Streaming engines must return an async generator')
             iterator, result = result, None
             try:
-                async for value in iterator:
-                    result = await publish(value)
+                with stage('compute'):
+                    async for value in iterator:
+                        result = await publish(value)
             finally:
                 await iterator.aclose()
         elif inspect.isasyncgen(result):

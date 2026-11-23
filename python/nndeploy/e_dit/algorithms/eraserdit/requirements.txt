@@ -1,0 +1,55 @@
+# EraserDiT CUDA dependency profile; same-name packages replace setup.py defaults.
+# Includes optional kernels, test tools and profiling dependencies.
+# From the repository root:
+# python python/install.py nndeploy/e_dit/algorithms/eraserdit/requirements.txt --editable
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+# Python 3.10 + Torch 2.6/cu126.
+# Preinstall Torch and build tools before building flash-attn without isolation.
+accelerate==1.13.0
+bitsandbytes
+diffusers==0.40.0
+transformers==5.3.0
+huggingface-hub>=1.3.0
+hf_transfer>=0.1.8
+peft>=0.12.0
+decord>=0.6.0
+wandb
+pandas
+torch==2.6.0+cu126
+torchvision==0.21.0+cu126
+# torchao is optional and its newest releases require a newer Torch than 2.6.
+sentencepiece>=0.2.0
+imageio-ffmpeg==0.6.0
+numpy==2.2.6
+moviepy==2.1.1
+pycocotools
+einops
+opencv-python==4.13.0.92
+ffmpeg-python==0.2.0
+safetensors>=0.8.0
+pillow==10.4.0
+imageio==2.37.3
+rich==15.0.0
+
+# Attention backends (selected at runtime; SDPA remains the default).
+triton==3.2.0
+# Triton JIT imports setuptools at runtime, not only during installation.
+setuptools==75.8.0
+flash-attn==2.8.3
+# L40S FP8 needs a separately installed compatible source build.
+sageattention==1.0.6
+
+# HTTP serving and S3 result publishing.
+fastapi==0.140.0
+uvicorn==0.51.0
+pydantic==2.13.4
+python-multipart>=0.0.20
+boto3
+
+# HTTP API regression tests.
+httpx>=0.27,<1
+
+# Reproducible process-tree CPU/NVML memory measurements.
+psutil>=5.9
+nvidia-ml-py>=12,<14
